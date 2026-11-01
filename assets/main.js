@@ -73,10 +73,11 @@
     var top = el("div", "card-top");
     var icon = el("span", "card-icon");
     var img = document.createElement("img");
-    img.src = "assets/favicon.png";
+    img.src = app.iconUrl || ("apps/" + app.id + "/icons/icon-192.png");
     img.alt = "";
     img.width = 40;
     img.height = 40;
+    img.onerror = function () { img.onerror = null; img.src = "assets/favicon.png"; };
     icon.appendChild(img);
     top.appendChild(icon);
     top.appendChild(el("span", "badge " + status, STATUS_LABEL[status] || status));
