@@ -1,60 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Adless — Free web apps by Atlanta Christian Students</title>
-  <meta name="description" content="Simple, ad-free web apps for worship and youth ministry: tuner, verse presenter, and more.">
-  <meta name="theme-color" content="#3b4bf5">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-  <header class="band">
-    <div class="wrap bar">
-      <a class="brand" href="./" aria-label="Adless home">
-        <img src="assets/favicon.svg" alt="" width="34" height="34">
-        <span>Adless</span>
-      </a>
-      <nav class="nav">
-        <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener">GitHub</a>
-        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">◐</button>
-      </nav>
-    </div>
-    <div class="wrap hero">
-      <h1>Web apps without the ads.</h1>
-      <p class="lead">Free tools made by Atlanta Christian students. No accounts, no tracking.</p>
-    </div>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <main>
-    <section id="apps" class="wrap apps-section">
-      <div class="tools">
-        <div id="tags" class="tags" role="group" aria-label="Filter by category"></div>
-        <input id="search" type="search" placeholder="Search apps" aria-label="Search apps" autocomplete="off">
+    <title>Adless — Free Web Apps by Atlanta Christian Students</title>
+
+    <meta
+      name="description"
+      content="Simple, free, ad-free web apps for worship, churches, and youth ministry. Explore tools like tuners, verse presenters, and more." />
+
+    <meta name="theme-color" content="#3b4bf5" />
+    <meta name="color-scheme" content="light dark" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Adless — Web Apps Without the Ads" />
+    <meta
+      property="og:description"
+      content="Free, open-source web apps made by Atlanta Christian students. No accounts, no tracking." />
+    <meta property="og:image" content="assets/favicon.svg" />
+
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="manifest.json" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header class="band">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="Adless home">
+          <img src="assets/favicon.svg" alt="" width="34" height="34" />
+          <span>Adless</span>
+        </a>
+
+        <nav class="nav" aria-label="Main navigation">
+          <a href="#apps">Apps</a>
+
+          <a href="#about">About</a>
+
+          <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+
+          <button
+            id="theme-toggle"
+            class="icon-btn"
+            type="button"
+            aria-label="Toggle dark mode"
+            aria-pressed="false"
+            title="Toggle dark mode">
+            ◐
+          </button>
+        </nav>
       </div>
-      <h2>Apps</h2>
-      <div id="grid" class="grid" aria-live="polite"></div>
-      <p id="empty" class="empty" hidden>No apps match that search. Try a different word or choose All.</p>
-    </section>
 
-    <section id="about" class="wrap about">
-      <h2>About Adless</h2>
-      <p>Adless is a home for small, focused web apps built by and for Atlanta Christian students. Everything is free and open source, and many apps keep working offline once they've loaded, which helps on a stage or at camp.</p>
-      <p>Have an idea for a new app? <a href="https://github.com/atlantachristianstudents/adless/issues" target="_blank" rel="noopener">Open an issue</a> on GitHub.</p>
-    </section>
-  </main>
+      <!-- Hero -->
+      <div class="wrap hero">
+        <h1>Web apps without the ads.</h1>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <span>© <span id="year"></span> Atlanta Christian Students</span>
-      <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener">Source on GitHub</a>
-    </div>
-  </footer>
+        <p class="lead">Free tools made by Atlanta Christian students. No accounts, no tracking.</p>
+      </div>
+    </header>
 
-  <script src="assets/apps.js"></script>
-  <script src="assets/main.js"></script>
-</body>
+    <!-- Main Content -->
+    <main>
+      <!-- Apps -->
+      <section id="apps" class="wrap apps-section" aria-labelledby="apps-heading">
+        <div class="tools">
+          <div id="tags" class="tags" role="group" aria-label="Filter apps by category"></div>
+
+          <div class="search-container">
+            <input
+              id="search"
+              type="search"
+              placeholder="Search apps..."
+              aria-label="Search apps"
+              aria-describedby="search-hint"
+              autocomplete="off" />
+          </div>
+        </div>
+
+        <h2 id="apps-heading">Apps</h2>
+
+        <div id="grid" class="grid" aria-live="polite" aria-atomic="false"></div>
+
+        <p id="empty" class="empty" role="status" hidden>
+          No apps match that search. Try a different word or choose All.
+        </p>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="wrap about" aria-labelledby="about-heading">
+        <h2 id="about-heading">About Adless</h2>
+
+        <p>
+          Adless is a home for small, focused web apps built by and for Atlanta Christian students. Everything is free
+          and open source, with no accounts or tracking.
+        </p>
+
+        <p>
+          Many apps can work offline once they've loaded, making them useful on a stage, at camp, or wherever an
+          internet connection isn't available.
+        </p>
+
+        <p>
+          Have an idea for a new app?
+          <a href="https://github.com/atlantachristianstudents/adless/issues" target="_blank" rel="noopener noreferrer">
+            Suggest it on GitHub </a
+          >.
+        </p>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="wrap">
+        <span> © <span id="year"></span> Atlanta Christian Students </span>
+
+        <div class="footer-links">
+          <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener noreferrer">
+            Source on GitHub
+          </a>
+
+          <a href="#about">About</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/apps.js"></script>
+    <script src="assets/main.js"></script>
+
+    <!-- Keyboard shortcuts -->
+    <script>
+      document.addEventListener("keydown", (event) => {
+        const search = document.getElementById("search");
+
+        if (
+          event.key === "/" &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.altKey &&
+          document.activeElement !== search &&
+          !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
+        ) {
+          event.preventDefault();
+          search?.focus();
+        }
+
+        if (event.key === "Escape" && document.activeElement === search) {
+          search.value = "";
+          search.dispatchEvent(new Event("input", { bubbles: true }));
+          search.blur();
+        }
+      });
+
+      // Automatically update the copyright year.
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
 </html>
