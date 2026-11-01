@@ -68,14 +68,19 @@
   #present {
     position: fixed; inset: 0; z-index: 100; background: var(--bg); color: var(--text);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 4vmin 5vmin; text-align: center;
+    padding: 4vmin 5vmin; text-align: left;
   }
-  #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; }
+  #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; display: none; }   /* the reference now sits inside the verse line (see #pinner::before); this element still holds the text for other code */
+  #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
+  #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  #present #pinner { width: 100%; line-height: 1.35; }
-  #present #pinner .pslh { font-size: .55em; font-weight: 700; color: var(--accent); margin: .7em 0 .1em; line-height: 1.2; }
-  #present #pinner .pslh:first-child { margin-top: 0; }
-  #present #pinner .pslp { margin: 0; }
+  #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
+  /* slides with several passages: each reference runs inline on the first line of its passage */
+  #present #pinner .pslh { display: inline; font-size: 1em; font-weight: 700; color: var(--accent); margin: 0; line-height: inherit; }
+  #present #pinner .pslh::after { content: "\00a0\00a0"; }
+  #present #pinner .pslp { display: inline; margin: 0; }
+  #present #pinner .pslp::after { content: ""; display: block; height: .5em; }
+  #present #pinner .pslp:last-child::after { content: none; }
   #present #pinner .pv { font-size: .6em; line-height: 0; vertical-align: super; font-weight: 700; color: var(--accent); }
   #present .pcount { position: absolute; top: 1.5vmin; right: 3vmin; color: var(--muted); font-size: 14px; }
   [hidden] { display: none !important; }
@@ -84,7 +89,7 @@
   body.hidecur, body.hidecur * { cursor: none !important; }
   #present { position: fixed; inset: 0; height: 100vh; height: 100dvh; padding: 4vmin 5vmin; z-index: 1; }
   #present .applogo { display: none; }
-  #present .applogo.has { display: block; right: 14px; bottom: 14px; }
+  #present .applogo.has { display: block; right: 14px; bottom: 14px; opacity: .3; }   /* see-through, so verse text stays readable behind it */
   #pron { font-size: clamp(16px, 2.2vmin, 40px); max-width: 80%; }
   #cover { position: fixed; inset: 0; background: #000; z-index: 300; }
   #idle { position: fixed; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -225,6 +230,7 @@
     pronData = s.pron || null;
     $("pref").textContent = s.ref || "";
     $("pinner").innerHTML = s.html || "";
+    $("pinner").setAttribute("data-ref", s.ref || "");
     drawSbs(s.sbs);
     fit();
   }

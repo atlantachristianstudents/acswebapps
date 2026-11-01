@@ -106,14 +106,19 @@
   #present {
     position: fixed; inset: 0; z-index: 100; background: var(--bg); color: var(--text);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 4vmin 5vmin; text-align: center;
+    padding: 4vmin 5vmin; text-align: left;
   }
-  #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; }
+  #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; display: none; }   /* the reference now sits inside the verse line (see #pinner::before); this element still holds the text for other code */
+  #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
+  #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  #present #pinner { width: 100%; line-height: 1.35; }
-  #present #pinner .pslh { font-size: .55em; font-weight: 700; color: var(--accent); margin: .7em 0 .1em; line-height: 1.2; }
-  #present #pinner .pslh:first-child { margin-top: 0; }
-  #present #pinner .pslp { margin: 0; }
+  #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
+  /* slides with several passages: each reference runs inline on the first line of its passage */
+  #present #pinner .pslh { display: inline; font-size: 1em; font-weight: 700; color: var(--accent); margin: 0; line-height: inherit; }
+  #present #pinner .pslh::after { content: "\00a0\00a0"; }
+  #present #pinner .pslp { display: inline; margin: 0; }
+  #present #pinner .pslp::after { content: ""; display: block; height: .5em; }
+  #present #pinner .pslp:last-child::after { content: none; }
   #present #pinner .pv { font-size: .6em; line-height: 0; vertical-align: super; font-weight: 700; color: var(--accent); }
   #present .pcount { position: absolute; top: 1.5vmin; right: 3vmin; color: var(--muted); font-size: 14px; }
   #help { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -170,10 +175,16 @@
   .swatches button.sw { width: 30px; height: 30px; min-height: 30px; padding: 0; border-radius: 50%; border: 2px solid var(--border); }
   .swatches button.sw.on { background: none; border-color: var(--text); box-shadow: inset 0 0 0 3px var(--bg); }
   .swatches button.sw.on { background: var(--sw); }
+  .swatches input.cpick { width: 34px; height: 30px; padding: 0; border: 2px solid var(--border); border-radius: 8px; background: none; cursor: pointer; }
+  .swatches input.cpick::-webkit-color-swatch-wrapper { padding: 0; }
+  .swatches input.cpick::-webkit-color-swatch { border: 0; border-radius: 5px; }
+  .swatches input.cpick::-moz-color-swatch { border: 0; border-radius: 5px; }
+  .swatches input.hexin { flex: none; width: 7.2em; min-height: 30px; padding: 3px 8px; font: 600 .9rem/1.2 ui-monospace, Menlo, Consolas, monospace; border-radius: 8px; text-transform: uppercase; }
+  .swatches input.hexin.bad { border-color: var(--error); }
   .swatches .swlabel { color: var(--muted); font-size: .8rem; font-weight: 700; min-width: 5.2em; }
   /* uploaded logo, bottom right of the window (and of true full screen, via the copy inside #present) */
   .applogo { display: none; position: fixed; right: calc(14px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom));
-             max-width: 18vw; max-height: 12vh; width: auto; height: auto; object-fit: contain; pointer-events: none; z-index: 125; }
+             max-width: 18vw; max-height: 12vh; width: auto; height: auto; object-fit: contain; pointer-events: none; z-index: 125; opacity: .3; }   /* see-through, so verse text stays readable behind it */
   .applogo.has { display: block; }
   #present .applogo { z-index: 140; }
   #presLogo.has { display: none; }
@@ -306,7 +317,7 @@
     <div class="fonthead">Colors</div>
     <div class="chips swatches" id="primChips" role="group" aria-label="Primary color"></div>
     <div class="chips swatches" id="secChips" role="group" aria-label="Secondary color"></div>
-    <p class="scopehint">Primary: buttons, references and highlights. Secondary: supporting text and outlines. Choosing either one recolors the whole scheme to match, keeping the theme&rsquo;s light or dark base.</p>
+    <p class="scopehint">Primary: buttons, references and highlights. Secondary: supporting text and outlines. Pick from the swatches, the full color picker, or type a hex code. Choosing either one recolors the whole scheme to match, keeping the theme&rsquo;s light or dark base.</p>
     <div class="fonthead">Logo</div>
     <div class="chips" id="logoChips">
       <button type="button" id="logoUp">Upload logo&hellip;</button>
@@ -459,6 +470,7 @@
   <h3>Keys that are easy to remember</h3>
   <table>
     <tr><td><kbd>C</kbd></td><td><strong>C</strong>opy the selected verses</td></tr>
+    <tr><td><kbd>R</kbd></td><td>Copy the <strong>r</strong>eference of the verses shown</td></tr>
     <tr><td><kbd>P</kbd></td><td><strong>P</strong>ronunciation</td></tr>
     <tr><td><kbd>O</kbd></td><td><strong>O</strong>pen the chapter, and get <strong>O</strong>ut of the chapter</td></tr>
     <tr><td><kbd>B</kbd></td><td>Go <strong>B</strong>ack a chapter</td></tr>
@@ -484,6 +496,7 @@
     <tr><td><kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd></td><td>Same as &larr; &darr; &uarr; &rarr; (hold Shift to select); these also work in presentation mode</td></tr>
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>A</kbd></td><td>Select all listed verses</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the selected verses (or the current one) as plain text</td></tr>
+    <tr><td><kbd>R</kbd></td><td>Copy the <strong>r</strong>eference of every verse shown (e.g. John 3:16&ndash;18; Romans 8:28); also works in the presentation and the version comparison</td></tr>
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd></td><td>Copy with formatting: reference in bold, in the page&rsquo;s font (pastes as rich text; plain text where that isn&rsquo;t supported)</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>C</kbd></td><td>Copy in a reading-friendly format: verses that follow one another become one flowing passage under a single heading (e.g. John 3:16&ndash;18) with small verse numbers inline; separate verses get their own heading</td></tr>
     <tr><td><kbd>O</kbd></td><td>Show the whole chapter of the selected verse, with that verse still selected; press <kbd>O</kbd> again to go back</td></tr>
@@ -510,6 +523,7 @@
     <tr><td><kbd>S</kbd></td><td>Compare the verse in every loaded version, one per row; <kbd>S</kbd> or <kbd>Esc</kbd> returns to the presentation</td></tr>
     <tr><td><kbd>P</kbd></td><td>Pronunciation of words, as above (arrows / <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move between words)</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the verse on screen as plain text; <kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd> copies it with formatting (reference in bold, in the page&rsquo;s font); <kbd>Shift</kbd>+<kbd>C</kbd> copies in the reading-friendly format (all verses shown, as one passage under a single heading)</td></tr>
+    <tr><td><kbd>R</kbd></td><td>Copy the reference of every verse on screen (including those added with <kbd>N</kbd> / <kbd>B</kbd>)</td></tr>
     <tr><td><kbd>F</kbd></td><td>Fill the presentation area with the verse (largest size that fits)</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>F</kbd></td><td>Toggle true full screen (the browser&rsquo;s <kbd>Esc</kbd> leaves it but stays in presentation mode)</td></tr>
     <tr><td><kbd>Enter</kbd> <kbd>Esc</kbd></td><td>Exit, returning to the results with the cursor on the verse you were last viewing (if that verse is not in the results, on the last one from the results you viewed). A selection of several verses is kept as it was</td></tr>
@@ -901,7 +915,12 @@
     ["Teal", "#00897b"], ["Blue", "#1565c0"], ["Sky", "#4aa3df"], ["Purple", "#5e35b1"], ["Pink", "#ad1457"],
     ["Slate", "#607d8b"], ["Gray", "#9e9e9e"], ["Black", "#000000"], ["White", "#ffffff"]
   ];
-  var colorSel = { prim: "", sec: "" }, colorBtns = { prim: [], sec: [] };
+  var colorSel = { prim: "", sec: "" }, colorBtns = { prim: [], sec: [] }, colorIn = { prim: null, sec: null };
+  function normHex(v) {   // "#abc", "abc", "A1B2C3", "#a1b2c3" -> "#a1b2c3"; anything else -> ""
+    v = String(v || "").trim().replace(/^#/, "");
+    if (/^[0-9a-f]{3}$/i.test(v)) v = v.replace(/./g, function (c) { return c + c; });
+    return /^[0-9a-f]{6}$/i.test(v) ? "#" + v.toLowerCase() : "";
+  }
   function readableOn(hex) {   // black or white text, whichever reads better on this color
     var n = parseInt(hex.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function (v) {
       v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -950,6 +969,11 @@
     }
     ["prim", "sec"].forEach(function (w) {
       colorBtns[w].forEach(function (b) { var on = b.dataset.c === colorSel[w]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+      var ci = colorIn[w];
+      if (ci) {
+        ci.pick.value = colorSel[w] || (w === "prim" ? "#7a4b1e" : "#6f675d");
+        if (document.activeElement !== ci.hex) { ci.hex.value = colorSel[w] ? colorSel[w].toUpperCase() : ""; ci.hex.classList.remove("bad"); }
+      }
     });
     if (save) { try { localStorage.setItem("lsm_colors", JSON.stringify(colorSel)); } catch (e) {} }
   }
@@ -965,6 +989,31 @@
       b.onclick = function () { dUndo = null; colorSel[which] = p[1]; applyColors(true); };
       host.appendChild(b); colorBtns[which].push(b);
     });
+    // any color: the full picker, or type a hex code (#RRGGBB or #RGB)
+    var pick = document.createElement("input"); pick.type = "color"; pick.className = "cpick";
+    pick.title = "Pick any color"; pick.setAttribute("aria-label", label + " color picker");
+    pick.value = which === "prim" ? "#7a4b1e" : "#6f675d";
+    var hex = document.createElement("input"); hex.type = "text"; hex.className = "hexin"; hex.maxLength = 7;
+    hex.placeholder = "#RRGGBB"; hex.spellcheck = false; hex.autocomplete = "off"; hex.setAttribute("aria-label", label + " color hex code");
+    pick.addEventListener("input", function () { dUndo = null; colorSel[which] = pick.value.toLowerCase(); applyColors(true); });
+    hex.addEventListener("input", function () {
+      var h = normHex(hex.value);
+      if (hex.value.replace(/^#/, "").length === 6 || hex.value.replace(/^#/, "").length === 3) {
+        if (h) { hex.classList.remove("bad"); dUndo = null; colorSel[which] = h; applyColors(true); } else hex.classList.add("bad");
+      } else hex.classList.remove("bad");
+    });
+    hex.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        var h = normHex(hex.value);
+        if (h) { dUndo = null; colorSel[which] = h; applyColors(true); hex.value = h.toUpperCase(); hex.classList.remove("bad"); }
+        else if (!hex.value.trim()) { dUndo = null; colorSel[which] = ""; applyColors(true); }
+        else hex.classList.add("bad");
+      }
+    });
+    hex.addEventListener("blur", function () { hex.value = colorSel[which] ? colorSel[which].toUpperCase() : ""; hex.classList.remove("bad"); });
+    host.appendChild(pick); host.appendChild(hex);
+    colorIn[which] = { pick: pick, hex: hex };
   }
   buildSwatches($("primChips"), "prim", "Primary");
   buildSwatches($("secChips"), "sec", "Secondary");
@@ -1072,6 +1121,7 @@
   $("scope").addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key, lk = k.toLowerCase(), t = e.target;
+    if (t && t.tagName === "INPUT" && t.type !== "checkbox") return;   // typing a hex code: letters are just letters
     if (lk === "d" && !e.repeat) {          // d: theme Auto + default colors; d again undoes
       e.preventDefault(); e.stopPropagation();
       if (dUndo) {
@@ -1106,7 +1156,7 @@
     if (!arrow && k !== "Home" && k !== "End" && !(k === "Enter" && t.type === "checkbox")) return;
     e.preventDefault(); e.stopPropagation();
     if (k === "Enter") { t.click(); return; }
-    var list = Array.prototype.slice.call($("scope").querySelectorAll("button, input[type=checkbox]"));
+    var list = Array.prototype.slice.call($("scope").querySelectorAll("button, input[type=checkbox], input[type=color]"));
     var i = list.indexOf(t), target = null;
     if (i < 0) { target = list[0]; }
     else if (k === "Home") target = list[0];
@@ -2078,6 +2128,7 @@
   // largest font size at which the verse still fits the whole screen area
   function fitPresent() {
     var box = $("ptext"), el = $("pinner");
+    el.setAttribute("data-ref", $("pref").textContent);   // reference shown inline, before the verse text
     var lo = 12, hi = Math.max(48, Math.min(window.innerHeight, 900));
     while (lo < hi) {
       var mid = Math.ceil((lo + hi) / 2);
@@ -2824,6 +2875,62 @@
     sbsEl = el;
     sbsApplySize();
   }
+  // ---- R: copy the reference(s) of every verse shown (search list, presentation, or comparison) ----
+  // Verses that run on in sequence become one range (John 3:16-18); separate ones are joined with "; ".
+  function refsText(items) {
+    var seen = {}, list = [];
+    items.forEach(function (it) {
+      var k = it.bi + ":" + it.ch + ":" + it.v;
+      if (!seen[k]) { seen[k] = 1; list.push(it); }
+    });
+    var runs = [];
+    list.forEach(function (it) {
+      var r = runs[runs.length - 1], prev = r && r[r.length - 1];
+      if (prev && follows(prev, it)) r.push(it); else runs.push([it]);
+    });
+    return runs.map(function (r) { return r.length > 1 ? rangeAny(r[0], r[r.length - 1]) : (r[0].ref || refOf(r[0])); }).join("; ");
+  }
+  function shownItems() {   // the verses on screen right now, in order
+    if (sbsEl) { var c = sbsCoords(); return [{ bi: c.bi, ch: c.ch, v: c.v, ref: refOf(c) }]; }
+    if (presenting) {
+      if (slideMode) return slideItems();
+      if (presExt) return presExtItems();
+      var d = presVerse().dataset;
+      return [{ bi: +d.bi, ch: +d.ch, v: +d.v, ref: d.ref }];
+    }
+    return verses().filter(function (x) { return x.dataset.bi !== undefined; }).map(function (x) {
+      return { bi: +x.dataset.bi, ch: +x.dataset.ch, v: +x.dataset.v, ref: x.dataset.ref };
+    });
+  }
+  function flashCopied(msg) {
+    var t = document.createElement("div");
+    t.textContent = msg;
+    t.style.cssText = "position:fixed;left:50%;bottom:5vh;transform:translateX(-50%);z-index:500;max-width:90vw;padding:8px 16px;border-radius:8px;" +
+      "background:var(--surface);color:var(--text);border:1px solid var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.3);font:600 16px/1.3 system-ui,sans-serif;pointer-events:none;text-align:center";
+    (document.fullscreenElement && document.fullscreenElement.contains($("present")) ? document.fullscreenElement : document.body).appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 1600);
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "r" && e.key !== "R") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = e.target && e.target.tagName;
+    if (!presenting && !sbsEl && (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT")) return;   // slides keep the cursor in the text box
+    if (typeof helpOpen !== "undefined" && helpOpen) return;
+    if (!$("goto").hidden || !$("scope").hidden) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.repeat) return;
+    var txt = refsText(shownItems());
+    if (!txt) return;
+    copyText(txt).then(function () {
+      flashCopied("Copied: " + txt);
+      if (!presenting && !sbsEl) {
+        var on = verses();
+        on.forEach(function (v) { v.classList.add("copied"); });
+        setTimeout(function () { on.forEach(function (v) { v.classList.remove("copied"); }); }, 1200);
+      }
+    });
+  }, true);
+
   // while the comparison is open it owns the keyboard
   document.addEventListener("keydown", function (e) {
     if (!sbsEl) return;
