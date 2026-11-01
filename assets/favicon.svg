@@ -1,4 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#3b4bf5"/>
-  <path d="M17 49 32 15l15 34M23 38h18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="64" height="64" rx="22" fill="#3b4bf5"/>
+  <g transform="translate(32 32) scale(.9) translate(-32 -32.5)" stroke-linejoin="round" stroke-width="4">
+    <!-- outer capital A -->
+    <path d="M32 9 58 55H49L44.7 47H19.3L15 55H6Z" fill="#fff" stroke="#fff"/>
+    <g transform="translate(32 34) scale(.82) translate(-32 -34)">
+    <!-- negative-space capital A cut into it -->
+    <path d="M32 21 44 43H41L38.35 39H25.65L23 43H20Z" fill="#3b4bf5" stroke="#3b4bf5"/>
+    <!-- its own counter -->
+    <path d="M32 29.5 35.8 36.5H28.2Z" fill="#fff" stroke="#fff" stroke-width="2.5"/>
+    </g>
+  </g>
 </svg>
