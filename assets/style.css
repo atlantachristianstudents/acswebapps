@@ -125,3 +125,4 @@ a.card:hover { transform: translateY(-3px); border-color: var(--accent); }
   html { scroll-behavior: auto; }
   .card { transition: none; }
 }
+.card-icon img { display: block; width: 40px; height: 40px; border-radius: 10px; }

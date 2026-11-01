@@ -68,7 +68,7 @@
       node.href = app.url || ("apps/" + app.id + "/index.html");
       node.target = "_blank";
       node.rel = "noopener";
-}
+    }
 
     var top = el("div", "card-top");
     top.appendChild(el("span", "card-icon", app.icon || "🧩"));
