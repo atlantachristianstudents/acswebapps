@@ -64,7 +64,7 @@
     var status = app.status || "live";
     var clickable = status !== "soon";
     var node = el(clickable ? "a" : "div", "card" + (clickable ? "" : " disabled"));
-    if (clickable) node.href = app.url || ("apps/" + app.id + "/");
+    if (clickable) node.href = app.url || ("apps/" + app.id + "/index.html");
 
     var top = el("div", "card-top");
     top.appendChild(el("span", "card-icon", app.icon || "🧩"));
