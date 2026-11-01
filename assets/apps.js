@@ -16,7 +16,7 @@ window.APPS = [
     description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
     icon: "🎸",
     tags: ["Worship", "Music"],
-    status: "live"
+    status: "live",
     url: "apps/tunes/index.html"
   },
   {
@@ -25,7 +25,7 @@ window.APPS = [
     description: "Look up a Bible verse and display it full-screen for projectors and livestreams.",
     icon: "📖",
     tags: ["Worship", "Presentation"],
-    status: "live"
+    status: "live",
     url: "apps/rcv/index.html"
   }
 ];
