@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adless — Free web apps by Atlanta Christian Students</title>
+  <meta name="description" content="Simple, ad-free web apps for worship and youth ministry: tuner, verse presenter, and more.">
+  <meta name="theme-color" content="#1f3a5f">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="Adless home">
+        <img src="assets/favicon.svg" alt="" width="32" height="32">
+        <span>Adless</span>
+      </a>
+      <nav class="nav">
+        <a href="#apps">Apps</a>
+        <a href="#about">About</a>
+        <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener">GitHub</a>
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">◐</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Atlanta Christian Students</p>
+        <h1>Useful web apps.<br>Zero ads.</h1>
+        <p class="lead">A growing collection of free tools for worship, youth ministry, and everyday use. They run right in your browser — no accounts, no tracking, no ads.</p>
+        <a class="btn" href="#apps">Browse apps</a>
+      </div>
+    </section>
+
+    <section id="apps" class="wrap apps-section">
+      <div class="apps-head">
+        <h2>Apps</h2>
+        <input id="search" type="search" placeholder="Search apps…" aria-label="Search apps" autocomplete="off">
+      </div>
+      <div id="tags" class="tags" role="group" aria-label="Filter by category"></div>
+      <div id="grid" class="grid" aria-live="polite"></div>
+      <p id="empty" class="empty" hidden>No apps match your search.</p>
+    </section>
+
+    <section id="about" class="wrap about">
+      <h2>About Adless</h2>
+      <p>Adless is a home for small, focused web apps built by and for Atlanta Christian students. Every app is free, open source, and works without ads or sign-ups. Many work offline once loaded, so they're handy on a stage or at camp with bad Wi-Fi.</p>
+      <p>Have an idea for a new tool? <a href="https://github.com/atlantachristianstudents/adless/issues" target="_blank" rel="noopener">Open an issue</a> on GitHub.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Atlanta Christian Students</span>
+      <a href="https://github.com/atlantachristianstudents/adless" target="_blank" rel="noopener">Source on GitHub</a>
+    </div>
+  </footer>
+
+  <script src="assets/apps.js"></script>
+  <script src="assets/main.js"></script>
+</body>
+</html>
