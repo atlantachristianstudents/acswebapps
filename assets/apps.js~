@@ -11,19 +11,19 @@
  */
 window.APPS = [
   {
-    id: "tuner",
+    id: "tunes",
     name: "Tuner",
     description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
     icon: "🎸",
     tags: ["Worship", "Music"],
-    status: "soon"
+    status: "live"
   },
   {
-    id: "verse-presenter",
-    name: "Verse Presenter",
+    id: "rcv",
+    name: "Verse Lookup",
     description: "Look up a Bible verse and display it full-screen for projectors and livestreams.",
     icon: "📖",
     tags: ["Worship", "Presentation"],
-    status: "soon"
+    status: "live"
   }
 ];

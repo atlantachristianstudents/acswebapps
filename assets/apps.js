@@ -17,6 +17,7 @@ window.APPS = [
     icon: "🎸",
     tags: ["Worship", "Music"],
     status: "live"
+    url: "apps/tunes/index.html"
   },
   {
     id: "rcv",
@@ -25,5 +26,6 @@ window.APPS = [
     icon: "📖",
     tags: ["Worship", "Presentation"],
     status: "live"
+    url: "apps/rcv/index.html"
   }
 ];
