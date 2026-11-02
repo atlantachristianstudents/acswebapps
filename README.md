@@ -1,6 +1,6 @@
 # Adless
 
-Free, ad-free web apps by Atlanta Christian Students — tuner, verse presenter, and more. Everything runs in the browser: no accounts, no tracking, no ads.
+Free, ad-free web apps by Atlanta Christian Students — big text display, tuner, verse presenter, and more. Everything runs in the browser: no accounts, no tracking, no ads.
 
 Live site: <https://atlantachristianstudents.github.io/adless/>
 
@@ -8,6 +8,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
+| [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | live |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
 | [Verse Lookup](https://atlantachristianstudents.github.io/adless/apps/verses/) | Look up Bible verses and display them full-screen for projectors and livestreams, with external-display support. | live |
 
@@ -38,6 +39,7 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  big-text/                Big Text app (full-screen hymn numbers and text)
   tunes/                   Tuner app (microphone, metronome, tone generator)
   verses/                  Verse Lookup app (verse presenter)
 ```
