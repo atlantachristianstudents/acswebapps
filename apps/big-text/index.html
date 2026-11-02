@@ -12,10 +12,11 @@
 <meta name="apple-mobile-web-app-title" content="Big Text">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>html{background:#0a0e11}body{margin:0}[hidden]{display:none!important}</style>
+<script>try{var t=localStorage.getItem("bigtext-theme");if(t==="bw"||t==="wb")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <title>Big Text</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* Layout: a single canvas fills the window; typed digits scale to the largest size that fits. */
 :root {
@@ -70,6 +71,36 @@ body {
   user-select: none;
 }
 #stage { position: relative; width: 100%; height: 100%; }
+/* On-screen controls: shown on touch screens, or with m. The stage shrinks to make room. */
+#pad {
+  display: flex;
+  gap: 6px;
+  height: 44px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#pad::-webkit-scrollbar { display: none; }
+#pad { -webkit-tap-highlight-color: transparent; }
+body.has-pad #stage { height: calc(100% - 52px); }
+#pad button {
+  flex: 0 0 auto;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--hint);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font: 400 12px var(--font-utility);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+#pad button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+#pad button:active { opacity: 0.6; }
+#pad, #pad button { cursor: pointer !important; }
 #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #hint {
   position: absolute;
@@ -87,6 +118,22 @@ body {
   background: var(--bg);
   z-index: 1;
   pointer-events: none;
+}
+#help {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-utility);
+  font-size: 13px;
+  line-height: 2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+  background: var(--bg);
+  z-index: 3;
 }
 #mode {
   position: fixed;
@@ -132,9 +179,35 @@ body {
 <body>
 
 
+<nav id="pad" aria-label="On-screen controls" hidden>
+  <button type="button" data-act="left" data-for="num" aria-label="Previous number">&#9664;</button>
+  <button type="button" data-act="right" data-for="num" aria-label="Next number">&#9654;</button>
+  <button type="button" data-act="down" data-for="num" aria-label="Back 37">&#9660;</button>
+  <button type="button" data-act="up" data-for="num" aria-label="Forward 37">&#9650;</button>
+  <button type="button" data-act="minus" aria-label="Smaller">&minus;</button>
+  <button type="button" data-act="plus" aria-label="Bigger">+</button>
+  <button type="button" data-act="fill">Fill</button>
+  <button type="button" data-act="clear">Clear</button>
+  <button type="button" data-act="undo">Undo</button>
+  <button type="button" data-act="theme" data-for="num">Theme</button>
+  <button type="button" data-act="lang" data-for="num" data-toggle>All</button>
+  <button type="button" data-act="c" data-for="num" data-toggle>C</button>
+  <button type="button" data-act="k" data-for="num" data-toggle>K</button>
+  <button type="button" data-act="s" data-for="num" data-toggle>S</button>
+  <button type="button" data-act="b" data-for="num" data-toggle>B</button>
+  <button type="button" data-act="eng" data-for="num" data-toggle>Eng</button>
+  <button type="button" data-act="wrap" data-toggle>Wrap</button>
+  <button type="button" data-act="text" data-for="num">Text</button>
+  <button type="button" data-act="num" data-for="text">123</button>
+  <button type="button" data-act="copy" data-for="text">Copy</button>
+  <button type="button" data-act="full">Full</button>
+  <button type="button" data-act="help" aria-label="Shortcuts">?</button>
+</nav>
+
 <main id="stage">
   <canvas id="c" aria-hidden="true"></canvas>
-  <p id="hint">Click, then type numbers. Backspace deletes, enter clears. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37 (next digit starts over).<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t text mode &middot; w wrap &middot; h theme<br>l all languages &middot; c k s b one language &middot; e english + korean</p>
+  <p id="hint">Type ? to see shortcuts</p>
+  <div id="help" role="dialog" aria-label="Shortcuts" hidden></div>
   <div id="live" class="sr" role="status" aria-live="polite"></div>
   <div id="mode" aria-hidden="true"></div>
   <textarea id="entry" rows="1" enterkeyhint="enter" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Number to display"></textarea>
@@ -159,6 +232,30 @@ body {
   var dpr = 1, W = 1, H = 1, availH = 1;
   var manualSize = null; // null = fill the window; number = font size in px
   var fitSize = 100;     // last computed fill size
+  var pad = document.getElementById('pad');
+  var helpEl = document.getElementById('help');
+  var helpOpen = false;
+  var MOD = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '') ? 'cmd' : 'ctrl';
+  var undoBuf = null;    // last thing cleared (Enter, cmd+delete, mode switch); cmd+z / Undo swaps it back
+  var panelScale = 1;    // size of the other-language panel; -/+ moves it opposite to the main number
+  function resetSize() { manualSize = null; panelScale = 1; }
+  // -/+ : resize the main text. While the other-language panel is showing, the two share the screen,
+  // so + gives the main number more room and shrinks the panel, and - does the opposite.
+  function adjustSize(up) {
+    if (!value) return;
+    var refs = currentRefs();
+    if (refs) {
+      var f = up ? 1 / 1.15 : 1.15;
+      var rows = panelLayout(refs).rows;
+      var maxScale = Math.max(1, 0.5 / (0.14 * rows + 0.08)); // the panel never takes more than half the height
+      panelScale = Math.max(0.25, Math.min(maxScale, panelScale * f));
+      draw();
+      return;
+    }
+    var base = manualSize !== null ? manualSize : fitSize;
+    manualSize = Math.max(8, Math.min(5000, base * (up ? 1.1 : 1 / 1.1)));
+    draw();
+  }
 
   var wrapOn = false; // w (alt+w in text mode) toggles line wrapping
   var langOn = false; // l (number mode) shows the matching number in every other language
@@ -223,10 +320,11 @@ body {
   }
 
   // Largest font size at which the wrapped text still fits the window.
-  function wrapFit(text, hRef, w) {
+  function wrapFit(text, hRef, w, res) {
+    res = res || function () { return 0; };
     var lineHRef = hRef * 1.12;
     function ok(S) {
-      var lim = W * 100 / S;
+      var lim = (W - res(S)) * 100 / S;
       var ls = packAll(text, lim, w);
       var maxw = 0;
       for (var i = 0; i < ls.length; i++) maxw = Math.max(maxw, w(ls[i]));
@@ -237,9 +335,9 @@ body {
       var mid = (lo + hi) / 2;
       if (ok(mid)) lo = mid; else hi = mid;
     }
-    var lines = packAll(text, W * 100 / lo, w);
+    var lines = packAll(text, (W - res(lo)) * 100 / lo, w);
     // Even out the lines: tighten the limit while the line count stays the same.
-    var n = lines.length, a = 0, b = W * 100 / lo;
+    var n = lines.length, a = 0, b = (W - res(lo)) * 100 / lo;
     for (i = 0; i < 20; i++) {
       var mid2 = (a + b) / 2;
       var t = packAll(text, mid2, w);
@@ -316,7 +414,22 @@ body {
     var maxCols = Math.max(1, Math.min(5, Math.floor(W / 130)));
     var rows = Math.ceil(n / maxCols);
     var cols = Math.ceil(n / rows);
-    return { refs: refs, rows: rows, cols: cols, h: H * Math.min(0.5, 0.14 * rows + 0.08) };
+    return { refs: refs, rows: rows, cols: cols, h: H * Math.min(0.5, (0.14 * rows + 0.08) * panelScale) };
+  }
+
+  // Letter-spacing on canvas (ignored by browsers that lack it).
+  function setSpacing(px) { try { ctx.letterSpacing = px + 'px'; } catch (e) {} }
+
+  // E/K label that sits to the left of the main number: thin gray mono, sized with the number.
+  var MONO_FACE = 'px \"IBM Plex Mono\", ui-monospace, Menlo, monospace';
+  function engLabel(S) {
+    var px = Math.max(24, Math.min(360, S * 0.65));
+    ctx.save();
+    ctx.font = '500 ' + px + MONO_FACE;
+    setSpacing(-px * 0.08); // tighter than the font's wide monospace spacing
+    var lw = ctx.measureText('E/K').width;
+    ctx.restore();
+    return { px: px, w: lw, gap: px * 0.5, total: lw + px * 0.5, sp: -px * 0.08 };
   }
 
   function drawPanel(p) {
@@ -327,11 +440,19 @@ body {
     var asc100 = ctx.measureText('0').actualBoundingBoxAscent || 70;
     var widest = 1;
     for (var i = 0; i < p.refs.length; i++) widest = Math.max(widest, ctx.measureText(p.refs[i].num).width);
-    var labelPx = Math.max(9, Math.min(18, rowH * 0.2, cellW / 7.5));
-    var gap = labelPx * 0.5;
-    var numPx = Math.max(8, Math.min((rowH * 0.9 - labelPx - gap) * 100 / asc100, cellW * 0.86 * 100 / widest));
+    var labelPx = Math.max(11, Math.min(20, rowH * 0.2, cellW / 6));
+    var inlineLabels = engOn && !textMode && !langOn;
+    var gap = inlineLabels ? 0 : labelPx * 0.5;
+    var lblRef = 0;
+    if (inlineLabels) {
+      ctx.save();
+      ctx.font = '500 70' + MONO_FACE;
+      lblRef = ctx.measureText('C').width + 70 * 0.7;
+      ctx.restore();
+    }
+    var numPx = Math.max(8, Math.min((rowH * 0.9 - (inlineLabels ? 0 : labelPx) - gap) * 100 / asc100, cellW * 0.86 * 100 / (widest + lblRef)));
     var numAsc = numPx * asc100 / 100;
-    var contentH = labelPx + gap + numAsc;
+    var contentH = (inlineLabels ? 0 : labelPx) + gap + numAsc;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     for (var r = 0; r < p.rows; r++) {
@@ -341,11 +462,32 @@ body {
       for (var k = 0; k < items.length; k++) {
         var cx = x0 + (k + 0.5) * cellW;
         ctx.fillStyle = hintColor;
-        ctx.font = '400 ' + labelPx + 'px "IBM Plex Mono", ui-monospace, Menlo, monospace';
-        ctx.fillText(items[k].label.toUpperCase(), cx, y + labelPx * 0.72);
+        ctx.font = '500 ' + labelPx + 'px "IBM Plex Mono", ui-monospace, Menlo, monospace';
+        ctx.globalAlpha = 0.7;
+        if (!inlineLabels) ctx.fillText(items[k].label.toUpperCase(), cx, y + labelPx * 0.72);
+        ctx.globalAlpha = 1;
         ctx.fillStyle = fg;
         ctx.font = '900 ' + numPx + 'px ' + FAMILY;
-        ctx.fillText(items[k].num, cx, y + labelPx + gap + numAsc);
+        var baseline = y + (inlineLabels ? 0 : labelPx) + gap + numAsc;
+        if (inlineLabels) {
+          var lp = Math.max(18, numPx * 0.7);
+          var letter = items[k].label.charAt(0).toUpperCase();
+          var numW = ctx.measureText(items[k].num).width;
+          ctx.font = '500 ' + lp + MONO_FACE;
+          var lw2 = ctx.measureText(letter).width, g2 = lp * 0.7;
+          var startX = cx - (lw2 + g2 + numW) / 2;
+          ctx.textAlign = 'left';
+          ctx.fillStyle = hintColor;
+          ctx.globalAlpha = 0.8;
+          ctx.fillText(letter, startX, baseline - numAsc / 2 + lp * 0.35);
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = fg;
+          ctx.font = '900 ' + numPx + 'px ' + FAMILY;
+          ctx.fillText(items[k].num, startX + lw2 + g2, baseline);
+          ctx.textAlign = 'center';
+        } else {
+          ctx.fillText(items[k].num, cx, baseline);
+        }
       }
     }
     ctx.textAlign = 'left';
@@ -369,11 +511,13 @@ body {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     hint.hidden = value.length > 0 || hintCleared;
+    syncPad();
     if (!value) return;
     var refs = currentRefs();
     var panel = refs ? panelLayout(refs) : null;
     var showEng = engOn && !textMode;
-    var engLabelH = showEng ? 26 : 0;
+    var engLabelH = 0;
+    var res = showEng ? function (S) { return engLabel(S).total; } : null;
     availH = Math.max(40, H - (panel ? panel.h + 8 : 0) - engLabelH);
 
     ctx.fillStyle = getComputedStyle(document.body).color;
@@ -382,8 +526,9 @@ body {
 
     // Measure at a reference size, then scale so the ink fills the window.
     ctx.font = '900 100px ' + FAMILY;
-    var flat = value.replace(/\n/g, ' ');
-    var lines = value.split('\n');
+    var displayValue = value;
+    var flat = displayValue.replace(/\n/g, ' ');
+    var lines = displayValue.split('\n');
     var m = ctx.measureText(flat);
     var z = ctx.measureText('0');
     var w0 = 0;
@@ -393,18 +538,33 @@ body {
     }
     var h0 = inkV(m, z).asc + inkV(m, z).desc;
     if (!h0 || (!w0 && lines.length < 2)) return;
-    var size = 100 * Math.min(w0 ? W / w0 : Infinity, availH / ((lines.length - 1) * h0 * 1.12 + h0));
+    var hSize = 100 * availH / ((lines.length - 1) * h0 * 1.12 + h0);
+    var size = hSize;
+    if (w0) {
+      // The width left for the number shrinks as the label grows with it, so settle on a size.
+      size = Math.min(hSize, 100 * W / w0);
+      if (res) {
+        // res(S) + S * w0 / 100 grows with S, so bisect for the largest size that fits the width.
+        var lo2 = 8, hi2 = size;
+        for (var it = 0; it < 30; it++) {
+          var mid3 = (lo2 + hi2) / 2;
+          if (res(mid3) + mid3 * w0 / 100 <= W) lo2 = mid3; else hi2 = mid3;
+        }
+        size = lo2;
+      }
+    }
     var w = makeW();
     if (wrapOn) {
-      var wr = wrapFit(value, h0, w);
+      var wr = wrapFit(displayValue, h0, w, res);
       size = wr.size;
       lines = wr.lines;
     }
     fitSize = size;
     // Manual size (set with -/+) overrides the fill size until "f" is pressed.
-    if (manualSize !== null) {
+    // With the panel showing, the main number just fills what the panel leaves (see adjustSize).
+    if (manualSize !== null && !panel) {
       size = manualSize;
-      if (wrapOn) lines = packAll(value, W * 100 / size, w);
+      if (wrapOn) lines = packAll(displayValue, (W - (res ? res(size) : 0)) * 100 / size, w);
     }
 
     // Measure again at the final size and centre the ink in the window.
@@ -415,17 +575,24 @@ body {
     var inkH = vb.asc + vb.desc;
     var lineH = inkH * 1.12;
     var y0 = (availH - ((lines.length - 1) * lineH + inkH)) / 2 + vb.asc + engLabelH;
+    var lab = showEng ? engLabel(size) : null;
+    var resW = lab ? lab.total : 0;
     for (var i = 0; i < lines.length; i++) {
       var lm = ctx.measureText(lines[i]);
       var ll = lm.actualBoundingBoxLeft;
-      ctx.fillText(lines[i], (W - ll - lm.actualBoundingBoxRight) / 2 + ll, y0 + i * lineH);
-    }
-    if (showEng) {
-      ctx.fillStyle = getComputedStyle(hint).color;
-      ctx.font = '400 13px "IBM Plex Mono", ui-monospace, Menlo, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('ENGLISH \u00b7 KOREAN', W / 2, 14);
-      ctx.textAlign = 'left';
+      var inkLeft = (W - resW - ll - lm.actualBoundingBoxRight) / 2 + resW;
+      var lineX = inkLeft + ll;
+      ctx.fillText(lines[i], lineX, y0 + i * lineH);
+      if (lab && i === 0) {
+        ctx.save();
+        ctx.fillStyle = getComputedStyle(hint).color;
+        ctx.globalAlpha = 0.8;
+        ctx.font = '500 ' + lab.px + MONO_FACE;
+        ctx.textAlign = 'left';
+        setSpacing(lab.sp);
+        ctx.fillText('E/K', inkLeft - lab.gap - lab.w, y0 - (vb.asc - vb.desc) / 2 + lab.px * 0.35);
+        ctx.restore();
+      }
     }
     if (panel) drawPanel(panel);
   }
@@ -477,35 +644,83 @@ body {
   ];
   var themeIdx = 0;
   var themeMeta = document.querySelector('meta[name="theme-color"]');
-  function cycleTheme() {
-    themeIdx = (themeIdx + 1) % THEMES.length;
-    var t = THEMES[themeIdx], root = document.documentElement;
+  function applyTheme(i) {
+    themeIdx = i;
+    var t = THEMES[i], root = document.documentElement;
     if (t.attr) root.setAttribute('data-theme', t.attr); else root.removeAttribute('data-theme');
     if (themeMeta) themeMeta.setAttribute('content', t.bar);
-    flash('Theme \u00b7 ' + t.name);
   }
+  function cycleTheme() {
+    applyTheme((themeIdx + 1) % THEMES.length);
+    try {
+      if (THEMES[themeIdx].attr) localStorage.setItem('bigtext-theme', THEMES[themeIdx].attr);
+      else localStorage.removeItem('bigtext-theme');
+    } catch (e) {}
+    flash('Theme \u00b7 ' + THEMES[themeIdx].name);
+  }
+  (function () {
+    var saved = document.documentElement.getAttribute('data-theme');
+    for (var i = 1; i < THEMES.length; i++) if (THEMES[i].attr === saved) applyTheme(i);
+  })();
 
   function updateHint() {
-    // Replace the old hint text outright, and show it whenever nothing is typed.
-    hint.textContent = '';
-    hint.innerHTML = textMode
-      ? 'Type anything. Enter = new line. Backspace deletes, cmd+delete clears, cmd+c copies.<br>cmd + - / + size &middot; cmd+f fill &middot; alt+w wrap &middot; cmd+\\ or esc number mode'
-      : 'Click, then type numbers. Backspace deletes, enter clears. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37 (next digit starts over).<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t or cmd+\\ text mode &middot; w wrap &middot; h theme &middot; cmd+c copy<br>l all languages &middot; c k s b chinese, korean, spanish, burmese &middot; e english + korean';
+    // The empty screen only points to the shortcut list (? opens it).
+    hint.textContent = textMode ? 'Press ' + MOD + ' + ? to see shortcuts' : 'Type ? to see shortcuts';
     hint.style.visibility = '';
     hint.hidden = value.length > 0;
   }
 
-  function setMode(on) {
+  function helpHtml() {
+    var d = ' &middot; ';
+    var lines = textMode ? [
+      'Type anything &middot; enter new line &middot; backspace deletes',
+      MOD + '+delete clears' + d + MOD + '+z undoes a clear' + d + MOD + '+c copies',
+      MOD + ' + - / + size' + d + MOD + '+f fill' + d + 'alt+w wrap',
+      MOD + '+\\ or esc number mode',
+      'any key closes this'
+    ] : [
+      'Type numbers &middot; backspace deletes &middot; enter clears &middot; u undoes a clear &middot; ' + MOD + '+z also undoes',
+      '&larr; / &rarr; &plusmn;1' + d + '&uarr; / &darr; &plusmn;37' + d + 'next digit then starts over',
+      '- / + size (with other languages showing, they resize the opposite way)',
+      'f fill' + d + 'shift+f full screen' + d + 'w wrap' + d + 'h theme' + d + 'm buttons' + d + 't text mode',
+      'l all languages' + d + 'c k s b chinese, korean, spanish, burmese' + d + 'e english + korean',
+      'any key closes this'
+    ];
+    return lines.join('<br>');
+  }
+  function showHelp() { helpEl.innerHTML = helpHtml(); helpEl.hidden = false; helpOpen = true; }
+  function hideHelp() { helpEl.hidden = true; helpOpen = false; }
+
+  // Undo: whatever was last cleared comes back (switching modes if it was typed in the other one).
+  // If something is on screen now, it becomes the new undo, so a second press swaps back.
+  function stash() { if (value) undoBuf = { value: value, text: textMode }; }
+  function clearAll() { stash(); arrowFresh = false; resetSize(); setValue(''); }
+  function undo() {
+    if (!undoBuf) { flash('Nothing to restore'); return; }
+    var u = undoBuf;
+    undoBuf = value ? { value: value, text: textMode } : null;
+    if (textMode !== u.text) setMode(u.text, true);
+    resetSize();
+    setValue(u.value);
+    flash('Restored');
+  }
+
+  function setMode(on, keep) {
+    var had = !!value;
+    hideHelp();
+    if (!keep) stash();
     textMode = on;
     arrowFresh = false;
-    hintCleared = true; // drop the old mode's hint; typing then emptying brings the new one back
+    hintCleared = false; // the hint is rebuilt for the new mode by updateHint()
     input.setAttribute('inputmode', on ? 'text' : 'numeric');
     
     canvas.width = canvas.width; // wipe anything left on the canvas from the previous mode
-    manualSize = null;
-    setValue(''); // switching modes always starts with a clean slate
+    if (!keep) {
+      resetSize();
+      setValue(''); // switching modes always starts with a clean slate
+    }
     updateHint();
-    flash(on ? 'Text mode · esc for numbers' : 'Number mode');
+    if (!keep) flash((on ? 'Text mode · esc for numbers' : 'Number mode') + (had ? ' · cmd+z restores' : ''));
     try { input.blur(); } catch (e) {}
     focusInput();
   }
@@ -523,24 +738,83 @@ body {
     } catch (err) {}
   }
 
+  // Arrow keys / buttons: +-1 and +-37, and the next digit typed starts a new number.
+  function step(dir) {
+    arrowFresh = true;
+    if (!value && (dir === 'left' || dir === 'down')) return;
+    var cur = value ? parseInt(value, 10) : 0;
+    if (isNaN(cur)) cur = 0;
+    var d = dir === 'right' ? 1 : dir === 'left' ? -1 : dir === 'up' ? 37 : -37;
+    setValue(String(Math.max(1, Math.min(1348, cur + d))));
+  }
+
+  // ---- On-screen buttons ----
+  var padOn = false;
+  function setPad(on, save) {
+    padOn = on;
+    pad.hidden = !on;
+    document.body.classList.toggle('has-pad', on);
+    if (save) { try { localStorage.setItem('bigtext-pad', on ? '1' : '0'); } catch (e) {} }
+    if (on) syncPad();
+  }
+  var PRESSED = {
+    lang: function () { return langOn; }, eng: function () { return engOn; }, wrap: function () { return wrapOn; },
+    c: function () { return !!picked.c; }, k: function () { return !!picked.k; },
+    s: function () { return !!picked.s; }, b: function () { return !!picked.b; }
+  };
+  function syncPad() {
+    if (!padOn) return;
+    var btns = pad.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i], f = b.getAttribute('data-for'), a = b.getAttribute('data-act');
+      b.hidden = (f === 'num' && textMode) || (f === 'text' && !textMode);
+      if (b.hasAttribute('data-toggle') && PRESSED[a]) b.setAttribute('aria-pressed', PRESSED[a]() ? 'true' : 'false');
+    }
+  }
+  var ACTIONS = {
+    left: function () { step('left'); }, right: function () { step('right'); },
+    up: function () { step('up'); }, down: function () { step('down'); },
+    minus: function () { adjustSize(false); }, plus: function () { adjustSize(true); },
+    fill: function () { resetSize(); draw(); },
+    clear: clearAll, undo: undo, theme: cycleTheme, lang: toggleLang, eng: toggleEng,
+    c: function () { toggleQuick('c'); }, k: function () { toggleQuick('k'); },
+    s: function () { toggleQuick('s'); }, b: function () { toggleQuick('b'); },
+    wrap: toggleWrap, text: function () { setMode(true); }, num: function () { setMode(false); },
+    copy: copyValue, full: toggleFullscreen, help: showHelp
+  };
+  // mousedown is cancelled so a tap never takes focus from the hidden field (the keyboard stays up).
+  pad.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  pad.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    var fn = b && ACTIONS[b.getAttribute('data-act')];
+    if (fn) { fn(); focusInput(); }
+  });
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('bigtext-pad'); } catch (e) {}
+    var coarse = false;
+    try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
+    setPad(saved === null ? coarse : saved === '1', false);
+  })();
+
   document.addEventListener('keydown', function (e) {
+    // While the shortcut list is open, any key just closes it.
+    if (helpOpen) { e.preventDefault(); hideHelp(); return; }
     // Command (Ctrl on Windows/Linux) shortcuts work in both modes, including while typing text.
     if ((e.metaKey || e.ctrlKey) && !e.altKey) {
       var k = e.key, c = e.code, handled = true;
       if (k === 'Backspace' || k === 'Delete') {
-        manualSize = null;
-        setValue('');
+        clearAll();
+      } else if (k === '?' || k === '/' || c === 'Slash') {
+        showHelp();
+      } else if (k === 'z' || k === 'Z') {
+        undo();
       } else if (k === '-' || k === '_' || k === '+' || k === '=' || c === 'Minus' || c === 'Equal') {
-        if (value) {
-          var grow = (k === '+' || k === '=' || c === 'Equal');
-          var cur = manualSize !== null ? manualSize : fitSize;
-          manualSize = Math.max(8, Math.min(5000, cur * (grow ? 1.1 : 1 / 1.1)));
-          draw();
-        }
+        adjustSize(k === '+' || k === '=' || c === 'Equal');
       } else if (k === 'c' || k === 'C') {
         copyValue();
       } else if (k === 'f' || k === 'F') {
-        manualSize = null;
+        resetSize();
         draw();
       } else if (k === '\\' || c === 'Backslash') {
         setMode(!textMode);
@@ -559,7 +833,7 @@ body {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (textMode) setValue(value + '\n');
-      else { arrowFresh = false; manualSize = null; setValue(''); } // number mode: Enter clears
+      else clearAll(); // number mode: Enter clears
       return;
     }
     if (textMode) {
@@ -568,23 +842,24 @@ body {
       else if (e.key.length === 1) { e.preventDefault(); setValue(value + e.key); }
       return;
     }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
-      arrowFresh = true;
-      var cur0 = value ? parseInt(value, 10) : 0;
-      if (isNaN(cur0)) cur0 = 0;
-      var next = e.key === 'ArrowRight' ? cur0 + 1 : cur0 - 1;
-      if (!value && e.key === 'ArrowLeft') return;
-      setValue(String(Math.max(1, Math.min(1348, next))));
+      step(e.key.slice(5).toLowerCase());
       return;
     }
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    if (e.key === '?') {
       e.preventDefault();
-      arrowFresh = true;
-      if (!value && e.key === 'ArrowDown') return;
-      var cur1 = value ? parseInt(value, 10) : 0;
-      if (isNaN(cur1)) cur1 = 0;
-      setValue(String(Math.max(1, Math.min(1348, cur1 + (e.key === 'ArrowUp' ? 37 : -37)))));
+      showHelp();
+      return;
+    }
+    if (e.key === 'u' || e.key === 'U') {
+      e.preventDefault();
+      undo();
+      return;
+    }
+    if (e.key === 'm' || e.key === 'M') {
+      e.preventDefault();
+      setPad(!padOn, true);
       return;
     }
     if (e.key === 'l' || e.key === 'L') {
@@ -623,14 +898,10 @@ body {
       setValue(digitBase() + e.key);
     } else if (e.key === '-' || e.key === '_' || e.key === '+' || e.key === '=') {
       e.preventDefault();
-      if (!value) return;
-      var up = (e.key === '+' || e.key === '=');
-      var base = manualSize !== null ? manualSize : fitSize;
-      manualSize = Math.max(8, Math.min(5000, base * (up ? 1.1 : 1 / 1.1)));
-      draw();
+      adjustSize(e.key === '+' || e.key === '=');
     } else if (e.key === 'f') {
       e.preventDefault();
-      manualSize = null;
+      resetSize();
       draw();
     } else if (e.key === 'F') {
       e.preventDefault();
@@ -656,7 +927,7 @@ body {
       return;
     }
     if (t === 'insertLineBreak' || t === 'insertParagraph') {
-      if (e.cancelable) { e.preventDefault(); manualSize = null; setValue(''); }
+      if (e.cancelable) { e.preventDefault(); clearAll(); }
     } else if (t === 'deleteContentBackward') {
       if (e.cancelable) { e.preventDefault(); setValue(value.slice(0, -1)); }
     } else if (t === 'insertText' || t === 'insertFromPaste' || t === 'insertFromDrop') {
@@ -670,7 +941,7 @@ body {
 
   input.addEventListener('input', function (e) {
     if (textMode) { setValue(input.value); return; }
-    if (e && (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph')) { manualSize = null; setValue(''); return; }
+    if (e && (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph')) { clearAll(); return; }
     var cur = input.value;
     if (cur === synced) return;
     // Find what changed regardless of where the caret was: shared start, shared end, middle differs.
@@ -685,7 +956,10 @@ body {
     setValue((removed === 1 && !added ? value.slice(0, -1) : (added ? digitBase() : value)) + added);
   });
 
-  document.addEventListener('pointerdown', focusInput);
+  document.addEventListener('pointerdown', function (e) {
+    if (helpOpen && !(pad && pad.contains(e.target))) hideHelp();
+    focusInput();
+  });
   window.addEventListener('focus', focusInput);
   focusInput();
 
@@ -705,6 +979,7 @@ body {
   // Redraw once the display face has loaded.
   if (document.fonts && document.fonts.load) {
     document.fonts.load('900 100px "Big Shoulders Display"').then(draw, function () {});
+    document.fonts.load('500 12px "IBM Plex Mono"').then(draw, function () {});
     document.fonts.ready.then(draw);
   }
 
