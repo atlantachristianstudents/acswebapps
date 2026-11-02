@@ -20,7 +20,8 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | --- | --- |
 | `index.html` | Home page (app directory). Script at the end is minimal; behavior lives in `assets/main.js`. |
 | `404.html` | Not-found page. Links are absolute (`/adless/...`) because GitHub Pages serves it from arbitrary depths. |
-| `manifest.json` | Home-page web-app manifest. |
+| `manifest.json` | Home-page web-app manifest (standalone PWA; icons in `assets/icons/`). |
+| `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `adless-home-vN`). Must not handle `apps/` requests. |
 | `.nojekyll` | **Required.** Keeps GitHub Pages from running Jekyll (which would exclude `apps/_template/`). Never delete it. |
 | `assets/apps.js` | **App registry.** One object per app in `window.APPS`. Fields documented in the file's header comment. |
 | `assets/main.js` | All home-page behavior: theme, filters, search, cards, keyboard shortcuts. |
@@ -49,7 +50,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 
 ## Cache versioning (critical)
 
-Every `sw.js` has a `VERSION` string like `"verse-lookup-v7"`. When you modify an app's `index.html`, `manifest.webmanifest`, or any file in `FILES`: **bump the version** (increment the trailing number) and update the `FILES` list if needed. Skipping this leaves installed users on stale, broken apps.
+The root `sw.js` follows the same rule for the home page (`index.html`, `manifest.json`, `assets/*` in its `SHELL`). Every app `sw.js` has a `VERSION` string like `"verse-lookup-v7"`. When you modify an app's `index.html`, `manifest.webmanifest`, or any file in `FILES`: **bump the version** (increment the trailing number) and update the `FILES` list if needed. Skipping this leaves installed users on stale, broken apps.
 
 ## Dependency management
 
