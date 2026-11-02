@@ -502,7 +502,8 @@ body {
     input.setAttribute('inputmode', on ? 'text' : 'numeric');
     
     canvas.width = canvas.width; // wipe anything left on the canvas from the previous mode
-    setValue(value); // leaving text mode drops anything that is not a digit
+    manualSize = null;
+    setValue(''); // switching modes always starts with a clean slate
     updateHint();
     flash(on ? 'Text mode · esc for numbers' : 'Number mode');
     try { input.blur(); } catch (e) {}
