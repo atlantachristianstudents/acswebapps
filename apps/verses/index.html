@@ -505,7 +505,7 @@
     <tr><td><kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>S</kbd></td><td>In slides (parts separated by <kbd>|</kbd>), download every slide as a 16:9 PDF with real, selectable text (underlines, highlights and covers as shown; a slide in Greek or other text the PDF fonts cannot hold is saved as a picture)</td></tr>
     <tr><td><kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>/</kbd></td><td>Jump to the text box and clear it, from anywhere (presentation, full screen, side by side, help ...); <kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>Z</kbd> in the empty box brings the cleared text back</td></tr>
     <tr><td><kbd>U</kbd> <kbd>Y</kbd> <kbd>I</kbd></td><td>In presentation mode, underline (<kbd>U</kbd>), highlight (<kbd>Y</kbd>) or make invisible (<kbd>I</kbd>: the words are covered, and clicking a cover reveals that word) the words you have selected with the mouse, or the word under the pronunciation cursor (<kbd>P</kbd>); press the same key again to take it off. Marks stay while you move between slides and come back when you return to them</td></tr>
-    <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to present one slide per part; arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd></td></tr>
+    <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to present one slide per part; arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
     <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&uarr;</kbd><kbd>&rarr;</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>&minus;</kbd> change the text size (<kbd>0</kbd> resets)</td></tr>
     <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>Present the current verse, maximized in the window (<kbd>Shift</kbd>+<kbd>F</kbd> for true full screen). If two or more verses are selected, only those are cycled through</td></tr>
@@ -700,6 +700,7 @@
   // ---- query ----
   function runQuery(q) {
     var out = [], notes = [], curBook = null, bookSeen = false;
+    q = q.replace(/(\d)\.(?=\d)/g, "$1:");   // a period between numbers works like a colon: 3.16 = 3:16
 
     var DASH = "[-\\u2013\\u2014]";   // hyphen, en dash, em dash
 
@@ -722,6 +723,9 @@
       var single = !!SINGLE[BOOKS[bi][0]];
       list.split(",").forEach(function (part) {
         var t = part.trim();
+        // "3:4, 5:3": a number with a colon starts a new chapter (same as 3:4; 5:3); later plain numbers are verses of it
+        var nc = !single && /^(\d+)\s*:\s*(\d.*)$/.exec(t);
+        if (nc && !new RegExp("^(\\d+)\\s*" + DASH + "\\s*(\\d+)\\s*:\\s*(\\d+)$").test(t)) { ch = +nc[1]; t = nc[2]; }
         // 1:4-2:3  -> ch 1 v4 through ch 2 v3
         var x = new RegExp("^(\\d+)\\s*" + DASH + "\\s*(\\d+)\\s*:\\s*(\\d+)$").exec(t);
         if (x) {
@@ -1301,9 +1305,50 @@
 
   // slides typed with "|": each part is looked up on its own; Enter presents them (see openSlides)
   var slideGroups = null;
+  // A part may lean on the one before it: after "Eph 1:5", a part "6" means Eph 1:6, and "5:3" means Eph 5:3
+  // (then "7" is Eph 5:7). After a whole chapter ("Rom 1") a bare number is a chapter. A book name starts afresh.
+  // Only the first reference of each part borrows; later ones after ";" read as they always did.
+  function slideParts(q) {
+    q = q.replace(/(\d)\.(?=\d)/g, "$1:");
+    var ctx = null, bookRe = /^((?:[1-3]\s*)?[A-Za-z][A-Za-z.\s]*?)\s*(\d.*)?$/;
+    function learn(rest) {   // what the reference just read tells the next one
+      if (!ctx) return;
+      var nums = rest.match(/\d+/g);
+      if (!rest.trim()) { ctx.kind = "book"; return; }
+      if (SINGLE[BOOKS[ctx.bi][0]]) { ctx.kind = "single"; return; }
+      var ch = rest.match(/(\d+)\s*:/g);
+      if (ch) { ctx.ch = parseInt(ch[ch.length - 1], 10); ctx.kind = "verse"; }
+      else if (nums) { ctx.ch = +nums[nums.length - 1]; ctx.kind = "chap"; }
+    }
+    return q.split("|").map(function (part) {
+      if (!part.trim()) return part;
+      var segs = part.split(";"), first = true;
+      return segs.map(function (seg) {
+        var s = seg.trim();
+        if (!s) return seg;
+        var lead = first; first = false;
+        if (/^(?:[1-3]\s*)?[A-Za-z]/.test(s)) {   // names its book
+          var m = bookRe.exec(s), bi = m ? resolveBook(m[1]) : null;
+          if (bi === null || bi === undefined) return seg;
+          ctx = { name: m[1].trim(), bi: bi, ch: 0, kind: "book" };
+          learn(m[2] || "");
+          return seg;
+        }
+        if (!ctx || !/^\d/.test(s)) return seg;
+        var out = s;
+        if (lead) {
+          if (/^\d+\s*:/.test(s)) out = ctx.name + " " + s;
+          else if (ctx.kind === "verse") out = ctx.name + " " + ctx.ch + ":" + s;
+          else out = ctx.name + " " + s;
+        }
+        learn(out.replace(/^(?:[1-3]\s*)?[A-Za-z][A-Za-z.\s]*?\s*(?=\d)/, ""));
+        return lead ? " " + out : seg;
+      }).join(";");
+    });
+  }
   function runSlides(q) {
     var out = [], notes = [], groups = [];
-    q.split("|").forEach(function (part) {
+    slideParts(q).forEach(function (part) {
       if (!part.trim()) return;
       var r = runQuery(part);
       notes = notes.concat(r.notes);
@@ -4097,7 +4142,12 @@
       .then(function (rec) {
         if (rec && rec.length) { loadVersions(rec, false, false); return; }
         return kv("readonly", function (s) { return s.get("bible"); })   // older single-file format
-          .then(function (old) { if (old) loadVersions([old], true, false); });
+          .then(function (old) {
+            if (old) { loadVersions([old], true, false); return; }
+            // nothing stored on this device yet: load the text that ships in this folder (RcV.txt)
+            return fetch("./RcV.txt").then(function (r) { if (!r.ok) throw 0; return r.text(); })
+              .then(function (t) { loadVersions([{ name: "RcV.txt", text: t }], true, false); });
+          });
       })
       .catch(function () {});
   }

@@ -8,7 +8,8 @@ Install:
   Android (Chrome):     menu > Install app
   Windows/Mac/Linux (Chrome or Edge): install icon in the address bar
 
-Your verse text file is chosen once and stored on that device, just like the single-file version.
+RcV.txt (the Recovery Version text) ships in this folder and loads automatically the first time the app opens on a device; keep it next to index.html.
+Other verse text files can still be added with "Add version" and are stored on that device.
 When you replace index.html with a newer version, change VERSION in sw.js so devices pick it up.
 
 External display (new)
