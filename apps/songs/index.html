@@ -6,6 +6,14 @@
     <meta name="theme-color" content="#111318" />
     <title>Songbook — Adless</title>
     <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("sw.js").catch(function () {});
+        });
+      }
+    </script>
 
     <style>
       :root {
@@ -351,6 +359,20 @@
 
       .sidebar-add {
         margin-top: 12px;
+        width: 100%;
+        justify-content: flex-start;
+        background: transparent;
+        border-style: dashed;
+      }
+
+      .sidebar-actions {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .sidebar-actions .button {
         width: 100%;
         justify-content: flex-start;
         background: transparent;
@@ -741,137 +763,121 @@
         margin-bottom: 15px;
       }
 
+      .modal textarea {
+        width: 100%;
+        padding: 11px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font: inherit;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        resize: vertical;
+        margin-bottom: 15px;
+      }
+
+      .edit-tag {
+        display: inline-block;
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
+        color: var(--accent);
+        border-radius: 6px;
+        padding: 2px 7px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 6px;
+      }
+
       .modal-actions {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
       }
 
-      /* Presentation */
-
-      .presentation {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        background: #08090d;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        opacity: 1;
+      .modal.wide {
+        width: min(620px, 100%);
       }
 
-      .presentation-toolbar {
-        height: 62px;
+      /* Settings panel */
+
+      .settings-section {
+        border-top: 1px solid var(--border);
+        padding-top: 14px;
+        margin-top: 14px;
+      }
+
+      .settings-section:first-child {
+        border-top: 0;
+        padding-top: 0;
+        margin-top: 0;
+      }
+
+      .settings-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        margin-bottom: 8px;
+      }
+
+      .size-row {
         display: flex;
         align-items: center;
-        padding: 0 22px;
-        gap: 15px;
-        border-bottom: 1px solid #ffffff17;
-        flex-shrink: 0;
+        gap: 10px;
       }
 
-      .presentation-title {
+      .size-row input[type="range"] {
         flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        accent-color: var(--accent);
+      }
+
+      .size-row output {
+        min-width: 4.6em;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
         font-size: 13px;
-        color: #aaa;
+        color: var(--muted);
       }
 
-      .presentation-toolbar button {
-        color: white;
-        border: 1px solid #ffffff35;
-        background: #ffffff0b;
-        border-radius: 8px;
-        padding: 7px 12px;
-        font-size: 12px;
-      }
-
-      .presentation-toolbar button:hover {
-        background: #ffffff20;
-      }
-
-      .presentation-main {
-        flex: 1;
+      #presPreview {
+        height: 170px;
         min-height: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 35px 7vw;
-        overflow: auto;
-        text-align: center;
-      }
-
-      .presentation-song-title {
-        font-size: clamp(23px, 4vw, 43px);
-        font-weight: 750;
-        line-height: 1.2;
-        letter-spacing: -1px;
-        margin-bottom: 35px;
-        max-width: 1100px;
-      }
-
-      .presentation-lyrics {
-        width: 100%;
-        max-width: 1150px;
-        font-size: clamp(22px, 3vw, 38px);
-        line-height: 1.65;
-        font-weight: 450;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
-
-      .presentation-verse {
-        margin: 0 0 30px;
-      }
-
-      .presentation-footer {
-        height: 57px;
-        flex-shrink: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 18px;
-        border-top: 1px solid #ffffff17;
-        color: #777;
-        font-size: 12px;
-      }
-
-      .presentation-footer button {
-        background: transparent;
-        border: 0;
-        color: white;
-        font-size: 20px;
-        padding: 5px 15px;
-      }
-
-      .presentation-footer button:disabled {
-        opacity: 0.2;
+        margin-top: 12px;
         cursor: default;
       }
 
-      .loading-bar {
-        height: 3px;
-        background: var(--surface2);
-        overflow: hidden;
-        border-radius: 10px;
+      .presentation-slide {
+        min-height: 420px;
+        background: #08090d;
+        color: white;
+        border-radius: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 45px 25px;
+        text-align: center;
+        cursor: pointer;
+        position: relative;
+        user-select: none;
+        transition: background 0.2s;
       }
 
-      .loading-bar span {
-        display: block;
-        height: 100%;
-        width: 30%;
-        background: var(--accent);
-        animation: loading 1s infinite ease-in-out alternate;
+      .presentation-slide:hover {
+        background: #101219;
       }
 
-      @keyframes loading {
-        to {
-          transform: translateX(230%);
-        }
+      #presPreview:hover {
+        background: #08090d;
+      }
+
+      #presPreviewText {
+        line-height: 1.65;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-width: 1000px;
       }
 
       .library-count {
@@ -968,23 +974,6 @@
         .detail-actions .button {
           flex: 1;
         }
-
-        .presentation-toolbar {
-          padding: 0 10px;
-          gap: 8px;
-        }
-
-        .presentation-toolbar button {
-          padding: 7px 8px;
-        }
-
-        .presentation-main {
-          padding: 25px 15px;
-        }
-
-        .presentation-song-title {
-          margin-bottom: 25px;
-        }
       }
 
       .presentation-editor {
@@ -1014,27 +1003,6 @@
         min-height: 0;
       }
 
-      .presentation-slide {
-        min-height: 420px;
-        background: #08090d;
-        color: white;
-        border-radius: 13px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 45px 25px;
-        text-align: center;
-        cursor: pointer;
-        position: relative;
-        user-select: none;
-        transition: background 0.2s;
-      }
-
-      .presentation-slide:hover {
-        background: #101219;
-      }
-
       .slide-counter {
         position: absolute;
         top: 18px;
@@ -1062,6 +1030,17 @@
         justify-content: center;
         gap: 20px;
         margin-top: 15px;
+      }
+
+      .quicksong-input {
+        width: 86px;
+        text-align: center;
+      }
+
+      .quicksong-input::-webkit-outer-spin-button,
+      .quicksong-input::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
       }
 
       .slide-controls span {
@@ -1103,6 +1082,7 @@
           <span id="statusText">Loading</span>
         </div>
         <button class="icon-button" id="syncButton" title="Synchronize database">↻</button>
+        <button class="icon-button" id="settingsButton" title="Settings" aria-haspopup="dialog">⚙</button>
         <button class="icon-button" id="themeButton" title="Toggle theme">◐</button>
       </div>
     </div>
@@ -1129,6 +1109,16 @@
             <div><strong id="databaseCount">0</strong> songs available</div>
             <div id="lastSync">Not synchronized</div>
             <div id="databaseStorage">IndexedDB storage</div>
+          </div>
+
+          <div class="sidebar-actions">
+            <button class="button" id="exportBookButton" title="Download the active songbook with its lyrics embedded">
+              ⤓ Export songbook
+            </button>
+            <button class="button" id="importBookButton" title="Load a songbook exported from another device">
+              ⤒ Import songbook
+            </button>
+            <input type="file" id="importFileInput" accept=".json,application/json" hidden />
           </div>
         </aside>
 
@@ -1159,6 +1149,16 @@
                   <p>Drag songs to change their order and numbering.</p>
                 </div>
                 <span class="library-count" id="bookSongCount">0 songs</span>
+              </div>
+
+              <div class="search-wrap">
+                <span class="search-icon">⌕</span>
+                <input
+                  id="bookSearch"
+                  type="search"
+                  placeholder="Search this songbook by title or lyrics..."
+                  autocomplete="off" />
+                <button class="search-clear" id="clearBookSearch" aria-label="Clear search">×</button>
               </div>
 
               <div class="song-list" id="bookSongs"></div>
@@ -1212,7 +1212,11 @@
                     <p id="presentSelectedInfo">Select a song to begin.</p>
                   </div>
                   <div class="presentation-header-actions">
-                    <button class="button" id="presentationFullscreen" type="button" title="Enter fullscreen presentation">
+                    <button
+                      class="button"
+                      id="presentationFullscreen"
+                      type="button"
+                      title="Enter fullscreen presentation">
                       ⛶ Fullscreen
                     </button>
                     <button class="button" id="presentReset">↺ Restart</button>
@@ -1231,7 +1235,26 @@
                     <button class="button primary" id="nextVerse">Next →</button>
                   </div>
 
-                  <div class="presentation-hint">Use ← → arrow keys or click the slide to navigate.</div>
+                  <div class="slide-controls">
+                    <button class="button" id="fontSmaller" title="Smaller lyrics">A&minus;</button>
+                    <button class="button" id="fontFill" title="Use the largest size that fits">⤢ Fill</button>
+                    <button class="button" id="fontLarger" title="Larger lyrics">A+</button>
+                    <button class="button" id="presentFullscreen" title="Enter fullscreen presentation">
+                      ⛶ Fullscreen
+                    </button>
+                    <input
+                      class="button quicksong-input"
+                      id="quicksong"
+                      type="number"
+                      min="1"
+                      inputmode="numeric"
+                      placeholder="No."
+                      title="Type a song number and press Enter" />
+                  </div>
+
+                  <div class="presentation-hint">
+                    Click the slide, swipe, or use ← → / Space to navigate. A&minus; / A+ change the text size.
+                  </div>
                 </div>
               </div>
             </div>
@@ -1273,6 +1296,65 @@
         </div>
       </div>
     </div>
+
+    <div class="modal-backdrop hidden" id="editBackdrop">
+      <div class="modal wide" role="dialog" aria-modal="true" aria-label="Edit song">
+        <h2>Edit song</h2>
+        <p>Saved locally on this device &mdash; a sync will not replace your edits. Chorus lines are indented by two spaces, a number on its own line starts a new verse.</p>
+
+        <input type="text" id="editTitle" maxlength="200" placeholder="Song title" />
+        <textarea id="editLyrics" rows="14" spellcheck="false" placeholder="Lyrics"></textarea>
+
+        <div class="modal-actions">
+          <button class="button hidden" id="editReset">&harr; Reset to original</button>
+          <button class="button" id="editCancel">Cancel</button>
+          <button class="button primary" id="editSave">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="settingsBackdrop">
+      <div class="modal wide" role="dialog" aria-modal="true" aria-label="Settings">
+        <h2>Settings</h2>
+        <p>Your choices are saved on this device.</p>
+
+        <div class="settings-section">
+          <div class="settings-label">Presentation text size</div>
+          <div class="size-row">
+            <button class="button" id="presSizeFill" title="Use the largest size that fits">⤢ Fill</button>
+            <input
+              type="range"
+              id="presSizeSlider"
+              min="16"
+              max="96"
+              step="2"
+              aria-label="Presentation text size in pixels" />
+            <output id="presSizeValue">Fill</output>
+          </div>
+          <div class="presentation-slide" id="presPreview" aria-hidden="true">
+            <div id="presPreviewText">
+              A&minus;men, A&minus;men, A&minus;men, A&minus;men This is how your lyrics will fill the slide.
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--muted); margin: 10px 0 0">
+            Drag the slider for a fixed size, or choose <strong>Fill</strong> to fit the lyrics to the slide (kept
+            within a readable range). The A&minus; / A+ buttons in Present adjust the same setting.
+          </p>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">Data</div>
+          <div class="modal-actions" style="justify-content: flex-start">
+            <button class="button danger" id="clearBooksButton">Delete all songbooks&hellip;</button>
+            <button class="button danger" id="clearSongsButton">Clear song database&hellip;</button>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 16px">
+          <button class="button primary" id="settingsClose">Done</button>
+        </div>
+      </div>
+    </div>
     <script>
       (() => {
         "use strict";
@@ -1281,7 +1363,9 @@
         // Configuration
         // ============================================================
 
-        const API = "https://cors.tools/https://songbase.life/api/v2/app_data";
+        const API = "https://songbase.life/api/v2/app_data";
+        // The proxy is tried first; if it is unreachable we retry Songbase directly.
+        const CORS_PROXY = "https://cors.tools/";
         const LANGUAGE = "english";
         const DB_NAME = "adless-songbook";
         const DB_VERSION = 1;
@@ -1303,11 +1387,11 @@
         let books = [];
         let activeBookId = null;
         let selectedSongId = null;
-        let selectedSource = "book";
         let activeTab = "songs";
         let modalCallback = null;
         let dragSourceIndex = null;
         let librarySearchTimer = null;
+        let bookSearchTimer = null;
         let syncInProgress = false;
         let presentSong = null;
         let presentVerses = [];
@@ -1360,16 +1444,6 @@
           });
         }
 
-        function dbGet(id) {
-          return new Promise((resolve, reject) => {
-            const transaction = db.transaction(SONG_STORE, "readonly");
-            const request = transaction.objectStore(SONG_STORE).get(id);
-
-            request.onsuccess = () => resolve(request.result || null);
-            request.onerror = () => reject(request.error);
-          });
-        }
-
         function dbPutMany(records) {
           return new Promise((resolve, reject) => {
             const transaction = db.transaction(SONG_STORE, "readwrite");
@@ -1377,21 +1451,6 @@
 
             for (const record of records) {
               store.put(record);
-            }
-
-            transaction.oncomplete = () => resolve();
-            transaction.onerror = () => reject(transaction.error);
-            transaction.onabort = () => reject(transaction.error);
-          });
-        }
-
-        function dbDeleteMany(ids) {
-          return new Promise((resolve, reject) => {
-            const transaction = db.transaction(SONG_STORE, "readwrite");
-            const store = transaction.objectStore(SONG_STORE);
-
-            for (const id of ids) {
-              store.delete(id);
             }
 
             transaction.oncomplete = () => resolve();
@@ -1462,8 +1521,6 @@
             lang: String(song.lang || song.language || LANGUAGE),
             lyrics: typeof song.lyrics === "string" ? song.lyrics : "",
             language_links: Array.isArray(song.language_links) ? song.language_links : [],
-            updated_at: song.updated_at || null,
-            _raw: song,
           };
         }
 
@@ -1521,25 +1578,49 @@
         }
 
         async function fetchSongbase(url) {
-          const response = await fetch(url, {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-            cache: "no-store",
-          });
+          // Try the CORS proxy, then Songbase directly (some hosts serve the API with CORS headers).
+          const targets = [CORS_PROXY + url, url];
+          let lastError = null;
 
-          if (!response.ok) {
-            throw new Error(`Songbase returned HTTP ${response.status}`);
+          for (const target of targets) {
+            let response;
+
+            try {
+              response = await fetch(target, {
+                method: "GET",
+                headers: {
+                  Accept: "application/json",
+                },
+                cache: "no-store",
+              });
+            } catch (networkError) {
+              lastError = networkError;
+              continue;
+            }
+
+            if (!response.ok) {
+              lastError = new Error(`Songbase returned HTTP ${response.status}`);
+              continue;
+            }
+
+            let data;
+
+            try {
+              data = await response.json();
+            } catch (parseError) {
+              lastError = parseError;
+              continue;
+            }
+
+            if (!data || typeof data !== "object") {
+              lastError = new Error("Invalid Songbase response.");
+              continue;
+            }
+
+            return data;
           }
 
-          const data = await response.json();
-
-          if (!data || typeof data !== "object") {
-            throw new Error("Invalid Songbase response.");
-          }
-
-          return data;
+          throw lastError || new Error("Songbase is unreachable.");
         }
 
         // ============================================================
@@ -1578,6 +1659,18 @@
 
           if (normalized.size === 0) {
             throw new Error("The initial Songbase response contained no usable songs.");
+          }
+
+          // Songs added by the user (import) or edited locally survive a
+          // full download, so a sync can never wipe that data.
+          let keepCustom = [];
+
+          try {
+            keepCustom = (await dbGetAll()).filter((song) => song && (song.custom === true || song.edited === true));
+
+            for (const song of keepCustom) normalized.set(song.id, song);
+          } catch {
+            keepCustom = [];
           }
 
           // A single IndexedDB transaction protects the existing database
@@ -1636,17 +1729,25 @@
 
           const deletions = extractDeletions(response);
 
+          // Local (imported or edited) songs are never removed or replaced
+          // by Songbase data, even when their id happens to match.
+          const protectedIds = new Set(
+            songs.filter((song) => song.custom === true || song.edited === true).map((song) => song.id),
+          );
+
           // Both operations are committed atomically.
           await new Promise((resolve, reject) => {
             const transaction = db.transaction(SONG_STORE, "readwrite");
             const store = transaction.objectStore(SONG_STORE);
 
             for (const song of normalized.values()) {
-              store.put(song);
+              // Locally edited songs keep the user's version; Songbase
+              // updates are ignored until the edit is reset.
+              if (!protectedIds.has(song.id)) store.put(song);
             }
 
             for (const id of deletions) {
-              store.delete(id);
+              if (!protectedIds.has(id)) store.delete(id);
             }
 
             transaction.oncomplete = resolve;
@@ -1686,8 +1787,6 @@
             }
 
             setSyncStatus("synced", "Synced");
-            $("lastSync").textContent =
-              "Last synced: " + new Date(Number(localStorage.getItem(STORAGE_KEYS.sync))).toLocaleString();
 
             renderLibrary();
 
@@ -1806,7 +1905,6 @@
         function selectBook(id) {
           activeBookId = id;
           selectedSongId = null;
-          selectedSource = "book";
 
           saveBooks();
           renderAll();
@@ -1839,7 +1937,7 @@
           saveBooks();
           renderAll();
 
-          selectSong(id, "book");
+          selectSong(id);
           toast("Song added to " + book.name + ".");
         }
 
@@ -1876,9 +1974,8 @@
         // Searching and song selection
         // ============================================================
 
-        function selectSong(id, source = "book") {
+        function selectSong(id) {
           selectedSongId = String(id);
-          selectedSource = source;
 
           renderBookSongs();
           renderLibrary();
@@ -1958,6 +2055,19 @@
           );
         }
 
+        // Shared "nothing here" box. icon and buttonHTML are app-written,
+        // title and text are plain strings and are escaped.
+        function emptyState(title, text, { icon = "", buttonHTML = "", style = "" } = {}) {
+          return `
+                        <div class="empty-state"${style ? ` style="${style}"` : ""}>
+                          ${icon ? `<div class="empty-icon">${icon}</div>` : ""}
+                          <strong>${escapeHTML(title)}</strong>
+                          <p>${escapeHTML(text)}</p>
+                          ${buttonHTML}
+                        </div>
+                      `;
+        }
+
         function renderAll() {
           renderBooks();
           renderBookHeader();
@@ -1971,12 +2081,9 @@
           const container = $("bookList");
 
           if (!books.length) {
-            container.innerHTML = `
-                          <div class="empty-state" style="padding:15px 5px">
-                            <strong>No songbooks yet</strong>
-                            <p>Create your first collection.</p>
-                          </div>
-                        `;
+            container.innerHTML = emptyState("No songbooks yet", "Create your first collection.", {
+              style: "padding:15px 5px",
+            });
             return;
           }
 
@@ -2021,12 +2128,16 @@
 
           const isBook = source === "book";
 
+          // Dragging inside a filtered list would reorder using hidden
+          // positions, so it is disabled while a search is active.
+          const canDrag = isBook && options.draggable !== false;
+
           return `
                         <div class="song-row ${isSelected ? "selected" : ""}"
                              data-song-row="${escapeHTML(song.id)}"
-                             ${isBook ? `data-index="${options.index}" draggable="true"` : ""}>
+                             ${canDrag ? `data-index="${options.index}" draggable="true"` : ""}>
 
-                          ${isBook ? `<span class="drag-handle" title="Drag to reorder">⠿</span>` : ""}
+                          ${isBook ? `<span class="drag-handle" title="${canDrag ? "Drag to reorder" : "Clear the search to drag songs"}"${canDrag ? "" : ' style="opacity:.3"'}>⠿</span>` : ""}
 
                           <div class="song-number">${number ?? "♫"}</div>
 
@@ -2053,14 +2164,14 @@
           const book = getActiveBook();
 
           if (!book) {
-            container.innerHTML = `
-                          <div class="empty-state">
-                            <div class="empty-icon">📚</div>
-                            <strong>Create your first songbook</strong>
-                            <p>Start a collection of your favorite songs.</p>
-                            <button class="button primary" data-create-book>Create songbook</button>
-                          </div>
-                        `;
+            container.innerHTML = emptyState(
+              "Create your first songbook",
+              "Start a collection of your favorite songs.",
+              {
+                icon: "📚",
+                buttonHTML: `<button class="button primary" data-create-book>Create songbook</button>`,
+              },
+            );
 
             container.querySelector("[data-create-book]")?.addEventListener("click", showCreateBook);
 
@@ -2068,17 +2179,24 @@
           }
 
           const query = $("bookSearch")?.value || "";
+          const filtered = query.trim() !== "";
           const results = searchBook(query);
 
+          $("bookSongCount").textContent = filtered
+            ? `${results.length} of ${book.songs.length} songs · clear the search to drag`
+            : `${book.songs.length} songs`;
+
           if (!results.length) {
-            container.innerHTML = `
-                          <div class="empty-state">
-                            <div class="empty-icon">♫</div>
-                            <strong>${book.songs.length ? "No matching songs" : "Your songbook is empty"}</strong>
-                            <p>${book.songs.length ? "Try a different search." : "Open the song library to add songs."}</p>
-                            ${book.songs.length ? "" : `<button class="button primary" data-open-library>Browse songs</button>`}
-                          </div>
-                        `;
+            container.innerHTML = emptyState(
+              book.songs.length ? "No matching songs" : "Your songbook is empty",
+              book.songs.length ? "Try a different search." : "Open the song library to add songs.",
+              {
+                icon: "♫",
+                buttonHTML: book.songs.length
+                  ? ""
+                  : `<button class="button primary" data-open-library>Browse songs</button>`,
+              },
+            );
 
             container.querySelector("[data-open-library]")?.addEventListener("click", () => switchTab("library"));
 
@@ -2089,6 +2207,7 @@
             .map((item) =>
               songRowHTML(item.song, item.number, "book", {
                 index: book.songs.indexOf(item.song.id),
+                draggable: !filtered,
               }),
             )
             .join("");
@@ -2105,14 +2224,14 @@
           $("libraryCount").textContent = `${songs.length.toLocaleString()} total songs`;
 
           if (!songs.length) {
-            container.innerHTML = `
-                          <div class="empty-state">
-                            <div class="empty-icon">☁</div>
-                            <strong>Song database unavailable</strong>
-                            <p>Connect to the internet and synchronize Songbase.</p>
-                            <button class="button primary" data-sync-library>Try again</button>
-                          </div>
-                        `;
+            container.innerHTML = emptyState(
+              "Song database unavailable",
+              "Connect to the internet and synchronize Songbase.",
+              {
+                icon: "☁",
+                buttonHTML: `<button class="button primary" data-sync-library>Try again</button>`,
+              },
+            );
 
             container.querySelector("[data-sync-library]")?.addEventListener("click", () => synchronize(true));
 
@@ -2120,13 +2239,8 @@
           }
 
           if (!results.length) {
-            container.innerHTML = `
-                          <div class="empty-state">
-                            <div class="empty-icon">⌕</div>
-                            <strong>No songs found</strong>
-                            <p>Try another title or search term.</p>
-                          </div>
-                        `;
+            container.innerHTML = emptyState("No songs found", "Try another title or search term.", { icon: "⌕" });
+
             return;
           }
 
@@ -2138,7 +2252,7 @@
         function bindSongRowEvents(container, source) {
           container.querySelectorAll("[data-select-song]").forEach((element) => {
             element.addEventListener("click", () => {
-              selectSong(element.dataset.selectSong, source);
+              selectSong(element.dataset.selectSong);
             });
           });
 
@@ -2170,13 +2284,9 @@
           if (!song) {
             $("detailsSubtitle").textContent = "Select a song to see its lyrics.";
 
-            container.innerHTML = `
-                          <div class="empty-state">
-                            <div class="empty-icon">♫</div>
-                            <strong>No song selected</strong>
-                            <p>Select a song from your songbook or the library.</p>
-                          </div>
-                        `;
+            container.innerHTML = emptyState("No song selected", "Select a song from your songbook or the library.", {
+              icon: "♫",
+            });
 
             return;
           }
@@ -2206,7 +2316,7 @@
                           <div>
                             <div class="detail-label">Song information</div>
                             <div style="margin-bottom:15px">
-                              <strong style="font-size:14px">${escapeHTML(song.title)}</strong>
+                              <strong style="font-size:14px">${escapeHTML(song.title)}${song.edited ? `<span class="edit-tag">edited</span>` : ""}</strong>
                               <div style="color:var(--muted);font-size:12px;margin-top:4px">
                                 Database ID: ${escapeHTML(song.id)}<br>
                                 Language: ${escapeHTML(song.lang)}
@@ -2220,6 +2330,8 @@
                                   ? `<button class="button danger" id="detailRemove">Remove</button>`
                                   : `<button class="button primary" id="detailAdd">＋ Add to book</button>`
                               }
+                              <button class="button" id="detailEdit">✎ Edit</button>
+                              ${song.edited ? `<button class="button" id="detailReset">&harr; Reset</button>` : ""}
                               <button class="button" id="detailPresent">▶ Present</button>
                             </div>
                           </div>
@@ -2227,6 +2339,12 @@
                       `;
 
           $("detailPresent").addEventListener("click", openPresentation);
+
+          $("detailEdit").addEventListener("click", openSongEdit);
+
+          if (song.edited) {
+            $("detailReset").addEventListener("click", resetSongEdit);
+          }
 
           if (inBook) {
             $("detailRemove").addEventListener("click", () => {
@@ -2245,7 +2363,7 @@
           const timestamp = Number(localStorage.getItem(STORAGE_KEYS.sync) || 0);
 
           $("lastSync").textContent = timestamp
-            ? "Last synced: " + new Date(timestamp).toLocaleDateString()
+            ? "Last synced: " + new Date(timestamp).toLocaleString()
             : "Not synchronized";
         }
 
@@ -2438,11 +2556,15 @@
 
         function updatePresentationFullscreenButton() {
           const isFullscreen = document.fullscreenElement === $("presentationWorkspace");
-          const button = $("presentationFullscreen");
 
-          button.textContent = isFullscreen ? "⛶ Exit fullscreen" : "⛶ Fullscreen";
-          button.title = isFullscreen ? "Exit fullscreen presentation" : "Enter fullscreen presentation";
-          button.setAttribute("aria-pressed", String(isFullscreen));
+          for (const id of ["presentationFullscreen", "presentFullscreen"]) {
+            const button = $(id);
+            if (!button) continue;
+
+            button.textContent = isFullscreen ? "⛶ Exit fullscreen" : "⛶ Fullscreen";
+            button.title = isFullscreen ? "Exit fullscreen presentation" : "Enter fullscreen presentation";
+            button.setAttribute("aria-pressed", String(isFullscreen));
+          }
         }
 
         function openPresentation() {
@@ -2510,6 +2632,9 @@
           if (tab === "present") {
             $("presentationSearch").focus();
             renderPresentationSearch();
+
+            // The slide may have been resized while another tab was showing.
+            if (presentSong) fitPresentation();
           }
         }
 
@@ -2540,13 +2665,11 @@
           results = results.slice(0, 100);
 
           if (!results.length) {
-            container.innerHTML = `
-                    <div class="empty-state">
-                      <div class="empty-icon">♫</div>
-                      <strong>${query ? "No songs found" : "Search for a song"}</strong>
-                      <p>Search Songbase to choose a song for your presentation.</p>
-                    </div>
-                  `;
+            container.innerHTML = emptyState(
+              query ? "No songs found" : "Search for a song",
+              "Search Songbase to choose a song for your presentation.",
+              { icon: "♫" },
+            );
             return;
           }
 
@@ -2586,6 +2709,10 @@
           presentVerses = cleanLyrics(song.lyrics);
           presentVerseIndex = 0;
 
+          if (!presentVerses.length) {
+            toast("This song has no lyrics to present.");
+          }
+
           $("presentationWorkspace").classList.remove("hidden");
 
           $("presentSelectedTitle").textContent = song.title;
@@ -2600,6 +2727,115 @@
           });
         }
 
+        // ============================================================
+        // Local song edits
+        // ============================================================
+
+        function openSongEdit() {
+          const song = getSelectedSong();
+
+          if (!song) return;
+
+          $("editTitle").value = song.title;
+          $("editLyrics").value = song.lyrics || "";
+          $("editReset").classList.toggle("hidden", !song.edited);
+
+          $("editBackdrop").classList.remove("hidden");
+          $("editTitle").focus();
+        }
+
+        function closeSongEdit() {
+          $("editBackdrop").classList.add("hidden");
+        }
+
+        // Keep an open presentation in sync with new song data.
+        function refreshPresentationFor(updated) {
+          if (presentSong && String(presentSong.id) === String(updated.id)) {
+            presentSong = updated;
+            presentVerses = cleanLyrics(updated.lyrics);
+            presentVerseIndex = Math.min(presentVerseIndex, Math.max(0, presentVerses.length - 1));
+
+            $("presentSelectedInfo").textContent = `${presentVerses.length} slides · Songbase ID ${updated.id}`;
+
+            renderPresentationSlide();
+          }
+        }
+
+        async function saveSongEdit() {
+          const song = getSelectedSong();
+
+          if (!song) return;
+
+          const title = $("editTitle").value.trim() || song.title;
+          const lyrics = $("editLyrics").value.replace(/\r\n?/g, "\n").trim();
+
+          if (!lyrics) {
+            toast("Lyrics cannot be empty.");
+            return;
+          }
+
+          // Remember the original Songbase values on the very first edit,
+          // so "Reset" can always return to them.
+          const updated = {
+            ...song,
+            title,
+            lyrics,
+            edited: true,
+            originalTitle: song.originalTitle ?? song.title,
+            originalLyrics: song.originalLyrics ?? song.lyrics,
+          };
+
+          try {
+            await dbPutMany([updated]);
+          } catch (error) {
+            console.error("Saving the edit failed:", error);
+            toast("Unable to save edits: " + error.message);
+            return;
+          }
+
+          const index = songs.findIndex((item) => item.id === song.id);
+
+          if (index >= 0) songs[index] = updated;
+
+          closeSongEdit();
+          renderAll();
+          refreshPresentationFor(updated);
+          toast("Edits saved locally on this device.");
+        }
+
+        async function resetSongEdit() {
+          const song = getSelectedSong();
+
+          if (!song || !song.edited) return;
+
+          const restored = {
+            ...song,
+            title: song.originalTitle,
+            lyrics: song.originalLyrics,
+          };
+
+          delete restored.edited;
+          delete restored.originalTitle;
+          delete restored.originalLyrics;
+
+          try {
+            await dbPutMany([restored]);
+          } catch (error) {
+            console.error("Resetting the song failed:", error);
+            toast("Unable to reset the song: " + error.message);
+            return;
+          }
+
+          const index = songs.findIndex((item) => item.id === song.id);
+
+          if (index >= 0) songs[index] = restored;
+
+          closeSongEdit();
+          renderAll();
+          refreshPresentationFor(restored);
+          toast("Song restored to the Songbase version.");
+        }
+
         function renderPresentationSlide() {
           if (!presentSong) return;
 
@@ -2611,14 +2847,15 @@
           $("presentationVerse").textContent = verse?.text || "No lyrics available.";
 
           $("slideCounter").textContent =
-            verse?.type === "chorus"
-              ? `Chorus · ${position}`
-              : `Verse ${verse?.number || current + 1} · ${position}`;
+            verse?.type === "chorus" ? `Chorus · ${position}` : `Verse ${verse?.number || current + 1} · ${position}`;
 
           $("slidePosition").textContent = position;
 
           $("previousVerse").disabled = current <= 0;
           $("nextVerse").disabled = current >= total - 1;
+
+          // Size the lyrics for the new text (Fill picks the largest size that fits).
+          fitPresentation();
 
           // Keep the current verse centered.
           $("presentationSlide").scrollIntoView({
@@ -2652,6 +2889,323 @@
 
           presentVerseIndex = 0;
           renderPresentationSlide();
+        }
+
+        // ============================================================
+        // Presentation text size (A− / A+ / Fill), as in Verse Lookup
+        // ============================================================
+
+        const PRES_SIZE_KEY = "adless-songbook-pres-size";
+        const PRES_SIZE_MIN = 16;
+        const PRES_SIZE_MAX = 96; // Fill never grows past a readable size
+        let presFontSize = loadPresSize(); // null = fill the slide with the largest size that fits
+        let presentationMax = 42; // largest size the current lyrics fit at
+
+        function loadPresSize() {
+          try {
+            const value = localStorage.getItem(PRES_SIZE_KEY);
+
+            return value && value !== "fill" && +value >= PRES_SIZE_MIN ? +value : null;
+          } catch {
+            return null;
+          }
+        }
+
+        function savePresSize() {
+          try {
+            localStorage.setItem(PRES_SIZE_KEY, presFontSize === null ? "fill" : String(presFontSize));
+          } catch {}
+        }
+
+        // Largest font size at which `el` fits inside `box`'s padding-free area.
+        function fitFontInBox(box, el, lo, hi) {
+          const style = getComputedStyle(box);
+          const innerWidth = Math.max(
+            0,
+            box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+          );
+          const innerHeight = Math.max(
+            0,
+            box.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom),
+          );
+
+          while (lo < hi) {
+            const mid = Math.ceil((lo + hi) / 2);
+
+            el.style.fontSize = mid + "px";
+
+            if (el.offsetHeight <= innerHeight && el.scrollWidth <= innerWidth) lo = mid;
+            else hi = mid - 1;
+          }
+
+          return lo;
+        }
+
+        function fitPresentation() {
+          const el = $("presentationVerse");
+          const box = $("presentationSlide");
+
+          if (!el || !box || !box.clientHeight) return; // hidden or removed: keep the current layout
+
+          presentationMax = fitFontInBox(box, el, PRES_SIZE_MIN, PRES_SIZE_MAX);
+
+          el.style.fontSize =
+            (presFontSize === null ? presentationMax : Math.min(presFontSize, presentationMax)) + "px";
+        }
+
+        function resizePresentation(direction) {
+          if (!presentSong) return;
+
+          const current = parseFloat($("presentationVerse").style.fontSize) || presentationMax;
+
+          if (direction > 0) {
+            const size = Math.max(current + 2, Math.round(current * 1.12));
+
+            // Growing past the largest size that fits simply returns to Fill.
+            presFontSize = size >= PRES_SIZE_MAX ? null : size;
+          } else {
+            // Stepping down from Fill starts from the maximum that fits.
+            presFontSize = Math.max(PRES_SIZE_MIN, Math.min(Math.round(current / 1.12), current - 2));
+          }
+
+          savePresSize();
+          fitPresentation();
+        }
+
+        // ============================================================
+        // Settings
+        // ============================================================
+
+        function openSettings() {
+          $("settingsBackdrop").classList.remove("hidden");
+          syncSettingsControls();
+        }
+
+        function closeSettings() {
+          $("settingsBackdrop").classList.add("hidden");
+        }
+
+        function syncSettingsControls() {
+          const value = presFontSize === null ? PRES_SIZE_MAX : Math.min(presFontSize, PRES_SIZE_MAX);
+
+          $("presSizeSlider").value = value;
+          $("presSizeValue").textContent = presFontSize === null ? "Fill" : presFontSize + "px";
+          $("presSizeFill").setAttribute("aria-pressed", String(presFontSize === null));
+
+          fitPresPreview();
+        }
+
+        function setPresSizeFromSettings(value) {
+          presFontSize = value === null ? null : Math.min(PRES_SIZE_MAX, Math.max(PRES_SIZE_MIN, Math.round(+value)));
+
+          savePresSize();
+          syncSettingsControls();
+          fitPresentation();
+        }
+
+        function fitPresPreview() {
+          const box = $("presPreview");
+          const el = $("presPreviewText");
+
+          if (!box || !box.clientHeight) return;
+
+          const max = fitFontInBox(box, el, PRES_SIZE_MIN, PRES_SIZE_MAX);
+
+          el.style.fontSize = (presFontSize === null ? max : Math.min(presFontSize, max)) + "px";
+        }
+
+        function clearAllBooks() {
+          if (!books.length) {
+            toast("There are no songbooks to delete.");
+            return;
+          }
+
+          if (!confirm(`Delete all ${books.length} songbook(s)? The song database is kept.`)) return;
+
+          books = [];
+          activeBookId = null;
+          selectedSongId = null;
+
+          saveBooks();
+          renderAll();
+
+          toast("All songbooks deleted.");
+        }
+
+        async function clearSongDatabase() {
+          if (
+            !confirm(
+              "Clear the whole song database? You will need to sync with Songbase again, and imported songs are lost too.",
+            )
+          ) {
+            return;
+          }
+
+          books = [];
+          activeBookId = null;
+          selectedSongId = null;
+          songs = [];
+
+          saveBooks();
+
+          try {
+            await new Promise((resolve, reject) => {
+              const transaction = db.transaction(SONG_STORE, "readwrite");
+
+              transaction.objectStore(SONG_STORE).clear();
+
+              transaction.oncomplete = resolve;
+              transaction.onerror = () => reject(transaction.error);
+              transaction.onabort = () => reject(transaction.error);
+            });
+
+            try {
+              localStorage.removeItem(STORAGE_KEYS.sync);
+            } catch {}
+          } catch (error) {
+            console.error("Clearing the database failed:", error);
+            toast("Unable to clear the database: " + error.message);
+          }
+
+          renderAll();
+          toast("Song database cleared.");
+        }
+
+        // ============================================================
+        // Export and import songbooks
+        //
+        // Exported files embed the full lyrics, so a songbook can move
+        // to another device without downloading Songbase first.
+        // ============================================================
+
+        function exportSongbook() {
+          const book = getActiveBook();
+
+          if (!book) {
+            toast("Create or select a songbook to export.");
+            return;
+          }
+
+          const payload = {
+            app: "adless-songbook",
+            version: 1,
+            exported: Date.now(),
+            book: {
+              name: book.name,
+              songs: book.songs
+                .map((id) => {
+                  const song = songs.find((item) => item.id === String(id));
+
+                  return song ? { id: song.id, title: song.title, lang: song.lang, lyrics: song.lyrics } : null;
+                })
+                .filter(Boolean),
+            },
+          };
+
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          const link = document.createElement("a");
+
+          link.href = URL.createObjectURL(blob);
+
+          const safeName = book.name.replace(/[\\/:*?"<>|]+/g, "").trim() || "songbook";
+
+          link.download = safeName + ".json";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(link.href);
+
+          toast(`Exported "${book.name}" with ${payload.book.songs.length} songs.`);
+        }
+
+        async function importSongbook(file) {
+          let parsed;
+
+          try {
+            parsed = JSON.parse(await file.text());
+          } catch {
+            toast("That file is not a valid songbook export.");
+            return;
+          }
+
+          // Accept either an export produced above or a bare array of songs.
+          const bookData =
+            parsed && parsed.book ? parsed.book : Array.isArray(parsed) ? { name: null, songs: parsed } : null;
+
+          if (!bookData || !Array.isArray(bookData.songs) || !bookData.songs.length) {
+            toast("That file contains no songs.");
+            return;
+          }
+
+          const imported = [];
+
+          for (const item of bookData.songs) {
+            if (!item || (item.id === undefined && item.id === null)) continue;
+
+            const id = String(item.id);
+
+            if (!id.trim()) continue;
+
+            imported.push({
+              id,
+              title: String(item.title || "Untitled song"),
+              lang: String(item.lang || LANGUAGE),
+              lyrics: typeof item.lyrics === "string" ? item.lyrics : "",
+              language_links: [],
+              // custom keeps imported songs alive through a full Songbase sync.
+              custom: true,
+            });
+          }
+
+          if (!imported.length) {
+            toast("That file contains no usable songs.");
+            return;
+          }
+
+          try {
+            // Merge the songs into the local database so they are usable
+            // even if this device has never synced Songbase.
+            await dbPutMany(imported);
+
+            const known = new Map(songs.map((song) => [song.id, song]));
+
+            for (const song of imported) known.set(song.id, song);
+
+            songs = [...known.values()];
+          } catch (error) {
+            console.error("Import failed:", error);
+            toast("Unable to store the imported songs: " + error.message);
+            return;
+          }
+
+          const importedIds = imported.map((song) => song.id);
+
+          // Exported songs are already listed in songbook order.
+          const songIds = importedIds;
+
+          let name =
+            String(bookData.name || "Imported songbook")
+              .slice(0, 80)
+              .trim() || "Imported songbook";
+
+          while (books.some((book) => book.name === name)) name = name + " (imported)";
+
+          const book = {
+            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2),
+            name,
+            songs: songIds,
+            createdAt: Date.now(),
+          };
+
+          books.push(book);
+          activeBookId = book.id;
+          selectedSongId = null;
+
+          saveBooks();
+          renderAll();
+          updateDatabaseInfo();
+
+          toast(`Imported "${book.name}" with ${book.songs.length} songs.`);
         }
 
         function toast(message) {
@@ -2700,6 +3254,30 @@
           $("renameBook").addEventListener("click", showRenameBook);
           $("deleteBook").addEventListener("click", deleteBook);
 
+          $("bookSearch").addEventListener("input", () => {
+            clearTimeout(bookSearchTimer);
+
+            bookSearchTimer = setTimeout(renderBookSongs, 30);
+          });
+
+          $("clearBookSearch").addEventListener("click", () => {
+            $("bookSearch").value = "";
+            renderBookSongs();
+            $("bookSearch").focus();
+          });
+
+          $("exportBookButton").addEventListener("click", exportSongbook);
+
+          $("importBookButton").addEventListener("click", () => $("importFileInput").click());
+
+          $("importFileInput").addEventListener("change", (event) => {
+            const file = event.target.files && event.target.files[0];
+
+            event.target.value = "";
+
+            if (file) importSongbook(file);
+          });
+
           $("modalCancel").addEventListener("click", closeModal);
 
           $("modalConfirm").addEventListener("click", () => {
@@ -2729,6 +3307,42 @@
 
           $("modalBackdrop").addEventListener("click", (event) => {
             if (event.target === $("modalBackdrop")) closeModal();
+          });
+
+          $("settingsButton").addEventListener("click", openSettings);
+
+          $("settingsBackdrop").addEventListener("click", (event) => {
+            if (event.target === $("settingsBackdrop")) closeSettings();
+          });
+
+          $("settingsClose").addEventListener("click", closeSettings);
+
+          $("presSizeSlider").addEventListener("input", (event) => {
+            setPresSizeFromSettings(+event.target.value);
+          });
+
+          $("presSizeFill").addEventListener("click", () => setPresSizeFromSettings(null));
+
+          $("editCancel").addEventListener("click", closeSongEdit);
+
+          $("editSave").addEventListener("click", saveSongEdit);
+
+          $("editReset").addEventListener("click", resetSongEdit);
+
+          $("editBackdrop").addEventListener("click", (event) => {
+            if (event.target === $("editBackdrop")) closeSongEdit();
+          });
+
+          $("clearBooksButton").addEventListener("click", clearAllBooks);
+
+          $("clearSongsButton").addEventListener("click", clearSongDatabase);
+
+          // Escape closes the settings panel or the song editor from anywhere.
+          window.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+
+            if (!$("settingsBackdrop").classList.contains("hidden")) closeSettings();
+            else if (!$("editBackdrop").classList.contains("hidden")) closeSongEdit();
           });
 
           document.querySelectorAll(".tab").forEach((button) => {
@@ -2780,24 +3394,112 @@
 
           $("presentationFullscreen").addEventListener("click", togglePresentationFullscreen);
 
-          document.addEventListener("fullscreenchange", updatePresentationFullscreenButton);
+          $("presentFullscreen").addEventListener("click", togglePresentationFullscreen);
+
+          $("quicksong").addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+
+            event.preventDefault();
+
+            const number = Math.round(+$("quicksong").value);
+            const book = getActiveBook();
+            let song = null;
+
+            // Number refers to the song's position in the open songbook,
+            // falling back to a Songbase ID when there is no book match.
+            if (book && number >= 1 && number <= book.songs.length) {
+              song = songs.find((item) => item.id === String(book.songs[number - 1]));
+            }
+
+            if (!song) song = songs.find((item) => item.id === $("quicksong").value.trim());
+
+            if (!song) {
+              toast(book ? "No song with that number or ID." : "No song with that Songbase ID.");
+              return;
+            }
+
+            $("quicksong").value = "";
+            selectPresentationSong(song.id);
+          });
+
+          document.addEventListener("fullscreenchange", () => {
+            updatePresentationFullscreenButton();
+
+            // The slide grows or shrinks with the fullscreen area; re-fit the lyrics.
+            if (presentSong) fitPresentation();
+          });
+
+          $("fontSmaller").addEventListener("click", () => resizePresentation(-1));
+
+          $("fontLarger").addEventListener("click", () => resizePresentation(1));
+
+          $("fontFill").addEventListener("click", () => {
+            if (!presentSong) return;
+
+            presFontSize = null;
+            savePresSize();
+            fitPresentation();
+          });
 
           // Clicking the presentation slide advances to the next verse.
           $("presentationSlide").addEventListener("click", nextPresentationVerse);
+
+          // Swipe left / right on the slide changes verse (touch screens).
+          let swipeX = null;
+          let swipeY = null;
+
+          $("presentationSlide").addEventListener(
+            "touchstart",
+            (event) => {
+              swipeX = event.touches[0].clientX;
+              swipeY = event.touches[0].clientY;
+            },
+            { passive: true },
+          );
+
+          $("presentationSlide").addEventListener(
+            "touchend",
+            (event) => {
+              if (swipeX === null) return;
+
+              const dx = event.changedTouches[0].clientX - swipeX;
+              const dy = event.changedTouches[0].clientY - swipeY;
+
+              swipeX = null;
+
+              if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                if (dx < 0) nextPresentationVerse();
+                else previousPresentationVerse();
+              }
+            },
+            { passive: true },
+          );
+
+          // Re-fit the lyrics when the window (or the screen it moved to) changes size.
+          window.addEventListener("resize", () => {
+            if (activeTab === "present" && presentSong) fitPresentation();
+          });
 
           // Keyboard navigation for the presentation tab.
           window.addEventListener("keydown", (event) => {
             if (activeTab !== "present") return;
 
-            // Don't intercept keyboard input while searching.
+            // Don't intercept keyboard input while searching or on focused buttons.
             if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
 
-            if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+            if ((event.key === " " || event.key === "Enter") && event.target instanceof HTMLButtonElement) return;
+
+            if (
+              event.key === "ArrowRight" ||
+              event.key === "ArrowDown" ||
+              event.key === "PageDown" ||
+              event.key === " "
+            ) {
               event.preventDefault();
               nextPresentationVerse();
             }
 
-            if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            if (event.key === "ArrowLeft" || event.key === "ArrowUp" || event.key === "PageUp") {
               event.preventDefault();
               previousPresentationVerse();
             }
@@ -2805,6 +3507,17 @@
             if (event.key === "Home") {
               event.preventDefault();
               resetPresentation();
+            }
+
+            if (event.key === "End" && presentSong && presentVerses.length) {
+              event.preventDefault();
+              presentVerseIndex = presentVerses.length - 1;
+              renderPresentationSlide();
+            }
+
+            if (event.key === "Enter") {
+              event.preventDefault();
+              nextPresentationVerse();
             }
           });
         }

@@ -77,7 +77,7 @@
     img.alt = "";
     img.width = 40;
     img.height = 40;
-    img.onerror = function () { img.onerror = null; img.src = "assets/favicon.png"; };
+    img.onerror = function () { img.onerror = null; img.src = "assets/favicon.svg"; };
     icon.appendChild(img);
     top.appendChild(icon);
     top.appendChild(el("span", "badge " + status, STATUS_LABEL[status] || status));
