@@ -20,12 +20,12 @@ window.APPS = [
     url: "apps/tunes/index.html"
   },
   {
-    id: "rcv",
+    id: "verses",
     name: "Verse Lookup",
     description: "Look up a Bible verse and display it full-screen for projectors and livestreams.",
     icon: "📖",
     tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/rcv/index.html"
+    url: "apps/verses/index.html"
   }
 ];

@@ -11,13 +11,13 @@
  */
 window.APPS = [
   {
-    id: "tunes",
-    name: "Tuner",
-    description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
-    icon: "🎸",
-    tags: ["Worship", "Music"],
+    id: "big-text",
+    name: "Big Text",
+    description: "Display hymn number or text in full-screen seemlessly.",
+    icon: "A",
+    tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/tunes/index.html"
+    url: "apps/big-text/index.html"
   },
   {
     id: "verses",
@@ -27,5 +27,14 @@ window.APPS = [
     tags: ["Worship", "Presentation"],
     status: "live",
     url: "apps/verses/index.html"
-  }
+  },
+  {
+    id: "tunes",
+    name: "Tuner",
+    description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
+    icon: "🎸",
+    tags: ["Worship", "Music"],
+    status: "live",
+    url: "apps/tunes/index.html"
+  },
 ];
