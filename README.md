@@ -1,6 +1,6 @@
 # Adless
 
-Free, ad-free web apps by Atlanta Christian Students — tuner, verse presenter, and more. Everything runs in the browser: no accounts, no tracking, no ads.
+Free, ad-free web apps by Atlanta Christian Students — big text display, tuner, verse presenter, and more. Everything runs in the browser: no accounts, no tracking, no ads.
 
 Live site: <https://atlantachristianstudents.github.io/adless/>
 
@@ -8,13 +8,14 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
+| [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | live |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
 | [Verse Lookup](https://atlantachristianstudents.github.io/adless/apps/verses/) | Look up Bible verses and display them full-screen for projectors and livestreams, with external-display support. | live |
 
 ## Features
 
 - No accounts, no tracking, no ads — everything runs in the browser.
-- Apps are installed PWAs with service workers; after the first visit they work offline.
+- The home page and every app are installable PWAs with service workers; after the first visit they work offline.
 - Light/dark themes on the home page; per-app theming inside each app.
 - Everything is stored on the device; nothing is uploaded anywhere.
 
@@ -27,15 +28,18 @@ Plain HTML, CSS, and JavaScript. No frameworks, no build system, no npm dependen
 ```
 index.html                 Home page (app directory)
 404.html                   Not-found page
-manifest.json              Home page web-app manifest
+manifest.json              Home page web-app manifest (standalone PWA)
+sw.js                      Home page service worker (skips apps/, which have their own)
 .nojekyll                  Tells GitHub Pages to serve files as-is (no Jekyll processing)
 assets/
   apps.js                  App registry — edit this to add/list apps
   main.js                  Theme toggle, tag filters, search, keyboard shortcuts, cards
   style.css                Site styles (light/dark)
   favicon.svg              Site icon
+  icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  big-text/                Big Text app (full-screen hymn numbers and text)
   tunes/                   Tuner app (microphone, metronome, tone generator)
   verses/                  Verse Lookup app (verse presenter)
 ```
@@ -82,6 +86,8 @@ Editing any file takes effect after a reload. For service-worker changes, see th
 Statuses: `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere.
 
 ### Service-worker cache versions
+
+The home page has its own `sw.js` (`VERSION` = `adless-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
 
 Every app's `sw.js` has a `VERSION` string (e.g. `"verse-lookup-v7"`). **Bump it whenever you change an app's `index.html` or the files listed in `FILES`**, otherwise installed devices keep serving the old cached version. Update the `FILES` list if the app gains new files.
 
