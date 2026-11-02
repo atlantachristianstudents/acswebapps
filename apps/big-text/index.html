@@ -39,6 +39,21 @@
   --hint: #87969f;
   color-scheme: dark;
 }
+/* h cycles: default (follows the system) -> black on white -> white on black */
+:root[data-theme="bw"] {
+  background: #fff;
+  --bg: #fff;
+  --fg: #000;
+  --hint: #555;
+  color-scheme: light;
+}
+:root[data-theme="wb"] {
+  background: #000;
+  --bg: #000;
+  --fg: #fff;
+  --hint: #aaa;
+  color-scheme: dark;
+}
 
 html, body { height: 100%; }
 * { cursor: none !important; }
@@ -119,7 +134,7 @@ body {
 
 <main id="stage">
   <canvas id="c" aria-hidden="true"></canvas>
-  <p id="hint">Click, then type numbers. Backspace deletes. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37.<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t text mode &middot; w wrap<br>l all languages &middot; c k s b one language &middot; e english + korean</p>
+  <p id="hint">Click, then type numbers. Backspace deletes, enter clears. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37 (next digit starts over).<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t text mode &middot; w wrap &middot; h theme<br>l all languages &middot; c k s b one language &middot; e english + korean</p>
   <div id="live" class="sr" role="status" aria-live="polite"></div>
   <div id="mode" aria-hidden="true"></div>
   <textarea id="entry" rows="1" enterkeyhint="enter" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Number to display"></textarea>
@@ -134,6 +149,9 @@ body {
   var hint = document.getElementById('hint');
   var live = document.getElementById('live');
   var FAMILY = '"Big Shoulders Display", "Arial Narrow", Impact, sans-serif';
+  var arrowFresh = false; // number mode: set by an arrow key, so the next digit starts a new number
+  // Value to append digits to: empty right after an arrow key, otherwise the current number.
+  function digitBase() { var b = arrowFresh ? '' : value; arrowFresh = false; return b; }
   var textMode = false; // t = any character, Esc = digits only
   var value = '';
   var synced = ''; // what the hidden field held after our last write; lets input events be read as changes, not as the new value
@@ -451,18 +469,35 @@ body {
     modeTimer = setTimeout(function () { modeEl.style.opacity = '0'; }, 1800);
   }
 
+  // h (number mode) cycles the colour theme: default, black on white, white on black.
+  var THEMES = [
+    { attr: null, name: 'Default', bar: '#0a0e11' },
+    { attr: 'bw', name: 'Black on white', bar: '#ffffff' },
+    { attr: 'wb', name: 'White on black', bar: '#000000' }
+  ];
+  var themeIdx = 0;
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  function cycleTheme() {
+    themeIdx = (themeIdx + 1) % THEMES.length;
+    var t = THEMES[themeIdx], root = document.documentElement;
+    if (t.attr) root.setAttribute('data-theme', t.attr); else root.removeAttribute('data-theme');
+    if (themeMeta) themeMeta.setAttribute('content', t.bar);
+    flash('Theme \u00b7 ' + t.name);
+  }
+
   function updateHint() {
     // Replace the old hint text outright, and show it whenever nothing is typed.
     hint.textContent = '';
     hint.innerHTML = textMode
       ? 'Type anything. Enter = new line. Backspace deletes, cmd+delete clears, cmd+c copies.<br>cmd + - / + size &middot; cmd+f fill &middot; alt+w wrap &middot; cmd+\\ or esc number mode'
-      : 'Click, then type numbers. Backspace deletes. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37.<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t or cmd+\\ text mode &middot; w wrap &middot; cmd+c copy<br>l all languages &middot; c k s b chinese, korean, spanish, burmese &middot; e english + korean';
+      : 'Click, then type numbers. Backspace deletes, enter clears. &larr; / &rarr; &plusmn;1 &middot; &uarr; / &darr; &plusmn;37 (next digit starts over).<br>- / + size &middot; f fill &middot; shift+f full screen &middot; t or cmd+\\ text mode &middot; w wrap &middot; h theme &middot; cmd+c copy<br>l all languages &middot; c k s b chinese, korean, spanish, burmese &middot; e english + korean';
     hint.style.visibility = '';
     hint.hidden = value.length > 0;
   }
 
   function setMode(on) {
     textMode = on;
+    arrowFresh = false;
     hintCleared = true; // drop the old mode's hint; typing then emptying brings the new one back
     input.setAttribute('inputmode', on ? 'text' : 'numeric');
     
@@ -520,7 +555,12 @@ body {
     }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.isComposing) return;
-    if (e.key === 'Enter') { e.preventDefault(); if (textMode) setValue(value + '\n'); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (textMode) setValue(value + '\n');
+      else { arrowFresh = false; manualSize = null; setValue(''); } // number mode: Enter clears
+      return;
+    }
     if (textMode) {
       if (e.key === 'Escape') { e.preventDefault(); setMode(false); }
       else if (e.key === 'Backspace') { e.preventDefault(); setValue(value.slice(0, -1)); }
@@ -529,6 +569,7 @@ body {
     }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
+      arrowFresh = true;
       var cur0 = value ? parseInt(value, 10) : 0;
       if (isNaN(cur0)) cur0 = 0;
       var next = e.key === 'ArrowRight' ? cur0 + 1 : cur0 - 1;
@@ -538,6 +579,7 @@ body {
     }
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
+      arrowFresh = true;
       if (!value && e.key === 'ArrowDown') return;
       var cur1 = value ? parseInt(value, 10) : 0;
       if (isNaN(cur1)) cur1 = 0;
@@ -547,6 +589,11 @@ body {
     if (e.key === 'l' || e.key === 'L') {
       e.preventDefault();
       toggleLang();
+      return;
+    }
+    if (e.key === 'h' || e.key === 'H') {
+      e.preventDefault();
+      cycleTheme();
       return;
     }
     if (e.key === 't' || e.key === 'T') {
@@ -572,7 +619,7 @@ body {
     }
     if (/^[0-9]$/.test(e.key)) {
       e.preventDefault();
-      setValue(value + e.key);
+      setValue(digitBase() + e.key);
     } else if (e.key === '-' || e.key === '_' || e.key === '+' || e.key === '=') {
       e.preventDefault();
       if (!value) return;
@@ -589,6 +636,7 @@ body {
       toggleFullscreen();
     } else if (e.key === 'Backspace') {
       e.preventDefault();
+      arrowFresh = false;
       setValue(value.slice(0, -1));
     }
   });
@@ -607,20 +655,21 @@ body {
       return;
     }
     if (t === 'insertLineBreak' || t === 'insertParagraph') {
-      if (e.cancelable) e.preventDefault();
+      if (e.cancelable) { e.preventDefault(); manualSize = null; setValue(''); }
     } else if (t === 'deleteContentBackward') {
       if (e.cancelable) { e.preventDefault(); setValue(value.slice(0, -1)); }
     } else if (t === 'insertText' || t === 'insertFromPaste' || t === 'insertFromDrop') {
       if (e.cancelable) {
         e.preventDefault();
         var d = digitsOf(e.data != null ? e.data : (e.dataTransfer && e.dataTransfer.getData('text')));
-        if (d) setValue(value + d);
+        if (d) setValue(digitBase() + d);
       }
     }
   });
 
-  input.addEventListener('input', function () {
+  input.addEventListener('input', function (e) {
     if (textMode) { setValue(input.value); return; }
+    if (e && (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph')) { manualSize = null; setValue(''); return; }
     var cur = input.value;
     if (cur === synced) return;
     // Find what changed regardless of where the caret was: shared start, shared end, middle differs.
@@ -632,7 +681,7 @@ body {
     var added = digitsOf(cur.slice(i, cur.length - j));
     // Digits always go on the end. A real backspace removes exactly one character; a bigger
     // removal is the keyboard resetting its buffer (Enter, commit), so it is ignored.
-    setValue((removed === 1 && !added ? value.slice(0, -1) : value) + added);
+    setValue((removed === 1 && !added ? value.slice(0, -1) : (added ? digitBase() : value)) + added);
   });
 
   document.addEventListener('pointerdown', focusInput);
