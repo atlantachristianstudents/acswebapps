@@ -18,7 +18,10 @@
     <meta
       property="og:description"
       content="Free, open-source web apps made by Atlanta Christian students. No accounts, no tracking." />
-    <meta property="og:image" content="assets/favicon.svg" />
+    <meta property="og:url" content="https://atlantachristianstudents.github.io/adless/" />
+    <meta
+      property="og:image"
+      content="https://atlantachristianstudents.github.io/adless/assets/favicon.svg" />
 
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="manifest.json" />
@@ -84,7 +87,6 @@
               type="search"
               placeholder="Search apps..."
               aria-label="Search apps"
-              aria-describedby="search-hint"
               autocomplete="off" />
           </div>
         </div>
@@ -139,33 +141,5 @@
     <!-- Scripts -->
     <script src="assets/apps.js"></script>
     <script src="assets/main.js"></script>
-
-    <!-- Keyboard shortcuts -->
-    <script>
-      document.addEventListener("keydown", (event) => {
-        const search = document.getElementById("search");
-
-        if (
-          event.key === "/" &&
-          !event.ctrlKey &&
-          !event.metaKey &&
-          !event.altKey &&
-          document.activeElement !== search &&
-          !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
-        ) {
-          event.preventDefault();
-          search?.focus();
-        }
-
-        if (event.key === "Escape" && document.activeElement === search) {
-          search.value = "";
-          search.dispatchEvent(new Event("input", { bubbles: true }));
-          search.blur();
-        }
-      });
-
-      // Automatically update the copyright year.
-      document.getElementById("year").textContent = new Date().getFullYear();
-    </script>
   </body>
 </html>

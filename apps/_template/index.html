@@ -4,13 +4,61 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>App Name — Adless</title>
-  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="One-sentence description of this app.">
+  <meta name="theme-color" content="#3b4bf5" />
+  <meta name="color-scheme" content="light dark" />
+  <!-- Local icon so the app stays self-contained; replace with your own.
+       (Encoded SVG rounded square with a letter "A") -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233b4bf5'/%3E%3Ctext x='32' y='45' font-family='Arial, sans-serif' font-size='38' font-weight='bold' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    // Offline support: cache the app with sw.js (see README).
+    if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
+  </script>
   <style>
-    :root { color-scheme: light dark; }
-    body { margin: 0; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    .topbar { display: flex; align-items: center; gap: .75rem; padding: .6rem 1rem; border-bottom: 1px solid #8884; }
-    .topbar a { text-decoration: none; font-weight: 600; }
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f8fc;
+      --text: #182033;
+      --muted: #68738a;
+      --border: #e7e9f0;
+      --accent: #3b4bf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d111b;
+        --text: #edf0fa;
+        --muted: #9ba7bd;
+        --border: #273047;
+        --accent: #7886ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .topbar span { color: var(--muted); }
     main { padding: 1.5rem; }
+    h1 { font-weight: 700; letter-spacing: -.03em; }
   </style>
 </head>
 <body>
@@ -19,9 +67,13 @@
     <span>App Name</span>
   </div>
   <main>
-    <!-- Build your app here. Everything for this app lives in its own folder. -->
+    <!-- Build your app here. Keep everything for this app inside its own folder
+         and use relative paths so it works offline and on any static host. -->
     <h1>App Name</h1>
-    <p>Replace this with your app.</p>
+    <p>
+      Replace this with your app. Everything below stays self-contained in this
+      folder: index.html, manifest.webmanifest, sw.js, icons/ and this README.
+    </p>
   </main>
 </body>
 </html>
