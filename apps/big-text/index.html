@@ -206,7 +206,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
 
 <main id="stage">
   <canvas id="c" aria-hidden="true"></canvas>
-  <p id="hint">Type ? to see shortcuts</p>
+  <p id="hint">Type ? or / to see shortcuts</p>
   <div id="help" role="dialog" aria-label="Shortcuts" hidden></div>
   <div id="live" class="sr" role="status" aria-live="polite"></div>
   <div id="mode" aria-hidden="true"></div>
@@ -433,9 +433,9 @@ body.has-pad #stage { height: calc(100% - 52px); }
   }
 
   function drawPanel(p) {
+    paintColors();
     var rowH = (p.h - PANEL_PAD) / p.rows, cellW = W / p.cols;
-    var fg = getComputedStyle(document.body).color;
-    var hintColor = getComputedStyle(hint).color;
+    var fg = fgColor;
     ctx.font = '900 100px ' + FAMILY;
     var asc100 = ctx.measureText('0').actualBoundingBoxAscent || 70;
     var widest = 1;
@@ -495,7 +495,8 @@ body.has-pad #stage { height: calc(100% - 52px); }
 
   function announce() {
     var r = currentRefs();
-    live.textContent = value + (engOn && !textMode && value ? '. English and Korean' : '') + (r ? '. ' + r.map(function (x) { return x.label + ' ' + x.num; }).join(', ') : '');
+    var msg = value + (engOn && !textMode && value ? '. English and Korean' : '') + (r ? '. ' + r.map(function (x) { return x.label + ' ' + x.num; }).join(', ') : '');
+    if (live.textContent !== msg) live.textContent = msg;   // rewriting a live region re-announces it
   }
 
   function toggleLang() {
@@ -507,9 +508,28 @@ body.has-pad #stage { height: calc(100% - 52px); }
       : (n >= 1 && n <= 1348 ? 'Other languages on' : 'Other languages on · type 1–1348'));
   }
 
+  // Text colors depend only on the theme, so cache them; a theme change marks them stale
+  // and the next draw re-resolves them (getComputedStyle can force a style flush).
+  var fgColor = '', hintColor = '', colorsStale = true;
+  function paintColors() {
+    if (!colorsStale) return;
+    fgColor = getComputedStyle(document.body).color;
+    hintColor = getComputedStyle(hint).color;
+    colorsStale = false;
+  }
+
+  // Batches redraws (resize bursts, theme changes, font loads) into one paint per frame.
+  var drawQueued = false;
+  function scheduleDraw() {
+    if (drawQueued) return;
+    drawQueued = true;
+    requestAnimationFrame(function () { drawQueued = false; draw(); });
+  }
+
   function draw() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
+    paintColors();
     hint.hidden = value.length > 0 || hintCleared;
     syncPad();
     if (!value) return;
@@ -520,7 +540,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
     var res = showEng ? function (S) { return engLabel(S).total; } : null;
     availH = Math.max(40, H - (panel ? panel.h + 8 : 0) - engLabelH);
 
-    ctx.fillStyle = getComputedStyle(document.body).color;
+    ctx.fillStyle = fgColor;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
 
@@ -536,7 +556,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
       var qm = ctx.measureText(lines[q]);
       w0 = Math.max(w0, qm.actualBoundingBoxLeft + qm.actualBoundingBoxRight);
     }
-    var h0 = inkV(m, z).asc + inkV(m, z).desc;
+    var h0 = (function (v) { v = inkV(m, z); return v.asc + v.desc; })();
     if (!h0 || (!w0 && lines.length < 2)) return;
     var hSize = 100 * availH / ((lines.length - 1) * h0 * 1.12 + h0);
     var size = hSize;
@@ -585,7 +605,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
       ctx.fillText(lines[i], lineX, y0 + i * lineH);
       if (lab && i === 0) {
         ctx.save();
-        ctx.fillStyle = getComputedStyle(hint).color;
+        ctx.fillStyle = hintColor;
         ctx.globalAlpha = 0.8;
         ctx.font = '500 ' + lab.px + MONO_FACE;
         ctx.textAlign = 'left';
@@ -604,7 +624,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
     H = Math.max(1, r.height);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
-    draw();
+    scheduleDraw();
   }
 
   function setValue(v) {
@@ -665,7 +685,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
 
   function updateHint() {
     // The empty screen only points to the shortcut list (? opens it).
-    hint.textContent = textMode ? 'Press ' + MOD + ' + ? to see shortcuts' : 'Type ? to see shortcuts';
+    hint.textContent = textMode ? 'Press ' + MOD + ' + ? to see shortcuts' : 'Type ? or / to see shortcuts';
     hint.style.visibility = '';
     hint.hidden = value.length > 0;
   }
@@ -713,6 +733,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
     arrowFresh = false;
     hintCleared = false; // the hint is rebuilt for the new mode by updateHint()
     input.setAttribute('inputmode', on ? 'text' : 'numeric');
+    input.setAttribute('aria-label', on ? 'Text to display' : 'Number to display');
     
     canvas.width = canvas.width; // wipe anything left on the canvas from the previous mode
     if (!keep) {
@@ -798,8 +819,8 @@ body.has-pad #stage { height: calc(100% - 52px); }
   })();
 
   document.addEventListener('keydown', function (e) {
-    // While the shortcut list is open, any key just closes it.
-    if (helpOpen) { e.preventDefault(); hideHelp(); return; }
+    // While the shortcut list is open, a plain key closes it; browser combos (ctrl/cmd/alt) still work.
+    if (helpOpen && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); hideHelp(); return; }
     // Command (Ctrl on Windows/Linux) shortcuts work in both modes, including while typing text.
     if ((e.metaKey || e.ctrlKey) && !e.altKey) {
       var k = e.key, c = e.code, handled = true;
@@ -847,7 +868,7 @@ body.has-pad #stage { height: calc(100% - 52px); }
       step(e.key.slice(5).toLowerCase());
       return;
     }
-    if (e.key === '?') {
+    if (e.key === '?' || e.key === '/') {
       e.preventDefault();
       showHelp();
       return;
@@ -969,18 +990,21 @@ body.has-pad #stage { height: calc(100% - 52px); }
     window.addEventListener('resize', resize);
   }
 
-  // Redraw when the theme changes so the digit colour follows it.
+  // The theme is the only thing that changes the cached colors; a change marks them stale and
+  // repaints so the digit colour follows.
+  var themeChanged = function () { colorsStale = true; scheduleDraw(); };
   try {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mq.addEventListener) mq.addEventListener('change', draw);
+    if (mq.addEventListener) mq.addEventListener('change', themeChanged);
   } catch (e) {}
-  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(themeChanged).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-  // Redraw once the display face has loaded.
+  // Redraw once the display face has loaded (a font load can fire several times; the
+  // rAF queue collapses them into one paint).
   if (document.fonts && document.fonts.load) {
-    document.fonts.load('900 100px "Big Shoulders Display"').then(draw, function () {});
-    document.fonts.load('500 12px "IBM Plex Mono"').then(draw, function () {});
-    document.fonts.ready.then(draw);
+    document.fonts.load('900 100px "Big Shoulders Display"').then(scheduleDraw, function () {});
+    document.fonts.load('500 12px "IBM Plex Mono"').then(scheduleDraw, function () {});
+    document.fonts.ready.then(scheduleDraw);
   }
 
   resize();

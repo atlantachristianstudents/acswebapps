@@ -50,7 +50,7 @@
   /* ---------- keyboard shortcuts ---------- */
   document.addEventListener("keydown", (event) => {
     if (
-      event.key === "/" &&
+      (event.key === "/" || event.key === "?") &&
       !event.ctrlKey &&
       !event.metaKey &&
       !event.altKey &&
