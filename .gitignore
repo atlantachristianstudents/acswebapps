@@ -1,3 +1,9 @@
-.*
-!.gitignore
+# Editor backups and junk
+.DS_Store
 *~
+*.un~
+Thumbs.db
+
+# Local editors
+.idea/
+.vscode/

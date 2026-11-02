@@ -1,0 +1,13 @@
+{
+  "name": "Adless — Free Web Apps by Atlanta Christian Students",
+  "short_name": "Adless",
+  "description": "Simple, free, ad-free web apps for worship, churches, and youth ministry.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#f5f6f8",
+  "theme_color": "#3b4bf5",
+  "icons": [
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

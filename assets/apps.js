@@ -4,7 +4,9 @@
  *   id:          folder name under /apps/ (e.g. "tuner" -> apps/tuner/)
  *   name:        display name
  *   description: one or two sentences
- *   icon:        emoji shown on the card
+ *   icon:        emoji shown on the card when the app has no icon image
+ *   iconUrl:     optional path to an icon image; without it the home page
+ *                falls back to apps/<id>/icons/icon-192.png
  *   tags:        categories used for the filter chips
  *   status:      "live" | "beta" | "soon"   ("soon" cards are not clickable)
  *   url:         optional; defaults to "apps/<id>/"

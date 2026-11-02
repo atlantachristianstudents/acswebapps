@@ -293,40 +293,6 @@ button {
   line-height: 1.7;
 }
 
-.hero-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .6rem;
-
-  padding: .8rem 1.3rem;
-
-  background: var(--accent);
-  color: white;
-
-  border-radius: 11px;
-
-  text-decoration: none;
-  font-size: .95rem;
-  font-weight: 650;
-
-  transition:
-    background .15s ease,
-    transform .15s ease,
-    box-shadow .15s ease;
-}
-
-.hero-link:hover {
-  background: var(--accent-hover);
-  color: white;
-
-  transform: translateY(-2px);
-  box-shadow: 0 5px 16px rgba(59, 75, 245, .2);
-}
-
-.hero-link:active {
-  transform: translateY(0);
-}
-
 /* Apps section */
 
 .apps-section {
@@ -430,23 +396,6 @@ button {
   outline: none;
 }
 
-.search-hint {
-  position: absolute;
-  right: .8rem;
-  top: 50%;
-
-  transform: translateY(-50%);
-
-  color: var(--muted);
-  font-size: .72rem;
-
-  pointer-events: none;
-}
-
-#search:not(:placeholder-shown) + .search-hint {
-  display: none;
-}
-
 /* App grid */
 
 .grid {
@@ -523,6 +472,17 @@ a.card:hover {
 
   border-radius: 11px;
   object-fit: cover;
+}
+
+.card-icon-emoji {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .card h3 {
