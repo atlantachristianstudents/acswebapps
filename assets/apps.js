@@ -38,5 +38,15 @@ window.APPS = [
     tags: ["Worship", "Music"],
     status: "live",
     url: "apps/tunes/index.html"
+  },
+  {
+    id: "songs",
+    name: "Songbook",
+    description: "Browse thousands of songs, build set lists, and present lyrics full-screen. Works offline.",
+    icon: "🎵",
+    iconUrl: "apps/songs/icons/icon.svg",
+    tags: ["Worship", "Music", "Presentation"],
+    status: "live",
+    url: "apps/songs/index.html"
   }
 ];
