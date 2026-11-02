@@ -1,83 +1,138 @@
+/*
+ * Adless — home page behaviour: theme toggle, tag filters, search, app cards.
+ * The app registry itself lives in apps.js (window.APPS).
+ */
 (function () {
   "use strict";
 
-  var apps = (window.APPS || []).slice();
-  var grid = document.getElementById("grid");
-  var tagsEl = document.getElementById("tags");
-  var search = document.getElementById("search");
-  var empty = document.getElementById("empty");
-  var activeTag = "All";
+  const apps = window.APPS || [];
+  const root = document.documentElement;
+  const grid = document.getElementById("grid");
+  const tagsEl = document.getElementById("tags");
+  const search = document.getElementById("search");
+  const empty = document.getElementById("empty");
+  const themeToggle = document.getElementById("theme-toggle");
+  let activeTag = "All";
 
-  document.getElementById("year").textContent = new Date().getFullYear();
+  /* ---------- footer year ---------- */
+  const year = document.getElementById("year");
+  if (year) year.textContent = new Date().getFullYear();
 
   /* ---------- theme ---------- */
-  var root = document.documentElement;
-  function setTheme(t) {
-    root.setAttribute("data-theme", t);
-    try { localStorage.setItem("adless-theme", t); } catch (e) {}
+  function applyTheme(theme, persist) {
+    root.setAttribute("data-theme", theme);
+    if (themeToggle) themeToggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+    if (persist) {
+      try { localStorage.setItem("adless-theme", theme); } catch (e) {}
+    }
   }
-  var saved = null;
-  try { saved = localStorage.getItem("adless-theme"); } catch (e) {}
-  if (saved) root.setAttribute("data-theme", saved);
-  document.getElementById("theme-toggle").addEventListener("click", function () {
-    var current = root.getAttribute("data-theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    setTheme(current === "dark" ? "light" : "dark");
+
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem("adless-theme"); } catch (e) {}
+  if (savedTheme) {
+    applyTheme(savedTheme, false);
+  } else {
+    themeToggle.setAttribute(
+      "aria-pressed",
+      window.matchMedia("(prefers-color-scheme: dark)").matches ? "true" : "false"
+    );
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current =
+        root.getAttribute("data-theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(current === "dark" ? "light" : "dark", true);
+    });
+  }
+
+  /* ---------- keyboard shortcuts ---------- */
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "/" &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      document.activeElement !== search &&
+      !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
+    ) {
+      event.preventDefault();
+      search?.focus();
+    }
+
+    if (event.key === "Escape" && document.activeElement === search) {
+      search.value = "";
+      search.dispatchEvent(new Event("input", { bubbles: true }));
+      search.blur();
+    }
   });
 
   /* ---------- tags ---------- */
-  var allTags = ["All"];
-  apps.forEach(function (a) {
-    (a.tags || []).forEach(function (t) {
-      if (allTags.indexOf(t) === -1) allTags.push(t);
+  const allTags = ["All"];
+  apps.forEach((app) => {
+    (app.tags || []).forEach((tag) => {
+      if (allTags.indexOf(tag) === -1) allTags.push(tag);
     });
   });
 
   function renderTags() {
     tagsEl.innerHTML = "";
-    allTags.forEach(function (t) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "chip" + (t === activeTag ? " active" : "");
-      b.textContent = t;
-      b.setAttribute("aria-pressed", t === activeTag ? "true" : "false");
-      b.addEventListener("click", function () {
-        activeTag = t;
+    allTags.forEach((tag) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip" + (tag === activeTag ? " active" : "");
+      chip.textContent = tag;
+      chip.setAttribute("aria-pressed", tag === activeTag ? "true" : "false");
+      chip.addEventListener("click", () => {
+        activeTag = tag;
         renderTags();
         renderApps();
       });
-      tagsEl.appendChild(b);
+      tagsEl.appendChild(chip);
     });
   }
 
   /* ---------- cards ---------- */
-  var STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
+  const STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
 
   function el(tag, cls, text) {
-    var n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (text != null) n.textContent = text;
-    return n;
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function addImageFallback(img, app) {
+    img.onerror = () => {
+      img.onerror = null;
+      // Fall back to the registry emoji, then to the site favicon.
+      if (app.icon) {
+        img.replaceWith(el("span", "card-icon-emoji", app.icon));
+      } else {
+        img.src = "assets/favicon.svg";
+      }
+    };
   }
 
   function card(app) {
-    var status = app.status || "live";
-    var clickable = status !== "soon";
-    var node = el(clickable ? "a" : "div", "card" + (clickable ? "" : " disabled"));
+    const status = app.status || "live";
+    const clickable = status !== "soon";
+    const node = el(clickable ? "a" : "div", "card" + (clickable ? "" : " disabled"));
     if (clickable) {
-      node.href = app.url || ("apps/" + app.id + "/index.html");
+      node.href = app.url || "apps/" + app.id + "/";
       node.target = "_blank";
       node.rel = "noopener";
     }
 
-    var top = el("div", "card-top");
-    var icon = el("span", "card-icon");
-    var img = document.createElement("img");
-    img.src = app.iconUrl || ("apps/" + app.id + "/icons/icon-192.png");
+    const top = el("div", "card-top");
+    const icon = el("span", "card-icon");
+    const img = document.createElement("img");
+    img.src = app.iconUrl || "apps/" + app.id + "/icons/icon-192.png";
     img.alt = "";
     img.width = 40;
     img.height = 40;
-    img.onerror = function () { img.onerror = null; img.src = "assets/favicon.png"; };
+    addImageFallback(img, app);
     icon.appendChild(img);
     top.appendChild(icon);
     top.appendChild(el("span", "badge " + status, STATUS_LABEL[status] || status));
@@ -86,21 +141,21 @@
     node.appendChild(el("h3", null, app.name));
     node.appendChild(el("p", null, app.description || ""));
 
-    var meta = el("div", "card-tags");
-    (app.tags || []).forEach(function (t) { meta.appendChild(el("span", "mini-tag", t)); });
+    const meta = el("div", "card-tags");
+    (app.tags || []).forEach((tag) => meta.appendChild(el("span", "mini-tag", tag)));
     node.appendChild(meta);
     return node;
   }
 
   function renderApps() {
-    var q = search.value.trim().toLowerCase();
+    const query = search.value.trim().toLowerCase();
     grid.innerHTML = "";
-    var shown = 0;
-    apps.forEach(function (a) {
-      var inTag = activeTag === "All" || (a.tags || []).indexOf(activeTag) !== -1;
-      var hay = (a.name + " " + (a.description || "") + " " + (a.tags || []).join(" ")).toLowerCase();
-      if (inTag && (!q || hay.indexOf(q) !== -1)) {
-        grid.appendChild(card(a));
+    let shown = 0;
+    apps.forEach((app) => {
+      const inTag = activeTag === "All" || (app.tags || []).indexOf(activeTag) !== -1;
+      const haystack = (app.name + " " + (app.description || "") + " " + (app.tags || []).join(" ")).toLowerCase();
+      if (inTag && (!query || haystack.indexOf(query) !== -1)) {
+        grid.appendChild(card(app));
         shown++;
       }
     });

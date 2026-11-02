@@ -1,0 +1,13 @@
+{
+  "name": "App Name",
+  "short_name": "App Name",
+  "description": "One-sentence description of this app.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#3b4bf5",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
