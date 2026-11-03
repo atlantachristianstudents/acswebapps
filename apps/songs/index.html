@@ -485,6 +485,20 @@
         border-bottom-color: var(--accent);
       }
 
+      .library-selection {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .library-selection label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       .search-wrap {
         position: relative;
         margin-bottom: 14px;
@@ -1183,6 +1197,11 @@
                 <button class="search-clear" id="clearLibrarySearch" aria-label="Clear search">×</button>
               </div>
 
+              <div class="library-selection">
+                <label><input type="checkbox" id="selectAllLibrary" /> Select all matching songs</label>
+                <button class="button primary" id="addSelectedSongs" disabled>Add selected (0)</button>
+                <span class="library-count" id="librarySelectionCount" aria-live="polite"></span>
+              </div>
               <div class="song-list" id="librarySongs"></div>
             </div>
             <div id="presentTab" class="hidden">
@@ -1391,6 +1410,7 @@
         let modalCallback = null;
         let dragSourceIndex = null;
         let librarySearchTimer = null;
+        const librarySelection = new Set();
         let bookSearchTimer = null;
         let syncInProgress = false;
         let presentSong = null;
@@ -1905,6 +1925,7 @@
         function selectBook(id) {
           activeBookId = id;
           selectedSongId = null;
+          librarySelection.clear();
 
           saveBooks();
           renderAll();
@@ -1995,10 +2016,10 @@
           return index < 0 ? null : index + 1;
         }
 
-        function searchLibrary(query) {
+        function searchLibrary(query, limit = true) {
           const term = query.trim().toLocaleLowerCase();
 
-          if (!term) return songs.slice(0, 100);
+          if (!term) return limit ? songs.slice(0, 100) : songs;
 
           return songs
             .filter((song) => {
@@ -2009,7 +2030,7 @@
                 song.lang.toLocaleLowerCase().includes(term)
               );
             })
-            .slice(0, 150);
+            .slice(0, limit ? 150 : Infinity);
         }
 
         function searchBook(query) {
@@ -2139,6 +2160,10 @@
 
                           ${isBook ? `<span class="drag-handle" title="${canDrag ? "Drag to reorder" : "Clear the search to drag songs"}"${canDrag ? "" : ' style="opacity:.3"'}>⠿</span>` : ""}
 
+                          ${source === "library" ? `<input type="checkbox" data-check-song="${escapeHTML(song.id)}"
+                            aria-label="Select ${escapeHTML(song.title)}"
+                            ${librarySelection.has(song.id) ? "checked" : ""}
+                            ${isAdded || !getActiveBook() ? "disabled" : ""} />` : ""}
                           <div class="song-number">${number ?? "♫"}</div>
 
                           <div class="song-info" data-select-song="${escapeHTML(song.id)}">
@@ -2215,7 +2240,43 @@
           bindSongRowEvents(container, "book");
         }
 
+        function selectableLibrarySongs() {
+          const book = getActiveBook();
+          const added = new Set((book?.songs || []).map(String));
+          return book ? searchLibrary($("librarySearch").value, false).filter((song) => !added.has(song.id)) : [];
+        }
+
+        function updateLibrarySelection() {
+          const available = selectableLibrarySongs();
+          const availableIds = new Set(available.map((song) => song.id));
+          for (const id of librarySelection) {
+            if (!availableIds.has(id)) librarySelection.delete(id);
+          }
+          const selectAll = $("selectAllLibrary");
+          selectAll.disabled = !available.length;
+          selectAll.checked = available.length > 0 && librarySelection.size === available.length;
+          selectAll.indeterminate = librarySelection.size > 0 && !selectAll.checked;
+          $("addSelectedSongs").disabled = !librarySelection.size;
+          $("addSelectedSongs").textContent = `Add selected (${librarySelection.size.toLocaleString()})`;
+          $("librarySelectionCount").textContent = getActiveBook()
+            ? `${available.length.toLocaleString()} matching songs available to add`
+            : "Create or select a songbook first.";
+        }
+
+        function addSelectedSongsToBook() {
+          updateLibrarySelection();
+          const book = getActiveBook();
+          if (!book || !librarySelection.size) return;
+          const ids = selectableLibrarySongs().filter((song) => librarySelection.has(song.id)).map((song) => song.id);
+          book.songs.push(...ids);
+          librarySelection.clear();
+          saveBooks();
+          renderAll();
+          toast(`${ids.length.toLocaleString()} songs added to ${book.name}.`);
+        }
+
         function renderLibrary() {
+          updateLibrarySelection();
           const container = $("librarySongs");
           const query = $("librarySearch").value;
 
@@ -2250,6 +2311,13 @@
         }
 
         function bindSongRowEvents(container, source) {
+          container.querySelectorAll("[data-check-song]").forEach((element) => {
+            element.addEventListener("change", () => {
+              if (element.checked) librarySelection.add(element.dataset.checkSong);
+              else librarySelection.delete(element.dataset.checkSong);
+              updateLibrarySelection();
+            });
+          });
           container.querySelectorAll("[data-select-song]").forEach((element) => {
             element.addEventListener("click", () => {
               selectSong(element.dataset.selectSong);
@@ -3351,13 +3419,25 @@
             });
           });
 
+          $("selectAllLibrary").addEventListener("change", (event) => {
+            librarySelection.clear();
+            if (event.target.checked) {
+              selectableLibrarySongs().forEach((song) => librarySelection.add(song.id));
+            }
+            renderLibrary();
+          });
+
+          $("addSelectedSongs").addEventListener("click", addSelectedSongsToBook);
+
           $("librarySearch").addEventListener("input", () => {
+            librarySelection.clear();
             clearTimeout(librarySearchTimer);
 
             librarySearchTimer = setTimeout(renderLibrary, 30);
           });
 
           $("clearLibrarySearch").addEventListener("click", () => {
+            librarySelection.clear();
             $("librarySearch").value = "";
             renderLibrary();
             $("librarySearch").focus();

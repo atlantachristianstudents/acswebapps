@@ -1,7 +1,7 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "memorize-v2";
-var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
+var VERSION = "memorize-v3";
+var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "vendor/pdfjs/pdf.js", "vendor/pdfjs/pdf.worker.js", "vendor/pdfjs/resources.js"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(

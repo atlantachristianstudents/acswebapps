@@ -15,7 +15,7 @@ If the CORS proxy is unreachable, syncing falls back to `songbase.life` directly
 
 ## Features
 - Songbooks: create any number of collections, rename, reorder songs by drag (mouse) or the ⠿ handle (touch).
-- Library: search Songbase by title, lyrics words or numeric ID, add songs to a book in one tap.
+- Library: search Songbase by title, lyrics words or numeric ID, add songs to a book in one tap, or use checkboxes and **Select all matching songs** followed by **Add selected** to add a batch. Select all includes every search match (even beyond the displayed results), skips songs already in the active book, and adds them in library order. Changing the search or active book clears the selection.
 - My songs: search inside the active songbook.
 - Present: full-screen lyrics, one verse per slide, with A− / A+ / Fill text sizing (Fill finds the largest size that fits; your choice is remembered), swipe on touch, and keyboard navigation (arrows, Space, Page Down, Home/End, Escape).
 - Export / import: download the active songbook as a JSON file with the lyrics embedded, and load it back onto another device — no sync needed.

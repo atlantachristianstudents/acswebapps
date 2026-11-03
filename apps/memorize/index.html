@@ -45,9 +45,9 @@ button.secondary { color:var(--accent); background:transparent; }
 <h1>Make the words your own.</h1>
 <p class="muted">Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.</p>
 <form id="setup-form">
-<label for="import-file">Import a text file (optional)</label>
-<input type="file" id="import-file" accept=".txt,.md,.text,text/plain,text/markdown" aria-describedby="import-note">
-<p class="note" id="import-note">Choose a UTF-8 .txt or .md file to replace the reference below. Files stay on your device. PDF and Word documents are not supported.</p>
+<label for="import-file">Import a text file or PDF (optional)</label>
+<input type="file" id="import-file" accept=".txt,.md,.text,.pdf,text/plain,text/markdown,application/pdf" aria-describedby="import-note">
+<p class="note" id="import-note">Choose a UTF-8 text file or a PDF with selectable text. Files stay on your device. Scanned PDFs need OCR first. Review the imported text before beginning.</p>
 <p class="note" id="import-status" role="status"></p>
 <label for="reference">Text to memorize</label>
 <textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note" maxlength="20000"></textarea>
@@ -90,6 +90,75 @@ button.secondary { color:var(--accent); background:transparent; }
   const $ = id => document.getElementById(id);
   const storageKey = 'adless-memorize-v1';
   let expected = [];
+  let importing = false;
+  let pdfScripts;
+  function loadPdfScripts() {
+    if (!pdfScripts) {
+      pdfScripts = (async () => {
+        for (const name of ['pdf.worker', 'pdf', 'resources']) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'vendor/pdfjs/' + name + '.js';
+            script.onload = resolve;
+            script.onerror = () => { script.remove(); reject(new Error('Unable to load the PDF reader. Reopen the app online once, then try again.')); };
+            document.head.append(script);
+          });
+        }
+      })().catch(error => { pdfScripts = null; throw error; });
+    }
+    return pdfScripts;
+  }
+  function validateLength(text) {
+    if (text.length > 20000 || (text.match(/\S+/gu) || []).length > 1000) {
+      throw new Error('This file is too long. Import up to 1,000 words and 20,000 characters.');
+    }
+  }
+  async function readPdf(file) {
+    if (file.size > 10 * 1024 * 1024) throw new Error('This PDF is too large. Choose a PDF under 10 MB.');
+    await loadPdfScripts();
+    // Embedded resources also work over file://, where fetch cannot read local fonts/CMaps.
+    class PdfDataFactory {
+      async fetch({ filename }) {
+        const encoded = window.memorizePdfResources[filename];
+        if (!encoded) throw new Error('Missing PDF font or character map.');
+        return Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
+      }
+    }
+    const task = window.pdfjsLib.getDocument({
+      data: new Uint8Array(await file.arrayBuffer()),
+      BinaryDataFactory: PdfDataFactory, useWorkerFetch: false, useWasm: false,
+      stopAtErrors: true, isEvalSupported: false
+    });
+    try {
+      const pdf = await task.promise;
+      if (pdf.numPages > 100) throw new Error('This PDF has too many pages. Choose a PDF with up to 100 pages.');
+      const pages = [];
+      for (let number = 1; number <= pdf.numPages; number++) {
+        $('import-status').textContent = 'Reading PDF page ' + number + ' of ' + pdf.numPages + '…';
+        const page = await pdf.getPage(number);
+        const content = await page.getTextContent();
+        let text = '';
+        for (const item of content.items) {
+          if (typeof item.str !== 'string') continue;
+          text += item.str + (item.hasEOL ? '\n' : ' ');
+        }
+        pages.push(text.trim());
+        page.cleanup();
+        validateLength(pages.join('\n\n'));
+      }
+      const text = pages.join('\n\n').trim();
+      if (!text) throw new Error('No selectable text was found in this PDF. For scanned pages, use OCR first, then import the text.');
+      return text;
+    } catch (error) {
+      if (error.name === 'PasswordException') throw new Error('This PDF is password-protected. Save an unlocked copy and try again.');
+      if (['InvalidPDFException', 'UnknownErrorException', 'FormatError'].includes(error.name)) {
+        throw new Error('This PDF could not be read. Try another PDF or export it as UTF-8 text.');
+      }
+      throw error;
+    } finally {
+      await task.destroy();
+    }
+  }
   function save() {
     try { localStorage.setItem(storageKey, JSON.stringify({ text: $('reference').value, ignoreCase: $('ignore-case').checked, ignorePunctuation: $('ignore-punctuation').checked })); } catch (_) {}
   }
@@ -122,35 +191,44 @@ button.secondary { color:var(--accent); background:transparent; }
   $('reference').addEventListener('input', save);
   $('import-file').addEventListener('change', async event => {
     const file = event.target.files[0];
-    if (!file) return;
-    $('import-status').textContent = '';
+    if (!file || importing) return;
+    importing = true;
+    event.target.disabled = true;
+    $('setup-form').querySelector('button[type="submit"]').disabled = true;
+    $('reference').readOnly = true;
+    $('import-status').textContent = 'Reading ' + file.name + '…';
     $('setup-error').textContent = '';
     try {
-      if (!/\.(txt|md|text)$/i.test(file.name)) {
-        throw new Error('Choose a .txt or .md text file. Export PDF or Word documents as plain text first.');
+      const isPdf = /\.pdf$/i.test(file.name);
+      if (!/\.(txt|md|text|pdf)$/i.test(file.name)) {
+        throw new Error('Choose a .txt, .md, .text, or .pdf file.');
       }
-      if (file.size > 80000) throw new Error('This file is too large. Import up to 1,000 words and 20,000 characters.');
-      const text = (await file.text()).replace(/^\uFEFF/, '');
+      if (!isPdf && file.size > 80000) throw new Error('This file is too large. Import up to 1,000 words and 20,000 characters.');
+      const text = (isPdf ? await readPdf(file) : await file.text()).replace(/^\uFEFF/, '');
       if (!text.trim()) throw new Error('This file is empty. Choose a file containing text.');
       if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
         throw new Error('This file could not be read as plain text. Save it as UTF-8 text and try again.');
       }
-      if (text.length > 20000 || (text.match(/\S+/gu) || []).length > 1000) {
-        throw new Error('This file is too long. Import up to 1,000 words and 20,000 characters.');
-      }
+      validateLength(text);
       $('reference').value = text;
       save();
       $('import-status').textContent = 'Imported ' + file.name + '. Review or edit the reference below before beginning.';
       $('reference').focus();
     } catch (error) {
+      $('import-status').textContent = '';
       $('setup-error').textContent = error instanceof Error ? error.message : 'Unable to read this file. Try another text file.';
     } finally {
+      importing = false;
+      event.target.disabled = false;
+      $('setup-form').querySelector('button[type="submit"]').disabled = false;
+      $('reference').readOnly = false;
       event.target.value = '';
     }
   });
   ['ignore-case', 'ignore-punctuation'].forEach(id => $(id).addEventListener('change', save));
   $('setup-form').addEventListener('submit', event => {
     event.preventDefault();
+    if (importing) return;
     expected = words($('reference').value);
     $('setup-error').textContent = '';
     if (!expected.length || expected.length > 1000 || $('reference').value.length > 20000) {

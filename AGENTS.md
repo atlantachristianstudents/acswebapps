@@ -55,6 +55,7 @@ The root `sw.js` follows the same rule for the home page (`index.html`, `manifes
 ## Dependency management
 
 - Do not add npm packages, build tools, or CDN libraries without explicit approval. The zero-dependency setup is intentional and load-bearing (it works offline, and any app can be copied out of the repo intact).
+- Approved exception: `apps/memorize/vendor/pdfjs/` bundles PDF.js, fonts, and character maps for private, offline PDF text import. Keep parser and resource versions aligned; preserve licenses and the classic-script adaptations documented in that folder.
 - If an image/icon is needed, add it as an SVG file under the app's `icons/`; do not pull in icon font packages.
 
 ## Build, run, and validation commands
