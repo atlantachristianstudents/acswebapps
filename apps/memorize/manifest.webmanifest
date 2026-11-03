@@ -1,0 +1,11 @@
+{
+  "name": "Memorize",
+  "short_name": "Memorize",
+  "description": "Recall any text on a blank page, then check your words.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f5ef",
+  "theme_color": "#31634d",
+  "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -13,6 +13,15 @@
  */
 window.APPS = [
   {
+    id: "memorize",
+    name: "Memorize",
+    description: "Type a passage from memory on a blank page, then check missing, changed, and extra words. Works offline.",
+    icon: "✍️",
+    iconUrl: "apps/memorize/icons/icon.svg",
+    tags: ["Study", "Memory"],
+    status: "beta"
+  },
+  {
     id: "big-text",
     name: "Big Text",
     description: "Display hymn number or text in full-screen seemlessly.",

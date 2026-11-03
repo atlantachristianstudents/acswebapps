@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memorize — Adless</title>
+<meta name="description" content="Practice recalling any text on a blank page, then check your words.">
+<meta name="theme-color" content="#31634d">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root { color-scheme: light dark; --bg:#f5f5ef; --panel:#fff; --text:#202e28; --muted:#58685f; --line:#cbd5cc; --accent:#31634d; --on-accent:#fff; --good:#e1f1e6; --bad:#fbe4df; --bad-text:#8d2e22; }
+@media(prefers-color-scheme:dark) { :root { --bg:#141c18; --panel:#1c2821; --text:#edf3ee; --muted:#afbeb3; --line:#45574b; --accent:#abd7b9; --on-accent:#132d20; --good:#233f2c; --bad:#482923; --bad-text:#ffb6a6; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,sans-serif; }
+header { max-width:860px; margin:auto; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); }
+a { color:var(--accent); } header span { color:var(--muted); font-size:.85rem; }
+main { max-width:800px; margin:auto; padding:40px 24px 64px; }
+h1 { font-size:clamp(2rem,6vw,3rem); letter-spacing:-.05em; line-height:1.15; margin:0 0 12px; }
+h2 { font-size:1.35rem; margin:0 0 12px; }
+p { margin:0 0 20px; } .muted { color:var(--muted); } .eyebrow { text-transform:uppercase; letter-spacing:.15em; font-size:.75rem; font-weight:700; color:var(--accent); margin-bottom:12px; }
+label { display:block; font-weight:600; margin-bottom:8px; }
+textarea { display:block; width:100%; min-height:280px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:20px; background:var(--panel); color:var(--text); font:1.1rem/1.8 system-ui,sans-serif; }
+textarea:focus,button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.options { display:flex; flex-wrap:wrap; gap:12px 24px; margin:20px 0; } .options label { font-size:.9rem; font-weight:400; margin:0; } input { accent-color:var(--accent); }
+.actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+button { border:1px solid var(--accent); border-radius:9px; background:var(--accent); color:var(--on-accent); padding:12px 20px; cursor:pointer; font:600 1rem system-ui,sans-serif; }
+button.secondary { color:var(--accent); background:transparent; }
+.note { font-size:.85rem; margin-top:12px; color:var(--muted); }
+.error { color:var(--bad-text); margin-top:12px; }
+.summary { padding:24px; background:var(--good); border-radius:12px; margin:24px 0; } .summary strong { display:block; font-size:2.4rem; line-height:1.3; }
+.comparison { background:var(--panel); border:1px solid var(--line); padding:20px; border-radius:12px; line-height:2.1; overflow-wrap:anywhere; }
+.comparison del { background:var(--bad); color:var(--bad-text); text-decoration:line-through; padding:2px 3px; }
+.comparison ins { background:var(--good); text-decoration:underline; padding:2px 3px; }
+[hidden] { display:none !important; }
+@media(max-width:480px) { main { padding-top:28px; } header span { display:none; } textarea { min-height:320px; } }
+</style>
+</head>
+<body>
+<header><a href="../../">← Adless</a><span>A little practice. A stronger memory.</span></header>
+<main>
+<section id="setup">
+<p class="eyebrow">Memorize / 01 · Prepare</p>
+<h1>Make the words your own.</h1>
+<p class="muted">Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.</p>
+<form id="setup-form">
+<label for="import-file">Import a text file (optional)</label>
+<input type="file" id="import-file" accept=".txt,.md,.text,text/plain,text/markdown" aria-describedby="import-note">
+<p class="note" id="import-note">Choose a UTF-8 .txt or .md file to replace the reference below. Files stay on your device. PDF and Word documents are not supported.</p>
+<p class="note" id="import-status" role="status"></p>
+<label for="reference">Text to memorize</label>
+<textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note" maxlength="20000"></textarea>
+<p class="note" id="save-note">Your reference and settings are saved on this device when storage is available. Up to 1,000 words / 20,000 characters.</p>
+<div class="options">
+<label><input type="checkbox" id="ignore-case" checked> Ignore capitalization</label>
+<label><input type="checkbox" id="ignore-punctuation" checked> Ignore punctuation</label>
+</div>
+<p class="note">Spacing and line breaks are always ignored.</p>
+<p id="setup-error" class="error" role="alert"></p>
+<button type="submit">Begin practice →</button>
+</form>
+</section>
+<section id="practice" hidden>
+<p class="eyebrow">Memorize / 02 · Recall</p>
+<h1 id="practice-heading" tabindex="-1">Start with a blank page.</h1>
+<p class="muted">Take your time. Write what you remember, then check your recall.</p>
+<form id="practice-form">
+<label for="answer">Your recall</label>
+<textarea id="answer" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20000" aria-describedby="answer-note"></textarea>
+<p class="note" id="answer-note">No hints or checking until you submit. Up to 1,000 words / 20,000 characters.</p>
+<p id="answer-error" class="error" role="alert"></p>
+<div class="actions"><button type="submit">Check my recall</button><button type="button" class="secondary" id="edit">Edit reference</button></div>
+</form>
+</section>
+<section id="results" hidden>
+<p class="eyebrow">Memorize / 03 · Reflect</p>
+<h1 id="results-heading" tabindex="-1">Here’s how you did.</h1>
+<div class="summary" role="status"><strong id="score"></strong><span id="counts"></span></div>
+<h2>Your words, checked</h2>
+<p class="muted">Crossed out = extra or incorrect words you typed. Underlined = words to add from the reference.</p>
+<div id="comparison" class="comparison"></div>
+<p class="note" id="scoring-note"></p>
+<div class="actions"><button type="button" id="retry">Try again →</button><button type="button" class="secondary" id="change">Edit reference</button></div>
+</section>
+</main>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const storageKey = 'adless-memorize-v1';
+  let expected = [];
+  function save() {
+    try { localStorage.setItem(storageKey, JSON.stringify({ text: $('reference').value, ignoreCase: $('ignore-case').checked, ignorePunctuation: $('ignore-punctuation').checked })); } catch (_) {}
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    if (saved && typeof saved.text === 'string') {
+      $('reference').value = saved.text.slice(0, 20000);
+      $('ignore-case').checked = saved.ignoreCase !== false;
+      $('ignore-punctuation').checked = saved.ignorePunctuation !== false;
+    }
+  } catch (_) {}
+  function words(text) {
+    return (text.match(/\S+/gu) || []).map(raw => {
+      let key = raw.normalize('NFC');
+      if ($('ignore-punctuation').checked) key = key.replace(/\p{P}/gu, '');
+      if ($('ignore-case').checked) key = key.toLowerCase();
+      return { raw: raw, key: key };
+    }).filter(word => word.key.length);
+  }
+  function show(id, focusId) {
+    ['setup', 'practice', 'results'].forEach(name => { $(name).hidden = name !== id; });
+    $(focusId).focus();
+  }
+  function begin() {
+    $('answer').value = '';
+    $('answer-error').textContent = '';
+    $('comparison').replaceChildren();
+    show('practice', 'answer');
+  }
+  $('reference').addEventListener('input', save);
+  $('import-file').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    $('import-status').textContent = '';
+    $('setup-error').textContent = '';
+    try {
+      if (!/\.(txt|md|text)$/i.test(file.name)) {
+        throw new Error('Choose a .txt or .md text file. Export PDF or Word documents as plain text first.');
+      }
+      if (file.size > 80000) throw new Error('This file is too large. Import up to 1,000 words and 20,000 characters.');
+      const text = (await file.text()).replace(/^\uFEFF/, '');
+      if (!text.trim()) throw new Error('This file is empty. Choose a file containing text.');
+      if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
+        throw new Error('This file could not be read as plain text. Save it as UTF-8 text and try again.');
+      }
+      if (text.length > 20000 || (text.match(/\S+/gu) || []).length > 1000) {
+        throw new Error('This file is too long. Import up to 1,000 words and 20,000 characters.');
+      }
+      $('reference').value = text;
+      save();
+      $('import-status').textContent = 'Imported ' + file.name + '. Review or edit the reference below before beginning.';
+      $('reference').focus();
+    } catch (error) {
+      $('setup-error').textContent = error instanceof Error ? error.message : 'Unable to read this file. Try another text file.';
+    } finally {
+      event.target.value = '';
+    }
+  });
+  ['ignore-case', 'ignore-punctuation'].forEach(id => $(id).addEventListener('change', save));
+  $('setup-form').addEventListener('submit', event => {
+    event.preventDefault();
+    expected = words($('reference').value);
+    $('setup-error').textContent = '';
+    if (!expected.length || expected.length > 1000 || $('reference').value.length > 20000) {
+      $('setup-error').textContent = 'Enter 1–1,000 words (up to 20,000 characters). With punctuation ignored, include at least one word or number.';
+      return;
+    }
+    save(); begin();
+  });
+  function edit() { show('setup', 'reference'); }
+  $('edit').addEventListener('click', edit);
+  $('change').addEventListener('click', edit);
+  $('retry').addEventListener('click', begin);
+  // Word-level edit distance aligns omissions and insertions without shifting the rest of the passage.
+  function compare(reference, answer) {
+    const rows = reference.length + 1, cols = answer.length + 1;
+    const distance = Array.from({ length: rows }, () => new Uint16Array(cols));
+    for (let i = 0; i < rows; i++) distance[i][0] = i;
+    for (let j = 0; j < cols; j++) distance[0][j] = j;
+    for (let i = 1; i < rows; i++) {
+      for (let j = 1; j < cols; j++) {
+        distance[i][j] = Math.min(distance[i - 1][j] + 1, distance[i][j - 1] + 1,
+          distance[i - 1][j - 1] + (reference[i - 1].key === answer[j - 1].key ? 0 : 1));
+      }
+    }
+    let i = reference.length, j = answer.length;
+    const edits = [];
+    while (i || j) {
+      if (i && j && distance[i][j] === distance[i - 1][j - 1] + (reference[i - 1].key === answer[j - 1].key ? 0 : 1)) {
+        edits.push({ kind: reference[i - 1].key === answer[j - 1].key ? 'correct' : 'changed', expected: reference[--i].raw, actual: answer[--j].raw });
+      } else if (i && distance[i][j] === distance[i - 1][j] + 1) {
+        edits.push({ kind: 'missing', expected: reference[--i].raw });
+      } else {
+        edits.push({ kind: 'extra', actual: answer[--j].raw });
+      }
+    }
+    return { edits: edits.reverse(), errors: distance[reference.length][answer.length] };
+  }
+  $('practice-form').addEventListener('submit', event => {
+    event.preventDefault();
+    const actual = words($('answer').value);
+    if (actual.length > 1000 || $('answer').value.length > 20000) {
+      $('answer-error').textContent = 'Please keep your recall within 1,000 words and 20,000 characters.';
+      return;
+    }
+    const result = compare(expected, actual);
+    const counts = { correct: 0, changed: 0, missing: 0, extra: 0 };
+    const fragment = document.createDocumentFragment();
+    function append(tag, text, label) {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      if (label) node.setAttribute('aria-label', label + ': ' + text);
+      fragment.append(node, document.createTextNode(' '));
+    }
+    result.edits.forEach(edit => {
+      counts[edit.kind]++;
+      if (edit.kind === 'correct') append('span', edit.actual);
+      else {
+        if (edit.actual) append('del', edit.actual, 'You typed');
+        if (edit.expected) append('ins', edit.expected, 'Expected');
+      }
+    });
+    $('comparison').replaceChildren(fragment);
+    const score = Math.max(0, Math.round((1 - result.errors / expected.length) * 100));
+    $('score').textContent = score + '% accuracy';
+    $('counts').textContent = counts.correct + ' correct · ' + counts.changed + ' changed · ' + counts.missing + ' missing · ' + counts.extra + ' extra';
+    $('scoring-note').textContent = 'Score: 100% minus word changes, omissions, and extras divided by reference words, with a minimum of 0%. ' +
+      ($('ignore-case').checked ? 'Capitalization ignored. ' : 'Capitalization checked. ') +
+      ($('ignore-punctuation').checked ? 'Punctuation ignored. ' : 'Punctuation checked. ') + 'Spacing and line breaks ignored.';
+    show('results', 'results-heading');
+  });
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+})();
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
+| [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Paste or import a text file, recall it on a blank page, then check missing, changed, and extra words. | beta |
 | [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | live |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
 | [Verse Lookup](https://atlantachristianstudents.github.io/adless/apps/verses/) | Look up Bible verses and display them full-screen for projectors and livestreams, with external-display support. | live |
@@ -39,6 +40,7 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  memorize/                Memorization practice with word comparison
   big-text/                Big Text app (full-screen hymn numbers and text)
   tunes/                   Tuner app (microphone, metronome, tone generator)
   verses/                  Verse Lookup app (verse presenter)
