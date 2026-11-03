@@ -13,17 +13,22 @@
  */
 window.APPS = [
   {
+    id: "memorize",
+    name: "Memorize",
+    description: "Type a passage from memory on a blank page, then check missing, changed, and extra words. Works offline.",
+    icon: "✍️",
+    iconUrl: "apps/memorize/icons/icon.svg",
+    tags: ["Study", "Memory"],
+    status: "beta"
+  },
+  {
     id: "big-text",
     name: "Big Text",
     description: "Display hymn number or text in full-screen seemlessly.",
     icon: "A",
     tags: ["Worship", "Presentation"],
     status: "live",
-<<<<<<< HEAD
     url: "apps/big-text/index.html"
-=======
-    url: "apps/tunes/"
->>>>>>> d279889e3d93e0dc97f6a9ee345264f716081f79
   },
   {
     id: "verses",
@@ -32,7 +37,6 @@ window.APPS = [
     icon: "📖",
     tags: ["Worship", "Presentation"],
     status: "live",
-<<<<<<< HEAD
     url: "apps/verses/index.html"
   },
   {
@@ -44,8 +48,14 @@ window.APPS = [
     status: "live",
     url: "apps/tunes/index.html"
   },
-=======
-    url: "apps/verses/"
+  {
+    id: "songs",
+    name: "Songbook",
+    description: "Browse thousands of songs, build set lists, and present lyrics full-screen. Works offline.",
+    icon: "🎵",
+    iconUrl: "apps/songs/icons/icon.svg",
+    tags: ["Worship", "Music", "Presentation"],
+    status: "live",
+    url: "apps/songs/index.html"
   }
->>>>>>> d279889e3d93e0dc97f6a9ee345264f716081f79
 ];
