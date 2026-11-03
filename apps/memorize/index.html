@@ -25,6 +25,7 @@ textarea { display:block; width:100%; min-height:280px; resize:vertical; border:
 textarea:focus,button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
 .options { display:flex; flex-wrap:wrap; gap:12px 24px; margin:20px 0; } .options label { font-size:.9rem; font-weight:400; margin:0; } input { accent-color:var(--accent); }
 .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+input[type="password"] { width:100%; max-width:360px; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--text); font:inherit; }
 button { border:1px solid var(--accent); border-radius:9px; background:var(--accent); color:var(--on-accent); padding:12px 20px; cursor:pointer; font:600 1rem system-ui,sans-serif; }
 button.secondary { color:var(--accent); background:transparent; }
 .note { font-size:.85rem; margin-top:12px; color:var(--muted); }
@@ -34,6 +35,17 @@ button.secondary { color:var(--accent); background:transparent; }
 .comparison del { background:var(--bad); color:var(--bad-text); text-decoration:line-through; padding:2px 3px; }
 .comparison ins { background:var(--good); text-decoration:underline; padding:2px 3px; }
 [hidden] { display:none !important; }
+.recalling { overflow:hidden; }
+.recalling > header, .recalling #practice > :not(form) { display:none; }
+.recalling main { max-width:none; margin:0; padding:0; }
+.recalling label[for="answer"], .recalling #answer-note { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.recalling #answer { position:fixed; inset:0; width:100%; height:100vh; height:100dvh; min-height:0; resize:none; border:0; border-radius:0; outline:none; padding:clamp(20px,4vw,48px); padding-bottom:100px; background:var(--bg); }
+.recalling #recall-actions { position:fixed; right:20px; bottom:16px; margin:0; gap:8px; }
+.recalling #recall-actions button { padding:8px 12px; font-size:.85rem; }
+.recalling #test-active-note { position:fixed; right:20px; bottom:12px; margin:0; font-size:.75rem; pointer-events:none; }
+.recalling #fullscreen-note, .recalling #answer-error { position:fixed; left:20px; right:20px; bottom:44px; margin:0; font-size:.8rem; pointer-events:none; }
+.recalling #answer-error:empty { display:none; }
+.recalling #answer-error:not(:empty) ~ #recall-actions { bottom:44px; }
 @media(max-width:480px) { main { padding-top:28px; } header span { display:none; } textarea { min-height:320px; } }
 </style>
 </head>
@@ -50,15 +62,21 @@ button.secondary { color:var(--accent); background:transparent; }
 <p class="note" id="import-note">Choose a UTF-8 text file or a PDF with selectable text. Files stay on your device. Scanned PDFs need OCR first. Review the imported text before beginning.</p>
 <p class="note" id="import-status" role="status"></p>
 <label for="reference">Text to memorize</label>
-<textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note" maxlength="20000"></textarea>
-<p class="note" id="save-note">Your reference and settings are saved on this device when storage is available. Up to 1,000 words / 20,000 characters.</p>
+<textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note"></textarea>
+<p class="note" id="save-note">Your reference and settings are saved on this device when storage is available.</p>
 <div class="options">
 <label><input type="checkbox" id="ignore-case" checked> Ignore capitalization</label>
 <label><input type="checkbox" id="ignore-punctuation" checked> Ignore punctuation</label>
 </div>
 <p class="note">Spacing and line breaks are always ignored.</p>
+<div class="options"><label><input type="checkbox" id="test-mode"> Test — lock this attempt with a passcode</label></div>
+<div id="test-options" hidden>
+<label for="test-passcode">Set a test passcode</label>
+<input type="password" id="test-passcode" autocomplete="new-password" aria-describedby="test-note">
+<p class="note" id="test-note">Once started, you can only submit your recall. After results, this passcode is required to restart or return to import. Keep it safe; refreshing does not unlock the test.</p>
+</div>
 <p id="setup-error" class="error" role="alert"></p>
-<button type="submit">Begin practice →</button>
+<button type="submit" id="begin">Begin practice →</button>
 </form>
 </section>
 <section id="practice" hidden>
@@ -67,10 +85,12 @@ button.secondary { color:var(--accent); background:transparent; }
 <p class="muted">Take your time. Write what you remember, then check your recall.</p>
 <form id="practice-form">
 <label for="answer">Your recall</label>
-<textarea id="answer" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20000" aria-describedby="answer-note"></textarea>
-<p class="note" id="answer-note">No hints or checking until you submit. Up to 1,000 words / 20,000 characters.</p>
+<textarea id="answer" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="answer-note"></textarea>
+<p class="note" id="answer-note">No hints or checking until you submit.</p>
+<p class="note" id="test-active-note" hidden><strong>Shift + Command + Enter (⇧⌘↵)</strong> to submit</p>
+<p class="note" id="fullscreen-note" role="status" hidden></p>
 <p id="answer-error" class="error" role="alert"></p>
-<div class="actions"><button type="submit">Check my recall</button><button type="button" class="secondary" id="edit">Edit reference</button></div>
+<div class="actions" id="recall-actions"><button type="submit">Check my recall</button><button type="button" class="secondary" id="edit">Edit reference</button></div>
 </form>
 </section>
 <section id="results" hidden>
@@ -81,7 +101,14 @@ button.secondary { color:var(--accent); background:transparent; }
 <p class="muted">Crossed out = extra or incorrect words you typed. Underlined = words to add from the reference.</p>
 <div id="comparison" class="comparison"></div>
 <p class="note" id="scoring-note"></p>
-<div class="actions"><button type="button" id="retry">Try again →</button><button type="button" class="secondary" id="change">Edit reference</button></div>
+<div class="actions" id="practice-results-actions"><button type="button" id="retry">Try again →</button><button type="button" class="secondary" id="change">Edit reference</button></div>
+<form id="unlock-form" hidden>
+<label for="unlock-passcode">Test passcode</label>
+<input type="password" id="unlock-passcode" autocomplete="off" required aria-describedby="unlock-note">
+<p class="note" id="unlock-note">Enter the passcode to restart this test or return to the import page.</p>
+<p class="error" id="unlock-error" role="alert"></p>
+<div class="actions"><button type="submit" name="action" value="restart">Restart test</button><button type="submit" name="action" value="import" class="secondary">Return to import</button></div>
+</form>
 </section>
 </main>
 <script>
@@ -89,6 +116,68 @@ button.secondary { color:var(--accent); background:transparent; }
   'use strict';
   const $ = id => document.getElementById(id);
   const storageKey = 'adless-memorize-v1';
+  const testStorageKey = 'adless-memorize-test-v1';
+  let test = null;
+  let phase = 'setup';
+  let starting = false;
+  let unlocking = false;
+  let shortcutSubmit = false;
+  let requestingFullscreen = false;
+  function lockedRecall() { return !!test && phase === 'practice'; }
+  function updateFullscreenNote() {
+    const note = $('fullscreen-note');
+    note.hidden = !lockedRecall() || !!document.fullscreenElement;
+    note.textContent = document.documentElement.requestFullscreen ?
+      'Full-screen is off. Press a typing key to request full-screen again.' :
+      'Full-screen is unavailable in this browser. The test remains locked.';
+  }
+  function enterFullscreen() {
+    if (document.fullscreenElement || requestingFullscreen || !document.documentElement.requestFullscreen) return;
+    requestingFullscreen = true;
+    try {
+      Promise.resolve(document.documentElement.requestFullscreen()).catch(() => {}).finally(() => {
+        requestingFullscreen = false;
+        updateFullscreenNote();
+      });
+    } catch (_) { requestingFullscreen = false; updateFullscreenNote(); }
+  }
+  document.addEventListener('fullscreenchange', updateFullscreenNote);
+  document.addEventListener('keydown', event => {
+    if (!lockedRecall()) return;
+    if (event.isComposing || event.keyCode === 229) return;
+    if (event.key !== 'Escape' && event.isTrusted) enterFullscreen();
+    if (event.metaKey && event.shiftKey && !event.ctrlKey && !event.altKey && event.key === 'Enter') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) {
+        shortcutSubmit = true;
+        try { $('practice-form').requestSubmit(); }
+        finally { shortcutSubmit = false; }
+      }
+      return;
+    }
+    const typingKey = event.key.length === 1 || ['Enter', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight',
+      'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Dead', 'Process', 'Shift', 'CapsLock'].includes(event.key);
+    if (event.metaKey || event.ctrlKey || event.altKey || !typingKey) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    } else if (document.activeElement !== $('answer')) $('answer').focus();
+  }, true);
+  for (const name of ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'auxclick', 'contextmenu',
+    'dragstart', 'dragover', 'drop', 'paste', 'copy', 'cut']) {
+    document.addEventListener(name, event => {
+      if (!lockedRecall()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      $('answer').focus();
+    }, true);
+  }
+  document.addEventListener('focusin', event => {
+    if (lockedRecall() && event.target !== $('answer')) $('answer').focus();
+  });
+  $('answer').addEventListener('beforeinput', event => {
+    if (lockedRecall() && ['insertFromPaste', 'insertFromDrop', 'historyUndo', 'historyRedo'].includes(event.inputType)) event.preventDefault();
+  });
   let expected = [];
   let importing = false;
   let pdfScripts;
@@ -107,11 +196,6 @@ button.secondary { color:var(--accent); background:transparent; }
       })().catch(error => { pdfScripts = null; throw error; });
     }
     return pdfScripts;
-  }
-  function validateLength(text) {
-    if (text.length > 20000 || (text.match(/\S+/gu) || []).length > 1000) {
-      throw new Error('This file is too long. Import up to 1,000 words and 20,000 characters.');
-    }
   }
   async function readPdf(file) {
     if (file.size > 10 * 1024 * 1024) throw new Error('This PDF is too large. Choose a PDF under 10 MB.');
@@ -144,7 +228,6 @@ button.secondary { color:var(--accent); background:transparent; }
         }
         pages.push(text.trim());
         page.cleanup();
-        validateLength(pages.join('\n\n'));
       }
       const text = pages.join('\n\n').trim();
       if (!text) throw new Error('No selectable text was found in this PDF. For scanned pages, use OCR first, then import the text.');
@@ -160,12 +243,13 @@ button.secondary { color:var(--accent); background:transparent; }
     }
   }
   function save() {
+    if (test) return;
     try { localStorage.setItem(storageKey, JSON.stringify({ text: $('reference').value, ignoreCase: $('ignore-case').checked, ignorePunctuation: $('ignore-punctuation').checked })); } catch (_) {}
   }
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
     if (saved && typeof saved.text === 'string') {
-      $('reference').value = saved.text.slice(0, 20000);
+      $('reference').value = saved.text;
       $('ignore-case').checked = saved.ignoreCase !== false;
       $('ignore-punctuation').checked = saved.ignorePunctuation !== false;
     }
@@ -179,10 +263,21 @@ button.secondary { color:var(--accent); background:transparent; }
     }).filter(word => word.key.length);
   }
   function show(id, focusId) {
+    if (test && id !== test.phase) return;
+    phase = id;
+    document.body.classList.toggle('recalling', id === 'practice');
     ['setup', 'practice', 'results'].forEach(name => { $(name).hidden = name !== id; });
+    document.querySelector('header a').hidden = !!test;
+    $('edit').hidden = !!test;
+    $('recall-actions').hidden = !!test;
+    $('test-active-note').hidden = !test;
+    $('practice-results-actions').hidden = !!test;
+    $('unlock-form').hidden = !test;
+    updateFullscreenNote();
     $(focusId).focus();
   }
   function begin() {
+    if (test && test.phase !== 'practice') return;
     $('answer').value = '';
     $('answer-error').textContent = '';
     $('comparison').replaceChildren();
@@ -191,7 +286,7 @@ button.secondary { color:var(--accent); background:transparent; }
   $('reference').addEventListener('input', save);
   $('import-file').addEventListener('change', async event => {
     const file = event.target.files[0];
-    if (!file || importing) return;
+    if (!file || importing || test || starting) return;
     importing = true;
     event.target.disabled = true;
     $('setup-form').querySelector('button[type="submit"]').disabled = true;
@@ -203,13 +298,11 @@ button.secondary { color:var(--accent); background:transparent; }
       if (!/\.(txt|md|text|pdf)$/i.test(file.name)) {
         throw new Error('Choose a .txt, .md, .text, or .pdf file.');
       }
-      if (!isPdf && file.size > 80000) throw new Error('This file is too large. Import up to 1,000 words and 20,000 characters.');
       const text = (isPdf ? await readPdf(file) : await file.text()).replace(/^\uFEFF/, '');
       if (!text.trim()) throw new Error('This file is empty. Choose a file containing text.');
       if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
         throw new Error('This file could not be read as plain text. Save it as UTF-8 text and try again.');
       }
-      validateLength(text);
       $('reference').value = text;
       save();
       $('import-status').textContent = 'Imported ' + file.name + '. Review or edit the reference below before beginning.';
@@ -226,53 +319,180 @@ button.secondary { color:var(--accent); background:transparent; }
     }
   });
   ['ignore-case', 'ignore-punctuation'].forEach(id => $(id).addEventListener('change', save));
-  $('setup-form').addEventListener('submit', event => {
+  $('test-mode').addEventListener('change', () => {
+    $('test-options').hidden = !$('test-mode').checked;
+    $('test-passcode').required = $('test-mode').checked;
+    $('begin').textContent = $('test-mode').checked ? 'Begin test →' : 'Begin practice →';
+    if (!$('test-mode').checked) $('test-passcode').value = '';
+  });
+  async function passcodeHash(passcode, salt) {
+    if (!globalThis.crypto?.subtle) throw new Error('Test mode requires HTTPS, localhost, or a browser that supports testing from local files.');
+    const bytes = new TextEncoder().encode(salt + ':' + passcode);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+  function storeTest(value) {
+    try { localStorage.setItem(testStorageKey, JSON.stringify(value)); }
+    catch (_) { throw new Error('Test progress could not be saved. Free up browser storage and try again.'); }
+  }
+  function guardHistory() {
+    history.pushState({ memorizeTest: true }, '', location.href);
+  }
+  $('setup-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (importing) return;
+    if (importing || starting || test || phase !== 'setup') return;
     expected = words($('reference').value);
     $('setup-error').textContent = '';
-    if (!expected.length || expected.length > 1000 || $('reference').value.length > 20000) {
-      $('setup-error').textContent = 'Enter 1–1,000 words (up to 20,000 characters). With punctuation ignored, include at least one word or number.';
+    if (!expected.length) {
+      $('setup-error').textContent = 'Enter some text to memorize. With punctuation ignored, include at least one word or number.';
       return;
     }
-    save(); begin();
+    starting = true;
+    $('begin').disabled = true;
+    try {
+      if ($('test-mode').checked) {
+        const passcode = $('test-passcode').value;
+        if (!passcode.trim()) throw new Error('Set a passcode before beginning the test.');
+        enterFullscreen();
+        const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+        const hash = await passcodeHash(passcode, salt);
+        const next = { phase: 'practice', text: $('reference').value, ignoreCase: $('ignore-case').checked,
+          ignorePunctuation: $('ignore-punctuation').checked, salt: salt, hash: hash, answer: '' };
+        expected = words(next.text);
+        storeTest(next);
+        save();
+        test = next;
+        $('test-passcode').value = '';
+        guardHistory();
+      } else save();
+      begin();
+    } catch (error) {
+      $('setup-error').textContent = error.message;
+      if (!test && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    }
+    finally { starting = false; $('begin').disabled = false; }
   });
-  function edit() { show('setup', 'reference'); }
+  function edit() { if (!test) show('setup', 'reference'); }
   $('edit').addEventListener('click', edit);
   $('change').addEventListener('click', edit);
-  $('retry').addEventListener('click', begin);
-  // Word-level edit distance aligns omissions and insertions without shifting the rest of the passage.
-  function compare(reference, answer) {
-    const rows = reference.length + 1, cols = answer.length + 1;
-    const distance = Array.from({ length: rows }, () => new Uint16Array(cols));
-    for (let i = 0; i < rows; i++) distance[i][0] = i;
-    for (let j = 0; j < cols; j++) distance[0][j] = j;
-    for (let i = 1; i < rows; i++) {
-      for (let j = 1; j < cols; j++) {
-        distance[i][j] = Math.min(distance[i - 1][j] + 1, distance[i][j - 1] + 1,
-          distance[i - 1][j - 1] + (reference[i - 1].key === answer[j - 1].key ? 0 : 1));
+  $('retry').addEventListener('click', () => { if (!test) begin(); });
+  $('answer').addEventListener('input', () => {
+    if (!test || phase !== 'practice') return;
+    test.answer = $('answer').value;
+    try { storeTest(test); $('answer-error').textContent = ''; }
+    catch (error) { $('answer-error').textContent = error.message; }
+  });
+  $('unlock-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!test || phase !== 'results' || unlocking) return;
+    const action = event.submitter?.value || 'restart';
+    unlocking = true;
+    $('unlock-error').textContent = '';
+    try {
+      const hash = await passcodeHash($('unlock-passcode').value, test.salt);
+      $('unlock-passcode').value = '';
+      if (hash !== test.hash) {
+        $('unlock-error').textContent = 'Incorrect passcode. Try again.';
+        $('unlock-passcode').focus();
+        return;
       }
-    }
-    let i = reference.length, j = answer.length;
-    const edits = [];
-    while (i || j) {
-      if (i && j && distance[i][j] === distance[i - 1][j - 1] + (reference[i - 1].key === answer[j - 1].key ? 0 : 1)) {
-        edits.push({ kind: reference[i - 1].key === answer[j - 1].key ? 'correct' : 'changed', expected: reference[--i].raw, actual: answer[--j].raw });
-      } else if (i && distance[i][j] === distance[i - 1][j] + 1) {
-        edits.push({ kind: 'missing', expected: reference[--i].raw });
+      if (action === 'import') {
+        localStorage.removeItem(testStorageKey);
+        test = null;
+        $('test-mode').checked = false;
+        $('test-mode').dispatchEvent(new Event('change'));
+        show('setup', 'reference');
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       } else {
-        edits.push({ kind: 'extra', actual: answer[--j].raw });
+        const next = { ...test, phase: 'practice', answer: '' };
+        storeTest(next);
+        test = next;
+        begin();
+        enterFullscreen();
       }
+    } catch (error) { $('unlock-error').textContent = error.message; }
+    finally { unlocking = false; }
+  });
+  window.addEventListener('popstate', () => {
+    if (test) { guardHistory(); show(test.phase, test.phase === 'practice' ? 'answer' : 'results-heading'); }
+  });
+  window.addEventListener('beforeunload', event => {
+    if (test) { event.preventDefault(); event.returnValue = ''; }
+  });
+  // Hirschberg alignment keeps memory linear for long passages while preserving edit distance.
+  function compare(reference, answer) {
+    const edits = [];
+    function pair(i, j) {
+      edits.push({ kind: reference[i].key === answer[j].key ? 'correct' : 'changed', expected: reference[i].raw, actual: answer[j].raw });
     }
-    return { edits: edits.reverse(), errors: distance[reference.length][answer.length] };
+    function costs(r0, r1, a0, a1, reverse) {
+      const width = a1 - a0;
+      let previous = Uint32Array.from({ length: width + 1 }, (_, j) => j);
+      let current = new Uint32Array(width + 1);
+      for (let i = 1; i <= r1 - r0; i++) {
+        current[0] = i;
+        const key = reference[reverse ? r1 - i : r0 + i - 1].key;
+        for (let j = 1; j <= width; j++) {
+          current[j] = Math.min(previous[j] + 1, current[j - 1] + 1,
+            previous[j - 1] + (key === answer[reverse ? a1 - j : a0 + j - 1].key ? 0 : 1));
+        }
+        [previous, current] = [current, previous];
+      }
+      return previous;
+    }
+    function split(r0, middle, r1, a0, a1) {
+      const left = costs(r0, middle, a0, a1, false);
+      const right = costs(middle, r1, a0, a1, true);
+      let best = Infinity, position = 0;
+      for (let j = 0; j <= a1 - a0; j++) {
+        const cost = left[j] + right[a1 - a0 - j];
+        if (cost < best) { best = cost; position = j; }
+      }
+      return a0 + position;
+    }
+    function align(r0, r1, a0, a1) {
+      while (r0 < r1 && a0 < a1 && reference[r0].key === answer[a0].key) pair(r0++, a0++);
+      let suffix = 0;
+      while (r0 < r1 && a0 < a1 && reference[r1 - 1].key === answer[a1 - 1].key) {
+        r1--; a1--; suffix++;
+      }
+      if (r0 === r1) {
+        for (let j = a0; j < a1; j++) edits.push({ kind: 'extra', actual: answer[j].raw });
+      } else if (a0 === a1) {
+        for (let i = r0; i < r1; i++) edits.push({ kind: 'missing', expected: reference[i].raw });
+      } else if (r1 - r0 === 1) {
+        // Pair with the last matching word, or substitute the last word if none matches.
+        let match = a1 - 1;
+        for (let j = a0; j < a1; j++) if (reference[r0].key === answer[j].key) match = j;
+        for (let j = a0; j < a1; j++) {
+          if (j === match) pair(r0, j);
+          else edits.push({ kind: 'extra', actual: answer[j].raw });
+        }
+      } else {
+        const middle = r0 + Math.floor((r1 - r0) / 2);
+        const position = split(r0, middle, r1, a0, a1);
+        align(r0, middle, a0, position);
+        align(middle, r1, position, a1);
+      }
+      for (let i = 0; i < suffix; i++) pair(r1 + i, a1 + i);
+    }
+    align(0, reference.length, 0, answer.length);
+    return { edits: edits, errors: edits.reduce((count, edit) => count + (edit.kind === 'correct' ? 0 : 1), 0) };
   }
   $('practice-form').addEventListener('submit', event => {
     event.preventDefault();
-    const actual = words($('answer').value);
-    if (actual.length > 1000 || $('answer').value.length > 20000) {
-      $('answer-error').textContent = 'Please keep your recall within 1,000 words and 20,000 characters.';
-      return;
+    if (phase !== 'practice') return;
+    if (test && !shortcutSubmit) return;
+    if (test) {
+      const next = { ...test, phase: 'results', answer: $('answer').value };
+      try { storeTest(next); }
+      catch (error) { $('answer-error').textContent = error.message; return; }
+      test = next;
     }
+    renderResults();
+  });
+  function renderResults() {
+    const actual = words($('answer').value);
     const result = compare(expected, actual);
     const counts = { correct: 0, changed: 0, missing: 0, extra: 0 };
     const fragment = document.createDocumentFragment();
@@ -298,7 +518,24 @@ button.secondary { color:var(--accent); background:transparent; }
       ($('ignore-case').checked ? 'Capitalization ignored. ' : 'Capitalization checked. ') +
       ($('ignore-punctuation').checked ? 'Punctuation ignored. ' : 'Punctuation checked. ') + 'Spacing and line breaks ignored.';
     show('results', 'results-heading');
-  });
+  }
+  // Resume a locked attempt after reload, including its submitted results.
+  try {
+    const savedTest = JSON.parse(localStorage.getItem(testStorageKey) || 'null');
+    if (savedTest && ['practice', 'results'].includes(savedTest.phase) &&
+        typeof savedTest.text === 'string' && typeof savedTest.answer === 'string' &&
+        typeof savedTest.salt === 'string' && typeof savedTest.hash === 'string') {
+      test = savedTest;
+      $('reference').value = test.text;
+      $('ignore-case').checked = test.ignoreCase;
+      $('ignore-punctuation').checked = test.ignorePunctuation;
+      expected = words(test.text);
+      $('answer').value = test.answer;
+      guardHistory();
+      if (test.phase === 'results') renderResults();
+      else show('practice', 'answer');
+    }
+  } catch (_) {}
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
   }
