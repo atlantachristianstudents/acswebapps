@@ -504,6 +504,7 @@
     <tr><td><kbd>Shift</kbd>+<kbd>B</kbd> / <kbd>N</kbd></td><td>Add the previous / next verse (or, while the whole chapter is shown, the previous / next chapter) to the view instead of switching to it; press again to keep adding. A lone verse (or one listed beside others) becomes a flowing passage; with several versions loaded, every version expands into its own passage</td></tr>
     <tr><td><kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>S</kbd></td><td>In slides (parts separated by <kbd>|</kbd>), download every slide as a 16:9 PDF with real, selectable text (underlines, highlights and covers as shown; a slide in Greek or other text the PDF fonts cannot hold is saved as a picture)</td></tr>
     <tr><td><kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>/</kbd></td><td>Jump to the text box and clear it, from anywhere (presentation, full screen, side by side, help ...); <kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>Z</kbd> in the empty box brings the cleared text back</td></tr>
+    <tr><td><kbd>U</kbd></td><td>In every mode (list, chapter, side by side, version comparison, presentation): turn on or off the lowercasing of the first word of a verse that continues the previous verse&rsquo;s sentence (&ldquo;and God said&rdquo; / &ldquo;And God said&rdquo;). In presentation mode, <kbd>U</kbd> underlines instead while words are selected or the pronunciation cursor (<kbd>P</kbd>) is on. The choice is remembered.</td></tr>
     <tr><td><kbd>U</kbd> <kbd>Y</kbd> <kbd>I</kbd></td><td>In presentation mode, underline (<kbd>U</kbd>), highlight (<kbd>Y</kbd>) or make invisible (<kbd>I</kbd>: the words are covered, and clicking a cover reveals that word) the words you have selected with the mouse, or the word under the pronunciation cursor (<kbd>P</kbd>); press the same key again to take it off. Marks stay while you move between slides and come back when you return to them</td></tr>
     <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to present one slide per part; arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
     <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&uarr;</kbd><kbd>&rarr;</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>&minus;</kbd> change the text size (<kbd>0</kbd> resets)</td></tr>
@@ -678,14 +679,28 @@
       var m = /^([(\[\u00b6\s]*)([A-Z][a-z\u2019']*)(?![A-Za-z\u2019'])(\s+([A-Z]))?/.exec(e.text);
       if (!m || m[2] === "I" || m[2].charAt(1) === "\u2019") return;
       var k = m[2].toLowerCase();
-      if (CONNECTIVES[k]) { e.text = m[1] + k.charAt(0) + e.text.slice(m[1].length + 1); return; }   // never a name
+      if (CONNECTIVES[k]) { soften(e, m[1] + k.charAt(0) + e.text.slice(m[1].length + 1)); return; }   // never a name
       // keep the capital only if the text itself shows this word capitalized mid-sentence (a name or divine title);
       // words never seen capitalized elsewhere (e.g. "predestinating") are ordinary words
       if (cap[k] && cap[k] >= (low[k] || 0)) return;
       // e.g. "Holy Spirit", "Son of ...": keep when the word is often capitalized; but "Which He ..." is still just "which"
       if (cap[k] && m[4] && cap[k] >= 0.1 * ((low[k] || 0) + cap[k])) return;
-      e.text = m[1] + k.charAt(0) + e.text.slice(m[1].length + 1);
+      soften(e, m[1] + k.charAt(0) + e.text.slice(m[1].length + 1));
     });
+  }
+  // Keep both spellings so the "U" key can switch the lowercasing off and on again.
+  function soften(e, lower) { e.capText = e.text; e.lowText = lower; if (decapOn) e.text = lower; }
+  var decapOn = true;
+  try { decapOn = localStorage.getItem("lsm_decap") !== "0"; } catch (err) {}
+  function setDecap(on) {
+    decapOn = on;
+    try { localStorage.setItem("lsm_decap", on ? "1" : "0"); } catch (err) {}
+    versions.forEach(function (v) {
+      v.flat.forEach(function (e) { if (e.lowText !== undefined) e.text = on ? e.lowText : e.capText; });
+    });
+    refreshVersionView();
+    var st = $("status");
+    if (st) { st.className = ""; st.textContent = on ? "Start-of-verse capitals removed where a verse continues the sentence (U to turn off)" : "Original capitals shown (U to turn on lowercasing)"; }
   }
 
   function refOfV(ver, bi, ch, v) {
@@ -2475,6 +2490,21 @@
     var r = document.createRange(); r.setStart(root, 0); r.setEnd(node, off);
     return r.toString().length;
   }
+  function hasMarkTarget() {   // words selected with the mouse inside the verse, or the pronunciation cursor
+    if (pronAlive()) return true;
+    var sel = window.getSelection(), pin = $("pinner");
+    return !!(sel && sel.rangeCount && !sel.isCollapsed && sel.getRangeAt(0).intersectsNode(pin));
+  }
+  // U outside presentation mode: switch start-of-verse lowercasing on / off
+  window.addEventListener("keydown", function (e) {
+    if (e.key !== "u" && e.key !== "U") return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || presenting) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+    if (!versions.length) return;
+    e.preventDefault(); e.stopPropagation();
+    setDecap(!decapOn);
+  }, true);
   function markPresent(kind) {   // kind: "u" underline, "h" highlight; pressing again takes it off
     var pin = $("pinner"), text = pin.textContent, a, b, sel = window.getSelection();
     if (sel && sel.rangeCount && !sel.isCollapsed) {
@@ -3032,6 +3062,7 @@
     if (k === "s" || k === "S") { if (!e.repeat) sbsToggle(presVerse()); return; }
     if (k === "n" || k === "N") { if (e.shiftKey) extendBible(1); else stepBible(1); return; }
     if (k === "b" || k === "B") { if (e.shiftKey) extendBible(-1); else stepBible(-1); return; }
+    if ((k === "u" || k === "U") && !e.repeat && !hasMarkTarget()) { setDecap(!decapOn); return; }   // nothing selected to underline: U toggles start-of-verse capitals
     if ("uUyYiI".indexOf(k) > -1 && k.length === 1) { if (!e.repeat) markPresent(k === "u" || k === "U" ? "u" : k === "y" || k === "Y" ? "h" : "i"); return; }
     if (k === "p" || k === "P") { if (pronAlive()) pronOff(); else pronStart(); return; }
     if (pronAlive() && pronKey(e, k)) return;
