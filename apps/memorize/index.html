@@ -25,7 +25,8 @@ textarea { display:block; width:100%; min-height:280px; resize:vertical; border:
 textarea:focus,button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
 .options { display:flex; flex-wrap:wrap; gap:12px 24px; margin:20px 0; } .options label { font-size:.9rem; font-weight:400; margin:0; } input { accent-color:var(--accent); }
 .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
-input[type="password"] { width:100%; max-width:360px; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--text); font:inherit; }
+input[type="password"], #import-url { width:100%; max-width:360px; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--text); font:inherit; }
+.url-import { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 button { border:1px solid var(--accent); border-radius:9px; background:var(--accent); color:var(--on-accent); padding:12px 20px; cursor:pointer; font:600 1rem system-ui,sans-serif; }
 button.secondary { color:var(--accent); background:transparent; }
 .note { font-size:.85rem; margin-top:12px; color:var(--muted); }
@@ -38,6 +39,7 @@ button.secondary { color:var(--accent); background:transparent; }
 .recalling { overflow:hidden; }
 .recalling > header, .recalling #practice > :not(form) { display:none; }
 .recalling main { max-width:none; margin:0; padding:0; }
+.recalling #practice { height:100vh; height:100dvh; }
 .recalling label[for="answer"], .recalling #answer-note { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .recalling #answer { position:fixed; inset:0; width:100%; height:100vh; height:100dvh; min-height:0; resize:none; border:0; border-radius:0; outline:none; padding:clamp(20px,4vw,48px); padding-bottom:100px; background:var(--bg); }
 .recalling #recall-actions { position:fixed; right:20px; bottom:16px; margin:0; gap:8px; }
@@ -60,6 +62,12 @@ button.secondary { color:var(--accent); background:transparent; }
 <label for="import-file">Import a text file or PDF (optional)</label>
 <input type="file" id="import-file" accept=".txt,.md,.text,.pdf,text/plain,text/markdown,application/pdf" aria-describedby="import-note">
 <p class="note" id="import-note">Choose a UTF-8 text file or a PDF with selectable text. Files stay on your device. Scanned PDFs need OCR first. Review the imported text before beginning.</p>
+<label for="import-url">Import from a URL (optional)</label>
+<div class="url-import">
+<input type="text" id="import-url" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/passage" aria-describedby="url-note">
+<button type="button" class="secondary" id="import-url-button">Import URL</button>
+</div>
+<p class="note" id="url-note">Import a web page, text file, or PDF. The website must allow browser access. If it blocks importing, download the file or paste the text instead.</p>
 <p class="note" id="import-status" role="status"></p>
 <label for="reference">Text to memorize</label>
 <textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note"></textarea>
@@ -284,39 +292,97 @@ button.secondary { color:var(--accent); background:transparent; }
     show('practice', 'answer');
   }
   $('reference').addEventListener('input', save);
-  $('import-file').addEventListener('change', async event => {
-    const file = event.target.files[0];
-    if (!file || importing || test || starting) return;
+  async function importReference(source, read) {
+    if (importing || test || starting || phase !== 'setup') return;
     importing = true;
-    event.target.disabled = true;
-    $('setup-form').querySelector('button[type="submit"]').disabled = true;
+    for (const id of ['import-file', 'import-url', 'import-url-button', 'begin']) $(id).disabled = true;
     $('reference').readOnly = true;
-    $('import-status').textContent = 'Reading ' + file.name + '…';
+    $('import-status').textContent = 'Reading ' + source + '…';
     $('setup-error').textContent = '';
     try {
-      const isPdf = /\.pdf$/i.test(file.name);
-      if (!/\.(txt|md|text|pdf)$/i.test(file.name)) {
-        throw new Error('Choose a .txt, .md, .text, or .pdf file.');
-      }
-      const text = (isPdf ? await readPdf(file) : await file.text()).replace(/^\uFEFF/, '');
-      if (!text.trim()) throw new Error('This file is empty. Choose a file containing text.');
+      const text = (await read()).replace(/^\uFEFF/, '');
+      if (!text.trim()) throw new Error('No text was found. Choose another source containing text.');
       if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
-        throw new Error('This file could not be read as plain text. Save it as UTF-8 text and try again.');
+        throw new Error('This content could not be read as text. Save it as UTF-8 text and try again.');
       }
       $('reference').value = text;
       save();
-      $('import-status').textContent = 'Imported ' + file.name + '. Review or edit the reference below before beginning.';
+      $('import-status').textContent = 'Imported ' + source + '. Review or edit the reference below before beginning.';
       $('reference').focus();
     } catch (error) {
       $('import-status').textContent = '';
-      $('setup-error').textContent = error instanceof Error ? error.message : 'Unable to read this file. Try another text file.';
+      $('setup-error').textContent = error instanceof Error ? error.message : 'Unable to import this source. Try another source.';
     } finally {
       importing = false;
-      event.target.disabled = false;
-      $('setup-form').querySelector('button[type="submit"]').disabled = false;
+      for (const id of ['import-file', 'import-url', 'import-url-button', 'begin']) $(id).disabled = false;
       $('reference').readOnly = false;
-      event.target.value = '';
     }
+  }
+  $('import-file').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    await importReference(file.name, async () => {
+      if (!/\.(txt|md|text|pdf)$/i.test(file.name)) throw new Error('Choose a .txt, .md, .text, or .pdf file.');
+      return /\.pdf$/i.test(file.name) ? readPdf(file) : file.text();
+    });
+    event.target.value = '';
+  });
+  function webPageText(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script, style, noscript, template, nav, header, footer, aside, form, iframe, object, embed, svg, canvas, [hidden], [aria-hidden="true"]').forEach(node => node.remove());
+    const root = doc.querySelector('main, article, [role="main"]') || doc.body;
+    const blocks = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'UL', 'OL', 'BLOCKQUOTE', 'PRE', 'TR']);
+    const parts = [];
+    function visit(node) {
+      if (node.nodeType === Node.TEXT_NODE) { parts.push(node.textContent.replace(/\s+/gu, ' ')); return; }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      if (node.tagName === 'BR') { parts.push('\n'); return; }
+      const block = blocks.has(node.tagName);
+      if (block) parts.push('\n');
+      for (const child of node.childNodes) visit(child);
+      if (block) parts.push('\n');
+      if (['TD', 'TH'].includes(node.tagName)) parts.push(' ');
+    }
+    visit(root);
+    return parts.join('').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  async function readUrl(value) {
+    let url;
+    try { url = new URL(value); } catch (_) { throw new Error('Enter a complete http:// or https:// URL.'); }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+      throw new Error('Use an http:// or https:// URL without embedded login credentials.');
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(url.href, { signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
+      if (!response.ok) throw new Error('The website returned HTTP ' + response.status + '. Check the link or try another source.');
+      const type = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+      const blob = await response.blob();
+      const isPdf = type === 'application/pdf' || await blob.slice(0, 5).text() === '%PDF-';
+      if (isPdf) {
+        clearTimeout(timeout);
+        return await readPdf(blob);
+      }
+      const text = await blob.text();
+      if (['text/html', 'application/xhtml+xml'].includes(type) || /^\s*(?:<!doctype\s+html|<html[\s>])/i.test(text)) return webPageText(text);
+      if (type && !type.startsWith('text/') && type !== 'application/octet-stream') {
+        throw new Error('This URL does not contain a web page, text file, or PDF.');
+      }
+      return text;
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('The URL took too long to load. Try again or download the file instead.');
+      if (error instanceof TypeError) throw new Error('Unable to read this URL. The website may block browser imports, require login, or be offline. Download the file or paste the text instead.');
+      throw error;
+    } finally { clearTimeout(timeout); }
+  }
+  function importUrl() {
+    const value = $('import-url').value.trim();
+    return importReference(value || 'URL', () => readUrl(value));
+  }
+  $('import-url-button').addEventListener('click', importUrl);
+  $('import-url').addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); importUrl(); }
   });
   ['ignore-case', 'ignore-punctuation'].forEach(id => $(id).addEventListener('change', save));
   $('test-mode').addEventListener('change', () => {

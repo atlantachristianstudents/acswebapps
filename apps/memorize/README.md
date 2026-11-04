@@ -13,6 +13,12 @@ Comparison uses memory proportional to passage length; very long, substantially 
 
 The reference and comparison settings are saved in localStorage under `adless-memorize-v1` when available. In ordinary practice, answers are only held for the current session and are cleared on retry. Nothing is uploaded. Clear the reference field to remove saved text, or clear the app's site data.
 
+## Import from URL
+
+Paste a complete HTTP or HTTPS address into **Import from a URL** and select **Import URL** (or press Enter in that field). URLs can point to web pages, UTF-8 text/Markdown files, or PDFs with selectable text. For HTML, the app extracts the main/article content when present, removes common navigation and scripts, and preserves paragraph breaks. Review the extracted text before beginning; complex layouts, dynamic pages, or site-specific formatting may need manual cleanup.
+
+The browser fetches the URL directly without cookies or a proxy. The source website receives the request, but your reference and answers are not uploaded. Cross-origin sites must allow CORS; login-protected pages, browser-blocked HTTP links, inaccessible sites, and timeouts show an error and leave your reference intact. If a site blocks access, download its PDF/text file and import it, or paste the text. URL imports require connectivity; the imported reference remains available offline once saved. Imported pages are never inserted into the app or executed. PDF size/page limits also apply to URLs.
+
 ## Test mode
 
 On the import/preparation page, select **Test** and set a passcode, then select **Begin test**. The app requests full-screen. During recall, type in the automatically focused answer box and press **Shift + Command + Enter (⇧⌘↵)** to submit; this reminder stays on screen. Mouse clicks, context menus, clipboard actions, drag/drop, and other page-level shortcuts are blocked. Basic typing, deletion, cursor movement, selection with Shift, and input-method composition remain available. Reference editing, navigation links, and clickable recall actions are hidden. Results appear immediately after submission, with normal keyboard and mouse interaction restored. Enter the passcode on the results page to **Restart test** with a blank answer or **Return to import** to edit or import another reference. Each restart keeps the same passcode and locks the new attempt again. Returning to import exits full-screen.
