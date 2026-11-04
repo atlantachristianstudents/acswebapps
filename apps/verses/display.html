@@ -74,6 +74,7 @@
   #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
   #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #present.top .ptext { align-items: flex-start; }   /* slides with several steps: text starts at the top, so earlier steps stay put */
   #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
   /* slides with several passages: each reference runs inline on the first line of its passage */
   #present #pinner .pslh { display: inline; font-size: 1em; font-weight: 700; color: var(--accent); margin: 0; line-height: inherit; }
@@ -120,7 +121,7 @@
   var qs = new URLSearchParams(location.search), preview = qs.has("preview");
   var isReceiver = !!(window.navigator.presentation && navigator.presentation.receiver);
   var myId = Math.random().toString(36).slice(2, 8);
-  var conns = [], bc = null, scale = null, started = false;
+  var conns = [], bc = null, scale = null, started = false, fitSrc = null;
   var ORIGIN = location.origin === "null" ? "*" : location.origin;
   document.body.classList.toggle("preview", preview);
   try { if (!preview && window.BroadcastChannel) bc = new BroadcastChannel("verselookup-display"); } catch (e) { bc = null; }
@@ -160,7 +161,11 @@
 
   // ---- drawing ----
   function fit() {
-    var box = $("ptext"), el = $("pinner");
+    var box = $("ptext"), el = $("pinner"), real = null;
+    if (fitSrc) {   // part-way through a slide's steps: size the text for the fullest step, so it does not jump
+      real = { html: el.innerHTML, ref: el.getAttribute("data-ref") || "" };
+      el.innerHTML = fitSrc.html; el.setAttribute("data-ref", fitSrc.ref);
+    }
     var lo = 12, hi = Math.max(48, Math.min(window.innerHeight, 900));
     while (lo < hi) {
       var mid = Math.ceil((lo + hi) / 2);
@@ -168,6 +173,7 @@
       if (el.offsetHeight <= box.clientHeight && el.scrollWidth <= box.clientWidth) lo = mid; else hi = mid - 1;
     }
     el.style.fontSize = (scale === null || scale >= 1 ? lo : Math.max(12, Math.round(lo * scale))) + "px";
+    if (real) { el.innerHTML = real.html; el.setAttribute("data-ref", real.ref); }
     placePron();
   }
   var pronData = null;
@@ -231,6 +237,8 @@
     $("pref").textContent = s.ref || "";
     $("pinner").innerHTML = s.html || "";
     $("pinner").setAttribute("data-ref", s.ref || "");
+    $("present").classList.toggle("top", !!s.top);
+    fitSrc = s.fitHtml ? { html: s.fitHtml, ref: s.fitRef || "" } : null;
     drawSbs(s.sbs);
     fit();
   }

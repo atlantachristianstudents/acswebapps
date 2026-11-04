@@ -25,3 +25,11 @@ With a display connected, Present puts the verses on that screen and turns this 
 - iPhone/iPad Safari cannot send a page to a wired or AirPlay display; it only mirrors the whole screen.
 
 Keep `display.html` in the same folder as `index.html`. Settings: cog panel > Presenting (Auto / This screen / External display).
+
+## Import outline
+
+Cog panel → **Import outline…** reads a PDF or .txt outline and puts the verses each point cites into the search box, one part per point, separated by `|` (the Scripture Reading becomes the first part). Press Enter to present them as slides.
+
+- A point cites verses after its last em dash (`…—Rev. 2:4; 3:8`) or in parentheses (`(Rev. 2:14)`).
+- `v.`/`vv.` and a bare `2:7` take their book or chapter from the verse before; the status line says how many did, so check those.
+- PDFs are read in the browser (no upload). Scanned PDFs without text cannot be read.

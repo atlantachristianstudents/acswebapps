@@ -112,6 +112,7 @@
   #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
   #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #present.top .ptext { align-items: flex-start; }   /* slides with several steps: text starts at the top, so earlier steps stay put */
   #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
   /* slides with several passages: each reference runs inline on the first line of its passage */
   #present #pinner .pslh { display: inline; font-size: 1em; font-weight: 700; color: var(--accent); margin: 0; line-height: inherit; }
@@ -191,7 +192,7 @@
   #present:fullscreen #presLogo.has { display: block; }
   #present:-webkit-full-screen #presLogo.has { display: block; }
   :fullscreen #bodyLogo { display: none; }
-  #logoNote { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
+  #logoNote, #olNote { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
   @media (pointer: coarse) { .applogo { bottom: calc(76px + env(safe-area-inset-bottom)); } }
   .scopehint { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
   /* action bar (touch screens) */
@@ -325,6 +326,11 @@
     </div>
     <input type="file" id="logoFile" accept="image/*" hidden>
     <p id="logoNote" hidden></p>
+    <div class="fonthead">Outline</div>
+    <div class="chips"><button type="button" id="olUp" title="Shortcut: I">Import outline&hellip;</button></div>
+    <input type="file" id="olFile" accept=".pdf,.txt,application/pdf,text/plain" hidden>
+    <p class="scopehint" id="olHint">Choose a PDF or text outline. The verses each point cites go into the search box, one slide per point, separated by <b>|</b>; press <kbd>Enter</kbd> there to present them.</p>
+    <p id="olNote" hidden></p>
     <div class="fonthead">Presenting</div>
     <div class="chips" id="extModeChips" role="group" aria-label="Where to present"></div>
     <div class="chips"><button type="button" id="extConnect">Connect a display&hellip;</button><button type="button" id="extClearBtn">Clear display</button></div>
@@ -471,6 +477,7 @@
   <table>
     <tr><td><kbd>C</kbd></td><td><strong>C</strong>opy the selected verses</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the <strong>r</strong>eference of the verses shown</td></tr>
+    <tr><td><kbd>M</kbd></td><td>Reading for<strong>m</strong>at: run consecutive verses together, or show each verse on its own</td></tr>
     <tr><td><kbd>P</kbd></td><td><strong>P</strong>ronunciation</td></tr>
     <tr><td><kbd>O</kbd></td><td><strong>O</strong>pen the chapter, and get <strong>O</strong>ut of the chapter</td></tr>
     <tr><td><kbd>B</kbd></td><td>Go <strong>B</strong>ack a chapter</td></tr>
@@ -506,7 +513,8 @@
     <tr><td><kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>/</kbd></td><td>Jump to the text box and clear it, from anywhere (presentation, full screen, side by side, help ...); <kbd>Ctrl</kbd>/<kbd>&#8984;</kbd>+<kbd>Z</kbd> in the empty box brings the cleared text back</td></tr>
     <tr><td><kbd>U</kbd></td><td>In every mode (list, chapter, side by side, version comparison, presentation): turn on or off the lowercasing of the first word of a verse that continues the previous verse&rsquo;s sentence (&ldquo;and God said&rdquo; / &ldquo;And God said&rdquo;). In presentation mode, <kbd>U</kbd> underlines instead while words are selected or the pronunciation cursor (<kbd>P</kbd>) is on. The choice is remembered.</td></tr>
     <tr><td><kbd>U</kbd> <kbd>Y</kbd> <kbd>I</kbd></td><td>In presentation mode, underline (<kbd>U</kbd>), highlight (<kbd>Y</kbd>) or make invisible (<kbd>I</kbd>: the words are covered, and clicking a cover reveals that word) the words you have selected with the mouse, or the word under the pronunciation cursor (<kbd>P</kbd>); press the same key again to take it off. Marks stay while you move between slides and come back when you return to them</td></tr>
-    <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to present one slide per part; arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
+    <tr><td>Cog &rarr; Import outline (or <kbd>I</kbd> with the cog open)</td><td>Choose a PDF or text outline (points ending &ldquo;&mdash;Rom. 1:1; 2:3&rdquo; or citing verses in parentheses). The verses of each point, and the Scripture Reading, are put in the search box as parts separated by <kbd>|</kbd>; press <kbd>Enter</kbd> to present one slide per part. <em>v.</em> / <em>vv.</em> and a bare <em>2:7</em> take their book or chapter from the verse before, so check those.</td></tr>
+    <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to present one slide per part; arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a period straight after a comma or semicolon holds that part back until the next press: <kbd>rom 3:4,.5 | heb 2:4</kbd> shows Rom. 3:4, then 3:4&ndash;5 on the next press, with the text size unchanged; <kbd>rom 3:4, 5</kbd> shows both at once) (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
     <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&uarr;</kbd><kbd>&rarr;</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>&minus;</kbd> change the text size (<kbd>0</kbd> resets)</td></tr>
     <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>Present the current verse, maximized in the window (<kbd>Shift</kbd>+<kbd>F</kbd> for true full screen). If two or more verses are selected, only those are cycled through</td></tr>
@@ -713,6 +721,14 @@
   }
 
   // ---- query ----
+  // M: reading format. grouped = consecutive verses run together (one box / one flowing passage, small verse numbers);
+  // otherwise every verse stands on its own (own box in the list, own line with its reference on a slide)
+  var grouped = (function () { try { return localStorage.getItem("lsm_group") !== "0"; } catch (e) { return true; } })();
+  function viewRuns(runs) {
+    if (grouped) return runs;
+    var o = []; runs.forEach(function (r) { r.forEach(function (pt) { o.push([pt]); }); });
+    return o;
+  }
   function runQuery(q) {
     var out = [], notes = [], curBook = null, bookSeen = false;
     q = q.replace(/(\d)\.(?=\d)/g, "$1:");   // a period between numbers works like a colon: 3.16 = 3:16
@@ -1044,6 +1060,655 @@
   applyColors(false);
   try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { applyColors(false); }); } catch (e) {}
 
+  // ---- outline import (cog panel) ----
+  // Part 1: a small PDF text reader (no libraries): cross-reference tables and streams, object streams, Flate,
+  // RC4 / AES-128 encryption with the empty password, ToUnicode maps. Enough for ordinary text PDFs.
+  var PdfText = (function () {
+    function lat(u8, a, b) { var s = ""; for (var i = a; i < b && i < u8.length; i++) s += String.fromCharCode(u8[i]); return s; }
+    function concat(chunks) {
+      var n = 0, i, o, p = 0;
+      for (i = 0; i < chunks.length; i++) n += chunks[i].length;
+      o = new Uint8Array(n);
+      for (i = 0; i < chunks.length; i++) { o.set(chunks[i], p); p += chunks[i].length; }
+      return o;
+    }
+    function findSeq(b, str, from) {
+      var n = str.length, c0 = str.charCodeAt(0);
+      for (var i = from; i <= b.length - n; i++) {
+        if (b[i] !== c0) continue;
+        for (var j = 1; j < n && b[i + j] === str.charCodeAt(j); j++);
+        if (j === n) return i;
+      }
+      return -1;
+    }
+
+    // --- crypto ---
+    function md5(u8) {
+      var S = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+        4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
+      var K = [], i, n = u8.length, total = (((n + 8) >> 6) + 1) << 6, m = new Uint8Array(total);
+      for (i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
+      m.set(u8); m[n] = 0x80;
+      var bits = n * 8;
+      for (i = 0; i < 4; i++) m[total - 8 + i] = (bits >>> (8 * i)) & 255;
+      var a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476, M = [];
+      for (var o = 0; o < total; o += 64) {
+        for (i = 0; i < 16; i++) M[i] = m[o + 4 * i] | (m[o + 4 * i + 1] << 8) | (m[o + 4 * i + 2] << 16) | (m[o + 4 * i + 3] << 24);
+        var A = a0, B = b0, C = c0, D = d0, F, g;
+        for (i = 0; i < 64; i++) {
+          if (i < 16) { F = (B & C) | (~B & D); g = i; }
+          else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+          else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
+          else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+          F = (F + A + K[i] + M[g]) | 0;
+          A = D; D = C; C = B;
+          B = (B + ((F << S[i]) | (F >>> (32 - S[i])))) | 0;
+        }
+        a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+      }
+      var out = new Uint8Array(16);
+      [a0, b0, c0, d0].forEach(function (w, k) { for (var j = 0; j < 4; j++) out[4 * k + j] = (w >>> (8 * j)) & 255; });
+      return out;
+    }
+    function rc4(key, data) {
+      var s = new Uint8Array(256), i, j = 0, t, out = new Uint8Array(data.length);
+      for (i = 0; i < 256; i++) s[i] = i;
+      for (i = 0; i < 256; i++) { j = (j + s[i] + key[i % key.length]) & 255; t = s[i]; s[i] = s[j]; s[j] = t; }
+      i = j = 0;
+      for (var k = 0; k < data.length; k++) {
+        i = (i + 1) & 255; j = (j + s[i]) & 255; t = s[i]; s[i] = s[j]; s[j] = t;
+        out[k] = data[k] ^ s[(s[i] + s[j]) & 255];
+      }
+      return out;
+    }
+    var PAD = [0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
+      0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A];
+
+    async function inflate(u8) {
+      if (typeof DecompressionStream === "undefined") throw new Error("This browser cannot open compressed PDFs");
+      var ds = new DecompressionStream("deflate"), w = ds.writable.getWriter(), chunks = [];
+      w.write(u8).catch(function () {}); w.close().catch(function () {});
+      var r = ds.readable.getReader();
+      try { for (;;) { var x = await r.read(); if (x.done) break; chunks.push(x.value); } } catch (e) { /* keep what was read */ }
+      return concat(chunks);
+    }
+    function unpredict(data, parms) {
+      var pr = parms && parms.Predictor;
+      if (!pr || pr < 10) return data;
+      var cols = parms.Columns || 1, colors = parms.Colors || 1, bpc = parms.BitsPerComponent || 8;
+      var bpp = Math.max(1, Math.ceil(colors * bpc / 8)), row = Math.ceil(cols * colors * bpc / 8), n = Math.floor(data.length / (row + 1));
+      var out = new Uint8Array(n * row), prev = new Uint8Array(row);
+      for (var r = 0; r < n; r++) {
+        var ft = data[r * (row + 1)], cur = out.subarray(r * row, (r + 1) * row), src = data.subarray(r * (row + 1) + 1, (r + 1) * (row + 1));
+        for (var i = 0; i < row; i++) {
+          var a = i >= bpp ? cur[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0, v = src[i];
+          if (ft === 1) v += a; else if (ft === 2) v += b; else if (ft === 3) v += (a + b) >> 1;
+          else if (ft === 4) { var p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v += (pa <= pb && pa <= pc) ? a : (pb <= pc ? b : c); }
+          cur[i] = v & 255;
+        }
+        prev = cur;
+      }
+      return out;
+    }
+
+    // --- object parser ---
+    function isWS(c) { return c === 0 || c === 9 || c === 10 || c === 12 || c === 13 || c === 32; }
+    function isDelim(c) { return c === 40 || c === 41 || c === 60 || c === 62 || c === 91 || c === 93 || c === 123 || c === 125 || c === 47 || c === 37; }
+    var EOF = { eof: 1 }, CLOSE = { close: 1 };
+    function Parser(b, p) { this.b = b; this.p = p; }
+    Parser.prototype.ws = function () {
+      var b = this.b;
+      for (;;) {
+        var c = b[this.p];
+        if (c === 37) { while (this.p < b.length && b[this.p] !== 10 && b[this.p] !== 13) this.p++; }
+        else if (isWS(c)) this.p++;
+        else break;
+      }
+    };
+    Parser.prototype.tok = function () {
+      this.ws();
+      var b = this.b, s = this.p;
+      while (this.p < b.length && !isWS(b[this.p]) && !isDelim(b[this.p])) this.p++;
+      return lat(b, s, this.p);
+    };
+    Parser.prototype.obj = function () {
+      this.ws();
+      var b = this.b, c = b[this.p], t, i;
+      if (c === undefined) return EOF;
+      if (c === 47) {
+        this.p++; t = this.tok();
+        return "/" + t.replace(/#([0-9a-fA-F]{2})/g, function (_, h) { return String.fromCharCode(parseInt(h, 16)); });
+      }
+      if (c === 40) {
+        var depth = 1, out = [];
+        this.p++;
+        while (this.p < b.length && depth) {
+          c = b[this.p++];
+          if (c === 92) {
+            c = b[this.p++];
+            if (c === 110) out.push(10); else if (c === 114) out.push(13); else if (c === 116) out.push(9);
+            else if (c === 98) out.push(8); else if (c === 102) out.push(12);
+            else if (c >= 48 && c <= 55) {
+              var v = c - 48;
+              for (i = 0; i < 2 && b[this.p] >= 48 && b[this.p] <= 55; i++) v = v * 8 + (b[this.p++] - 48);
+              out.push(v & 255);
+            } else if (c === 13) { if (b[this.p] === 10) this.p++; }
+            else if (c === 10) { /* line continuation */ }
+            else out.push(c);
+          } else if (c === 40) { depth++; out.push(c); }
+          else if (c === 41) { depth--; if (depth) out.push(c); }
+          else out.push(c);
+        }
+        return { s: new Uint8Array(out) };
+      }
+      if (c === 60) {
+        if (b[this.p + 1] === 60) {
+          this.p += 2;
+          var d = {};
+          for (;;) {
+            var k = this.obj();
+            if (k === EOF) break;
+            if (k === CLOSE) break;
+            if (typeof k !== "string" || k.charAt(0) !== "/") continue;
+            this.ws();
+            if (b[this.p] === 62 && b[this.p + 1] === 62) { this.p += 2; break; }
+            var val = this.obj();
+            d[k.slice(1)] = val;
+            this.ws();
+            if (b[this.p] === 62 && b[this.p + 1] === 62) { this.p += 2; break; }
+          }
+          return d;
+        }
+        this.p++;
+        var hex = "";
+        while (this.p < b.length && b[this.p] !== 62) { var ch = String.fromCharCode(b[this.p++]); if (/[0-9a-fA-F]/.test(ch)) hex += ch; }
+        this.p++;
+        if (hex.length % 2) hex += "0";
+        var bytes = new Uint8Array(hex.length / 2);
+        for (i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(2 * i, 2), 16);
+        return { s: bytes };
+      }
+      if (c === 91) {
+        this.p++;
+        var arr = [];
+        for (;;) {
+          var x = this.obj();
+          if (x === EOF || x === CLOSE) break;
+          arr.push(x);
+        }
+        return arr;
+      }
+      if (c === 93) { this.p++; return CLOSE; }
+      if (c === 62 || c === 41 || c === 123 || c === 125) { this.p++; return this.obj(); }   // stray delimiter (">>" etc.)
+      t = this.tok();
+      if (!t) { this.p++; return this.obj(); }
+      if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(t)) {
+        if (/^\d+$/.test(t)) {   // maybe "12 0 R"
+          var save = this.p;
+          this.ws();
+          var t2 = this.tok();
+          if (/^\d+$/.test(t2)) {
+            this.ws();
+            if (b[this.p] === 82 && (this.p + 1 >= b.length || isWS(b[this.p + 1]) || isDelim(b[this.p + 1]))) { this.p++; return { r: +t, g: +t2 }; }
+          }
+          this.p = save;
+        }
+        return parseFloat(t);
+      }
+      if (t === "true") return true;
+      if (t === "false") return false;
+      if (t === "null") return null;
+      return { k: t };
+    };
+    function isRef(o) { return o && typeof o === "object" && typeof o.r === "number" && typeof o.g === "number"; }
+    function isKw(o, k) { return o && typeof o === "object" && o.k === k; }
+
+    // --- document ---
+    function Doc(u8) { this.u8 = u8; this.xref = {}; this.trailer = {}; this.cache = {}; this.key = null; this.method = null; this.fonts = {}; }
+    Doc.prototype.resolve = function (o) { var n = 0; while (isRef(o) && n++ < 20) o = this.get(o.r); return o; };
+    Doc.prototype.dict = function (o) { o = this.resolve(o); return o && o.isStream ? o.dict : (o && typeof o === "object" && !Array.isArray(o) ? o : {}); };
+    Doc.prototype.readStream = function (p, d) {
+      var b = this.u8;
+      p.ws();
+      if (lat(b, p.p, p.p + 6) !== "stream") return null;
+      var q = p.p + 6;
+      if (b[q] === 13 && b[q + 1] === 10) q += 2; else if (b[q] === 10 || b[q] === 13) q++;
+      var len = d.Length;
+      if (isRef(len)) { var lo = this.get(len.r); len = typeof lo === "number" ? lo : -1; }
+      if (typeof len !== "number" || len < 0 || !/^\s*endstream/.test(lat(b, q + len, q + len + 24))) {
+        var e = findSeq(b, "endstream", q);
+        if (e < 0) e = b.length;
+        if (b[e - 1] === 10) e--;
+        if (b[e - 1] === 13) e--;
+        len = e - q;
+      }
+      return b.subarray(q, q + len);
+    };
+    Doc.prototype.parseAt = function (off, n) {
+      var p = new Parser(this.u8, off), num = p.tok(), gen = p.tok(), kw = p.tok();
+      if (kw !== "obj" || (n !== undefined && +num !== n)) return undefined;
+      var v = p.obj();
+      if (v && typeof v === "object" && !Array.isArray(v) && !v.s && !isRef(v) && !v.k) {
+        var raw = this.readStream(p, v);
+        if (raw) return { isStream: true, dict: v, raw: raw, num: +num, gen: +gen };
+      }
+      return v;
+    };
+    Doc.prototype.get = function (n) {
+      if (n in this.cache) return this.cache[n];
+      var e = this.xref[n], v = null;
+      if (e && e.t === 1) { v = this.parseAt(e.o, n); if (v === undefined) v = null; }
+      this.cache[n] = v;
+      return v;
+    };
+    Doc.prototype.readXref = async function () {
+      var b = this.u8, n = b.length, tail = lat(b, Math.max(0, n - 2048), n), m = tail.lastIndexOf("startxref");
+      if (m < 0) throw new Error("not a PDF");
+      var off = parseInt(tail.slice(m + 9), 10), seen = {}, first = true;
+      while (typeof off === "number" && !isNaN(off) && !seen[off]) {
+        seen[off] = 1;
+        var p = new Parser(b, off), tr;
+        p.ws();
+        if (lat(b, p.p, p.p + 4) === "xref") {
+          p.p += 4;
+          for (;;) {
+            p.ws();
+            var t = p.tok();
+            if (t === "trailer" || !t) break;
+            var start = +t, cnt = +p.tok();
+            for (var i = 0; i < cnt; i++) {
+              var o = +p.tok(), g = +p.tok(), f = p.tok();
+              if (f === "n" && !this.xref[start + i]) this.xref[start + i] = { t: 1, o: o, g: g };
+            }
+          }
+          tr = p.obj();
+          if (tr && tr.XRefStm !== undefined) await this.readXrefStream(tr.XRefStm);
+        } else {
+          tr = await this.readXrefStream(off);
+        }
+        if (!tr) break;
+        for (var k in tr) if (!(k in this.trailer) && k !== "Prev") this.trailer[k] = tr[k];
+        off = tr.Prev;
+        first = false;
+      }
+      if (!this.trailer.Root) throw new Error("damaged PDF");
+    };
+    Doc.prototype.readXrefStream = async function (off) {
+      var s = this.parseAt(off);
+      if (!s || !s.isStream) return null;
+      var d = s.dict, data = await this.streamData(s, true);
+      if (!data) return null;
+      var W = d.W || [1, 2, 1], size = d.Size || 0, idx = d.Index || [0, size], pos = 0;
+      var w0 = W[0], w1 = W[1], w2 = W[2];
+      function num(w) { var v = 0; for (var i = 0; i < w; i++) v = v * 256 + data[pos++]; return v; }
+      for (var s2 = 0; s2 < idx.length; s2 += 2) {
+        for (var i = 0; i < idx[s2 + 1]; i++) {
+          var t = w0 ? num(w0) : 1, a = num(w1), c = num(w2), id = idx[s2] + i;
+          if (this.xref[id]) continue;
+          if (t === 1) this.xref[id] = { t: 1, o: a, g: c };
+          else if (t === 2) this.xref[id] = { t: 2, o: a, i: c };
+        }
+      }
+      return d;
+    };
+    Doc.prototype.setupCrypto = function () {
+      var encRef = this.trailer.Encrypt;
+      if (encRef === undefined) return;
+      var enc = this.dict(encRef), V = enc.V || 0, R = enc.R || 2, method = "rc4";
+      if (V >= 5) throw new Error("This PDF uses encryption this importer cannot open");
+      if (V === 4) {
+        var cf = this.dict(enc.CF), nm = enc.StmF || "/Identity", c = nm === "/Identity" ? null : this.dict(cf[nm.slice(1)]);
+        if (!c || c.CFM === "/None") method = "none"; else if (c.CFM === "/AESV2") method = "aes"; else if (c.CFM === "/V2") method = "rc4"; else throw new Error("unsupported encryption");
+      }
+      var O = this.resolve(enc.O), idArr = this.resolve(this.trailer.ID), id0 = idArr && idArr[0] && idArr[0].s ? idArr[0].s : new Uint8Array(0);
+      var P = enc.P | 0, buf = [], i;
+      for (i = 0; i < 32; i++) buf.push(PAD[i]);
+      for (i = 0; i < 32; i++) buf.push(O.s[i]);
+      buf.push(P & 255, (P >> 8) & 255, (P >> 16) & 255, (P >> 24) & 255);
+      for (i = 0; i < id0.length; i++) buf.push(id0[i]);
+      if (R >= 4 && enc.EncryptMetadata === false) buf.push(255, 255, 255, 255);
+      var len = R === 2 ? 5 : (V === 4 ? 16 : (enc.Length || 40) >> 3), h = md5(new Uint8Array(buf));
+      if (R >= 3) for (i = 0; i < 50; i++) h = md5(h.subarray(0, len));
+      this.key = h.slice(0, len); this.method = method;
+    };
+    Doc.prototype.decrypt = async function (raw, num, gen) {
+      if (!this.key || this.method === "none") return raw;
+      var aes = this.method === "aes", k = this.key, t = new Uint8Array(k.length + 5 + (aes ? 4 : 0));
+      t.set(k);
+      t[k.length] = num & 255; t[k.length + 1] = (num >> 8) & 255; t[k.length + 2] = (num >> 16) & 255; t[k.length + 3] = gen & 255; t[k.length + 4] = (gen >> 8) & 255;
+      if (aes) t.set([0x73, 0x41, 0x6c, 0x54], k.length + 5);
+      var ok = md5(t).slice(0, Math.min(k.length + 5, 16));
+      if (!aes) return rc4(ok, raw);
+      if (raw.length < 32) return new Uint8Array(0);
+      var iv = raw.slice(0, 16), ct = raw.slice(16, 16 + Math.floor((raw.length - 16) / 16) * 16);
+      var ck = await crypto.subtle.importKey("raw", ok, "AES-CBC", false, ["decrypt"]);
+      try { return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv: iv }, ck, ct)); } catch (e) { return new Uint8Array(0); }
+    };
+    Doc.prototype.streamData = async function (s, noCrypt) {
+      var d = s.dict, raw = s.raw;
+      if (!noCrypt && this.key && d.Type !== "/XRef") raw = await this.decrypt(raw, s.num, s.gen);
+      var f = this.resolve(d.Filter), parms = this.resolve(d.DecodeParms || d.DP);
+      if (f === undefined || f === null) return raw;
+      var fl = Array.isArray(f) ? f : [f], pl = Array.isArray(parms) ? parms : [parms];
+      for (var i = 0; i < fl.length; i++) {
+        var fn = this.resolve(fl[i]), pm = this.dict(pl[i]);
+        if (fn === "/FlateDecode" || fn === "/Fl") raw = unpredict(await inflate(raw), pm);
+        else if (fn === "/ASCIIHexDecode" || fn === "/AHx") {
+          var h = lat(raw, 0, raw.length).replace(/[^0-9a-fA-F]/g, ""), o = new Uint8Array(Math.floor(h.length / 2));
+          for (var j = 0; j < o.length; j++) o[j] = parseInt(h.substr(2 * j, 2), 16);
+          raw = o;
+        } else if (fn === "/Crypt") { /* handled above */ }
+        else return null;
+      }
+      return raw;
+    };
+    Doc.prototype.loadObjStms = async function () {
+      var seen = {}, ids = [], k;
+      for (k in this.xref) if (this.xref[k].t === 2 && !seen[this.xref[k].o]) { seen[this.xref[k].o] = 1; ids.push(this.xref[k].o); }
+      for (var q = 0; q < ids.length; q++) {
+        var s = this.get(ids[q]);
+        if (!s || !s.isStream) continue;
+        var data = await this.streamData(s);
+        if (!data) continue;
+        var p = new Parser(data, 0), N = s.dict.N | 0, First = s.dict.First | 0, pairs = [];
+        for (var i = 0; i < N; i++) pairs.push([+p.tok(), +p.tok()]);
+        for (i = 0; i < N; i++) {
+          var e = this.xref[pairs[i][0]];
+          if (!e || e.t !== 2 || e.o !== ids[q]) continue;
+          this.cache[pairs[i][0]] = new Parser(data, First + pairs[i][1]).obj();
+        }
+      }
+    };
+
+    // --- fonts ---
+    var GLY = { space: " ", quoteright: "’", quoteleft: "‘", quotedblleft: "“", quotedblright: "”", emdash: "—", endash: "–",
+      hyphen: "-", minus: "-", period: ".", comma: ",", colon: ":", semicolon: ";", parenleft: "(", parenright: ")", bracketleft: "[", bracketright: "]",
+      slash: "/", fi: "fi", fl: "fl", quotesingle: "'", quotedbl: "\"", exclam: "!", question: "?", ellipsis: "…", bullet: "•", section: "§",
+      paragraph: "¶", copyright: "©", registered: "®", ampersand: "&", asterisk: "*", plus: "+", equal: "=", numbersign: "#", dollar: "$",
+      percent: "%", at: "@", underscore: "_", dagger: "†", daggerdbl: "‡", zero: "0", one: "1", two: "2", three: "3", four: "4", five: "5",
+      six: "6", seven: "7", eight: "8", nine: "9", guillemotleft: "«", guillemotright: "»", quotesinglbase: "‚", quotedblbase: "„" };
+    function glyphChar(n) {
+      var m;
+      if (GLY.hasOwnProperty(n)) return GLY[n];
+      if ((m = /^uni([0-9A-Fa-f]{4})$/.exec(n))) return String.fromCharCode(parseInt(m[1], 16));
+      if (/^[A-Za-z]$/.test(n)) return n;
+      return "";
+    }
+    var CP1252 = { 128: "€", 130: "‚", 131: "ƒ", 132: "„", 133: "…", 134: "†", 135: "‡", 136: "ˆ", 137: "‰", 138: "Š", 139: "‹",
+      140: "Œ", 142: "Ž", 145: "‘", 146: "’", 147: "“", 148: "”", 149: "•", 150: "–", 151: "—", 152: "˜", 153: "™",
+      154: "š", 155: "›", 156: "œ", 158: "ž", 159: "Ÿ" };
+    function hexStr(h) {
+      if (h.length <= 2) return String.fromCharCode(parseInt(h, 16));
+      var s = "";
+      for (var i = 0; i + 3 < h.length + 1; i += 4) s += String.fromCharCode(parseInt(h.substr(i, 4), 16));
+      return s;
+    }
+    function parseCMap(s) {
+      var map = {}, len = 0, m, re;
+      re = /begincodespacerange([\s\S]*?)endcodespacerange/g;
+      while ((m = re.exec(s))) { var c = /<([0-9a-fA-F]+)>/.exec(m[1]); if (c && !len) len = c[1].length / 2; }
+      re = /beginbfchar([\s\S]*?)endbfchar/g;
+      while ((m = re.exec(s))) {
+        var pr = /<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]*)>/g, x;
+        while ((x = pr.exec(m[1]))) map[parseInt(x[1], 16)] = hexStr(x[2]);
+      }
+      re = /beginbfrange([\s\S]*?)endbfrange/g;
+      while ((m = re.exec(s))) {
+        var rr = /<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<[0-9a-fA-F]*>|\[[^\]]*\])/g, y;
+        while ((y = rr.exec(m[1]))) {
+          var lo = parseInt(y[1], 16), hi = parseInt(y[2], 16), dst = y[3];
+          if (hi - lo > 65535) continue;
+          if (dst.charAt(0) === "[") {
+            var items = dst.match(/<[0-9a-fA-F]*>/g) || [];
+            for (var i = 0; i <= hi - lo && i < items.length; i++) map[lo + i] = hexStr(items[i].slice(1, -1));
+          } else {
+            var base = hexStr(dst.slice(1, -1));
+            for (var j = 0; j <= hi - lo; j++) map[lo + j] = base.slice(0, -1) + String.fromCharCode(base.charCodeAt(base.length - 1) + j);
+          }
+        }
+      }
+      return { map: map, len: len };
+    }
+    Doc.prototype.loadFont = async function (ref) {
+      var key = isRef(ref) ? ref.r : null;
+      if (key !== null && this.fonts[key]) return this.fonts[key];
+      var f = this.dict(ref), type0 = f.Subtype === "/Type0", tu = null, enc = this.resolve(f.Encoding), table = null;
+      if (f.ToUnicode) {
+        var so = this.resolve(f.ToUnicode);
+        if (so && so.isStream) { var dd = await this.streamData(so); if (dd) tu = parseCMap(lat(dd, 0, dd.length)); }
+      }
+      if (!type0) {
+        table = [];
+        for (var c = 0; c < 256; c++) table[c] = CP1252[c] || String.fromCharCode(c);
+        if (enc && typeof enc === "object" && !Array.isArray(enc)) {
+          var diff = this.resolve(enc.Differences), code = 0;
+          if (Array.isArray(diff)) diff.forEach(function (it) {
+            if (typeof it === "number") code = it;
+            else if (typeof it === "string") { var ch = glyphChar(it.slice(1)); if (ch) table[code] = ch; code++; }
+          });
+        }
+      }
+      var clen = type0 ? ((tu && tu.len) || 2) : 1;
+      var font = {
+        dec: function (b) {
+          var out = "";
+          for (var i = 0; i + clen <= b.length; i += clen) {
+            var code = 0;
+            for (var j = 0; j < clen; j++) code = code * 256 + b[i + j];
+            if (tu && tu.map[code] !== undefined) out += tu.map[code];
+            else if (table) out += table[code] || "";
+            else if (type0 && code > 31 && code < 0xd800) out += String.fromCharCode(code);
+          }
+          return out;
+        }
+      };
+      if (key !== null) this.fonts[key] = font;
+      return font;
+    };
+
+    // --- pages ---
+    Doc.prototype.pages = function () {
+      var out = [], self = this, seen = {};
+      function walk(node, res, depth) {
+        var ref = node;
+        node = self.dict(node);
+        if (depth > 40 || (isRef(ref) && seen[ref.r])) return;
+        if (isRef(ref)) seen[ref.r] = 1;
+        var r = node.Resources !== undefined ? node.Resources : res;
+        if (node.Kids !== undefined) { (self.resolve(node.Kids) || []).forEach(function (k) { walk(k, r, depth + 1); }); }
+        else out.push({ dict: node, res: r });
+      }
+      walk(this.dict(this.trailer.Root).Pages, undefined, 0);
+      return out;
+    };
+    Doc.prototype.contentOf = async function (contents) {
+      var c = this.resolve(contents), parts = [];
+      if (c && c.isStream) c = [c]; else if (!Array.isArray(c)) return new Uint8Array(0);
+      for (var i = 0; i < c.length; i++) {
+        var s = this.resolve(c[i]);
+        if (s && s.isStream) { var d = await this.streamData(s); if (d) { parts.push(d); parts.push(new Uint8Array([10])); } }
+      }
+      return concat(parts);
+    };
+    Doc.prototype.runContent = async function (data, resRef, depth) {
+      var res = this.dict(resRef), fonts = this.dict(res.Font), xo = this.dict(res.XObject), cache = {}, self = this;
+      var p = new Parser(data, 0), ops = [], fs = 1, y = 0, lead = 0, cur = "", lines = [], font = null;
+      function nl() { if (cur.trim()) lines.push(cur); cur = ""; }
+      function show(s) { if (font && s && s.s) cur += font.dec(s.s); }
+      for (;;) {
+        var o = p.obj();
+        if (o === EOF) break;
+        if (!(o && typeof o === "object" && o.k !== undefined)) { ops.push(o); if (ops.length > 200) ops.shift(); continue; }
+        var op = o.k, a = ops;
+        ops = [];
+        if (op === "Tf") {
+          var fn = a[0];
+          fs = Math.abs(+a[1]) || 1;
+          if (typeof fn === "string") {
+            if (!(fn in cache)) cache[fn] = await self.loadFont(fonts[fn.slice(1)]);
+            font = cache[fn];
+          }
+        } else if (op === "Td" || op === "TD") {
+          var ty = +a[1] || 0;
+          if (op === "TD") lead = -ty;
+          if (Math.abs(ty) > 0.5 * fs) nl();
+        } else if (op === "T*") { nl(); }
+        else if (op === "Tm") {
+          var ny = +a[5] || 0, sc = Math.abs(+a[3]) || 1;
+          if (Math.abs(ny - y) > 0.5 * fs * sc) nl();
+          y = ny;
+        } else if (op === "TL") { lead = +a[0] || 0; }
+        else if (op === "Tj") { show(a[0]); }
+        else if (op === "TJ") {
+          var arr = a[0];
+          if (Array.isArray(arr)) arr.forEach(function (it) {
+            if (it && it.s) show(it);
+            else if (typeof it === "number" && it < -250 && cur && !/\s$/.test(cur)) cur += " ";
+          });
+        } else if (op === "'") { nl(); show(a[0]); }
+        else if (op === "\"") { nl(); show(a[2]); }
+        else if (op === "BT" || op === "ET") { nl(); }
+        else if (op === "Do" && depth < 3 && typeof a[0] === "string") {
+          var x = self.resolve(xo[a[0].slice(1)]);
+          if (x && x.isStream && x.dict.Subtype === "/Form") {
+            var xd = await self.streamData(x);
+            if (xd) { nl(); var sub = await self.runContent(xd, x.dict.Resources !== undefined ? x.dict.Resources : resRef, depth + 1); if (sub) lines.push(sub); }
+          }
+        } else if (op === "BI") {   // inline image: skip to EI
+          var e = p.p;
+          while (e < data.length) {
+            e = findSeq(data, "EI", e);
+            if (e < 0) { e = data.length; break; }
+            if (isWS(data[e - 1]) && (e + 2 >= data.length || isWS(data[e + 2]))) { e += 2; break; }
+            e += 2;
+          }
+          p.p = e;
+        }
+      }
+      nl();
+      return lines.join("\n");
+    };
+
+    async function extract(buf) {
+      var u8 = new Uint8Array(buf);
+      if (lat(u8, 0, 5) !== "%PDF-") throw new Error("That file is not a PDF");
+      var doc = new Doc(u8);
+      await doc.readXref();
+      doc.setupCrypto();
+      await doc.loadObjStms();
+      var pages = doc.pages(), out = [];
+      for (var i = 0; i < pages.length; i++) {
+        var data = await doc.contentOf(pages[i].dict.Contents);
+        out.push(await doc.runContent(data, pages[i].res, 0));
+      }
+      return out.join("\n");
+    }
+    return { extract: extract };
+  })();
+
+  // Part 2: outline text -> "refs | refs | ..." (one part per outline point that cites verses).
+  // Convention of the outlines: a point ends with "—Gen. 1:1; 2:3, 5" (or cites verses in parentheses); ";" separates
+  // chapters, "," separates verses; "v." / "vv." and a bare "2:7" lean on what was cited just before.
+  function outlineToQuery(text, bookOk) {
+    text = text.replace(/\r/g, "").replace(/ /g, " ").replace(/­/g, "")
+      .replace(/(\d)\s*[–−]\s*(\d)/g, "$1-$2").replace(/(\d)\s*[–−]\s*(\d)/g, "$1-$2")
+      .replace(/--+/g, "—");
+    var lines = text.split("\n").map(function (l) { return l.replace(/\s+/g, " ").trim(); }).filter(function (l) {
+      return l && !/^(©|copyright\b)/i.test(l) && !/living stream/i.test(l) && !/^[-—_=\s]+$/.test(l) && !/^\d{1,3}$/.test(l);
+    });
+    var points = [], cur = null;
+    var marker = /^(?:[IVXLC]+|[A-Z]|[a-z]|\d{1,2})\.\s+\S/, reading = /^scripture reading\b/i, msg = /^message\s+[A-Za-z-]+$/i;
+    lines.forEach(function (l) {
+      if (msg.test(l)) { cur = { skip: true, text: "" }; return; }   // "Message Nine" + its title: not part of a point
+      if (reading.test(l)) { cur = { label: "Scripture Reading", text: l.replace(/^[^:]*:\s*/, "") }; points.push(cur); return; }
+      if (marker.test(l)) { cur = { label: l.slice(0, l.indexOf(".")), text: l.replace(/^\S+\s+/, "") }; points.push(cur); return; }
+      if (!cur || cur.skip) return;
+      if (/[-–]$/.test(cur.text) && /^\d/.test(l)) cur.text += l; else cur.text += " " + l;   // "1:3-" + "5"
+    });
+
+    var BOOK = /^((?:[1-3]\s*)?[A-Za-z][A-Za-z.]*(?:\s+(?:of\s+)?[A-Z][A-Za-z.]*)?)\s+(\d.*)$/;
+    var LIST = /^\d+(?::\d+)?[a-z]?(?:\s*-\s*\d+(?::\d+)?[a-z]?)?(?:\s*,\s*\d+(?::\d+)?[a-z]?(?:\s*-\s*\d+(?::\d+)?[a-z]?)?)*/;
+    function lastChapter(rest) { var m = rest.match(/(\d+):/g); return m ? parseInt(m[m.length - 1], 10) : null; }
+    function cleanRest(rest) { var m = LIST.exec(rest); return m ? m[0].replace(/(\d)[a-z]\b/g, "$1").replace(/\s*-\s*/g, "-").replace(/\s*,\s*/g, ", ") : null; }
+
+    var prev = { first: null, last: null }, parts = [], inferred = 0;
+    points.forEach(function (pt) {
+      var full = pt.text, segs = [], tail = "";
+      var dash = full.lastIndexOf("—");
+      var head = dash >= 0 ? full.slice(0, dash) : full;
+      if (dash >= 0) tail = full.slice(dash + 1);
+      var re = /\(([^()]*\d[^()]*)\)/g, m;
+      var tailRefs = /^\s*(?:cf\.?\s*)?(?:vv?\.?\s*\d|(?:[1-3]\s*)?[A-Z][A-Za-z.]*\s+\d|\d+:\d)/.test(tail);
+      if (pt.label === "Scripture Reading") segs = [full];
+      else if (tailRefs) {   // "...text—Rom. 1:1; 2:3": the part after the last dash lists the verses
+        while ((m = re.exec(head))) segs.push(m[1]);
+        segs.push(tail.replace(/[()]/g, ""));
+      } else {   // "...(Rev. 2:14)...(v. 15)...": verses cited in parentheses
+        while ((m = re.exec(full))) segs.push(m[1]);
+      }
+      var emitted = [], g = { first: null, last: null, book: null, ch: null };
+      segs.forEach(function (seg) {
+        seg.split(";").forEach(function (item) {
+          item = item.replace(/^\s*(?:cf\.?|see|also)\s+/i, "").replace(/^[\s,:.]+/, "").trim();
+          if (!item) return;
+          var mm, book, rest, out = null;
+          if ((mm = /^(vv?)\.?\s*(\d.*)$/i.exec(item))) {   // "v. 4", "vv. 15-18"
+            rest = cleanRest(mm[2]);
+            var b0 = g.book || (prev.first && prev.first.book), c0 = g.book ? g.ch : (prev.first && prev.first.ch);
+            if (rest && b0 && c0 !== null && c0 !== undefined) { out = b0 + " " + c0 + ":" + rest; book = b0; if (!g.book) inferred++; }
+          } else if ((mm = /^(\d+:\d.*)$/.exec(item))) {   // "2:7, 11" with no book
+            rest = cleanRest(mm[1]);
+            var b1 = g.book || (prev.last && prev.last.book);
+            if (rest && b1) { out = b1 + " " + rest; book = b1; if (!g.book) inferred++; }
+          } else if ((mm = BOOK.exec(item)) && bookOk(mm[1])) {   // "Rev. 2:4"
+            rest = cleanRest(mm[2]);
+            if (rest) { out = mm[1].trim() + " " + rest; book = mm[1].trim(); }
+          }
+          if (!out) return;
+          // the same book again, with chapters: "Rev. 2:4; 3:8" instead of "Rev. 2:4; Rev. 3:8"
+          if (g.book === book && out.indexOf(":") > -1) out = out.slice(book.length + 1);
+          emitted.push(out);
+          g.book = book;
+          var ch = lastChapter(out);
+          if (ch !== null) g.ch = ch;
+          var snap = { book: book, ch: lastChapter(out) };
+          if (!g.first) g.first = snap;
+          g.last = { book: book, ch: g.ch };
+        });
+      });
+      if (emitted.length) { parts.push(emitted.join("; ")); prev = { first: g.first, last: g.last }; }
+    });
+    return { query: parts.join(" | "), parts: parts, inferred: inferred };
+  }
+
+  var olReading = false;
+  function olNote(msg) { var n = $("olNote"); n.textContent = msg || ""; n.hidden = !msg; }
+  $("olUp").onclick = function () { $("olFile").click(); };
+  $("olFile").onchange = async function () {
+    var f = this.files && this.files[0]; this.value = "";
+    if (!f || olReading) return;
+    olReading = true; olNote("Reading " + f.name + "\u2026");
+    try {
+      var text = (/\.pdf$/i.test(f.name) || f.type === "application/pdf") ? await PdfText.extract(await f.arrayBuffer()) : await f.text();
+      var r = outlineToQuery(text, function (n) { var bi = resolveBook(n); return bi !== null && bi !== undefined; });
+      if (!r.parts.length) { olNote("No verse references found in " + f.name + "."); return; }
+      var msg = r.parts.length + " slide" + (r.parts.length === 1 ? "" : "s") + " from " + f.name + ". Press Enter in the box to present.";
+      if (r.inferred) msg += " " + (r.inferred === 1 ? "1 reference took its" : r.inferred + " references took their") + " book or chapter from the verse before (as in \u201cv. 4\u201d or \u201c2:7\u201d): worth a glance.";
+      if (count) {
+        var bad = runSlides(r.query).notes.filter(function (n) { return n.indexOf("is not in your text") < 0; });
+        if (bad.length) msg += " Could not read: " + bad.slice(0, 4).join("; ") + (bad.length > 4 ? "\u2026" : "") + ".";
+      } else msg += " Load your Bible text first so the verses can show.";
+      olNote("");
+      closeScope();
+      var q = $("q");
+      q.value = r.query; clearedText = null;
+      q.dispatchEvent(new Event("input", { bubbles: true }));
+      q.focus(); q.setSelectionRange(q.value.length, q.value.length);
+      setTimeout(function () { var st = $("status"); st.className = ""; st.textContent = msg; }, 300);
+    } catch (e) { olNote("Could not read that file: " + (e && e.message ? e.message : e)); }
+    finally { olReading = false; }
+  };
+
   // ---- logo upload (cog panel): shown bottom right, remembered between visits ----
   var logoData = "";
   function showLogo(src) {
@@ -1141,6 +1806,11 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key, lk = k.toLowerCase(), t = e.target;
     if (t && t.tagName === "INPUT" && t.type !== "checkbox") return;   // typing a hex code: letters are just letters
+    if (lk === "i" && !e.shiftKey) {        // i: Import outline (opens the file chooser)
+      e.preventDefault(); e.stopPropagation();
+      if (!e.repeat) $("olUp").click();
+      return;
+    }
     if (lk === "d" && !e.repeat) {          // d: theme Auto + default colors; d again undoes
       e.preventDefault(); e.stopPropagation();
       if (dUndo) {
@@ -1325,6 +1995,9 @@
   // Only the first reference of each part borrows; later ones after ";" read as they always did.
   function slideParts(q) {
     q = q.replace(/(\d)\.(?=\d)/g, "$1:");
+    // ",.5" / ";.5": a period straight after the separator holds that reference back until the next press.
+    // It is kept as \u0001 in front of the separator while the parts are read, and cut out again in runSlides.
+    q = q.replace(/\s*([,;])[ \t]*\.(?=\s*\d)/g, "\u0001$1");
     var ctx = null, bookRe = /^((?:[1-3]\s*)?[A-Za-z][A-Za-z.\s]*?)\s*(\d.*)?$/;
     function learn(rest) {   // what the reference just read tells the next one
       if (!ctx) return;
@@ -1365,9 +2038,21 @@
     var out = [], notes = [], groups = [];
     slideParts(q).forEach(function (part) {
       if (!part.trim()) return;
-      var r = runQuery(part);
+      var pieces = part.split("\u0001"), r = runQuery(pieces.join(""));   // the whole part, every held-back piece included
       notes = notes.concat(r.notes);
-      if (r.out.length) { groups.push(r.out); out = out.concat(r.out); }
+      if (!r.out.length) return;
+      var stages = [];   // what is on the slide after 0, 1, 2... presses (each adds the next piece)
+      if (pieces.length > 1) {
+        var acc = "", lastKey = "";
+        pieces.forEach(function (pc, k) {
+          acc += pc;
+          var o = k === pieces.length - 1 ? r.out : runQuery(acc).out;
+          var key = o.map(function (e) { return e.bi + ":" + e.ch + ":" + e.v; }).join(",");
+          if (o.length && key !== lastKey) { stages.push(o); lastKey = key; }
+        });
+      }
+      if (stages.length > 1) r.out.stageOuts = stages;
+      groups.push(r.out); out = out.concat(r.out);
     });
     return { out: out, notes: notes, groups: groups, bookSeen: true };
   }
@@ -1406,7 +2091,7 @@
     var list = single ? [] : r.out, groups = [];
     list.forEach(function (e) {
       var g = groups[groups.length - 1], prev = g && g[g.length - 1];
-      if (!r.textMode && prev && follows(prev, e)) g.push(e); else groups.push([e]);
+      if (grouped && !r.textMode && prev && follows(prev, e)) g.push(e); else groups.push([e]);
     });
     var n = 0;
     groups.forEach(function (g) {
@@ -2186,9 +2871,18 @@
   function presList() { var all = verses(); return presIdx.map(function (k) { return all[k]; }).filter(Boolean); }
 
   // largest font size at which the verse still fits the whole screen area
+  var slideFit = null;   // while a slide is part-way through its steps: the fullest stage (sent to the display too)
   function fitPresent() {
-    var box = $("ptext"), el = $("pinner");
-    el.setAttribute("data-ref", $("pref").textContent);   // reference shown inline, before the verse text
+    var box = $("ptext"), el = $("pinner"), real = null, sl = slideMode && slides[si];
+    slideFit = null;
+    $("present").classList.toggle("top", !!(sl && sl.stages && !sl.stray));
+    if (sl && sl.stages && !sl.stray && sl.stage < sl.stages.length - 1) {
+      // measure the fullest stage, so the text keeps one size from the first press to the last
+      real = { html: el.innerHTML, ref: $("pref").textContent };
+      slideFit = { html: "", ref: slideFill(el, sl.stages[sl.stages.length - 1]) };
+      slideFit.html = el.innerHTML;
+      el.setAttribute("data-ref", slideFit.ref);
+    } else el.setAttribute("data-ref", $("pref").textContent);   // reference shown inline, before the verse text
     var lo = 12, hi = Math.max(48, Math.min(window.innerHeight, 900));
     while (lo < hi) {
       var mid = Math.ceil((lo + hi) / 2);
@@ -2197,6 +2891,7 @@
     }
     presMax = lo;
     el.style.fontSize = (extPanel || presSize === null ? lo : Math.min(presSize, lo)) + "px";
+    if (real) { el.innerHTML = real.html; el.setAttribute("data-ref", real.ref); }
     if (pron.on) pronPlace();
   }
   var presBeforeFill = null;   // the size in use before "f" filled the screen
@@ -2261,17 +2956,8 @@
     var all = presList(), v = presVerse();
     var items = presExt ? presExtItems() : null;
     if (items && items.length > 1) {
-      var f = items[0], l = items[items.length - 1], prevI = null;
-      $("pref").textContent = rangeAny(f, l) + (v.dataset.ver ? "  \u00b7  " + v.dataset.ver : "");
-      var pin = $("pinner");
-      pin.textContent = "";
-      items.forEach(function (it, k) {
-        var n = !prevI ? it.v : (prevI.bi !== it.bi ? it.ref : (prevI.ch !== it.ch && !noChap[it.bi] ? it.ch + ":" + it.v : it.v));
-        prevI = it;
-        var sp = document.createElement("sup"); sp.className = "pv"; sp.textContent = String(n);   // whole label (digits and colon) superscript
-        pin.appendChild(sp);
-        pin.appendChild(document.createTextNode("\u00a0" + it.text + (k < items.length - 1 ? " " : "")));
-      });
+      var pin = $("pinner"), pr = slideFill(pin, [items]);   // grouped: one flowing passage; separate: a line per verse
+      $("pref").textContent = pr ? pr + (v.dataset.ver ? "  \u00b7  " + v.dataset.ver : "") : "";
     } else {
       $("pref").textContent = v.dataset.ref + (v.dataset.ver ? "  \u00b7  " + v.dataset.ver : "");
       $("pinner").textContent = v.dataset.text;
@@ -2360,11 +3046,14 @@
     if (document.fullscreenElement) { if (document.exitFullscreen) document.exitFullscreen().catch(function () {}); }
     else { var p = $("present"); if (p.requestFullscreen) p.requestFullscreen().catch(function () {}); }
   }
-  function goPresent(n) {   // jump to a searched verse by position (or, in slide mode, to a slide)
+  function goPresent(n, fromEnd) {   // jump to a searched verse by position (or, in slide mode, to a slide)
     if (slideMode) {
       var ti = Math.max(0, Math.min(slides.length - 1, n));
       slides.forEach(function (x) { x.stray = null; });
-      si = ti; renderPresent(); return;
+      si = ti;
+      var ts = slides[si];
+      if (ts.stages) setStage(ts, fromEnd ? ts.stages.length - 1 : 0);   // coming back from the next slide: fully shown
+      renderPresent(); return;
     }
     var t = Math.max(0, Math.min(presList().length - 1, n));
     if (t !== pi || presStray || presExt) { pi = t; presStray = null; presExt = null; renderPresent(); }
@@ -2372,7 +3061,14 @@
   function posKey(bi, ch, v) { return bi * 1e9 + ch * 1e5 + v; }
   // arrows / H J K L: the next or previous searched verse (from the verse on screen if it is a stray neighbour)
   function stepSearched(dir) {
-    if (slideMode) { goPresent(si + dir); return; }
+    if (slideMode) {
+      var cs = slides[si];
+      if (cs && cs.stages && !cs.stray) {   // held-back verses: one press shows the next piece before moving on
+        var ns = cs.stage + dir;
+        if (ns >= 0 && ns < cs.stages.length) { setStage(cs, ns); renderPresent(); return; }
+      }
+      goPresent(si + dir, dir < 0); return;
+    }
     if (!presStray) { goPresent(pi + dir); return; }
     var list = presList(), here = posKey(presStray.bi, presStray.ch, presStray.v), best = -1, bk = null;
     list.forEach(function (el, i) {
@@ -2552,13 +3248,17 @@
   }
   function openSlides() {
     if (!slideGroups || !slideGroups.length) return;
-    slides = slideGroups.map(function (g) {
+    function runsOf(g) {
       var runs = [];
       g.forEach(function (e) {   // consecutive verses flow together as one run
         var r = runs[runs.length - 1], prev = r && r[r.length - 1];
         if (prev && follows(prev, e)) r.push({ bi: e.bi, ch: e.ch, v: e.v }); else runs.push([{ bi: e.bi, ch: e.ch, v: e.v }]);
       });
-      return { runs: runs, stray: null };
+      return runs;
+    }
+    slides = slideGroups.map(function (g) {
+      if (g.stageOuts) { var st = g.stageOuts.map(runsOf); return { runs: st[0], stages: st, stage: 0, stray: null }; }
+      return { runs: runsOf(g), stray: null };
     });
     si = 0;
     presSaved = { focusIdx: 0, inBox: true, sel: [], anchor: anchor, moved: false, scrollX: window.scrollX, scrollY: window.scrollY };
@@ -2568,31 +3268,41 @@
     extEnter();
     renderPresent();
   }
+  // fill el with a slide's runs; returns the reference to show (empty when each run carries its own heading)
+  function slideFill(el, runs) {
+    runs = viewRuns(runs);
+    el.textContent = "";
+    if (runs.length === 1) {
+      var run = runs[0], its = run.map(itemOf);
+      if (run.length > 1) fillRun(el, its); else el.textContent = its[0].text;
+      return run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
+    }
+    runs.forEach(function (run) {
+      var its = run.map(itemOf);
+      var h = document.createElement("div"); h.className = "pslh";
+      h.textContent = run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
+      var pp = document.createElement("div"); pp.className = "pslp";
+      if (run.length > 1) fillRun(pp, its); else pp.textContent = its[0].text;
+      el.appendChild(h); el.appendChild(pp);
+    });
+    return "";
+  }
+  // a slide whose parts are held back (",.5") steps through sl.stages; sl.runs is what is showing now
+  function setStage(sl, n) { sl.stage = Math.max(0, Math.min(sl.stages.length - 1, n)); sl.runs = sl.stages[sl.stage]; }
   function renderSlide() {
     var sl = slides[si], pin = $("pinner");
     pin.textContent = "";
     var count = (si + 1) + " / " + slides.length;
+    if (sl.stages && !sl.stray) count = "step " + (sl.stage + 1) + "/" + sl.stages.length + "  \u00b7  " + count;
     if (sl.stray) {
       var it = itemOf(sl.stray);
       $("pref").textContent = it.ref;
       pin.textContent = it.text;
       $("pcount").textContent = "not in slide  \u00b7  " + count;
-    } else if (sl.runs.length === 1) {
-      var run = sl.runs[0], its = run.map(itemOf);
-      $("pref").textContent = run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
-      if (run.length > 1) fillRun(pin, its); else pin.textContent = its[0].text;
-      $("pcount").textContent = (run.length > 1 ? run.length + " verses  \u00b7  " : "") + count;
     } else {
-      $("pref").textContent = "";
-      sl.runs.forEach(function (run) {
-        var its = run.map(itemOf);
-        var h = document.createElement("div"); h.className = "pslh";
-        h.textContent = run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
-        var pp = document.createElement("div"); pp.className = "pslp";
-        if (run.length > 1) fillRun(pp, its); else pp.textContent = its[0].text;
-        pin.appendChild(h); pin.appendChild(pp);
-      });
-      $("pcount").textContent = count;
+      var vr = viewRuns(sl.runs), one = vr.length === 1 && vr[0].length > 1;
+      $("pref").textContent = slideFill(pin, sl.runs);
+      $("pcount").textContent = (one ? vr[0].length + " verses  \u00b7  " : "") + count;
     }
     fitPresent();
   }
@@ -2621,6 +3331,7 @@
     if (sl.stray) { sl.runs = [[sl.stray]]; sl.stray = null; }
     var run = sl.runs[0], np = bibleStep(dir > 0 ? run[run.length - 1] : run[0], dir);
     if (!np) return;
+    sl.stages = null;   // adding a verse by hand ends the step-by-step reveal of this slide
     if (dir > 0) run.push(np); else run.unshift(np);
     renderPresent();
   }
@@ -2658,13 +3369,20 @@
     var ops = [];
     function mw(str, sz, bold) { measCtx.font = (bold ? "bold " : "") + sz + "px " + fam; return measCtx.measureText(str).width; }
     ops.push({ k: "r", x: 0, y: 0, w: W, h: H, c: col.bg });
-    if (pref) {
-      var ps = 44;
-      while (ps > 20 && mw(pref, ps, true) > W - 360) ps -= 2;
-      ops.push({ k: "t", x: W / 2 - mw(pref, ps, true) / 2, y: 84, sz: ps, b: true, s: pref, c: col.accent });
-    }
     ops.push({ k: "t", x: W - 56 - mw(count, 22, false), y: 52, sz: 22, b: false, s: count, c: col.muted });
-    var left = 110, maxW = W - 220, top = pref ? 130 : 70, maxH = H - top - 70;
+    var left = 54, maxW = W - 108, top = 50, maxH = H - top - 50;   // the same margins as on screen (5vmin / 4vmin)
+    // As on screen: each reference runs inline, in bold, at the start of the first line of its passage (two spaces after it).
+    var asRef = function (toks) { return toks.map(function (t) { return { t: t.t, sup: false, u: t.u, h: t.h, i: t.i, ref: true }; }); };
+    var merged = [], pend = null, hasHead = blocks.some(function (b) { return b.h; });
+    blocks.forEach(function (b) {
+      if (b.h) { pend = b; return; }
+      var toks = b.toks;
+      if (pend) { toks = asRef(pend.toks).concat([{ t: "  ", sup: false }], toks); pend = null; }
+      else if (!hasHead && pref && !merged.length) toks = [{ t: pref, sup: false, ref: true }, { t: "  ", sup: false }].concat(toks);
+      merged.push({ h: false, toks: toks });
+    });
+    if (pend) merged.push({ h: false, toks: asRef(pend.toks) });
+    blocks = merged;
     // break the text into unbreakable units (a verse number stays with the word after it)
     function units(b) {
       var out = [], cur = null;
@@ -2673,7 +3391,7 @@
           if (!part) return;
           if (/^ +$/.test(part)) { if (cur) { cur.sp = { u: tk.u, h: tk.h, n: part.length }; out.push(cur); cur = null; } return; }
           if (!cur) cur = { toks: [], sp: null };
-          cur.toks.push({ t: part, sup: tk.sup, u: tk.u, h: tk.h, i: tk.i });
+          cur.toks.push({ t: part, sup: tk.sup, u: tk.u, h: tk.h, i: tk.i, ref: tk.ref });
         });
       });
       if (cur) out.push(cur);
@@ -2683,12 +3401,12 @@
     function layout(size) {
       var lines = [], total = 0, ok = true;
       bl.forEach(function (b, bi) {
-        var fs = b.h ? size * 0.55 : size, lh = b.h ? fs * 1.2 : fs * 1.35;
-        if (b.h && bi > 0) total += fs * 0.7;
+        var fs = size, lh = fs * 1.35;
+        if (bi > 0) total += fs * 0.5;
         var line = null, first = lines.length;
         b.units.forEach(function (u) {
           var w = 0;
-          u.toks.forEach(function (tk) { tk.w = mw(tk.t, tk.sup ? fs * 0.6 : fs, tk.sup || b.h); w += tk.w; });
+          u.toks.forEach(function (tk) { tk.w = mw(tk.t, tk.sup ? fs * 0.6 : fs, tk.sup || tk.ref); w += tk.w; });
           u.w = w; u.spW = u.sp ? mw(" ", fs, false) * u.sp.n : 0;
           if (w > maxW) ok = false;
           if (!line || line.w + line.lastSp + w > maxW) {
@@ -2696,26 +3414,26 @@
           } else { line.units.push(u); line.w += line.lastSp + w; }
           line.lastSp = u.spW;
         });
-        total += (lines.length - first) * lh + (b.h ? fs * 0.1 : 0);
+        if (bi > 0 && lines[first]) lines[first].gap = fs * 0.5;
+        total += (lines.length - first) * lh;
       });
       return ok ? { lines: lines, total: total } : null;
     }
     var size = 150, L = null;
     for (; size >= 18; size -= 2) { L = layout(size); if (L && L.total <= maxH) break; L = null; }
     if (!L) L = layout(18) || { lines: [], total: 0 };
-    var y = top + Math.max(0, (maxH - L.total) / 2), prevH = false;
-    L.lines.forEach(function (ln, li) {
-      if (ln.h && li > 0 && !prevH) y += ln.fs * 0.7;
-      prevH = ln.h;
-      var base = y + ln.lh / 2 + ln.fs * 0.32, x = W / 2 - ln.w / 2;
+    var y = top + Math.max(0, (maxH - L.total) / 2);
+    L.lines.forEach(function (ln) {
+      if (ln.gap) y += ln.gap;
+      var base = y + ln.lh / 2 + ln.fs * 0.32, x = left;
       ln.units.forEach(function (u, ui) {
         u.toks.forEach(function (tk) {
-          var by = tk.sup ? base - ln.fs * 0.38 : base, tcol = tk.sup || ln.h ? col.accent : col.text, tsz = tk.sup ? ln.fs * 0.6 : ln.fs;
+          var by = tk.sup ? base - ln.fs * 0.38 : base, tcol = tk.sup || tk.ref ? col.accent : col.text, tsz = tk.sup ? ln.fs * 0.6 : ln.fs;
           if (tk.i && !tk.sup) {   // hidden word: a solid cover
             ops.push({ k: "r", x: x, y: base - ln.fs * 0.95, w: tk.w, h: ln.fs * 1.2, c: col.accent });
           } else {
             if (tk.h) { ops.push({ k: "r", x: x, y: base - ln.fs * 0.95, w: tk.w, h: ln.fs * 1.2, c: "#ffe066" }); tcol = "#1a1a1a"; }
-            ops.push({ k: "t", x: x, y: by, sz: tsz, b: tk.sup || ln.h, s: tk.t, c: tcol });
+            ops.push({ k: "t", x: x, y: by, sz: tsz, b: tk.sup || tk.ref, s: tk.t, c: tcol });
             if (tk.u) ops.push({ k: "r", x: x, y: base + ln.fs * 0.1, w: tk.w, h: Math.max(2, ln.fs * 0.06), c: tcol });
           }
           x += tk.w;
@@ -2727,7 +3445,6 @@
         }
       });
       y += ln.lh;
-      if (ln.h) y += ln.fs * 0.1;
     });
     return ops;
   }
@@ -2812,11 +3529,12 @@
     var col = { bg: cs.getPropertyValue("--bg").trim() || "#ffffff", text: cs.getPropertyValue("--text").trim() || "#000000",
                 accent: cs.getPropertyValue("--accent").trim() || "#7a4b1e", muted: cs.getPropertyValue("--muted").trim() || "#666666" };
     var appFam = getComputedStyle($("pinner")).fontFamily || "Georgia, serif", face = pdfFace();
-    var keepSi = si, strays = slides.map(function (sl) { return sl.stray; }), pages = [], pics = 0, cv = document.createElement("canvas");
+    var keepSi = si, strays = slides.map(function (sl) { return sl.stray; }), stg = slides.map(function (sl) { return sl.stages ? sl.stage : 0; }), pages = [], pics = 0, cv = document.createElement("canvas");
     cv.width = 1920; cv.height = 1080;
     try {
       slides.forEach(function (sl, k) {
-        sl.stray = null; si = k; renderPresent();   // draw the slide on screen, then read it back
+        sl.stray = null; si = k; if (sl.stages) setStage(sl, sl.stages.length - 1);   // a slide with held-back verses is saved fully shown
+        renderPresent();   // draw the slide on screen, then read it back
         var blocks = slideBlocks(), pref = $("pref").textContent, count = (k + 1) + " / " + slides.length;
         var ops = layoutSlide(blocks, pref, count, col, face.css, 1920, 1080);
         if (ops.every(function (o) { return o.k === "r" || winEnc(o.s) !== null; })) { pages.push({ txt: opsToPdf(ops) }); return; }
@@ -2827,7 +3545,7 @@
         pages.push({ w: cv.width, h: cv.height, bytes: bytes }); pics++;
       });
     } finally {
-      slides.forEach(function (sl, k) { sl.stray = strays[k]; });
+      slides.forEach(function (sl, k) { sl.stray = strays[k]; if (sl.stages) setStage(sl, stg[k]); });
       si = keepSi; renderPresent();
     }
     var url = URL.createObjectURL(buildPdf(pages, face)), a = document.createElement("a");
@@ -3004,6 +3722,40 @@
         setTimeout(function () { on.forEach(function (v) { v.classList.remove("copied"); }); }, 1200);
       }
     });
+  }, true);
+
+  // M: toggle the reading format (grouped passage / each verse apart) in the list, the presentation and slides
+  function rerenderList() {
+    var all = verses(), qv = $("q").value;
+    if (!all.length || !qv.trim()) return;
+    var sel = [], fi = all.indexOf(document.activeElement), t0 = 0, sy = window.scrollY;
+    all.forEach(function (v, k) { if (v.classList.contains("sel")) sel.push(k); if (v.tabIndex === 0) t0 = k; });
+    show(qv);
+    var n = verses();
+    if (n.length !== all.length) return;
+    n.forEach(function (v) { v.tabIndex = -1; });
+    sel.forEach(function (k) { n[k].classList.add("sel"); });
+    n[t0].tabIndex = 0;
+    if (fi >= 0) { try { n[fi].focus({ preventScroll: true }); } catch (e) { n[fi].focus(); } }
+    window.scrollTo(window.scrollX, sy);
+  }
+  function toggleGroup() {
+    grouped = !grouped;
+    try { localStorage.setItem("lsm_group", grouped ? "1" : "0"); } catch (e) {}
+    rerenderList();
+    if (presenting) renderPresent();
+    flashCopied(grouped ? "Verses grouped" : "Verses separate");
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "m" && e.key !== "M") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = e.target && e.target.tagName;
+    if (!presenting && (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT")) return;   // typing in the box
+    if (sbsEl) return;
+    if (typeof helpOpen !== "undefined" && helpOpen) return;
+    if (!$("goto").hidden || !$("scope").hidden) return;
+    e.preventDefault(); e.stopPropagation();
+    if (!e.repeat) toggleGroup();
   }, true);
 
   // while the comparison is open it owns the keyboard
@@ -3191,6 +3943,8 @@
     var st = { t: "state", theme: root.getAttribute("data-theme") || "", style: root.getAttribute("style") || "", logo: $("presLogo").getAttribute("src") || "", blank: ext.blank };
     if (idle) { st.idle = true; return st; }
     st.scale = ext.scale; st.ref = $("pref").textContent; st.html = $("pinner").innerHTML;
+    if (slideMode && slides[si] && slides[si].stages && !slides[si].stray) st.top = true;
+    if (slideMode && slideFit) { st.fitHtml = slideFit.html; st.fitRef = slideFit.ref; }
     if (sbsEl && sbsGrid) {
       var cards = [];
       Array.prototype.forEach.call(sbsGrid.children, function (c) {
