@@ -2,7 +2,7 @@
 
 Open `dist/index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep the entire `dist` folder together; its scripts and icons use relative paths.
 
-Under Scripture Journey, choose **entire Scriptures** or **book**, then select any of the 66 books. Each book saves its own verse progress and completion dates, independently of the entire Scriptures journey. Switching books resumes where you left off. Book journeys stop at the final verse; restart starts that book again and preserves its past completion dates. Progress and completion dates for every book are included in backups.
+Under Scripture Journey, choose **entire Scriptures** or **book**, then select any of the 66 books. Each book saves its own verse progress and completion dates, independently of the entire Scriptures journey. The book selector follows your chosen theme, including its dropdown colors and keyboard focus highlight. Switching books resumes where you left off. Book journeys stop at the final verse; restart starts that book again and preserves its past completion dates. Progress and completion dates for every book are included in backups.
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
