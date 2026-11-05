@@ -6,6 +6,10 @@ Names, typing history, journey progress, and past completion dates are saved in 
 
 Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
+Friend races require correcting all characters, or end at the time limit. Input stops at the passage length, and any remaining corrections are counted beside the timer. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
+
+When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. The room stays open for a rematch.
+
 Scripture is loaded from the bundled classic script `dist/scripture-text.js`, without fetching a text file. If editing the Scripture text, keep that script's `scriptureText` string in sync with `dist/RcV.txt`.
 
 The same folder can also be hosted as a static website. Installable PWA and service worker caching require HTTPS or localhost; direct file use skips service worker registration. Race rooms require an internet connection.

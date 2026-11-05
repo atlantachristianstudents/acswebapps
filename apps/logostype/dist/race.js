@@ -2,24 +2,29 @@
 (() => {
   const api = window.friendRace = {active:false, running:false, preparing:false, report};
   let peer, host=false, self='', room='', players={}, links=new Map(), phase='lobby', round=0;
-  let countdownTimeout, clock, connectionTimeout, lastReport=0, saved, duration=120;
+  let countdownTimeout, clock, connectionTimeout, lastReport=0, saved, duration=120, gaveUp=false;
   const cleanName = value => String(value || 'typist').trim().slice(0,24) || 'typist';
   const status = message => { $('#raceStatus').textContent=message; };
   function send(connection, data) { if(connection?.open) connection.send(data); }
   function broadcast(data) { for(const connection of links.values()) send(connection,data); }
   function snapshot() { return {type:'roster', players, phase, round}; }
   function publish() { paint(); if(host) broadcast(snapshot()); }
+  function lastRacer(id){
+    const others=Object.entries(players).filter(([other,p])=>other!==id&&p.connected!==false);
+    return phase==='racing'&&players[id]?.connected!==false&&!players[id]?.finished&&others.length>0&&others.every(([,p])=>p.finished);
+  }
   function paint() {
     const list=$('#racers'); list.replaceChildren();
-    const ordered=Object.entries(players).sort((a,b)=>(b[1].finished-a[1].finished)||(b[1].wpm-a[1].wpm));
+    const ordered=Object.entries(players).sort((a,b)=>(!!a[1].gaveUp-!!b[1].gaveUp)||(b[1].finished-a[1].finished)||(b[1].wpm-a[1].wpm));
     for(const [id,p] of ordered){
       const row=document.createElement('div');row.className='racer';
       const name=document.createElement('span');name.className='race-label';name.textContent=p.name+(id===self?' (you)':'')+(p.connected===false?' · left':'');
       const track=document.createElement('div');track.className='race-track';const bar=document.createElement('i');bar.style.width=`${Math.max(0,Math.min(100,p.progress||0))}%`;track.append(bar);
-      const score=document.createElement('span');score.textContent=phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy||100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
+      const score=document.createElement('span');score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy||100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
       row.append(name,track,score);list.append(row);
     }
     const connected=Object.values(players).filter(p=>p.connected!==false);
+    $('#giveUpRace').hidden=done||!lastRacer(self);
     $('#startRace').hidden=!host;$('#raceDurationForm').hidden=!host;$('#raceDuration').disabled=phase==='countdown'||phase==='racing';
     $('#startRace').disabled=connected.length<2||phase==='countdown'||phase==='racing';
     $('#startRace').textContent=phase==='finished'?'race again →':'start race →';
@@ -118,7 +123,11 @@
           if(data.type==='hello')send(connection,snapshot());
           if(data.type==='progress'&&data.round===round&&phase==='racing'){
             const p=players[connection.peer];
-            p.progress=Math.max(0,Math.min(100,Number(data.progress)||0));p.wpm=Math.max(0,Math.min(500,Number(data.wpm)||0));p.accuracy=Math.max(0,Math.min(100,Number(data.accuracy)||0));p.finished=!!data.finished;
+            if(data.gaveUp&&!p.finished&&!lastRacer(connection.peer))return;
+            if(!p.finished){
+              p.progress=Math.max(0,Math.min(100,Number(data.progress)||0));p.wpm=Math.max(0,Math.min(500,Number(data.wpm)||0));p.accuracy=Math.max(0,Math.min(100,Number(data.accuracy)||0));p.finished=!!data.finished;
+              p.gaveUp=!!data.gaveUp;
+            }
             checkFinished();publish();
           }
         } else {
@@ -145,8 +154,8 @@
   }
   function begin(data){
     hideCountdown();showCountdown(3);
-    duration=data.duration;round=data.round;phase='countdown';api.running=false;lastReport=0;
-    for(const p of Object.values(players)){p.progress=0;p.wpm=0;p.finished=false;}
+    duration=data.duration;round=data.round;phase='countdown';api.running=false;lastReport=0;gaveUp=false;
+    for(const p of Object.values(players)){p.progress=0;p.wpm=0;p.finished=false;p.gaveUp=false;}
     api.preparing=true;mode='words';limit=25;reset();api.preparing=false;
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     target=data.text;render();input.blur();done=false;
@@ -162,7 +171,14 @@
       }
       if(phase==='racing'){
         const elapsed=(Date.now()-start)/1000;
-        if(!done){$('#counter').textContent=`${Math.max(0,Math.ceil(duration-elapsed))}s`;sampleWpm();report(false);if(elapsed>=duration)finish();}
+        if(!done){
+          let corrections=0;
+          if(typed.length===target.length)for(let i=0;i<typed.length;i++)if(typed[i]!==target[i])corrections++;
+          $('#counter').textContent=`${Math.max(0,Math.ceil(duration-elapsed))}s`+(corrections?` · ${corrections} character${corrections===1?'':'s'} to correct`:'');
+          sampleWpm();if(elapsed>=duration)finish();
+        }
+        // Repeat the terminal report until the host acknowledges the round as finished.
+        report(false);
       }
     },100);
     status(`Starting in 3… · 25 words · ${duration}s limit`);
@@ -170,8 +186,10 @@
   function report(finished){
     if(!api.active||phase!=='racing'||(!finished&&Date.now()-lastReport<150))return;
     lastReport=Date.now();let correct=0;for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;
-    // Finishing requires correct text, so skipping ahead cannot win a race.
-    const data={type:'progress',round,progress:correct/target.length*100,wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished};
+    // A periodic update must never undo an already completed local race.
+    const completed=!!(finished||done);
+    const data={type:'progress',round,progress:correct/target.length*100,wpm:completed&&history[0]?history[0].wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp};
+    if(completed)status(gaveUp?'You gave up · waiting for the final standings.':'You finished · waiting for the other racers.');
     if(host){Object.assign(players[self],data);checkFinished();publish();}else send(links.get('host'),data);
   }
   function open(){
@@ -187,6 +205,10 @@
     $('#joinRoom').onclick=()=>{const code=$('#roomCode').value.trim().toLowerCase();if(!/^[a-f0-9]{8}$/.test(code)){showError('Enter the 8-character room code from your friend.');return;}connect(false,code,name());};
   }
   $('#raceDurationForm').onsubmit=e=>e.preventDefault();
+  $('#giveUpRace').onclick=()=>{
+    if(done||!lastRacer(self))return;
+    gaveUp=true;$('#giveUpRace').hidden=true;finish();
+  };
   $('#friends').onclick=open;$('#leaveRace').onclick=requestLeave;
   for(const button of [$('#home'),$('.brand')])button.onclick=()=>{
     if(api.active){requestLeave(enterTyping);return;}
