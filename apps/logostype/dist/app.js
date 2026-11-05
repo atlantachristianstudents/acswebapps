@@ -46,7 +46,9 @@ function validateJourneyAttempts(value){
   if(!Array.isArray(value))throw new Error('Invalid journey attempts.');
   return value.map(item=>{
     if(!item||typeof item.id!=='string'||!item.id.length||item.id.length>100||!scriptureReferences.includes(item.reference)||(item.journey!=='Entire Scriptures'&&!journeyBooks.some(book=>book.name===item.journey))||(item.typingMs!==null&&(!Number.isSafeInteger(item.typingMs)||item.typingMs<0)))throw new Error('Invalid journey attempt.');
-    return {id:item.id,reference:item.reference,journey:item.journey,typingMs:item.typingMs};
+    const elapsedMs=item.elapsedMs??item.typingMs??0;
+    if(!Number.isSafeInteger(elapsedMs)||elapsedMs<0)throw new Error('Invalid journey attempt time.');
+    return {id:item.id,reference:item.reference,journey:item.journey,typingMs:item.typingMs,elapsedMs:Math.max(elapsedMs,item.typingMs??0)};
   });
 }
 try{journeyAttempts=validateJourneyAttempts(JSON.parse(localStorage.getItem('logostype-journey-attempts')||'[]'))}catch{}
@@ -55,13 +57,22 @@ function startJourneyAttempt(){
   activeJourneyAttempt={id:crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2),reference:scriptureReferences[journeyPosition()],journey:selectedJourneyBook||'Entire Scriptures',typingMs:null};
   journeyAttempts.push(activeJourneyAttempt);saveJourneyAttempts();updateBookProgress();
 }
+function checkpointJourneyAttempt(){
+  if(!activeJourneyAttempt||!start)return;
+  const elapsedMs=Math.max(0,Date.now()-start);
+  activeJourneyAttempt.elapsedMs=Math.max(activeJourneyAttempt.elapsedMs||0,elapsedMs);
+  saveJourneyAttempts();
+}
+window.addEventListener('pagehide',checkpointJourneyAttempt);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpointJourneyAttempt()});
 function journeyTypingStats(){
   const attempts=journeyAttempts.filter(item=>item.journey===(selectedJourneyBook||'Entire Scriptures'));
   const seconds=Math.floor(attempts.reduce((sum,item)=>sum+(item.typingMs??0),0)/1000);
-  const duration=`${Math.floor(seconds/3600)}h ${Math.floor(seconds%3600/60)}m ${seconds%60}s`;
-  return `Time spent typing (successful attempts): ${duration} · Total attempts: ${attempts.length}`;
+  const format=seconds=>`${Math.floor(seconds/3600)}h ${Math.floor(seconds%3600/60)}m ${seconds%60}s`;
+  const allSeconds=Math.floor(attempts.reduce((sum,item)=>sum+(item.elapsedMs??item.typingMs??0),0)/1000);
+  return `Time spent typing (successful attempts): ${format(seconds)} · Total time spent (all attempts): ${format(allSeconds)}`;
 }
-function celebrateJourney(){
+function celebrateJourney(colorCount=1){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const canvas=document.createElement('canvas');
   canvas.setAttribute('aria-hidden','true');
@@ -69,8 +80,8 @@ function celebrateJourney(){
   canvas.width=window.innerWidth;canvas.height=window.innerHeight;
   const context=canvas.getContext('2d');if(!context)return;
   document.body.append(canvas);
-  const colors=['#e2b714','#88c0d0','#ebbcba','#a3be8c','#f5f5f5'];
-  const pieces=Array.from({length:160},()=>({x:Math.random()*canvas.width,y:-20-Math.random()*canvas.height*.5,vx:(Math.random()-.5)*180,vy:100+Math.random()*180,angle:Math.random()*Math.PI,spin:(Math.random()-.5)*8,color:colors[Math.floor(Math.random()*colors.length)]}));
+  const colors=['#e2b714','#88c0d0','#ebbcba','#a3be8c','#f5f5f5','#e67e50','#e65d80'].slice(0,colorCount);
+  const pieces=Array.from({length:160},(_,index)=>({x:Math.random()*canvas.width,y:-20-Math.random()*canvas.height*.5,vx:(Math.random()-.5)*180,vy:100+Math.random()*180,angle:Math.random()*Math.PI,spin:(Math.random()-.5)*8,color:colors[index%colors.length]}));
   let started,last;
   function frame(now){
     started??=now;const delta=Math.min((now-(last??now))/1000,.05);last=now;
@@ -95,34 +106,49 @@ function updateBookProgress(message=''){
   $('#bookProgress').hidden=!active;
   $('#journeyProgress').hidden=!active;
   $('#journeyOptions').hidden=!active;
+  $('#journeyLocalProgress').hidden=!active;
   if(!active){$('#restart').title='Restart test';$('#restart').setAttribute('aria-label','Restart test');return;}
   const journey=currentJourney(),size=journey.end-journey.start;
   const completed=Math.min(journey.progress,size),position=journey.start+completed;
-  const percent=size?completed/size*100:0;
-  const chapterEnds=scriptureChapterEnds.filter(end=>end>journey.start&&end<=journey.end);
-  $('#journeyLabel').textContent=selectedJourneyBook||'scriptures';
-  $('#journeyScope').value=selectedJourneyBook?'book':'entire';
-  $('#journeyBookChoice').hidden=!selectedJourneyBook;
-  $('#journeyBookChoice').value=selectedJourneyBook||journeyBooks[0].name;
-  $('#journeyProgressFill').style.height=percent+'%';
-  $('#journeyProgressValue').textContent=percent.toFixed(2)+'%';
-  $('#journeyProgressCount').textContent=`${completed.toLocaleString()} / ${size.toLocaleString()} verses`;
-  $('#journeyChapterCount').textContent=`${chapterEnds.filter(end=>end<=position).length} / ${chapterEnds.length} chapters`;
-  $('#journeyBookCount').textContent=selectedJourneyBook?journey.name:`${scriptureBookEnds.filter(end=>end<=completed).length} / ${scriptureBookEnds.length} books`;
   const completedWords=(scriptureWordTotals[position]||0)-(scriptureWordTotals[journey.start]||0);
   const totalWords=(scriptureWordTotals[journey.end]||0)-(scriptureWordTotals[journey.start]||0);
+  const percent=totalWords?completedWords/totalWords*100:0;
+  if(size>0){
+    const index=Math.min(position,journey.end-1);
+    const book=journeyBooks.find(book=>index>=book.start&&index<book.end);
+    const chapterEnd=scriptureChapterEnds.find(end=>end>index);
+    const chapterIndex=scriptureChapterEnds.indexOf(chapterEnd);
+    const chapterStart=chapterIndex>0?scriptureChapterEnds[chapterIndex-1]:0;
+    const chapterName=scriptureReferences[index].split(':')[0];
+    for(const [scope,name,rangeStart,rangeEnd] of [['Chapter',chapterName,chapterStart,chapterEnd],['Book',book.name,book.start,book.end]]){
+      const chapters=scope==='Book'?scriptureChapterEnds.filter(end=>end>rangeStart&&end<=rangeEnd):null;
+      const count=chapters?chapters.filter(end=>end<=position).length:Math.max(0,Math.min(position,rangeEnd)-rangeStart);
+      const total=chapters?chapters.length:rangeEnd-rangeStart,unit=chapters?'chapters':'verses';
+      $('#current'+scope+'Label').textContent=`current ${scope.toLowerCase()} · ${name}`;
+      $('#current'+scope+'Count').textContent=`${count} / ${total} ${unit} · ${(count/total*100).toFixed(1)}%`;
+      const bar=$('#current'+scope+'Progress');bar.max=total;bar.value=count;
+      bar.setAttribute('aria-valuetext',`${count} of ${total} ${unit} completed in ${name}`);
+    }
+  }
+
+  $('#journeyLabel').textContent=selectedJourneyBook||'scriptures';
+  $('#chooseJourney').textContent=(selectedJourneyBook||'entire Scriptures')+' ▦';
+  $('#journeyProgressFill').style.height=percent+'%';
+  $('#journeyProgressValue').textContent=percent.toFixed(2)+'%';
+  $('#journeyProgressCount').textContent=`${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
+  $('#journeyBookCount').textContent=selectedJourneyBook?`${completed===size?1:0} / 1 books`:`${scriptureBookEnds.filter(end=>end<=position).length} / ${scriptureBookEnds.length} books`;
   $('#journeyWordCount').textContent=`${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
   $('#journeyWordPercent').textContent=`${(totalWords?completedWords/totalWords*100:0).toFixed(2)}% of ${journey.name} words completed`;
-  $('#journeyProgressTrack').setAttribute('aria-valuenow',String(completed));
-  $('#journeyProgressTrack').setAttribute('aria-valuemax',String(size||1));
-  $('#journeyProgressTrack').setAttribute('aria-label',`Verses completed in ${journey.name}`);
-  $('#journeyProgressTrack').setAttribute('aria-valuetext',`${completed} of ${size} verses completed (${percent.toFixed(2)}%)`);
+  $('#journeyProgressTrack').setAttribute('aria-valuenow',String(completedWords));
+  $('#journeyProgressTrack').setAttribute('aria-valuemax',String(totalWords||1));
+  $('#journeyProgressTrack').setAttribute('aria-label',`Words completed in ${journey.name}`);
+  $('#journeyProgressTrack').setAttribute('aria-valuetext',`${completedWords} of ${totalWords} words completed (${percent.toFixed(2)}%)`);
   const finished=size>0&&completed===size;
   $('#bookProgress').textContent=message||(finished?`${journey.name} journey complete — every verse completed.`:`${scriptureReferences[position]||'Scripture journey'} · ${completed} verses completed · correct all typos to advance`);
   const completedAt=selectedJourneyBook?journey.completions.at(-1):journeyCompletedAt;
   if(finished&&completedAt)$('#bookProgress').textContent+=` Completed on ${new Date(completedAt).toLocaleString()}.`;
   if(journey.completions.length)$('#bookProgress').textContent+=` ${journey.completions.length} journey${journey.completions.length===1?'':'s'} completed.`;
-  $('#bookProgress').textContent+=' '+journeyTypingStats();
+  if(finished)$('#bookProgress').textContent+=' '+journeyTypingStats();
   $('#restart').disabled=false;
   $('#restart').title=finished?`Start a new ${journey.name} journey`:'Restart verse';
   $('#restart').setAttribute('aria-label',$('#restart').title);
@@ -163,10 +189,12 @@ function enterTyping(){
 }
 function completeBookVerse(){
   if(mode!=='book')return;
+  const previousPosition=journeyPosition();
   const passed=typed===target&&target.length>0&&!extraLetters.size;
   if(passed){
-    if(activeJourneyAttempt){activeJourneyAttempt.typingMs=Math.max(0,Date.now()-start);saveJourneyAttempts()}
-    const result={id:crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2),wpm:speed(),rawWpm:rawSpeed(),accuracy:total?Math.round((total-errors)/total*100):100,mode:'book',limit:1,date:new Date().toLocaleDateString(),reference:scriptureReferences[journeyPosition()],journey:selectedJourneyBook||'Entire Scriptures'};
+    if(!done)sampleWpm();
+    if(activeJourneyAttempt){checkpointJourneyAttempt();activeJourneyAttempt.typingMs=activeJourneyAttempt.elapsedMs;saveJourneyAttempts();activeJourneyAttempt=null}
+    const result={id:crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2),wpm:speed(),rawWpm:rawSpeed(),accuracy:total?Math.round((total-errors)/total*100):100,mode:'book',limit:1,date:new Date().toLocaleDateString(),reference:scriptureReferences[journeyPosition()],journey:selectedJourneyBook||'Entire Scriptures',chart:captureChart()};
     history.unshift(result);
     try{localStorage.setItem('logostype-history',JSON.stringify(history))}catch{}
   }
@@ -175,7 +203,7 @@ function completeBookVerse(){
     const journey=currentJourney(),size=journey.end-journey.start;
     if(journey.progress<size){
       const state={progress:journey.progress+1,completions:[...journey.completions]};
-      if(state.progress===size){state.completions.push(new Date().toISOString());celebrateJourney()}
+      if(state.progress===size){state.completions.push(new Date().toISOString())}
       bookJourneys[selectedJourneyBook]=state;saveBookJourneys();
     }
   }else if(passed&&bookProgress<scriptureLines.length){
@@ -185,8 +213,13 @@ function completeBookVerse(){
       journeyCompletedAt=new Date().toISOString();
       journeyCompletions.push(journeyCompletedAt);
       try{localStorage.setItem('logostype-journey-completed-at',journeyCompletedAt);localStorage.setItem('logostype-journey-completions',JSON.stringify(journeyCompletions))}catch{}
-      celebrateJourney();
     }
+  }
+  const position=journeyPosition();
+  if(passed&&position>previousPosition){
+    if(!selectedJourneyBook&&position===scriptureLines.length)celebrateJourney(7);
+    else if(scriptureBookEnds.includes(position))celebrateJourney(3);
+    else if(scriptureChapterEnds.includes(position))celebrateJourney(1);
   }
   updateBookProgress(passed?'':'Correct the remaining typos to advance.');
   $('#again').title=passed?'Next verse':'Retry verse';
@@ -262,7 +295,7 @@ function render(smooth=true){
     return html;
   }).join('');positionCaret(smooth);
 }
-function positionCaret(smooth=true){const letter=$('.cursor'),caret=$('#typingCaret');caret.hidden=!letter;if(!letter)return;const box=$('#words');box.scrollTop=Math.max(0,letter.offsetTop-48);const r=letter.getBoundingClientRect(),parent=$('.test').getBoundingClientRect();if(!smooth)caret.style.transition='none';caret.style.height=r.height+'px';caret.style.transform=`translate3d(${r.left-parent.left-2}px,${r.top-parent.top}px,0)`;if(!smooth){void caret.offsetWidth;caret.style.transition=''}}function reset(preservePassage=false){if(mode==='book'&&done)preservePassage=false;if(window.friendRace?.active&&!window.friendRace.preparing)return;clearInterval(timer);timer=null;activeJourneyAttempt=null;typed='';lastInput='';extraLetters=new Map();input.value='';start=0;done=false;total=0;errors=0;samples=[];instantSamples=[];rawSamples=[];sampleTimes=[];mistakeEvents=[];recentCorrect=[];target=preservePassage?normalizeScripture(rawTarget):generate();input.disabled=(!scriptureLines.length&&mode!=='custom')||(mode==='book'&&currentJourney().progress>=currentJourney().end-currentJourney().start);document.body.classList.remove('focus','running');$('#resultReferences').hidden=true;$('#results').style.display='none';$('#testSection').style.display='block';$('#counter').textContent='';syncNavigation(!!window.friendRace?.active);updateBookProgress();$('#again').title='Next test';$('#again').setAttribute('aria-label','Next test');limits();render(false)}function speed(){let correct=0;for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;return Math.round(correct/5/Math.max((Date.now()-start)/60000,1/60))}function rawSpeed(){
+function positionCaret(smooth=true){const letter=$('.cursor'),caret=$('#typingCaret');caret.hidden=!letter;if(!letter)return;const box=$('#words');box.scrollTop=Math.max(0,letter.offsetTop-48);const r=letter.getBoundingClientRect(),parent=$('.test').getBoundingClientRect();if(!smooth)caret.style.transition='none';caret.style.height=r.height+'px';caret.style.transform=`translate3d(${r.left-parent.left-2}px,${r.top-parent.top}px,0)`;if(!smooth){void caret.offsetWidth;caret.style.transition=''}}function reset(preservePassage=false){if(mode==='book'&&done)preservePassage=false;if(window.friendRace?.active&&!window.friendRace.preparing)return;checkpointJourneyAttempt();clearInterval(timer);timer=null;activeJourneyAttempt=null;typed='';lastInput='';extraLetters=new Map();input.value='';start=0;done=false;total=0;errors=0;samples=[];instantSamples=[];rawSamples=[];sampleTimes=[];mistakeEvents=[];recentCorrect=[];target=preservePassage?normalizeScripture(rawTarget):generate();input.disabled=(!scriptureLines.length&&mode!=='custom')||(mode==='book'&&currentJourney().progress>=currentJourney().end-currentJourney().start);document.body.classList.remove('focus','running');$('#resultReferences').hidden=true;$('#results').style.display='none';$('#testSection').style.display='block';$('#counter').textContent='';syncNavigation(!!window.friendRace?.active);updateBookProgress();$('#again').title='Next test';$('#again').setAttribute('aria-label','Next test');limits();render(false)}function speed(){let correct=0;for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;return Math.round(correct/5/Math.max((Date.now()-start)/60000,1/60))}function rawSpeed(){
   if(!start)return 0;
   return Math.round(input.value.length/5/Math.max((Date.now()-start)/60000,1/60));
 }
@@ -281,10 +314,14 @@ function sampleWpm(){
   rawSamples.push(rawSpeed());
   sampleTimes.push(Math.max(0,(Date.now()-start)/1000));
 }
-function finish(){if(done)return;sampleWpm();done=true;completeBookVerse();clearInterval(timer);document.body.classList.remove('focus','running');const elapsed=(Date.now()-start)/1000,wpm=speed(),accuracy=total?Math.round((total-errors)/total*100):100;$('#wpm').textContent=wpm;$('#rawWpm').textContent=rawSpeed();$('#wpm').parentElement.hidden=!!(window.friendRace?.active&&window.friendRace.running);$('#rawWpm').parentElement.hidden=$('#wpm').parentElement.hidden;$('#chart').hidden=!!(window.friendRace?.active&&window.friendRace.running);$('#chartLegend').hidden=$('#chart').hidden;$('#accuracy').textContent=accuracy+'%';$('#testType').textContent=`${mode} ${mode==='time'?limit+'s':mode==='words'?limit:''} · english`;$('#resultDetails').textContent=`${Math.round(elapsed)}s · ${typed.length} characters · ${errors} errors`;$('#testSection').style.display='none';$('#results').style.display='block';renderResultReferences();history.unshift({id:crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2),wpm,rawWpm:rawSpeed(),accuracy,mode,limit,date:new Date().toLocaleDateString()});try{localStorage.setItem('logostype-history',JSON.stringify(history))}catch{}window.friendRace?.report(true);drawChart()}function hideChartHover(){$('#chartMarker').hidden=true;$('#chartTooltip').hidden=true}
-function drawChart(){
-  hideChartHover();
-  const c=$('#chart');if(c.hidden)return;
+function finish(){if(done)return;sampleWpm();done=true;completeBookVerse();clearInterval(timer);document.body.classList.remove('focus','running');const elapsed=(Date.now()-start)/1000,wpm=speed(),accuracy=total?Math.round((total-errors)/total*100):100;$('#wpm').textContent=wpm;$('#rawWpm').textContent=rawSpeed();$('#wpm').parentElement.hidden=!!(window.friendRace?.active&&window.friendRace.running);$('#rawWpm').parentElement.hidden=$('#wpm').parentElement.hidden;$('#chart').hidden=!!(window.friendRace?.active&&window.friendRace.running);$('#chartLegend').hidden=$('#chart').hidden;$('#accuracy').textContent=accuracy+'%';$('#testType').textContent=`${mode} ${mode==='time'?limit+'s':mode==='words'?limit:''} · english`;$('#resultDetails').textContent=`${Math.round(elapsed)}s · ${typed.length} characters · ${errors} errors`;$('#testSection').style.display='none';$('#results').style.display='block';renderResultReferences();history.unshift({id:crypto.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2),wpm,rawWpm:rawSpeed(),accuracy,mode,limit,date:new Date().toLocaleDateString(),chart:captureChart()});try{localStorage.setItem('logostype-history',JSON.stringify(history))}catch{}window.friendRace?.report(true);drawChart()}function hideChartHover(){$('#chartMarker').hidden=true;$('#chartTooltip').hidden=true}
+function captureChart(){
+  return {samples:[...samples],instantSamples:[...instantSamples],rawSamples:[...rawSamples],sampleTimes:[...sampleTimes],mistakeEvents:mistakeEvents.map(event=>({...event}))};
+}
+function drawChart(c=$('#chart'),data=captureChart()){
+  if(c.id==='chart')hideChartHover();
+  if(c.hidden)return;
+  const {samples,instantSamples,rawSamples,sampleTimes,mistakeEvents}=data;
   const r=c.getBoundingClientRect(),d=devicePixelRatio||1;
   c.width=r.width*d;c.height=170*d;
   const x=c.getContext('2d');x.scale(d,d);
@@ -338,14 +375,14 @@ $('#chart').addEventListener('pointermove',event=>{
 });
 $('#chart').addEventListener('pointerleave',hideChartHover);
 $('#chart').addEventListener('pointercancel',hideChartHover);
-window.addEventListener('resize',()=>{hideChartHover();if(done&&!$('#chart').hidden)drawChart()});
+window.addEventListener('resize',()=>{hideChartHover();if(done&&!$('#chart').hidden)drawChart();const canvas=$('#historyChart');if(canvas&&$('#modal').open&&canvas._chartData)drawChart(canvas,canvas._chartData)});
 input.addEventListener('keydown',event=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))event.preventDefault();
 });
 input.addEventListener('beforeinput',event=>{
   if((mode==='book'||window.friendRace?.active)&&event.inputType.startsWith('insert')&&parseTyping(input.value).text.length>=target.length&&input.selectionStart===input.selectionEnd)event.preventDefault();
 });
-input.addEventListener('input',()=>{if(done){input.value=lastInput;return}if(window.friendRace?.active&&!window.friendRace.running){input.value=lastInput;return}const capped=mode==='book'||window.friendRace?.active;const parsed=parseTyping(input.value,capped),v=parsed.text;if(input.value!==parsed.raw)input.value=parsed.raw;if(mode==='book'&&!window.friendRace?.active&&!v.length){reset(true);return}if(!start&&v.length){start=Date.now();if(mode==='book'&&!window.friendRace?.active)startJourneyAttempt();document.body.classList.add('focus','running');timer=setInterval(()=>{const elapsed=(Date.now()-start)/1000;sampleWpm();$('#counter').textContent=mode==='time'?Math.max(0,Math.ceil(limit-elapsed)):`${typed.length}/${target.length}`;if(mode==='time'&&elapsed>=limit)finish()},250)}for(let i=0;i<parsed.raw.length;i++)if(i>=lastInput.length||parsed.raw[i]!==lastInput[i]){total++;if(parsed.raw[i]!==parsed.expected[i])recordMistake()}lastInput=parsed.raw;extraLetters=parsed.extras;const previousLength=typed.length;typed=v.slice(0,target.length);recentCorrect=recentCorrect.filter(hit=>hit.position<typed.length);for(let i=previousLength;i<typed.length;i++)if(typed[i]===target[i])recentCorrect.push({time:Date.now(),position:i});if(mode==='time'&&target.length-typed.length<100)target+=' '+generate(true);render();window.friendRace?.report(false);if(mode!=='time'&&typed.length>=target.length&&((!window.friendRace?.active&&mode!=='book')||(typed===target&&!extraLetters.size))){
+input.addEventListener('input',()=>{if(done){input.value=lastInput;return}if(window.friendRace?.active&&!window.friendRace.running){input.value=lastInput;return}if(mode==='book'&&!window.friendRace?.active&&!start&&!lastInput.length)input.value=input.value.replace(/^ +/,'');const capped=mode==='book'||window.friendRace?.active;const parsed=parseTyping(input.value,capped),v=parsed.text;if(input.value!==parsed.raw)input.value=parsed.raw;if(mode==='book'&&!window.friendRace?.active&&!v.length){reset(true);return}if(!start&&v.length){start=Date.now();if(mode==='book'&&!window.friendRace?.active)startJourneyAttempt();document.body.classList.add('focus','running');timer=setInterval(()=>{const elapsed=(Date.now()-start)/1000;if(activeJourneyAttempt&&Math.floor(elapsed)>Math.floor((activeJourneyAttempt.elapsedMs||0)/1000)){checkpointJourneyAttempt();updateBookProgress()}sampleWpm();$('#counter').textContent=mode==='time'?Math.max(0,Math.ceil(limit-elapsed)):`${typed.length}/${target.length}`;if(mode==='time'&&elapsed>=limit)finish()},250)}for(let i=0;i<parsed.raw.length;i++)if(i>=lastInput.length||parsed.raw[i]!==lastInput[i]){total++;if(parsed.raw[i]!==parsed.expected[i])recordMistake()}lastInput=parsed.raw;extraLetters=parsed.extras;const previousLength=typed.length;typed=v.slice(0,target.length);recentCorrect=recentCorrect.filter(hit=>hit.position<typed.length);for(let i=previousLength;i<typed.length;i++)if(typed[i]===target[i])recentCorrect.push({time:Date.now(),position:i});if(mode==='time'&&target.length-typed.length<100)target+=' '+generate(true);render();window.friendRace?.report(false);if(mode!=='time'&&typed.length>=target.length&&((!window.friendRace?.active&&mode!=='book')||(typed===target&&!extraLetters.size))){
   if(mode==='book'){
     completeBookVerse();
     reset();
@@ -363,20 +400,26 @@ input.addEventListener('input',()=>{if(done){input.value=lastInput;return}if(win
     reset(true);
   };
 }
-const themes={'serika dark':['#323437','#2c2e31','#d1d0c5','#646669','#e2b714'],'serika':['#e1e1e3','#d1d3d8','#323437','#aaaeb3','#b68b00'],'nord':['#2e3440','#272d38','#d8dee9','#6c7a90','#88c0d0'],'rose pine':['#191724','#1f1d2e','#e0def4','#6e6a86','#ebbcba']};function theme(name){const vals=themes[name]||themes['serika dark'];document.documentElement.style.colorScheme=name==='serika'?'light':'dark';['--bg','--panel','--text','--muted','--accent'].forEach((k,i)=>document.documentElement.style.setProperty(k,vals[i]));$('#themeName').textContent=name;try{localStorage.setItem('logostype-theme',name)}catch{}}function openModal(type){const content=$('#modalContent');if(type==='themes')content.innerHTML='<h2>theme</h2>'+Object.keys(themes).map(t=>`<button class="option" data-theme="${t}">◐ ${t}</button>`).join('');if(type==='settings')content.innerHTML='<h2>settings</h2><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button></form><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSize">A change font size</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';if(type==='about')content.innerHTML='<h2>logostype</h2><p>Type the scriptures. No account required; your results stay in this browser.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>';if(type==='history'||type==='profile')content.innerHTML='<h2>your typing history</h2>'+(history.length?history.map(h=>`<div class="history-row"><span>${escapeHtml(h.date)} · ${escapeHtml(h.reference||h.mode)} ${h.reference?'':h.limit}</span><span>${h.wpm} wpm · ${h.accuracy}%</span></div>`).join(''):'<p>Your first personal best is one test away. Finish a test to save your results here.</p>');if(type==='history'||type==='profile')content.insertAdjacentHTML('beforeend','<h3>Scripture Journey completions</h3>'+(journeyCompletions.length?'<ol>'+journeyCompletions.slice().reverse().map(date=>'<li>'+escapeHtml(new Date(date).toLocaleString())+'</li>').join('')+'</ol>':'<p>No completed journeys yet.</p>'));if(type==='profile'){content.querySelector('h2').textContent='your profile';content.querySelector('h2').insertAdjacentHTML('afterend','<form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button></form><p id="dataStatus" role="status" aria-live="polite"></p><h3>typing history</h3>');}if(type==='custom')content.innerHTML='<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" id="saveCustom">start test →</button>';if(type==='duration')content.innerHTML='<h2>custom duration</h2><form id="durationForm"><label for="durationSeconds">duration in seconds</label><input class="race-field" id="durationSeconds" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 seconds. The timer starts on your first keystroke.</p><button class="option" type="submit">apply duration →</button></form>';if(type==='commands')content.innerHTML='<h2>command line</h2><button class="option" id="restartCommand">↻ restart test</button><button class="option" data-open="themes">◐ theme</button><button class="option" data-open="settings">⚙ settings</button><button class="option" data-open="history">♛ history</button>';if(type==='history'||type==='profile'){const completedBooks=journeyBooks.filter(book=>bookJourneys[book.name]?.completions.length);if(completedBooks.length)content.insertAdjacentHTML('beforeend','<h3>Book journey completions</h3><ul>'+completedBooks.map(book=>bookJourneys[book.name].completions.map(date=>'<li>'+escapeHtml(book.name)+' · '+escapeHtml(new Date(date).toLocaleString())+'</li>').join('')).join('')+'</ul>')}if(!$('#modal').open)$('#modal').showModal();if(type==='settings'||type==='profile')$('#profileName').value=getProfileName();if(type==='custom')$('#customText').value=custom;if(type==='duration'){$('#durationSeconds').value=limit;$('#durationSeconds').focus();$('#durationSeconds').select()}}document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.dialog)openModal(b.dataset.dialog);if(b.dataset.open)openModal(b.dataset.open);if(b.dataset.theme){theme(b.dataset.theme);$('#modal').close()}if(b.id==='saveCustom'){custom=$('#customText').value.trim()||custom;$('#modal').close();reset();input.focus()}if(b.id==='fontSize'){$('#words').style.fontSize=$('#words').style.fontSize==='24px'?'29px':'24px';positionCaret(false)}if(b.id==='restartCommand'){$('#modal').close();restartTest()}});$('.close').onclick=()=>$('#modal').close();$('#modal').onclick=e=>{if(e.target===$('#modal'))$('#modal').close()};document.addEventListener('keydown',e=>{if($('#leaveRaceDialog').open)return;if(e.key==='Escape'&&!$('#modal').open){e.preventDefault();openModal('commands');return}if(e.key==='Enter'&&document.activeElement?.id==='restart'){e.preventDefault();restartTest();return}if(e.key==='Tab'&&!$('#modal').open){if(!e.shiftKey&&document.activeElement===input&&!window.friendRace?.active){e.preventDefault();$('#restart').focus()}else if(e.shiftKey&&document.activeElement===$('#restart')){e.preventDefault();input.focus()}return}if(!$('#modal').open&&!done&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&document.activeElement!==input){input.focus()}});try{theme(localStorage.getItem('logostype-theme')||'serika dark')}catch{}reset();input.focus();
+const themes={'serika dark':['#323437','#2c2e31','#d1d0c5','#646669','#e2b714'],'serika':['#e1e1e3','#d1d3d8','#323437','#aaaeb3','#b68b00'],'nord':['#2e3440','#272d38','#d8dee9','#6c7a90','#88c0d0'],'rose pine':['#191724','#1f1d2e','#e0def4','#6e6a86','#ebbcba']};function theme(name){const vals=themes[name]||themes['serika dark'];document.documentElement.style.colorScheme=name==='serika'?'light':'dark';document.documentElement.style.setProperty('--old-testament',name==='serika'?'#256579':'#88c0d0');document.documentElement.style.setProperty('--new-testament',name==='serika'?'#734799':'#c4a7e7');['--bg','--panel','--text','--muted','--accent'].forEach((k,i)=>document.documentElement.style.setProperty(k,vals[i]));$('#themeName').textContent=name;try{localStorage.setItem('logostype-theme',name)}catch{}}function openModal(type){const content=$('#modalContent');if(type==='themes')content.innerHTML='<h2>theme</h2>'+Object.keys(themes).map(t=>`<button class="option" data-theme="${t}">◐ ${t}</button>`).join('');if(type==='settings')content.innerHTML='<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSize">A change font size</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';if(type==='about')content.innerHTML='<h2>logostype</h2><p>Type the scriptures. No account required; your results stay in this browser.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>';if(type==='history'||type==='profile')content.innerHTML='<button class="option" data-open="settings">← settings</button><h2>records and typing history</h2>'+renderPersonalRecords()+'<h3>typing history</h3>'+(history.length?history.map((h,index)=>`<button type="button" class="history-row" data-history-index="${index}" aria-label="View result: ${escapeHtml(h.reference||h.mode)} ${escapeHtml(h.date)}"><span>${escapeHtml(h.date)} · ${escapeHtml(h.reference||h.mode)} ${h.reference?'':h.limit}</span><span>${h.wpm} wpm · ${h.accuracy}% ↗</span></button>`).join(''):'<p>Your first personal best is one test away. Finish a test to save your results here.</p>');if(type==='history'||type==='profile')content.insertAdjacentHTML('beforeend','<h3>Scripture Journey completions</h3>'+(journeyCompletions.length?'<ol>'+journeyCompletions.slice().reverse().map(date=>'<li>'+escapeHtml(new Date(date).toLocaleString())+'</li>').join('')+'</ol>':'<p>No completed journeys yet.</p>'));if(type==='profile'){content.querySelector('h2').textContent='your profile';content.querySelector('h2').insertAdjacentHTML('afterend','<form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><p id="dataStatus" role="status" aria-live="polite"></p><h3>typing history</h3>');}if(type==='custom')content.innerHTML='<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" id="saveCustom">start test →</button>';if(type==='duration')content.innerHTML='<h2>custom duration</h2><form id="durationForm"><label for="durationSeconds">duration in seconds</label><input class="race-field" id="durationSeconds" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 seconds. The timer starts on your first keystroke.</p><button class="option" type="submit">apply duration →</button></form>';if(type==='commands')content.innerHTML='<h2>command line</h2><button class="option" id="restartCommand">↻ restart test</button><button class="option" data-open="themes">◐ theme</button><button class="option" data-open="settings">⚙ settings</button><button class="option" data-open="history">♛ history</button>';if(type==='history'||type==='profile'){const completedBooks=journeyBooks.filter(book=>bookJourneys[book.name]?.completions.length);if(completedBooks.length)content.insertAdjacentHTML('beforeend','<h3>Book journey completions</h3><ul>'+completedBooks.map(book=>bookJourneys[book.name].completions.map(date=>'<li>'+escapeHtml(book.name)+' · '+escapeHtml(new Date(date).toLocaleString())+'</li>').join('')).join('')+'</ul>')}if(!$('#modal').open)$('#modal').showModal();if(type==='settings'||type==='profile')$('#profileName').value=getProfileName();if(type==='custom')$('#customText').value=custom;if(type==='duration'){$('#durationSeconds').value=limit;$('#durationSeconds').focus();$('#durationSeconds').select()}}document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='readJourney'){if(window.friendRace?.active)window.friendRace.requestLeave(openReadingPage);else openReadingPage();return}if(b.dataset.historyIndex!==undefined){openHistoryResult(Number(b.dataset.historyIndex));return}if(b.id==='historyBack'){openModal('history');return}if(b.dataset.dialog)openModal(b.dataset.dialog);if(b.dataset.open)openModal(b.dataset.open);if(b.dataset.theme){theme(b.dataset.theme);$('#modal').close()}if(b.id==='saveCustom'){custom=$('#customText').value.trim()||custom;$('#modal').close();reset();input.focus()}if(b.id==='fontSize'){$('#words').style.fontSize=$('#words').style.fontSize==='24px'?'29px':'24px';positionCaret(false)}if(b.id==='restartCommand'){$('#modal').close();restartTest()}});$('.close').onclick=()=>$('#modal').close();$('#modal').onclick=e=>{if(e.target===$('#modal'))$('#modal').close()};document.addEventListener('keydown',e=>{if($('#leaveRaceDialog').open)return;if(e.key==='Escape'&&!$('#modal').open){e.preventDefault();openModal('commands');return}if(e.key==='Enter'&&document.activeElement?.id==='restart'){e.preventDefault();restartTest();return}if(e.key==='Tab'&&!$('#modal').open){if(!e.shiftKey&&document.activeElement===input&&!window.friendRace?.active){e.preventDefault();$('#restart').focus()}else if(e.shiftKey&&document.activeElement===$('#restart')){e.preventDefault();input.focus()}return}if(!$('#modal').open&&!done&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&document.activeElement!==input){input.focus()}});try{theme(localStorage.getItem('logostype-theme')||'serika dark')}catch{}reset();input.focus();
 
 document.addEventListener('submit',e=>{if(e.target.id!=='durationForm')return;e.preventDefault();const field=$('#durationSeconds');if(!field.reportValidity())return;const seconds=Number(field.value);if(!Number.isInteger(seconds)||seconds<1||seconds>3600)return;limit=seconds;$('#modal').close();reset();input.focus()});
 
 window.addEventListener('resize',()=>positionCaret(false));document.fonts?.ready.then(()=>positionCaret(false));
 
-$('#journeyBookChoice').replaceChildren(...journeyBooks.map(book=>{const option=document.createElement('option');option.value=option.textContent=book.name;return option}));
+
 function chooseJourney(name){
   selectedJourneyBook=name;
   try{localStorage.setItem('logostype-selected-book',name)}catch{}
   reset();input.focus();
 }
-$('#journeyScope').onchange=()=>chooseJourney($('#journeyScope').value==='book'?$('#journeyBookChoice').value:'');
-$('#journeyBookChoice').onchange=()=>chooseJourney($('#journeyBookChoice').value);
+$('#chooseJourney').onclick=()=>{
+  const content=$('#modalContent');
+  content.innerHTML='<h2 id="journeyPickerTitle">choose a journey</h2><p class="testament-legend"><span class="old-testament">Old Testament</span><span class="new-testament">New Testament</span></p><div class="journey-grid" role="group" aria-labelledby="journeyPickerTitle">'+['',...journeyBooks.map(book=>book.name)].map(name=>'<button type="button" data-journey="'+escapeHtml(name)+'" class="'+(name?(journeyBooks.findIndex(book=>book.name===name)<39?'old-testament':'new-testament'):'entire-journey')+'" aria-pressed="'+(selectedJourneyBook===name)+'">'+escapeHtml(name||'entire Scriptures')+'</button>').join('')+'</div>';
+  const grid=$('.journey-grid');
+  grid.onclick=event=>{const button=event.target.closest('[data-journey]');if(!button)return;$('#modal').close();chooseJourney(button.dataset.journey)};
+  if(!$('#modal').open)$('#modal').showModal();
+  grid.querySelector('[aria-pressed="true"]').focus();
+};
 $('#book').onclick=()=>{if(window.friendRace?.active){window.friendRace.requestLeave(enterBook);return;}enterBook()};
 input.disabled=true;
 $('#friends').disabled=true;
@@ -400,3 +443,52 @@ loadScripture()
     $('#counter').textContent=`Scripture unavailable: ${error.message}. Reload to try again.`;
     console.error(error);
   });
+
+function openHistoryResult(index){
+  const result=history[index];if(!result)return;
+  const content=$('#modalContent');
+  content.innerHTML='<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p>';
+  $('#historyResultSummary').textContent=`${result.date} · ${result.reference||result.mode+' '+result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
+  if(!result.chart){content.insertAdjacentHTML('beforeend','<p>Chart data was not saved for this older result. New results include a chart.</p>');return;}
+  content.insertAdjacentHTML('beforeend','<div class="chart-legend"><span class="average-key">━ average wpm</span><span>┄ instant wpm</span><span class="raw-key">┈ raw wpm</span><span class="mistake-key">× mistakes</span></div><canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>');
+  const canvas=$('#historyChart');canvas._chartData=result.chart;
+  drawChart(canvas,result.chart);
+  canvas.addEventListener('pointermove',event=>{
+    const times=result.chart.sampleTimes;if(!times.length)return;
+    const rect=canvas.getBoundingClientRect(),time=Math.max(0,Math.min(1,(event.clientX-rect.left-35)/(rect.width-40)))*Math.max(1,...times);
+    let closest=0;for(let i=1;i<times.length;i++)if(Math.abs(times[i]-time)<Math.abs(times[closest]-time))closest=i;
+    $('#historyChartPoint').textContent=`${times[closest].toFixed(1)}s · average ${result.chart.samples[closest]} wpm · instant ${result.chart.instantSamples[closest]} wpm · raw ${result.chart.rawSamples[closest]} wpm`;
+  });
+}
+
+function renderPersonalRecords(){
+  const categories=[
+    {label:'verse',matches:result=>result.mode==='quote'||result.mode==='book'},
+    ...[15,30,60,120].map(limit=>({label:limit+' seconds',matches:result=>result.mode==='time'&&result.limit===limit})),
+    ...[10,25,50,100].map(limit=>({label:limit+' words',matches:result=>result.mode==='words'&&result.limit===limit}))
+  ];
+  return '<h3>personal records</h3><table class="records-table"><thead><tr><th scope="col">test</th><th scope="col">fastest wpm</th></tr></thead><tbody>'+categories.map(category=>{
+    let best=-1;
+    history.forEach((result,index)=>{if(category.matches(result)&&Number.isFinite(result.wpm)&&(best<0||result.wpm>history[best].wpm))best=index});
+    const result=history[best];
+    return '<tr><th scope="row">'+category.label+'</th><td>'+(result?'<button type="button" data-history-index="'+best+'" aria-label="View '+escapeHtml(category.label)+' record: '+result.wpm+' wpm">'+result.wpm+' wpm ↗</button>':'<span aria-label="No completed result">—</span>')+'</td></tr>';
+  }).join('')+'</tbody></table>';
+}
+
+function openReadingPage(){
+  checkpointJourneyAttempt();
+  const url=new URL('reading.html',location.href);
+  if(location.protocol==='file:'){
+    let theme='serika dark';try{theme=localStorage.getItem('logostype-theme')||theme}catch{}
+    url.searchParams.set('progress',JSON.stringify({bookProgress,bookJourneys,theme}));
+  }
+  location.href=url.href;
+}
+
+function openMenuDestination(){
+  if(location.hash==='#journey')enterBook();
+  if(location.hash==='#friends')$('#friends').click();
+  if(location.hash==='#settings')openModal('settings');
+}
+window.addEventListener('load',openMenuDestination);
+window.addEventListener('hashchange',openMenuDestination);

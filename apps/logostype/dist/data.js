@@ -1,11 +1,16 @@
+function validateHistoryChart(chart){
+  const fields=['samples','instantSamples','rawSamples','sampleTimes'];
+  if(!chart||fields.some(field=>!Array.isArray(chart[field])||chart[field].length>1000000||chart[field].some(value=>!Number.isFinite(value)||value<0))||fields.some(field=>chart[field].length!==chart.samples.length)||!Array.isArray(chart.mistakeEvents)||chart.mistakeEvents.length>1000000||chart.mistakeEvents.some(event=>!event||!Number.isFinite(event.time)||event.time<0||!Number.isFinite(event.wpm)||event.wpm<0))throw new Error('The backup contains invalid chart data.');
+  if(chart.sampleTimes.some((time,index)=>index>0&&time<chart.sampleTimes[index-1]))throw new Error('The backup contains invalid chart times.');
+  return {samples:[...chart.samples],instantSamples:[...chart.instantSamples],rawSamples:[...chart.rawSamples],sampleTimes:[...chart.sampleTimes],mistakeEvents:chart.mistakeEvents.map(event=>({time:event.time,wpm:event.wpm}))};
+}
 function getProfileName(){
   try{return (localStorage.getItem('logostype-racer')||'').trim().slice(0,24)}catch{return ''}
 }
 function updateProfileLabel(){
   const name=getProfileName();
-  $('#profileLabel').textContent=name;
-  $('.account').title=name?`${name} · local profile`:'Local profile';
-  $('.account').setAttribute('aria-label',name?`${name}, local profile`:'Local profile');
+  $('.account').title=name?`${name} · settings, profile, and history`:'Settings, profile, and history';
+  $('.account').setAttribute('aria-label',$('.account').title);
 }
 function dataStatus(message){
   if(!$('#dataStatus'))openModal('settings');
@@ -35,6 +40,7 @@ function validateBackup(data){
       if(item.mode!=='book'||(item.journey!=='Entire Scriptures'&&!journeyBooks.some(book=>book.name===item.journey)))throw new Error('The backup contains an invalid journey name.');
       result.journey=item.journey;
     }
+    if(item.chart!==undefined)result.chart=validateHistoryChart(item.chart);
     return result;
   });
   if(data.name!==undefined&&(typeof data.name!=='string'||data.name.length>24))throw new Error('The backup has an invalid name.');
@@ -63,13 +69,15 @@ function mergeTypingHistory(existing,incoming){
 }
 function importBackup(data){
   if(window.friendRace?.active)throw new Error('Leave the race room before importing a backup.');
+  checkpointJourneyAttempt();
   const backup=validateBackup(data);
   const merged=mergeTypingHistory(history,backup.history);
   const attemptsById=new Map(journeyAttempts.map(item=>[item.id,item]));
   for(const item of backup.journeyAttempts){
     const local=attemptsById.get(item.id);
     if(local&&(local.journey!==item.journey||local.reference!==item.reference))throw new Error('Conflicting journey attempt in backup.');
-    if(!local||local.typingMs===null)attemptsById.set(item.id,item);
+    if(!local)attemptsById.set(item.id,item);
+    else attemptsById.set(item.id,{...local,typingMs:local.typingMs??item.typingMs,elapsedMs:Math.max(local.elapsedMs??local.typingMs??0,item.elapsedMs)});
   }
   const mergedAttempts=[...attemptsById.values()];
   // Compare progress within the latest journey; a restarted journey supersedes an older completed one.
@@ -124,11 +132,28 @@ backupInput.addEventListener('change',async()=>{
 });
 document.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button)return;
+  if(button.id==='clearData'){
+    if(window.friendRace?.active){dataStatus('Leave the race room before clearing saved data.');return}
+    if(!window.confirm('Clear all Logostype data on this browser? This deletes your name, theme, typing history, records, journey progress, completion dates, and time totals. Export a backup first if you want to keep them. This cannot be undone.'))return;
+    try{
+      const keys=Object.keys(localStorage).filter(key=>key.startsWith('logostype-'));
+      const previous=keys.map(key=>localStorage.getItem(key));
+      try{keys.forEach(key=>localStorage.removeItem(key))}catch(error){
+        keys.forEach((key,index)=>{try{localStorage.setItem(key,previous[index])}catch{}});throw error;
+      }
+      clearInterval(timer);timer=null;activeJourneyAttempt=null;
+      history=[];bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];selectedJourneyBook='';
+      theme('serika dark');localStorage.removeItem('logostype-theme');
+      updateProfileLabel();reset();openModal('settings');
+      dataStatus('Saved data cleared.');
+    }catch{dataStatus('Could not clear saved data in this browser. Please try again.')}
+  }
   if(button.id==='importData'){
     if(window.friendRace?.active){dataStatus('Leave the race room before importing a backup.');return}
     backupInput.click();
   }
   if(button.id==='exportData'){
+    checkpointJourneyAttempt();
     const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,bookJourneys,journeyAttempts,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -137,13 +162,13 @@ document.addEventListener('click',event=>{
   }
 });
 document.addEventListener('input',event=>{
-  if(event.target.id==='profileName')dataStatus('Name not yet saved');
+  if(event.target.id==='profileName')$('#profileStatus').textContent='Name not yet saved';
 });
 
 document.addEventListener('submit',event=>{
   if(event.target.id!=='profileForm')return;
   event.preventDefault();
   const name=$('#profileName').value.trim().slice(0,24);
-  try{localStorage.setItem('logostype-racer',name);updateProfileLabel();$('#profileName').value=name;dataStatus('Name saved. It will also be used in race rooms.')}catch{dataStatus('Could not save your name in this browser.')}
+  try{localStorage.setItem('logostype-racer',name);updateProfileLabel();$('#profileName').value=name;$('#profileStatus').textContent='Name saved. It will also be used in race rooms.'}catch{$('#profileStatus').textContent='Could not save your name in this browser.'}
 });
 updateProfileLabel();

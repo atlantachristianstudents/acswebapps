@@ -1,6 +1,6 @@
 // Bump the version whenever a cached app asset changes.
-const CACHE = 'logostype-v15';
-const ASSETS = ['./', 'index.html', 'app.js', 'data.js', 'race.js',
+const CACHE = 'logostype-v38';
+const ASSETS = ['./', 'index.html', 'reading.html', 'reading.js', 'app.js', 'data.js', 'race.js',
   'scripture-references.js', 'scripture-text.js', 'vendor/peerjs.min.js',
   'pwa.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
@@ -28,7 +28,7 @@ self.addEventListener('fetch', event => {
   if (!asset && event.request.mode !== 'navigate') return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    const cached = await cache.match(new URL(event.request.mode === 'navigate' ? 'index.html' : asset, root));
+    const cached = await cache.match(new URL(asset || 'index.html', root));
     return cached || fetch(event.request);
   })());
 });
