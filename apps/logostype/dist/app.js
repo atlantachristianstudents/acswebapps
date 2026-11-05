@@ -218,6 +218,9 @@ $('#chart').addEventListener('pointermove',event=>{
 $('#chart').addEventListener('pointerleave',hideChartHover);
 $('#chart').addEventListener('pointercancel',hideChartHover);
 window.addEventListener('resize',()=>{hideChartHover();if(done&&!$('#chart').hidden)drawChart()});
+input.addEventListener('keydown',event=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))event.preventDefault();
+});
 input.addEventListener('beforeinput',event=>{
   if(mode==='book'&&event.inputType.startsWith('insert')&&input.value.length>=target.length&&input.selectionStart===input.selectionEnd)event.preventDefault();
 });
