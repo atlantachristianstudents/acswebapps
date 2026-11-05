@@ -28,7 +28,7 @@ window.APPS = [
     icon: "A",
     tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/big-text/index.html"
+    url: "apps/big-text"
   },
   {
     id: "verses",
@@ -37,7 +37,7 @@ window.APPS = [
     icon: "📖",
     tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/verses/index.html"
+    url: "apps/verses"
   },
   {
     id: "tunes",
@@ -46,7 +46,7 @@ window.APPS = [
     icon: "🎸",
     tags: ["Worship", "Music"],
     status: "live",
-    url: "apps/tunes/index.html"
+    url: "apps/tunes"
   },
   {
     id: "songs",
@@ -56,6 +56,6 @@ window.APPS = [
     iconUrl: "apps/songs/icons/icon.svg",
     tags: ["Worship", "Music", "Presentation"],
     status: "live",
-    url: "apps/songs/index.html"
+    url: "apps/songs"
   }
 ];
