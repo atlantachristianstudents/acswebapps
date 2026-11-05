@@ -40,7 +40,8 @@ function openJourneyReader(){
     return '<button type="button" data-reading-journey="'+escapeHtml(name)+'" class="'+(name?(index<=39?'old-testament':'new-testament'):'entire-journey')+'" '+(available?'':'disabled')+'>'+escapeHtml(name||'entire Scriptures')+'<small>'+(available?journey.progress.toLocaleString()+' verses completed':'No completed verses')+'</small></button>';
   }).join('')+'</div>';
   $('.journey-grid').onclick=event=>{const button=event.target.closest('[data-reading-journey]');if(button&&!button.disabled)location.hash=encodeURIComponent(button.dataset.readingJourney||'entire')};
-  $('#readingContent').focus();
+  $('#readingContent').focus({preventScroll:true});
+  window.scrollTo(0,0);
 }
 function openReadingJourney(name){
   const journey=readingJourney(name);if(!journey.progress)return;
@@ -65,7 +66,8 @@ function openReadingJourney(name){
     showReadingChapter(0);
   }
   content.insertAdjacentHTML('beforeend','<a href="index.html" class="option">← back to typing</a>');
-  $('#readingContent').focus();
+  $('#readingContent').focus({preventScroll:true});
+  window.scrollTo(0,0);
 }
 function showReadingChapter(index){
   readingChapter=Math.max(0,Math.min(readingChapters.length-1,index));

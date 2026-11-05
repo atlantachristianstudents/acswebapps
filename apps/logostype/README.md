@@ -47,3 +47,5 @@ The reading page keeps the main menu: Scripture Journey, the highlighted glasses
 On the reading page, **N/P** move to the next/previous completed chapter and **Shift+N/Shift+P** move to the next/previous available book. Entire Scriptures stays within its completed portion; individual book views skip locked books. Shortcuts leave inputs and chapter selectors to their normal keyboard behavior.
 
 Under settings → **your data**, choose the alert-colored **clear saved data** button and confirm in the theme-matched dialog to delete this browser’s Logostype name, theme, history and records, journey progress, completions, and typing-time totals. Export a backup first to keep a copy. Other apps’ browser data and downloaded backups are left intact. Leave any active race room before clearing data.
+
+Opening the reading page or switching between its grid and book views starts at the top without focus scrolling the menu out of view. The header uses the same desktop and mobile spacing as the typing page.

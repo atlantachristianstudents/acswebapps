@@ -1,5 +1,5 @@
 // Bump the version whenever a cached app asset changes.
-const CACHE = 'logostype-v40';
+const CACHE = 'logostype-v41';
 const ASSETS = ['./', 'index.html', 'reading.html', 'reading.js', 'app.js', 'data.js', 'race.js',
   'scripture-references.js', 'scripture-text.js', 'vendor/peerjs.min.js',
   'pwa.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
