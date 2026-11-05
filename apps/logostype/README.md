@@ -10,6 +10,8 @@ Scripture Journey also shows cumulative **time spent typing (successful attempts
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
+When a space is expected, other characters appear as red extra letters after the preceding word. The typing position stays at that space until you type a space. Backspace removes the extra letters; Scripture Journey and races require removing all extras before completion.
+
 Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
 Time, word-count, and quote test results list the Scripture references reached beneath the WPM graph. Each verse is labeled fully or partially typed based on how much of the verse was covered, including verses cut short by the word limit. These labels describe coverage; accuracy is reported separately. Custom text and friend races do not show inferred verse references.
