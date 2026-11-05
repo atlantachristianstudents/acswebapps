@@ -8,21 +8,23 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
+| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/dist/) | Type Scripture in timed tests or Scripture Journeys, save per-verse WPM and progress, export backups, and race friends online. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Paste text or import a file, PDF, or URL, recall it on a blank page, then check missing, changed, and extra words. Optional Test mode requests full-screen, accepts Shift + Command + Enter to submit, and requires a passcode to restart or edit. | beta |
-| [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | live |
+| [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | beta |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
 | [Verse Lookup](https://atlantachristianstudents.github.io/adless/apps/verses/) | Look up Bible verses and display them full-screen for projectors and livestreams, with external-display support. | live |
+| [Songbook](https://atlantachristianstudents.github.io/adless/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Works offline after the first sync. | beta |
 
 ## Features
 
 - No accounts, no tracking, no ads — everything runs in the browser.
-- The home page and every app are installable PWAs with service workers; after the first visit they work offline.
+- The home page and apps are installable PWAs with service workers. Once their assets are cached, core features work offline; Songbook also needs an initial catalog sync.
 - Light/dark themes on the home page; per-app theming inside each app.
-- Everything is stored on the device; nothing is uploaded anywhere.
+- Progress, settings, and saved content are stored on the device. Online features include Logos Type friend races, Songbook catalog sync, and Memorize URL imports; URL imports contact the source website without uploading your reference or answers.
 
 ## Technologies
 
-Plain HTML, CSS, and JavaScript. No frameworks, no build system, no npm dependencies. Hosted on GitHub Pages.
+Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. No build system or npm installation is required. Memorize bundles PDF.js for local PDF imports, and Logos Type bundles PeerJS for friend races. The home page loads Inter from Google Fonts.
 
 ## Project structure
 
@@ -40,13 +42,15 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  logostype/               Scripture typing; runnable app files are in dist/
   memorize/                Memorization practice with word comparison
   big-text/                Big Text app (full-screen hymn numbers and text)
   tunes/                   Tuner app (microphone, metronome, tone generator)
   verses/                  Verse Lookup app (verse presenter)
+  songs/                   Songbook (catalog, songbooks, lyrics presentation)
 ```
 
-Each app folder contains `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`.
+Most app folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. Logos Type keeps its runnable files in `apps/logostype/dist/`, with its README one level above. That folder is served directly; no build step is needed.
 
 ## Requirements
 
@@ -64,7 +68,7 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-Editing any file takes effect after a reload. For service-worker changes, see the note below about cache versions.
+Reload after editing. A service worker may continue serving cached files; see the cache-version guidance below. To open Logos Type locally, visit <http://localhost:8000/apps/logostype/dist/>.
 
 ## Adding a new app
 
@@ -85,13 +89,13 @@ Editing any file takes effect after a reload. For service-worker changes, see th
 
 4. Commit and push. The card appears on the home page automatically.
 
-Statuses: `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere.
+Statuses: `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination, as Logos Type does for its `dist/` folder.
 
 ### Service-worker cache versions
 
 The home page has its own `sw.js` (`VERSION` = `adless-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
 
-Every app's `sw.js` has a `VERSION` string (e.g. `"verse-lookup-v7"`). **Bump it whenever you change an app's `index.html` or the files listed in `FILES`**, otherwise installed devices keep serving the old cached version. Update the `FILES` list if the app gains new files.
+Every app's `sw.js` has a cache-version string, usually `VERSION` (e.g. `"verse-lookup-v7"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/dist/sw.js`; Tuner uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
 
 ## Deploying on GitHub Pages
 

@@ -38,7 +38,7 @@ window.APPS = [
     description: "Display hymn number or text in full-screen seemlessly.",
     icon: "A",
     tags: ["Worship", "Presentation"],
-    status: "live",
+    status: "beta",
     url: "apps/big-text"
   },
   {
@@ -66,7 +66,7 @@ window.APPS = [
     icon: "🎵",
     iconUrl: "apps/songs/icons/icon.svg",
     tags: ["Worship", "Music", "Presentation"],
-    status: "live",
+    status: "beta",
     url: "apps/songs"
   }
 ];
