@@ -210,9 +210,9 @@
     gaveUp=true;$('#giveUpRace').hidden=true;finish();
   };
   $('#friends').onclick=open;$('#leaveRace').onclick=requestLeave;
-  for(const button of [$('#home'),$('.brand')])button.onclick=()=>{
-    if(api.active){requestLeave(enterTyping);return;}
-    enterTyping();
+  for(const [button,destination] of [[$('#home'),enterTyping],[$('.brand'),enterBook]])button.onclick=()=>{
+    if(api.active){requestLeave(destination);return;}
+    destination();
   };
   window.addEventListener('beforeunload',event=>{
     if(!api.active)return;

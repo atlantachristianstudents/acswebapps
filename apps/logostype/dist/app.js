@@ -226,7 +226,7 @@ function completeBookVerse(){
   $('#again').setAttribute('aria-label',$('#again').title);
   return passed;
 }
-let mode='time',limit=15,punctuation=false,capitalization=false,target='',rawTarget='',typed='',start=0,timer=null,done=false,total=0,errors=0,samples=[],instantSamples=[],rawSamples=[],sampleTimes=[],mistakeEvents=[],recentCorrect=[],custom='And when he sits on the throne of his kingdom, he shall write out for himself a copy of this law in a book, out of [that which is] before the Levitical priests.',history=[];try{history=JSON.parse(localStorage.getItem('logostype-history')||'[]')}catch{}const input=$('#typing');function limits(){const values=mode==='time'?[15,30,60,120]:[10,25,50,100];$('#limits').innerHTML=mode==='quote'||mode==='custom'||mode==='book'?'':values.map(n=>`<button data-limit="${n}" class="${n===limit?'active':''}">${n}</button>`).join('')+(mode==='time'?`<button data-duration class="${values.includes(limit)?'':'active'}" aria-label="Custom time duration">${values.includes(limit)?'custom':limit+'s ✎'}</button>`:'')}let testPassages=[];
+let mode='book',limit=15,punctuation=false,capitalization=false,target='',rawTarget='',typed='',start=0,timer=null,done=false,total=0,errors=0,samples=[],instantSamples=[],rawSamples=[],sampleTimes=[],mistakeEvents=[],recentCorrect=[],custom='And when he sits on the throne of his kingdom, he shall write out for himself a copy of this law in a book, out of [that which is] before the Levitical priests.',history=[];try{history=JSON.parse(localStorage.getItem('logostype-history')||'[]')}catch{}const input=$('#typing');function limits(){const values=mode==='time'?[15,30,60,120]:[10,25,50,100];$('#limits').innerHTML=mode==='quote'||mode==='custom'||mode==='book'?'':values.map(n=>`<button data-limit="${n}" class="${n===limit?'active':''}">${n}</button>`).join('')+(mode==='time'?`<button data-duration class="${values.includes(limit)?'':'active'}" aria-label="Custom time duration">${values.includes(limit)?'custom':limit+'s ✎'}</button>`:'')}let testPassages=[];
 function generate(append=false){
   let passage='',sources=[];
   if(mode==='book'){const journey=currentJourney();passage=journey.progress<journey.end-journey.start?scriptureLines[journeyPosition()]||'':'';}
@@ -388,7 +388,7 @@ input.addEventListener('input',()=>{if(done){input.value=lastInput;return}if(win
     reset();
     input.focus();
   }else finish();
-}});$('.test').onclick=()=>input.focus();$('#restart').onclick=restartTest;$('#again').onclick=$('#home').onclick=$('.brand').onclick=()=>{reset();input.focus()};$('#modes').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;limit=m==='time'?15:25;$('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));if(m==='custom')openModal('custom');reset()};$('#limits').onclick=e=>{if(e.target.hasAttribute('data-duration')){openModal('duration');return}if(e.target.dataset.limit){limit=+e.target.dataset.limit;reset()}};for(const [id,getValue,toggle] of [
+}});$('.test').onclick=()=>input.focus();$('#restart').onclick=restartTest;$('#again').onclick=()=>{reset();input.focus()};$('#home').onclick=()=>{if(window.friendRace?.active){window.friendRace.requestLeave(enterTyping);return}enterTyping()};$('.brand').onclick=()=>$('#book').click();$('#modes').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;limit=m==='time'?15:25;$('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));if(m==='custom')openModal('custom');reset()};$('#limits').onclick=e=>{if(e.target.hasAttribute('data-duration')){openModal('duration');return}if(e.target.dataset.limit){limit=+e.target.dataset.limit;reset()}};for(const [id,getValue,toggle] of [
   ['punct',()=>punctuation,()=>punctuation=!punctuation],
   ['capitalization',()=>capitalization,()=>capitalization=!capitalization]
 ]){
@@ -487,6 +487,7 @@ function openReadingPage(){
 
 function openMenuDestination(){
   if(location.hash==='#journey')enterBook();
+  if(location.hash==='#typing')enterTyping();
   if(location.hash==='#friends')$('#friends').click();
   if(location.hash==='#settings')openModal('settings');
 }
