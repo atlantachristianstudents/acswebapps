@@ -42,8 +42,8 @@ The left Scripture Journey bar tracks completed words as a share of all words in
 
 **Read the scriptures you typed** lives at `dist/reading.html` with its own `reading.js`. Its book grid and chapter views stay on that page; book choices have links that can be bookmarked and support browser back/forward. Both files are cached for offline reading.
 
-The reading page keeps the main menu: typing, Scripture Journey, the highlighted glasses icon, races, and the right-aligned settings cog. Menu links return directly to the selected section of the typing app.
+The reading page keeps the main menu: Scripture Journey, the highlighted glasses icon, typing, races, and the right-aligned settings cog. Menu links return directly to the selected section of the typing app.
 
 On the reading page, **N/P** move to the next/previous completed chapter and **Shift+N/Shift+P** move to the next/previous available book. Entire Scriptures stays within its completed portion; individual book views skip locked books. Shortcuts leave inputs and chapter selectors to their normal keyboard behavior.
 
-Under settings → **your data**, choose **clear saved data** and confirm to delete this browser’s Logostype name, theme, history and records, journey progress, completions, and typing-time totals. Export a backup first to keep a copy. Other apps’ browser data and downloaded backups are left intact. Leave any active race room before clearing data.
+Under settings → **your data**, choose the alert-colored **clear saved data** button and confirm in the theme-matched dialog to delete this browser’s Logostype name, theme, history and records, journey progress, completions, and typing-time totals. Export a backup first to keep a copy. Other apps’ browser data and downloaded backups are left intact. Leave any active race room before clearing data.

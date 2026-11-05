@@ -134,7 +134,13 @@ document.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button)return;
   if(button.id==='clearData'){
     if(window.friendRace?.active){dataStatus('Leave the race room before clearing saved data.');return}
-    if(!window.confirm('Clear all Logostype data on this browser? This deletes your name, theme, typing history, records, journey progress, completion dates, and time totals. Export a backup first if you want to keep them. This cannot be undone.'))return;
+    $('#clearDataDialog').showModal();
+  }
+  if(button.id==='cancelClearData')$('#clearDataDialog').close();
+  if(button.id==='confirmClearData'){
+    if(!$('#clearDataDialog').open)return;
+    $('#clearDataDialog').close();
+    if(window.friendRace?.active){dataStatus('Leave the race room before clearing saved data.');return}
     try{
       const keys=Object.keys(localStorage).filter(key=>key.startsWith('logostype-'));
       const previous=keys.map(key=>localStorage.getItem(key));
