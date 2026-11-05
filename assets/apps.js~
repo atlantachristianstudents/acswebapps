@@ -13,6 +13,16 @@
  */
 window.APPS = [
   {
+    id: "logostype",
+    name: "Logos Type",
+    description: "Type the scriptures. No account required; your results stay in this browser.",
+    icon: "⌨",
+    iconUrl: "apps/logostype/icons/icon.svg",
+    tags: ["Study", "Memory"],
+    status: "live"
+    url: "apps/logostypes"
+  },
+  {
     id: "memorize",
     name: "Memorize",
     description: "Type a passage from memory on a blank page, then check missing, changed, and extra words. Works offline.",
@@ -20,6 +30,7 @@ window.APPS = [
     iconUrl: "apps/memorize/icons/icon.svg",
     tags: ["Study", "Memory"],
     status: "beta"
+    url: "apps/memorize"
   },
   {
     id: "big-text",
