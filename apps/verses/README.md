@@ -14,6 +14,7 @@ Open the address once while online; the app caches itself. After that it works w
 ## Notes
 
 - Your verse text file is chosen once and stored on that device, just like the single-file version.
+- On the start screen, **Load Recovery Version** fetches the Recovery Version text (hosted separately) and stores it on the device like any other version.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 
 ## External display

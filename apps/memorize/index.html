@@ -1,611 +1,1633 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Memorize — Adless</title>
-<meta name="description" content="Practice recalling any text on a blank page, then check your words.">
-<meta name="theme-color" content="#31634d">
-<meta name="color-scheme" content="light dark">
-<link rel="icon" href="icons/icon.svg">
-<link rel="manifest" href="manifest.webmanifest">
-<style>
-:root { color-scheme: light dark; --bg:#f5f5ef; --panel:#fff; --text:#202e28; --muted:#58685f; --line:#cbd5cc; --accent:#31634d; --on-accent:#fff; --good:#e1f1e6; --bad:#fbe4df; --bad-text:#8d2e22; }
-@media(prefers-color-scheme:dark) { :root { --bg:#141c18; --panel:#1c2821; --text:#edf3ee; --muted:#afbeb3; --line:#45574b; --accent:#abd7b9; --on-accent:#132d20; --good:#233f2c; --bad:#482923; --bad-text:#ffb6a6; } }
-* { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,sans-serif; }
-header { max-width:860px; margin:auto; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); }
-a { color:var(--accent); } header span { color:var(--muted); font-size:.85rem; }
-main { max-width:800px; margin:auto; padding:40px 24px 64px; }
-h1 { font-size:clamp(2rem,6vw,3rem); letter-spacing:-.05em; line-height:1.15; margin:0 0 12px; }
-h2 { font-size:1.35rem; margin:0 0 12px; }
-p { margin:0 0 20px; } .muted { color:var(--muted); } .eyebrow { text-transform:uppercase; letter-spacing:.15em; font-size:.75rem; font-weight:700; color:var(--accent); margin-bottom:12px; }
-label { display:block; font-weight:600; margin-bottom:8px; }
-textarea { display:block; width:100%; min-height:280px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:20px; background:var(--panel); color:var(--text); font:1.1rem/1.8 system-ui,sans-serif; }
-textarea:focus,button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
-.options { display:flex; flex-wrap:wrap; gap:12px 24px; margin:20px 0; } .options label { font-size:.9rem; font-weight:400; margin:0; } input { accent-color:var(--accent); }
-.actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
-input[type="password"], #import-url { width:100%; max-width:360px; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--text); font:inherit; }
-.url-import { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-button { border:1px solid var(--accent); border-radius:9px; background:var(--accent); color:var(--on-accent); padding:12px 20px; cursor:pointer; font:600 1rem system-ui,sans-serif; }
-button.secondary { color:var(--accent); background:transparent; }
-.note { font-size:.85rem; margin-top:12px; color:var(--muted); }
-.error { color:var(--bad-text); margin-top:12px; }
-.summary { padding:24px; background:var(--good); border-radius:12px; margin:24px 0; } .summary strong { display:block; font-size:2.4rem; line-height:1.3; }
-.comparison { background:var(--panel); border:1px solid var(--line); padding:20px; border-radius:12px; line-height:2.1; overflow-wrap:anywhere; }
-.comparison del { background:var(--bad); color:var(--bad-text); text-decoration:line-through; padding:2px 3px; }
-.comparison ins { background:var(--good); text-decoration:underline; padding:2px 3px; }
-[hidden] { display:none !important; }
-.recalling { overflow:hidden; }
-.recalling > header, .recalling #practice > :not(form) { display:none; }
-.recalling main { max-width:none; margin:0; padding:0; }
-.recalling #practice { height:100vh; height:100dvh; }
-.recalling label[for="answer"], .recalling #answer-note { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.recalling #answer { position:fixed; inset:0; width:100%; height:100vh; height:100dvh; min-height:0; resize:none; border:0; border-radius:0; outline:none; padding:clamp(20px,4vw,48px); padding-bottom:100px; background:var(--bg); }
-.recalling #recall-actions { position:fixed; right:20px; bottom:16px; margin:0; gap:8px; }
-.recalling #recall-actions button { padding:8px 12px; font-size:.85rem; }
-.recalling #test-active-note { position:fixed; right:20px; bottom:12px; margin:0; font-size:.75rem; pointer-events:none; }
-.recalling #fullscreen-note, .recalling #answer-error { position:fixed; left:20px; right:20px; bottom:44px; margin:0; font-size:.8rem; pointer-events:none; }
-.recalling #answer-error:empty { display:none; }
-.recalling #answer-error:not(:empty) ~ #recall-actions { bottom:44px; }
-@media(max-width:480px) { main { padding-top:28px; } header span { display:none; } textarea { min-height:320px; } }
-</style>
-</head>
-<body>
-<header><a href="../../">← Adless</a><span>A little practice. A stronger memory.</span></header>
-<main>
-<section id="setup">
-<p class="eyebrow">Memorize / 01 · Prepare</p>
-<h1>Make the words your own.</h1>
-<p class="muted">Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.</p>
-<form id="setup-form">
-<label for="import-file">Import a text file or PDF (optional)</label>
-<input type="file" id="import-file" accept=".txt,.md,.text,.pdf,text/plain,text/markdown,application/pdf" aria-describedby="import-note">
-<p class="note" id="import-note">Choose a UTF-8 text file or a PDF with selectable text. Files stay on your device. Scanned PDFs need OCR first. Review the imported text before beginning.</p>
-<label for="import-url">Import from a URL (optional)</label>
-<div class="url-import">
-<input type="text" id="import-url" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/passage" aria-describedby="url-note">
-<button type="button" class="secondary" id="import-url-button">Import URL</button>
-</div>
-<p class="note" id="url-note">Import a web page, text file, or PDF. The website must allow browser access. If it blocks importing, download the file or paste the text instead.</p>
-<p class="note" id="import-status" role="status"></p>
-<label for="reference">Text to memorize</label>
-<textarea id="reference" placeholder="Paste or type your reference text here…" required aria-describedby="save-note"></textarea>
-<p class="note" id="save-note">Your reference and settings are saved on this device when storage is available.</p>
-<div class="options">
-<label><input type="checkbox" id="ignore-case" checked> Ignore capitalization</label>
-<label><input type="checkbox" id="ignore-punctuation" checked> Ignore punctuation</label>
-</div>
-<p class="note">Spacing and line breaks are always ignored.</p>
-<div class="options"><label><input type="checkbox" id="test-mode"> Test — lock this attempt with a passcode</label></div>
-<div id="test-options" hidden>
-<label for="test-passcode">Set a test passcode</label>
-<input type="password" id="test-passcode" autocomplete="new-password" aria-describedby="test-note">
-<p class="note" id="test-note">Once started, you can only submit your recall. After results, this passcode is required to restart or return to import. Keep it safe; refreshing does not unlock the test.</p>
-</div>
-<p id="setup-error" class="error" role="alert"></p>
-<button type="submit" id="begin">Begin practice →</button>
-</form>
-</section>
-<section id="practice" hidden>
-<p class="eyebrow">Memorize / 02 · Recall</p>
-<h1 id="practice-heading" tabindex="-1">Start with a blank page.</h1>
-<p class="muted">Take your time. Write what you remember, then check your recall.</p>
-<form id="practice-form">
-<label for="answer">Your recall</label>
-<textarea id="answer" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="answer-note"></textarea>
-<p class="note" id="answer-note">No hints or checking until you submit.</p>
-<p class="note" id="test-active-note" hidden><strong>Shift + Command + Enter (⇧⌘↵)</strong> to submit</p>
-<p class="note" id="fullscreen-note" role="status" hidden></p>
-<p id="answer-error" class="error" role="alert"></p>
-<div class="actions" id="recall-actions"><button type="submit">Check my recall</button><button type="button" class="secondary" id="edit">Edit reference</button></div>
-</form>
-</section>
-<section id="results" hidden>
-<p class="eyebrow">Memorize / 03 · Reflect</p>
-<h1 id="results-heading" tabindex="-1">Here’s how you did.</h1>
-<div class="summary" role="status"><strong id="score"></strong><span id="counts"></span></div>
-<h2>Your words, checked</h2>
-<p class="muted">Crossed out = extra or incorrect words you typed. Underlined = words to add from the reference.</p>
-<div id="comparison" class="comparison"></div>
-<p class="note" id="scoring-note"></p>
-<div class="actions" id="practice-results-actions"><button type="button" id="retry">Try again →</button><button type="button" class="secondary" id="change">Edit reference</button></div>
-<form id="unlock-form" hidden>
-<label for="unlock-passcode">Test passcode</label>
-<input type="password" id="unlock-passcode" autocomplete="off" required aria-describedby="unlock-note">
-<p class="note" id="unlock-note">Enter the passcode to restart this test or return to the import page.</p>
-<p class="error" id="unlock-error" role="alert"></p>
-<div class="actions"><button type="submit" name="action" value="restart">Restart test</button><button type="submit" name="action" value="import" class="secondary">Return to import</button></div>
-</form>
-</section>
-</main>
-<script>
-(function () {
-  'use strict';
-  const $ = id => document.getElementById(id);
-  const storageKey = 'adless-memorize-v1';
-  const testStorageKey = 'adless-memorize-test-v1';
-  let test = null;
-  let phase = 'setup';
-  let starting = false;
-  let unlocking = false;
-  let shortcutSubmit = false;
-  let requestingFullscreen = false;
-  function lockedRecall() { return !!test && phase === 'practice'; }
-  function updateFullscreenNote() {
-    const note = $('fullscreen-note');
-    note.hidden = !lockedRecall() || !!document.fullscreenElement;
-    note.textContent = document.documentElement.requestFullscreen ?
-      'Full-screen is off. Press a typing key to request full-screen again.' :
-      'Full-screen is unavailable in this browser. The test remains locked.';
-  }
-  function enterFullscreen() {
-    if (document.fullscreenElement || requestingFullscreen || !document.documentElement.requestFullscreen) return;
-    requestingFullscreen = true;
-    try {
-      Promise.resolve(document.documentElement.requestFullscreen()).catch(() => {}).finally(() => {
-        requestingFullscreen = false;
-        updateFullscreenNote();
-      });
-    } catch (_) { requestingFullscreen = false; updateFullscreenNote(); }
-  }
-  document.addEventListener('fullscreenchange', updateFullscreenNote);
-  document.addEventListener('keydown', event => {
-    if (!lockedRecall()) return;
-    if (event.isComposing || event.keyCode === 229) return;
-    if (event.key !== 'Escape' && event.isTrusted) enterFullscreen();
-    if (event.metaKey && event.shiftKey && !event.ctrlKey && !event.altKey && event.key === 'Enter') {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (!event.repeat) {
-        shortcutSubmit = true;
-        try { $('practice-form').requestSubmit(); }
-        finally { shortcutSubmit = false; }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Memorize — Adless</title>
+    <meta name="description" content="Practice recalling any text on a blank page, then check your words." />
+    <meta name="theme-color" content="#31634d" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="icons/icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f5ef;
+        --panel: #fff;
+        --text: #202e28;
+        --muted: #58685f;
+        --line: #cbd5cc;
+        --accent: #31634d;
+        --on-accent: #fff;
+        --good: #e1f1e6;
+        --bad: #fbe4df;
+        --bad-text: #8d2e22;
       }
-      return;
-    }
-    const typingKey = event.key.length === 1 || ['Enter', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight',
-      'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Dead', 'Process', 'Shift', 'CapsLock'].includes(event.key);
-    if (event.metaKey || event.ctrlKey || event.altKey || !typingKey) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    } else if (document.activeElement !== $('answer')) $('answer').focus();
-  }, true);
-  for (const name of ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'auxclick', 'contextmenu',
-    'dragstart', 'dragover', 'drop', 'paste', 'copy', 'cut']) {
-    document.addEventListener(name, event => {
-      if (!lockedRecall()) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      $('answer').focus();
-    }, true);
-  }
-  document.addEventListener('focusin', event => {
-    if (lockedRecall() && event.target !== $('answer')) $('answer').focus();
-  });
-  $('answer').addEventListener('beforeinput', event => {
-    if (lockedRecall() && ['insertFromPaste', 'insertFromDrop', 'historyUndo', 'historyRedo'].includes(event.inputType)) event.preventDefault();
-  });
-  let expected = [];
-  let importing = false;
-  let pdfScripts;
-  function loadPdfScripts() {
-    if (!pdfScripts) {
-      pdfScripts = (async () => {
-        for (const name of ['pdf.worker', 'pdf', 'resources']) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'vendor/pdfjs/' + name + '.js';
-            script.onload = resolve;
-            script.onerror = () => { script.remove(); reject(new Error('Unable to load the PDF reader. Reopen the app online once, then try again.')); };
-            document.head.append(script);
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141c18;
+          --panel: #1c2821;
+          --text: #edf3ee;
+          --muted: #afbeb3;
+          --line: #45574b;
+          --accent: #abd7b9;
+          --on-accent: #132d20;
+          --good: #233f2c;
+          --bad: #482923;
+          --bad-text: #ffb6a6;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.6 system-ui,
+          sans-serif;
+      }
+
+      header {
+        max-width: 860px;
+        margin: auto;
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      header span {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      main {
+        max-width: 800px;
+        margin: auto;
+        padding: 40px 24px 64px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 6vw, 3rem);
+        letter-spacing: -0.05em;
+        line-height: 1.15;
+        margin: 0 0 12px;
+      }
+
+      h2 {
+        font-size: 1.35rem;
+        margin: 0 0 12px;
+      }
+
+      p {
+        margin: 0 0 20px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 12px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      textarea {
+        display: block;
+        width: 100%;
+        min-height: 280px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        background: var(--panel);
+        color: var(--text);
+        font:
+          1.1rem/1.8 system-ui,
+          sans-serif;
+      }
+
+      textarea:focus,
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        margin: 20px 0;
+      }
+
+      .options label {
+        font-size: 0.9rem;
+        font-weight: 400;
+        margin: 0;
+      }
+
+      input {
+        accent-color: var(--accent);
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      input[type="password"],
+      #import-url {
+        width: 100%;
+        max-width: 360px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+      }
+
+      .url-import {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      button {
+        border: 1px solid var(--accent);
+        border-radius: 9px;
+        background: var(--accent);
+        color: var(--on-accent);
+        padding: 12px 20px;
+        cursor: pointer;
+        font:
+          600 1rem system-ui,
+          sans-serif;
+      }
+
+      button.secondary {
+        color: var(--accent);
+        background: transparent;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .note {
+        font-size: 0.85rem;
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: var(--bad-text);
+        margin-top: 12px;
+      }
+
+      .summary {
+        padding: 24px;
+        background: var(--good);
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .summary strong {
+        display: block;
+        font-size: 2.4rem;
+        line-height: 1.3;
+      }
+
+      .comparison {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 20px;
+        border-radius: 12px;
+        line-height: 2.1;
+        overflow-wrap: anywhere;
+      }
+
+      .comparison del {
+        background: var(--bad);
+        color: var(--bad-text);
+        text-decoration: line-through;
+        padding: 2px 3px;
+      }
+
+      .comparison ins {
+        background: var(--good);
+        text-decoration: underline;
+        padding: 2px 3px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .recalling {
+        overflow: hidden;
+      }
+
+      .recalling > header,
+      .recalling #practice > :not(form) {
+        display: none;
+      }
+
+      .recalling main {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .recalling #practice {
+        height: 100vh;
+        height: 100dvh;
+      }
+
+      .recalling label[for="answer"],
+      .recalling #answer-note {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .recalling #answer {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        resize: none;
+        border: 0;
+        border-radius: 0;
+        outline: none;
+        padding: clamp(20px, 4vw, 48px);
+        padding-bottom: 100px;
+        background: var(--bg);
+      }
+
+      .recalling #recall-actions {
+        position: fixed;
+        right: 20px;
+        bottom: 16px;
+        margin: 0;
+        gap: 8px;
+      }
+
+      .recalling #recall-actions button {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+      }
+
+      .recalling #test-active-note {
+        position: fixed;
+        right: 20px;
+        bottom: 12px;
+        margin: 0;
+        font-size: 0.75rem;
+        pointer-events: none;
+      }
+
+      .recalling #fullscreen-note,
+      .recalling #answer-error {
+        position: fixed;
+        left: 20px;
+        right: 20px;
+        bottom: 44px;
+        margin: 0;
+        font-size: 0.8rem;
+        pointer-events: none;
+      }
+
+      .recalling #answer-error:empty {
+        display: none;
+      }
+
+      .recalling #answer-error:not(:empty) ~ #recall-actions {
+        bottom: 44px;
+      }
+
+      @media (max-width: 480px) {
+        main {
+          padding-top: 28px;
+        }
+
+        header span {
+          display: none;
+        }
+
+        textarea {
+          min-height: 320px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <a href="../../">← Adless</a>
+      <span>A little practice. A stronger memory.</span>
+    </header>
+
+    <main>
+      <section id="setup">
+        <p class="eyebrow">Memorize / 01 · Prepare</p>
+        <h1>Make the words your own.</h1>
+        <p class="muted">
+          Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.
+        </p>
+
+        <form id="setup-form">
+          <label for="import-file">Import a text file or PDF (optional)</label>
+          <input
+            type="file"
+            id="import-file"
+            accept=".txt,.md,.text,.pdf,text/plain,text/markdown,application/pdf"
+            aria-describedby="import-note" />
+
+          <p class="note" id="import-note">
+            Choose a UTF-8 text file or a PDF with selectable text. Files stay on your device. Scanned PDFs need OCR
+            first. Review the imported text before beginning.
+          </p>
+
+          <label for="import-url">Import from a URL (optional)</label>
+          <div class="url-import">
+            <input
+              type="text"
+              id="import-url"
+              inputmode="url"
+              autocomplete="url"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="https://example.com/passage"
+              aria-describedby="url-note" />
+            <button type="button" class="secondary" id="import-url-button">Import URL</button>
+          </div>
+
+          <p class="note" id="url-note">
+            Import a web page, text file, or PDF. The website must allow browser access. If it blocks importing,
+            download the file or paste the text instead.
+          </p>
+
+          <p class="note" id="import-status" role="status"></p>
+
+          <label for="reference">Text to memorize</label>
+          <textarea
+            id="reference"
+            placeholder="Paste or type your reference text here…"
+            required
+            aria-describedby="save-note"></textarea>
+
+          <p class="note" id="save-note">
+            Your reference and settings are saved on this device when storage is available.
+          </p>
+
+          <div class="options">
+            <label>
+              <input type="checkbox" id="ignore-case" checked />
+              Ignore capitalization
+            </label>
+            <label>
+              <input type="checkbox" id="ignore-punctuation" checked />
+              Ignore punctuation
+            </label>
+          </div>
+
+          <p class="note">Spacing and line breaks are always ignored.</p>
+
+          <div class="options">
+            <label>
+              <input type="checkbox" id="test-mode" />
+              Test — lock this attempt with a passcode
+            </label>
+          </div>
+
+          <div id="test-options" hidden>
+            <label for="test-passcode">Set a test passcode</label>
+            <input type="password" id="test-passcode" autocomplete="new-password" aria-describedby="test-note" />
+            <p class="note" id="test-note">
+              Once started, you can only submit your recall. After results, this passcode is required to restart or
+              return to import. Keep it safe; refreshing does not unlock the test.
+            </p>
+          </div>
+
+          <p id="setup-error" class="error" role="alert"></p>
+          <button type="submit" id="begin">Begin practice →</button>
+        </form>
+      </section>
+
+      <section id="practice" hidden>
+        <p class="eyebrow">Memorize / 02 · Recall</p>
+        <h1 id="practice-heading" tabindex="-1">Start with a blank page.</h1>
+        <p class="muted">Take your time. Write what you remember, then check your recall.</p>
+
+        <form id="practice-form">
+          <label for="answer">Your recall</label>
+          <textarea
+            id="answer"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            aria-describedby="answer-note"></textarea>
+
+          <p class="note" id="answer-note">No hints or checking until you submit.</p>
+
+          <p class="note" id="test-active-note" hidden><strong>Shift + Ctrl / Command + Enter</strong> to submit</p>
+
+          <p class="note" id="fullscreen-note" role="status" hidden></p>
+          <p id="answer-error" class="error" role="alert"></p>
+
+          <div class="actions" id="recall-actions">
+            <button type="submit">Check my recall</button>
+            <button type="button" class="secondary" id="edit">Edit reference</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="results" hidden>
+        <p class="eyebrow">Memorize / 03 · Reflect</p>
+        <h1 id="results-heading" tabindex="-1">Here's how you did.</h1>
+
+        <div class="summary" role="status">
+          <strong id="score"></strong>
+          <span id="counts"></span>
+        </div>
+
+        <h2>Your words, checked</h2>
+        <p class="muted">
+          Crossed out = extra or incorrect words you typed. Underlined = words to add from the reference.
+        </p>
+
+        <div id="comparison" class="comparison"></div>
+        <p class="note" id="scoring-note"></p>
+
+        <div class="actions" id="practice-results-actions">
+          <button type="button" id="retry">Try again →</button>
+          <button type="button" class="secondary" id="change">Edit reference</button>
+        </div>
+
+        <form id="unlock-form" hidden>
+          <label for="unlock-passcode">Test passcode</label>
+          <input type="password" id="unlock-passcode" autocomplete="off" required aria-describedby="unlock-note" />
+
+          <p class="note" id="unlock-note">Enter the passcode to restart this test or return to the import page.</p>
+
+          <p class="error" id="unlock-error" role="alert"></p>
+
+          <div class="actions">
+            <button type="submit" name="action" value="restart">Restart test</button>
+            <button type="submit" name="action" value="import" class="secondary">Return to import</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const $ = (id) => document.getElementById(id);
+
+        const storageKey = "adless-memorize-v1";
+        const testStorageKey = "adless-memorize-test-v1";
+
+        let test = null;
+        let phase = "setup";
+        let starting = false;
+        let unlocking = false;
+        let requestingFullscreen = false;
+
+        let expected = [];
+        let importing = false;
+        let pdfScripts;
+
+        function lockedRecall() {
+          return !!test && phase === "practice";
+        }
+
+        function updateFullscreenNote() {
+          const note = $("fullscreen-note");
+
+          note.hidden = !lockedRecall() || !!document.fullscreenElement;
+
+          note.textContent = document.documentElement.requestFullscreen
+            ? "Full-screen is off. Press a typing key to request full-screen again."
+            : "Full-screen is unavailable in this browser. The test remains locked.";
+        }
+
+        function enterFullscreen() {
+          if (document.fullscreenElement || requestingFullscreen || !document.documentElement.requestFullscreen) return;
+
+          requestingFullscreen = true;
+
+          try {
+            Promise.resolve(document.documentElement.requestFullscreen())
+              .catch(() => {})
+              .finally(() => {
+                requestingFullscreen = false;
+                updateFullscreenNote();
+              });
+          } catch (_) {
+            requestingFullscreen = false;
+            updateFullscreenNote();
+          }
+        }
+
+        document.addEventListener("fullscreenchange", updateFullscreenNote);
+
+        // ============================================================
+        // LOCKED MODE KEYBOARD HANDLING
+        // ============================================================
+
+        document.addEventListener(
+          "keydown",
+          (event) => {
+            if (!lockedRecall()) return;
+
+            if (event.isComposing || event.keyCode === 229) return;
+
+            // Windows/Linux: Ctrl + Shift + Enter
+            // Mac: Command + Shift + Enter
+            const submitShortcut =
+              (event.metaKey || event.ctrlKey) && event.shiftKey && !event.altKey && event.key === "Enter";
+
+            if (submitShortcut) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+
+              if (!event.repeat) {
+                submitRecall();
+              }
+
+              return;
+            }
+
+            if (event.key !== "Escape" && event.isTrusted) {
+              enterFullscreen();
+            }
+
+            const typingKey =
+              event.key.length === 1 ||
+              [
+                "Enter",
+                "Backspace",
+                "Delete",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End",
+                "PageUp",
+                "PageDown",
+                "Dead",
+                "Process",
+                "Shift",
+                "CapsLock",
+              ].includes(event.key);
+
+            if (event.metaKey || event.ctrlKey || event.altKey || !typingKey) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            } else if (document.activeElement !== $("answer")) {
+              $("answer").focus();
+            }
+          },
+          true,
+        );
+
+        // ============================================================
+        // LOCKED MODE POINTER AND CLIPBOARD HANDLING
+        // ============================================================
+
+        for (const name of [
+          "pointerdown",
+          "mousedown",
+          "mouseup",
+          "click",
+          "dblclick",
+          "auxclick",
+          "contextmenu",
+          "dragstart",
+          "dragover",
+          "drop",
+          "paste",
+          "copy",
+          "cut",
+        ]) {
+          document.addEventListener(
+            name,
+            (event) => {
+              if (!lockedRecall()) return;
+
+              event.preventDefault();
+              event.stopImmediatePropagation();
+
+              $("answer").focus();
+            },
+            true,
+          );
+        }
+
+        document.addEventListener("focusin", (event) => {
+          if (lockedRecall() && event.target !== $("answer")) {
+            $("answer").focus();
+          }
+        });
+
+        $("answer").addEventListener("beforeinput", (event) => {
+          if (
+            lockedRecall() &&
+            ["insertFromPaste", "insertFromDrop", "historyUndo", "historyRedo"].includes(event.inputType)
+          ) {
+            event.preventDefault();
+          }
+        });
+
+        // ============================================================
+        // PDF IMPORT
+        // ============================================================
+
+        function loadPdfScripts() {
+          if (!pdfScripts) {
+            pdfScripts = (async () => {
+              for (const name of ["pdf.worker", "pdf", "resources"]) {
+                await new Promise((resolve, reject) => {
+                  const script = document.createElement("script");
+
+                  script.src = "vendor/pdfjs/" + name + ".js";
+                  script.onload = resolve;
+
+                  script.onerror = () => {
+                    script.remove();
+
+                    reject(new Error("Unable to load the PDF reader. Reopen the app online once, then try again."));
+                  };
+
+                  document.head.append(script);
+                });
+              }
+            })().catch((error) => {
+              pdfScripts = null;
+              throw error;
+            });
+          }
+
+          return pdfScripts;
+        }
+
+        async function readPdf(file) {
+          if (file.size > 10 * 1024 * 1024) {
+            throw new Error("This PDF is too large. Choose a PDF under 10 MB.");
+          }
+
+          await loadPdfScripts();
+
+          class PdfDataFactory {
+            async fetch({ filename }) {
+              const encoded = window.memorizePdfResources[filename];
+
+              if (!encoded) {
+                throw new Error("Missing PDF font or character map.");
+              }
+
+              return Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
+            }
+          }
+
+          const task = window.pdfjsLib.getDocument({
+            data: new Uint8Array(await file.arrayBuffer()),
+            BinaryDataFactory: PdfDataFactory,
+            useWorkerFetch: false,
+            useWasm: false,
+            stopAtErrors: true,
+            isEvalSupported: false,
+          });
+
+          try {
+            const pdf = await task.promise;
+
+            if (pdf.numPages > 100) {
+              throw new Error("This PDF has too many pages. Choose a PDF with up to 100 pages.");
+            }
+
+            const pages = [];
+
+            for (let number = 1; number <= pdf.numPages; number++) {
+              $("import-status").textContent = "Reading PDF page " + number + " of " + pdf.numPages + "…";
+
+              const page = await pdf.getPage(number);
+              const content = await page.getTextContent();
+
+              let text = "";
+
+              for (const item of content.items) {
+                if (typeof item.str !== "string") continue;
+
+                text += item.str + (item.hasEOL ? "\n" : " ");
+              }
+
+              pages.push(text.trim());
+              page.cleanup();
+            }
+
+            const text = pages.join("\n\n").trim();
+
+            if (!text) {
+              throw new Error(
+                "No selectable text was found in this PDF. For scanned pages, use OCR first, then import the text.",
+              );
+            }
+
+            return text;
+          } catch (error) {
+            if (error.name === "PasswordException") {
+              throw new Error("This PDF is password-protected. Save an unlocked copy and try again.");
+            }
+
+            if (["InvalidPDFException", "UnknownErrorException", "FormatError"].includes(error.name)) {
+              throw new Error("This PDF could not be read. Try another PDF or export it as UTF-8 text.");
+            }
+
+            throw error;
+          } finally {
+            await task.destroy();
+          }
+        }
+
+        // ============================================================
+        // LOCAL STORAGE
+        // ============================================================
+
+        function save() {
+          if (test) return;
+
+          try {
+            localStorage.setItem(
+              storageKey,
+              JSON.stringify({
+                text: $("reference").value,
+                ignoreCase: $("ignore-case").checked,
+                ignorePunctuation: $("ignore-punctuation").checked,
+              }),
+            );
+          } catch (_) {}
+        }
+
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+
+          if (saved && typeof saved.text === "string") {
+            $("reference").value = saved.text;
+            $("ignore-case").checked = saved.ignoreCase !== false;
+            $("ignore-punctuation").checked = saved.ignorePunctuation !== false;
+          }
+        } catch (_) {}
+
+        function storeTest(value) {
+          try {
+            localStorage.setItem(testStorageKey, JSON.stringify(value));
+          } catch (_) {
+            throw new Error("Test progress could not be saved. Free up browser storage and try again.");
+          }
+        }
+
+        // ============================================================
+        // WORD PROCESSING
+        // ============================================================
+
+        function words(text) {
+          return (text.match(/\S+/gu) || [])
+            .map((raw) => {
+              let key = raw.normalize("NFC");
+
+              if ($("ignore-punctuation").checked) {
+                key = key.replace(/\p{P}/gu, "");
+              }
+
+              if ($("ignore-case").checked) {
+                key = key.toLowerCase();
+              }
+
+              return { raw, key };
+            })
+            .filter((word) => word.key.length);
+        }
+
+        // ============================================================
+        // SCREEN MANAGEMENT
+        // ============================================================
+
+        function show(id, focusId) {
+          if (test && id !== test.phase) return;
+
+          phase = id;
+
+          document.body.classList.toggle("recalling", id === "practice");
+
+          ["setup", "practice", "results"].forEach((name) => {
+            $(name).hidden = name !== id;
+          });
+
+          document.querySelector("header a").hidden = !!test;
+
+          $("edit").hidden = !!test;
+          $("recall-actions").hidden = !!test;
+          $("test-active-note").hidden = !test;
+          $("practice-results-actions").hidden = !!test;
+          $("unlock-form").hidden = !test;
+
+          updateFullscreenNote();
+
+          $(focusId).focus();
+        }
+
+        function begin() {
+          if (test && test.phase !== "practice") return;
+
+          $("answer").value = "";
+          $("answer-error").textContent = "";
+          $("comparison").replaceChildren();
+
+          show("practice", "answer");
+        }
+
+        $("reference").addEventListener("input", save);
+
+        // ============================================================
+        // IMPORTING
+        // ============================================================
+
+        async function importReference(source, read) {
+          if (importing || test || starting || phase !== "setup") return;
+
+          importing = true;
+
+          for (const id of ["import-file", "import-url", "import-url-button", "begin"]) {
+            $(id).disabled = true;
+          }
+
+          $("reference").readOnly = true;
+          $("import-status").textContent = "Reading " + source + "…";
+          $("setup-error").textContent = "";
+
+          try {
+            const text = (await read()).replace(/^\uFEFF/, "");
+
+            if (!text.trim()) {
+              throw new Error("No text was found. Choose another source containing text.");
+            }
+
+            if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
+              throw new Error("This content could not be read as text. Save it as UTF-8 text and try again.");
+            }
+
+            $("reference").value = text;
+            save();
+
+            $("import-status").textContent =
+              "Imported " + source + ". Review or edit the reference below before beginning.";
+
+            $("reference").focus();
+          } catch (error) {
+            $("import-status").textContent = "";
+
+            $("setup-error").textContent =
+              error instanceof Error ? error.message : "Unable to import this source. Try another source.";
+          } finally {
+            importing = false;
+
+            for (const id of ["import-file", "import-url", "import-url-button", "begin"]) {
+              $(id).disabled = false;
+            }
+
+            $("reference").readOnly = false;
+          }
+        }
+
+        $("import-file").addEventListener("change", async (event) => {
+          const file = event.target.files[0];
+
+          if (!file) return;
+
+          await importReference(file.name, async () => {
+            if (!/\.(txt|md|text|pdf)$/i.test(file.name)) {
+              throw new Error("Choose a .txt, .md, .text, or .pdf file.");
+            }
+
+            return /\.pdf$/i.test(file.name) ? readPdf(file) : file.text();
+          });
+
+          event.target.value = "";
+        });
+
+        function webPageText(html) {
+          const doc = new DOMParser().parseFromString(html, "text/html");
+
+          doc
+            .querySelectorAll(
+              'script, style, noscript, template, nav, header, footer, aside, form, iframe, object, embed, svg, canvas, [hidden], [aria-hidden="true"]',
+            )
+            .forEach((node) => node.remove());
+
+          const root = doc.querySelector('main, article, [role="main"]') || doc.body;
+
+          const blocks = new Set([
+            "P",
+            "DIV",
+            "SECTION",
+            "ARTICLE",
+            "MAIN",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5",
+            "H6",
+            "LI",
+            "UL",
+            "OL",
+            "BLOCKQUOTE",
+            "PRE",
+            "TR",
+          ]);
+
+          const parts = [];
+
+          function visit(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              parts.push(node.textContent.replace(/\s+/gu, " "));
+              return;
+            }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+            if (node.tagName === "BR") {
+              parts.push("\n");
+              return;
+            }
+
+            const block = blocks.has(node.tagName);
+
+            if (block) parts.push("\n");
+
+            for (const child of node.childNodes) {
+              visit(child);
+            }
+
+            if (block) parts.push("\n");
+
+            if (["TD", "TH"].includes(node.tagName)) {
+              parts.push(" ");
+            }
+          }
+
+          visit(root);
+
+          return parts
+            .join("")
+            .replace(/ *\n */g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        }
+
+        async function readUrl(value) {
+          let url;
+
+          try {
+            url = new URL(value);
+          } catch (_) {
+            throw new Error("Enter a complete http:// or https:// URL.");
+          }
+
+          if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+            throw new Error("Use an http:// or https:// URL without embedded login credentials.");
+          }
+
+          const controller = new AbortController();
+
+          const timeout = setTimeout(() => controller.abort(), 30000);
+
+          try {
+            const response = await fetch(url.href, {
+              signal: controller.signal,
+              credentials: "omit",
+              referrerPolicy: "no-referrer",
+              cache: "no-store",
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                "The website returned HTTP " + response.status + ". Check the link or try another source.",
+              );
+            }
+
+            const type = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+
+            const blob = await response.blob();
+
+            const isPdf = type === "application/pdf" || (await blob.slice(0, 5).text()) === "%PDF-";
+
+            if (isPdf) {
+              clearTimeout(timeout);
+              return await readPdf(blob);
+            }
+
+            const text = await blob.text();
+
+            if (
+              ["text/html", "application/xhtml+xml"].includes(type) ||
+              /^\s*(?:<!doctype\s+html|<html[\s>])/i.test(text)
+            ) {
+              return webPageText(text);
+            }
+
+            if (type && !type.startsWith("text/") && type !== "application/octet-stream") {
+              throw new Error("This URL does not contain a web page, text file, or PDF.");
+            }
+
+            return text;
+          } catch (error) {
+            if (error.name === "AbortError") {
+              throw new Error("The URL took too long to load. Try again or download the file instead.");
+            }
+
+            if (error instanceof TypeError) {
+              throw new Error(
+                "Unable to read this URL. The website may block browser imports, require login, or be offline. Download the file or paste the text instead.",
+              );
+            }
+
+            throw error;
+          } finally {
+            clearTimeout(timeout);
+          }
+        }
+
+        function importUrl() {
+          const value = $("import-url").value.trim();
+
+          return importReference(value || "URL", () => readUrl(value));
+        }
+
+        $("import-url-button").addEventListener("click", importUrl);
+
+        $("import-url").addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            importUrl();
+          }
+        });
+
+        ["ignore-case", "ignore-punctuation"].forEach((id) => {
+          $(id).addEventListener("change", save);
+        });
+
+        // ============================================================
+        // TEST MODE SETTINGS
+        // ============================================================
+
+        $("test-mode").addEventListener("change", () => {
+          $("test-options").hidden = !$("test-mode").checked;
+
+          $("test-passcode").required = $("test-mode").checked;
+
+          $("begin").textContent = $("test-mode").checked ? "Begin test →" : "Begin practice →";
+
+          if (!$("test-mode").checked) {
+            $("test-passcode").value = "";
+          }
+        });
+
+        async function passcodeHash(passcode, salt) {
+          if (!globalThis.crypto?.subtle) {
+            throw new Error(
+              "Test mode requires HTTPS, localhost, or a browser that supports testing from local files.",
+            );
+          }
+
+          const bytes = new TextEncoder().encode(salt + ":" + passcode);
+
+          const digest = await crypto.subtle.digest("SHA-256", bytes);
+
+          return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        }
+
+        function guardHistory() {
+          history.pushState({ memorizeTest: true }, "", location.href);
+        }
+
+        // ============================================================
+        // STARTING A TEST
+        // ============================================================
+
+        $("setup-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          if (importing || starting || test || phase !== "setup") return;
+
+          expected = words($("reference").value);
+
+          $("setup-error").textContent = "";
+
+          if (!expected.length) {
+            $("setup-error").textContent =
+              "Enter some text to memorize. With punctuation ignored, include at least one word or number.";
+
+            return;
+          }
+
+          starting = true;
+          $("begin").disabled = true;
+
+          try {
+            if ($("test-mode").checked) {
+              const passcode = $("test-passcode").value;
+
+              if (!passcode.trim()) {
+                throw new Error("Set a passcode before beginning the test.");
+              }
+
+              enterFullscreen();
+
+              const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+                byte.toString(16).padStart(2, "0"),
+              ).join("");
+
+              const hash = await passcodeHash(passcode, salt);
+
+              const next = {
+                phase: "practice",
+                text: $("reference").value,
+                ignoreCase: $("ignore-case").checked,
+                ignorePunctuation: $("ignore-punctuation").checked,
+                salt,
+                hash,
+                answer: "",
+              };
+
+              expected = words(next.text);
+
+              storeTest(next);
+              save();
+
+              test = next;
+
+              $("test-passcode").value = "";
+
+              guardHistory();
+            } else {
+              save();
+            }
+
+            begin();
+          } catch (error) {
+            $("setup-error").textContent = error.message;
+
+            if (!test && document.fullscreenElement) {
+              document.exitFullscreen().catch(() => {});
+            }
+          } finally {
+            starting = false;
+            $("begin").disabled = false;
+          }
+        });
+
+        // ============================================================
+        // NORMAL PRACTICE BUTTONS
+        // ============================================================
+
+        function edit() {
+          if (!test) {
+            show("setup", "reference");
+          }
+        }
+
+        $("edit").addEventListener("click", edit);
+        $("change").addEventListener("click", edit);
+
+        $("retry").addEventListener("click", () => {
+          if (!test) begin();
+        });
+
+        // ============================================================
+        // SAVING RECALL
+        // ============================================================
+
+        $("answer").addEventListener("input", () => {
+          if (!test || phase !== "practice") return;
+
+          test.answer = $("answer").value;
+
+          try {
+            storeTest(test);
+            $("answer-error").textContent = "";
+          } catch (error) {
+            $("answer-error").textContent = error.message;
+          }
+        });
+
+        // ============================================================
+        // FIXED SUBMISSION FUNCTION
+        // ============================================================
+
+        function submitRecall() {
+          if (phase !== "practice") return;
+
+          if (test) {
+            const next = {
+              ...test,
+              phase: "results",
+              answer: $("answer").value,
+            };
+
+            try {
+              storeTest(next);
+            } catch (error) {
+              $("answer-error").textContent = error.message;
+              return;
+            }
+
+            test = next;
+          }
+
+          renderResults();
+        }
+
+        // ============================================================
+        // UNLOCKING TEST
+        // ============================================================
+
+        $("unlock-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          if (!test || phase !== "results" || unlocking) return;
+
+          const action = event.submitter?.value || "restart";
+
+          unlocking = true;
+          $("unlock-error").textContent = "";
+
+          try {
+            const hash = await passcodeHash($("unlock-passcode").value, test.salt);
+
+            $("unlock-passcode").value = "";
+
+            if (hash !== test.hash) {
+              $("unlock-error").textContent = "Incorrect passcode. Try again.";
+
+              $("unlock-passcode").focus();
+              return;
+            }
+
+            if (action === "import") {
+              localStorage.removeItem(testStorageKey);
+
+              test = null;
+
+              $("test-mode").checked = false;
+
+              $("test-mode").dispatchEvent(new Event("change"));
+
+              show("setup", "reference");
+
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+              }
+            } else {
+              const next = {
+                ...test,
+                phase: "practice",
+                answer: "",
+              };
+
+              storeTest(next);
+              test = next;
+
+              begin();
+              enterFullscreen();
+            }
+          } catch (error) {
+            $("unlock-error").textContent = error.message;
+          } finally {
+            unlocking = false;
+          }
+        });
+
+        // ============================================================
+        // BACK BUTTON PROTECTION
+        // ============================================================
+
+        window.addEventListener("popstate", () => {
+          if (test) {
+            guardHistory();
+
+            show(test.phase, test.phase === "practice" ? "answer" : "results-heading");
+          }
+        });
+
+        window.addEventListener("beforeunload", (event) => {
+          if (test) {
+            event.preventDefault();
+            event.returnValue = "";
+          }
+        });
+
+        // ============================================================
+        // TEXT COMPARISON — HIRSCHBERG ALIGNMENT
+        // ============================================================
+
+        function compare(reference, answer) {
+          const edits = [];
+
+          function pair(i, j) {
+            edits.push({
+              kind: reference[i].key === answer[j].key ? "correct" : "changed",
+              expected: reference[i].raw,
+              actual: answer[j].raw,
+            });
+          }
+
+          function costs(r0, r1, a0, a1, reverse) {
+            const width = a1 - a0;
+
+            let previous = Uint32Array.from({ length: width + 1 }, (_, j) => j);
+
+            let current = new Uint32Array(width + 1);
+
+            for (let i = 1; i <= r1 - r0; i++) {
+              current[0] = i;
+
+              const key = reference[reverse ? r1 - i : r0 + i - 1].key;
+
+              for (let j = 1; j <= width; j++) {
+                current[j] = Math.min(
+                  previous[j] + 1,
+                  current[j - 1] + 1,
+                  previous[j - 1] + (key === answer[reverse ? a1 - j : a0 + j - 1].key ? 0 : 1),
+                );
+              }
+
+              [previous, current] = [current, previous];
+            }
+
+            return previous;
+          }
+
+          function split(r0, middle, r1, a0, a1) {
+            const left = costs(r0, middle, a0, a1, false);
+
+            const right = costs(middle, r1, a0, a1, true);
+
+            let best = Infinity;
+            let position = 0;
+
+            for (let j = 0; j <= a1 - a0; j++) {
+              const cost = left[j] + right[a1 - a0 - j];
+
+              if (cost < best) {
+                best = cost;
+                position = j;
+              }
+            }
+
+            return a0 + position;
+          }
+
+          function align(r0, r1, a0, a1) {
+            while (r0 < r1 && a0 < a1 && reference[r0].key === answer[a0].key) {
+              pair(r0++, a0++);
+            }
+
+            let suffix = 0;
+
+            while (r0 < r1 && a0 < a1 && reference[r1 - 1].key === answer[a1 - 1].key) {
+              r1--;
+              a1--;
+              suffix++;
+            }
+
+            if (r0 === r1) {
+              for (let j = a0; j < a1; j++) {
+                edits.push({
+                  kind: "extra",
+                  actual: answer[j].raw,
+                });
+              }
+            } else if (a0 === a1) {
+              for (let i = r0; i < r1; i++) {
+                edits.push({
+                  kind: "missing",
+                  expected: reference[i].raw,
+                });
+              }
+            } else if (r1 - r0 === 1) {
+              let match = a1 - 1;
+
+              for (let j = a0; j < a1; j++) {
+                if (reference[r0].key === answer[j].key) {
+                  match = j;
+                }
+              }
+
+              for (let j = a0; j < a1; j++) {
+                if (j === match) {
+                  pair(r0, j);
+                } else {
+                  edits.push({
+                    kind: "extra",
+                    actual: answer[j].raw,
+                  });
+                }
+              }
+            } else {
+              const middle = r0 + Math.floor((r1 - r0) / 2);
+
+              const position = split(r0, middle, r1, a0, a1);
+
+              align(r0, middle, a0, position);
+              align(middle, r1, position, a1);
+            }
+
+            for (let i = 0; i < suffix; i++) {
+              pair(r1 + i, a1 + i);
+            }
+          }
+
+          align(0, reference.length, 0, answer.length);
+
+          return {
+            edits,
+            errors: edits.reduce((count, edit) => count + (edit.kind === "correct" ? 0 : 1), 0),
+          };
+        }
+
+        // ============================================================
+        // PRACTICE FORM SUBMISSION
+        // ============================================================
+
+        $("practice-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          if (phase !== "practice") return;
+
+          // Locked tests must use the keyboard shortcut.
+          if (test) return;
+
+          renderResults();
+        });
+
+        // ============================================================
+        // RESULTS
+        // ============================================================
+
+        function renderResults() {
+          const actual = words($("answer").value);
+
+          const result = compare(expected, actual);
+
+          const counts = {
+            correct: 0,
+            changed: 0,
+            missing: 0,
+            extra: 0,
+          };
+
+          const fragment = document.createDocumentFragment();
+
+          function append(tag, text, label) {
+            const node = document.createElement(tag);
+
+            node.textContent = text;
+
+            if (label) {
+              node.setAttribute("aria-label", label + ": " + text);
+            }
+
+            fragment.append(node, document.createTextNode(" "));
+          }
+
+          result.edits.forEach((edit) => {
+            counts[edit.kind]++;
+
+            if (edit.kind === "correct") {
+              append("span", edit.actual);
+            } else {
+              if (edit.actual) {
+                append("del", edit.actual, "You typed");
+              }
+
+              if (edit.expected) {
+                append("ins", edit.expected, "Expected");
+              }
+            }
+          });
+
+          $("comparison").replaceChildren(fragment);
+
+          const score = Math.max(0, Math.round((1 - result.errors / expected.length) * 100));
+
+          $("score").textContent = score + "% accuracy";
+
+          $("counts").textContent =
+            counts.correct +
+            " correct · " +
+            counts.changed +
+            " changed · " +
+            counts.missing +
+            " missing · " +
+            counts.extra +
+            " extra";
+
+          $("scoring-note").textContent =
+            "Score: 100% minus word changes, omissions, and extras divided by reference words, with a minimum of 0%. " +
+            ($("ignore-case").checked ? "Capitalization ignored. " : "Capitalization checked. ") +
+            ($("ignore-punctuation").checked ? "Punctuation ignored. " : "Punctuation checked. ") +
+            "Spacing and line breaks ignored.";
+
+          show("results", "results-heading");
+        }
+
+        // ============================================================
+        // RESTORE LOCKED TEST AFTER REFRESH
+        // ============================================================
+
+        try {
+          const savedTest = JSON.parse(localStorage.getItem(testStorageKey) || "null");
+
+          if (
+            savedTest &&
+            ["practice", "results"].includes(savedTest.phase) &&
+            typeof savedTest.text === "string" &&
+            typeof savedTest.answer === "string" &&
+            typeof savedTest.salt === "string" &&
+            typeof savedTest.hash === "string"
+          ) {
+            test = savedTest;
+
+            $("reference").value = test.text;
+
+            $("ignore-case").checked = test.ignoreCase;
+
+            $("ignore-punctuation").checked = test.ignorePunctuation;
+
+            expected = words(test.text);
+
+            $("answer").value = test.answer;
+
+            guardHistory();
+
+            if (test.phase === "results") {
+              renderResults();
+            } else {
+              show("practice", "answer");
+            }
+          }
+        } catch (_) {}
+
+        // ============================================================
+        // SERVICE WORKER
+        // ============================================================
+
+        if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker.register("sw.js").catch(() => {});
           });
         }
-      })().catch(error => { pdfScripts = null; throw error; });
-    }
-    return pdfScripts;
-  }
-  async function readPdf(file) {
-    if (file.size > 10 * 1024 * 1024) throw new Error('This PDF is too large. Choose a PDF under 10 MB.');
-    await loadPdfScripts();
-    // Embedded resources also work over file://, where fetch cannot read local fonts/CMaps.
-    class PdfDataFactory {
-      async fetch({ filename }) {
-        const encoded = window.memorizePdfResources[filename];
-        if (!encoded) throw new Error('Missing PDF font or character map.');
-        return Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
-      }
-    }
-    const task = window.pdfjsLib.getDocument({
-      data: new Uint8Array(await file.arrayBuffer()),
-      BinaryDataFactory: PdfDataFactory, useWorkerFetch: false, useWasm: false,
-      stopAtErrors: true, isEvalSupported: false
-    });
-    try {
-      const pdf = await task.promise;
-      if (pdf.numPages > 100) throw new Error('This PDF has too many pages. Choose a PDF with up to 100 pages.');
-      const pages = [];
-      for (let number = 1; number <= pdf.numPages; number++) {
-        $('import-status').textContent = 'Reading PDF page ' + number + ' of ' + pdf.numPages + '…';
-        const page = await pdf.getPage(number);
-        const content = await page.getTextContent();
-        let text = '';
-        for (const item of content.items) {
-          if (typeof item.str !== 'string') continue;
-          text += item.str + (item.hasEOL ? '\n' : ' ');
-        }
-        pages.push(text.trim());
-        page.cleanup();
-      }
-      const text = pages.join('\n\n').trim();
-      if (!text) throw new Error('No selectable text was found in this PDF. For scanned pages, use OCR first, then import the text.');
-      return text;
-    } catch (error) {
-      if (error.name === 'PasswordException') throw new Error('This PDF is password-protected. Save an unlocked copy and try again.');
-      if (['InvalidPDFException', 'UnknownErrorException', 'FormatError'].includes(error.name)) {
-        throw new Error('This PDF could not be read. Try another PDF or export it as UTF-8 text.');
-      }
-      throw error;
-    } finally {
-      await task.destroy();
-    }
-  }
-  function save() {
-    if (test) return;
-    try { localStorage.setItem(storageKey, JSON.stringify({ text: $('reference').value, ignoreCase: $('ignore-case').checked, ignorePunctuation: $('ignore-punctuation').checked })); } catch (_) {}
-  }
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if (saved && typeof saved.text === 'string') {
-      $('reference').value = saved.text;
-      $('ignore-case').checked = saved.ignoreCase !== false;
-      $('ignore-punctuation').checked = saved.ignorePunctuation !== false;
-    }
-  } catch (_) {}
-  function words(text) {
-    return (text.match(/\S+/gu) || []).map(raw => {
-      let key = raw.normalize('NFC');
-      if ($('ignore-punctuation').checked) key = key.replace(/\p{P}/gu, '');
-      if ($('ignore-case').checked) key = key.toLowerCase();
-      return { raw: raw, key: key };
-    }).filter(word => word.key.length);
-  }
-  function show(id, focusId) {
-    if (test && id !== test.phase) return;
-    phase = id;
-    document.body.classList.toggle('recalling', id === 'practice');
-    ['setup', 'practice', 'results'].forEach(name => { $(name).hidden = name !== id; });
-    document.querySelector('header a').hidden = !!test;
-    $('edit').hidden = !!test;
-    $('recall-actions').hidden = !!test;
-    $('test-active-note').hidden = !test;
-    $('practice-results-actions').hidden = !!test;
-    $('unlock-form').hidden = !test;
-    updateFullscreenNote();
-    $(focusId).focus();
-  }
-  function begin() {
-    if (test && test.phase !== 'practice') return;
-    $('answer').value = '';
-    $('answer-error').textContent = '';
-    $('comparison').replaceChildren();
-    show('practice', 'answer');
-  }
-  $('reference').addEventListener('input', save);
-  async function importReference(source, read) {
-    if (importing || test || starting || phase !== 'setup') return;
-    importing = true;
-    for (const id of ['import-file', 'import-url', 'import-url-button', 'begin']) $(id).disabled = true;
-    $('reference').readOnly = true;
-    $('import-status').textContent = 'Reading ' + source + '…';
-    $('setup-error').textContent = '';
-    try {
-      const text = (await read()).replace(/^\uFEFF/, '');
-      if (!text.trim()) throw new Error('No text was found. Choose another source containing text.');
-      if (/[\u0000-\u0008\u000E-\u001F\uFFFD]/u.test(text)) {
-        throw new Error('This content could not be read as text. Save it as UTF-8 text and try again.');
-      }
-      $('reference').value = text;
-      save();
-      $('import-status').textContent = 'Imported ' + source + '. Review or edit the reference below before beginning.';
-      $('reference').focus();
-    } catch (error) {
-      $('import-status').textContent = '';
-      $('setup-error').textContent = error instanceof Error ? error.message : 'Unable to import this source. Try another source.';
-    } finally {
-      importing = false;
-      for (const id of ['import-file', 'import-url', 'import-url-button', 'begin']) $(id).disabled = false;
-      $('reference').readOnly = false;
-    }
-  }
-  $('import-file').addEventListener('change', async event => {
-    const file = event.target.files[0];
-    if (!file) return;
-    await importReference(file.name, async () => {
-      if (!/\.(txt|md|text|pdf)$/i.test(file.name)) throw new Error('Choose a .txt, .md, .text, or .pdf file.');
-      return /\.pdf$/i.test(file.name) ? readPdf(file) : file.text();
-    });
-    event.target.value = '';
-  });
-  function webPageText(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    doc.querySelectorAll('script, style, noscript, template, nav, header, footer, aside, form, iframe, object, embed, svg, canvas, [hidden], [aria-hidden="true"]').forEach(node => node.remove());
-    const root = doc.querySelector('main, article, [role="main"]') || doc.body;
-    const blocks = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'UL', 'OL', 'BLOCKQUOTE', 'PRE', 'TR']);
-    const parts = [];
-    function visit(node) {
-      if (node.nodeType === Node.TEXT_NODE) { parts.push(node.textContent.replace(/\s+/gu, ' ')); return; }
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
-      if (node.tagName === 'BR') { parts.push('\n'); return; }
-      const block = blocks.has(node.tagName);
-      if (block) parts.push('\n');
-      for (const child of node.childNodes) visit(child);
-      if (block) parts.push('\n');
-      if (['TD', 'TH'].includes(node.tagName)) parts.push(' ');
-    }
-    visit(root);
-    return parts.join('').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-  }
-  async function readUrl(value) {
-    let url;
-    try { url = new URL(value); } catch (_) { throw new Error('Enter a complete http:// or https:// URL.'); }
-    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
-      throw new Error('Use an http:// or https:// URL without embedded login credentials.');
-    }
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    try {
-      const response = await fetch(url.href, { signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' });
-      if (!response.ok) throw new Error('The website returned HTTP ' + response.status + '. Check the link or try another source.');
-      const type = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-      const blob = await response.blob();
-      const isPdf = type === 'application/pdf' || await blob.slice(0, 5).text() === '%PDF-';
-      if (isPdf) {
-        clearTimeout(timeout);
-        return await readPdf(blob);
-      }
-      const text = await blob.text();
-      if (['text/html', 'application/xhtml+xml'].includes(type) || /^\s*(?:<!doctype\s+html|<html[\s>])/i.test(text)) return webPageText(text);
-      if (type && !type.startsWith('text/') && type !== 'application/octet-stream') {
-        throw new Error('This URL does not contain a web page, text file, or PDF.');
-      }
-      return text;
-    } catch (error) {
-      if (error.name === 'AbortError') throw new Error('The URL took too long to load. Try again or download the file instead.');
-      if (error instanceof TypeError) throw new Error('Unable to read this URL. The website may block browser imports, require login, or be offline. Download the file or paste the text instead.');
-      throw error;
-    } finally { clearTimeout(timeout); }
-  }
-  function importUrl() {
-    const value = $('import-url').value.trim();
-    return importReference(value || 'URL', () => readUrl(value));
-  }
-  $('import-url-button').addEventListener('click', importUrl);
-  $('import-url').addEventListener('keydown', event => {
-    if (event.key === 'Enter') { event.preventDefault(); importUrl(); }
-  });
-  ['ignore-case', 'ignore-punctuation'].forEach(id => $(id).addEventListener('change', save));
-  $('test-mode').addEventListener('change', () => {
-    $('test-options').hidden = !$('test-mode').checked;
-    $('test-passcode').required = $('test-mode').checked;
-    $('begin').textContent = $('test-mode').checked ? 'Begin test →' : 'Begin practice →';
-    if (!$('test-mode').checked) $('test-passcode').value = '';
-  });
-  async function passcodeHash(passcode, salt) {
-    if (!globalThis.crypto?.subtle) throw new Error('Test mode requires HTTPS, localhost, or a browser that supports testing from local files.');
-    const bytes = new TextEncoder().encode(salt + ':' + passcode);
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-  }
-  function storeTest(value) {
-    try { localStorage.setItem(testStorageKey, JSON.stringify(value)); }
-    catch (_) { throw new Error('Test progress could not be saved. Free up browser storage and try again.'); }
-  }
-  function guardHistory() {
-    history.pushState({ memorizeTest: true }, '', location.href);
-  }
-  $('setup-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    if (importing || starting || test || phase !== 'setup') return;
-    expected = words($('reference').value);
-    $('setup-error').textContent = '';
-    if (!expected.length) {
-      $('setup-error').textContent = 'Enter some text to memorize. With punctuation ignored, include at least one word or number.';
-      return;
-    }
-    starting = true;
-    $('begin').disabled = true;
-    try {
-      if ($('test-mode').checked) {
-        const passcode = $('test-passcode').value;
-        if (!passcode.trim()) throw new Error('Set a passcode before beginning the test.');
-        enterFullscreen();
-        const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
-        const hash = await passcodeHash(passcode, salt);
-        const next = { phase: 'practice', text: $('reference').value, ignoreCase: $('ignore-case').checked,
-          ignorePunctuation: $('ignore-punctuation').checked, salt: salt, hash: hash, answer: '' };
-        expected = words(next.text);
-        storeTest(next);
-        save();
-        test = next;
-        $('test-passcode').value = '';
-        guardHistory();
-      } else save();
-      begin();
-    } catch (error) {
-      $('setup-error').textContent = error.message;
-      if (!test && document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    }
-    finally { starting = false; $('begin').disabled = false; }
-  });
-  function edit() { if (!test) show('setup', 'reference'); }
-  $('edit').addEventListener('click', edit);
-  $('change').addEventListener('click', edit);
-  $('retry').addEventListener('click', () => { if (!test) begin(); });
-  $('answer').addEventListener('input', () => {
-    if (!test || phase !== 'practice') return;
-    test.answer = $('answer').value;
-    try { storeTest(test); $('answer-error').textContent = ''; }
-    catch (error) { $('answer-error').textContent = error.message; }
-  });
-  $('unlock-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    if (!test || phase !== 'results' || unlocking) return;
-    const action = event.submitter?.value || 'restart';
-    unlocking = true;
-    $('unlock-error').textContent = '';
-    try {
-      const hash = await passcodeHash($('unlock-passcode').value, test.salt);
-      $('unlock-passcode').value = '';
-      if (hash !== test.hash) {
-        $('unlock-error').textContent = 'Incorrect passcode. Try again.';
-        $('unlock-passcode').focus();
-        return;
-      }
-      if (action === 'import') {
-        localStorage.removeItem(testStorageKey);
-        test = null;
-        $('test-mode').checked = false;
-        $('test-mode').dispatchEvent(new Event('change'));
-        show('setup', 'reference');
-        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-      } else {
-        const next = { ...test, phase: 'practice', answer: '' };
-        storeTest(next);
-        test = next;
-        begin();
-        enterFullscreen();
-      }
-    } catch (error) { $('unlock-error').textContent = error.message; }
-    finally { unlocking = false; }
-  });
-  window.addEventListener('popstate', () => {
-    if (test) { guardHistory(); show(test.phase, test.phase === 'practice' ? 'answer' : 'results-heading'); }
-  });
-  window.addEventListener('beforeunload', event => {
-    if (test) { event.preventDefault(); event.returnValue = ''; }
-  });
-  // Hirschberg alignment keeps memory linear for long passages while preserving edit distance.
-  function compare(reference, answer) {
-    const edits = [];
-    function pair(i, j) {
-      edits.push({ kind: reference[i].key === answer[j].key ? 'correct' : 'changed', expected: reference[i].raw, actual: answer[j].raw });
-    }
-    function costs(r0, r1, a0, a1, reverse) {
-      const width = a1 - a0;
-      let previous = Uint32Array.from({ length: width + 1 }, (_, j) => j);
-      let current = new Uint32Array(width + 1);
-      for (let i = 1; i <= r1 - r0; i++) {
-        current[0] = i;
-        const key = reference[reverse ? r1 - i : r0 + i - 1].key;
-        for (let j = 1; j <= width; j++) {
-          current[j] = Math.min(previous[j] + 1, current[j - 1] + 1,
-            previous[j - 1] + (key === answer[reverse ? a1 - j : a0 + j - 1].key ? 0 : 1));
-        }
-        [previous, current] = [current, previous];
-      }
-      return previous;
-    }
-    function split(r0, middle, r1, a0, a1) {
-      const left = costs(r0, middle, a0, a1, false);
-      const right = costs(middle, r1, a0, a1, true);
-      let best = Infinity, position = 0;
-      for (let j = 0; j <= a1 - a0; j++) {
-        const cost = left[j] + right[a1 - a0 - j];
-        if (cost < best) { best = cost; position = j; }
-      }
-      return a0 + position;
-    }
-    function align(r0, r1, a0, a1) {
-      while (r0 < r1 && a0 < a1 && reference[r0].key === answer[a0].key) pair(r0++, a0++);
-      let suffix = 0;
-      while (r0 < r1 && a0 < a1 && reference[r1 - 1].key === answer[a1 - 1].key) {
-        r1--; a1--; suffix++;
-      }
-      if (r0 === r1) {
-        for (let j = a0; j < a1; j++) edits.push({ kind: 'extra', actual: answer[j].raw });
-      } else if (a0 === a1) {
-        for (let i = r0; i < r1; i++) edits.push({ kind: 'missing', expected: reference[i].raw });
-      } else if (r1 - r0 === 1) {
-        // Pair with the last matching word, or substitute the last word if none matches.
-        let match = a1 - 1;
-        for (let j = a0; j < a1; j++) if (reference[r0].key === answer[j].key) match = j;
-        for (let j = a0; j < a1; j++) {
-          if (j === match) pair(r0, j);
-          else edits.push({ kind: 'extra', actual: answer[j].raw });
-        }
-      } else {
-        const middle = r0 + Math.floor((r1 - r0) / 2);
-        const position = split(r0, middle, r1, a0, a1);
-        align(r0, middle, a0, position);
-        align(middle, r1, position, a1);
-      }
-      for (let i = 0; i < suffix; i++) pair(r1 + i, a1 + i);
-    }
-    align(0, reference.length, 0, answer.length);
-    return { edits: edits, errors: edits.reduce((count, edit) => count + (edit.kind === 'correct' ? 0 : 1), 0) };
-  }
-  $('practice-form').addEventListener('submit', event => {
-    event.preventDefault();
-    if (phase !== 'practice') return;
-    if (test && !shortcutSubmit) return;
-    if (test) {
-      const next = { ...test, phase: 'results', answer: $('answer').value };
-      try { storeTest(next); }
-      catch (error) { $('answer-error').textContent = error.message; return; }
-      test = next;
-    }
-    renderResults();
-  });
-  function renderResults() {
-    const actual = words($('answer').value);
-    const result = compare(expected, actual);
-    const counts = { correct: 0, changed: 0, missing: 0, extra: 0 };
-    const fragment = document.createDocumentFragment();
-    function append(tag, text, label) {
-      const node = document.createElement(tag);
-      node.textContent = text;
-      if (label) node.setAttribute('aria-label', label + ': ' + text);
-      fragment.append(node, document.createTextNode(' '));
-    }
-    result.edits.forEach(edit => {
-      counts[edit.kind]++;
-      if (edit.kind === 'correct') append('span', edit.actual);
-      else {
-        if (edit.actual) append('del', edit.actual, 'You typed');
-        if (edit.expected) append('ins', edit.expected, 'Expected');
-      }
-    });
-    $('comparison').replaceChildren(fragment);
-    const score = Math.max(0, Math.round((1 - result.errors / expected.length) * 100));
-    $('score').textContent = score + '% accuracy';
-    $('counts').textContent = counts.correct + ' correct · ' + counts.changed + ' changed · ' + counts.missing + ' missing · ' + counts.extra + ' extra';
-    $('scoring-note').textContent = 'Score: 100% minus word changes, omissions, and extras divided by reference words, with a minimum of 0%. ' +
-      ($('ignore-case').checked ? 'Capitalization ignored. ' : 'Capitalization checked. ') +
-      ($('ignore-punctuation').checked ? 'Punctuation ignored. ' : 'Punctuation checked. ') + 'Spacing and line breaks ignored.';
-    show('results', 'results-heading');
-  }
-  // Resume a locked attempt after reload, including its submitted results.
-  try {
-    const savedTest = JSON.parse(localStorage.getItem(testStorageKey) || 'null');
-    if (savedTest && ['practice', 'results'].includes(savedTest.phase) &&
-        typeof savedTest.text === 'string' && typeof savedTest.answer === 'string' &&
-        typeof savedTest.salt === 'string' && typeof savedTest.hash === 'string') {
-      test = savedTest;
-      $('reference').value = test.text;
-      $('ignore-case').checked = test.ignoreCase;
-      $('ignore-punctuation').checked = test.ignorePunctuation;
-      expected = words(test.text);
-      $('answer').value = test.answer;
-      guardHistory();
-      if (test.phase === 'results') renderResults();
-      else show('practice', 'answer');
-    }
-  } catch (_) {}
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
-  }
-})();
-</script>
-</body>
+      })();
+    </script>
+  </body>
 </html>
