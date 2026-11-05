@@ -27,6 +27,14 @@ function validateBackup(data){
       if(typeof item.id!=='string'||item.id.length>100)throw new Error('The backup contains an invalid result identifier.');
       result.id=item.id;
     }
+    if(item.reference!==undefined){
+      if(item.mode!=='book'||!scriptureReferences.includes(item.reference))throw new Error('The backup contains an invalid verse reference.');
+      result.reference=item.reference;
+    }
+    if(item.journey!==undefined){
+      if(item.mode!=='book'||(item.journey!=='Entire Scriptures'&&!journeyBooks.some(book=>book.name===item.journey)))throw new Error('The backup contains an invalid journey name.');
+      result.journey=item.journey;
+    }
     return result;
   });
   if(data.name!==undefined&&(typeof data.name!=='string'||data.name.length>24))throw new Error('The backup has an invalid name.');
@@ -37,10 +45,10 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
-  return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null]);
+  return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
 }
 function mergeTypingHistory(existing,incoming){
   // Preserve multiple identical sessions within a backup while avoiding duplicates on repeated imports.
@@ -57,6 +65,13 @@ function importBackup(data){
   if(window.friendRace?.active)throw new Error('Leave the race room before importing a backup.');
   const backup=validateBackup(data);
   const merged=mergeTypingHistory(history,backup.history);
+  const attemptsById=new Map(journeyAttempts.map(item=>[item.id,item]));
+  for(const item of backup.journeyAttempts){
+    const local=attemptsById.get(item.id);
+    if(local&&(local.journey!==item.journey||local.reference!==item.reference))throw new Error('Conflicting journey attempt in backup.');
+    if(!local||local.typingMs===null)attemptsById.set(item.id,item);
+  }
+  const mergedAttempts=[...attemptsById.values()];
   // Compare progress within the latest journey; a restarted journey supersedes an older completed one.
   const localCount=journeyCompletions.length,incomingCount=backup.journeyCompletions.length;
   const sameCompletedJourney=localCount>0&&localCount===incomingCount&&journeyCompletions.every((date,index)=>date===backup.journeyCompletions[index]);
@@ -74,7 +89,7 @@ function importBackup(data){
     const progress=incoming.completions.length>local.completions.length?incoming.progress:local.completions.length>incoming.completions.length?local.progress:same&&local.completions.length&&(local.progress===size.end-size.start||incoming.progress===size.end-size.start)?Math.min(local.progress,incoming.progress):Math.max(local.progress,incoming.progress);
     mergedBooks[name]={progress,completions:[...new Set([...local.completions,...incoming.completions])].sort()};
   }
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys'];
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts'];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -83,11 +98,13 @@ function importBackup(data){
     if(completedAt)localStorage.setItem(keys[3],completedAt);else localStorage.removeItem(keys[3]);
     localStorage.setItem(keys[4],JSON.stringify(completions));
     localStorage.setItem(keys[5],JSON.stringify(mergedBooks));
+    localStorage.setItem(keys[6],JSON.stringify(mergedAttempts));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
   const added=merged.length-history.length;
+  journeyAttempts=mergedAttempts;
   bookJourneys=mergedBooks;history=merged;bookProgress=progress;journeyCompletedAt=completedAt;journeyCompletions=completions;
   updateProfileLabel();
   if(mode==='book')reset();
@@ -112,7 +129,7 @@ document.addEventListener('click',event=>{
     backupInput.click();
   }
   if(button.id==='exportData'){
-    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,bookJourneys,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,bookJourneys,journeyAttempts,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
