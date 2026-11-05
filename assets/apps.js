@@ -20,7 +20,7 @@ window.APPS = [
     iconUrl: "apps/logostype/dist/icons/icon.png",
     tags: ["Study", "Memory"],
     status: "live",
-    url: "apps/logostypes"
+    url: "apps/logostype/dist/"
   },
   {
     id: "memorize",
