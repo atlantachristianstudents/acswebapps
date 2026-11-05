@@ -37,7 +37,7 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null]);
@@ -65,7 +65,16 @@ function importBackup(data){
   const name=backup.name===undefined?getProfileName():backup.name.trim();
   const completions=[...new Set([...journeyCompletions,...backup.journeyCompletions])].sort();
   const completedAt=progress===scriptureReferences.length?(completions[completions.length-1]||null):null;
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions'];
+  const mergedBooks=validateBookJourneys(bookJourneys);
+  for(const [name,incoming] of Object.entries(backup.bookJourneys)){
+    const local=mergedBooks[name];
+    if(!local){mergedBooks[name]=incoming;continue}
+    const size=journeyBooks.find(book=>book.name===name);
+    const same=JSON.stringify(local.completions)===JSON.stringify(incoming.completions);
+    const progress=incoming.completions.length>local.completions.length?incoming.progress:local.completions.length>incoming.completions.length?local.progress:same&&local.completions.length&&(local.progress===size.end-size.start||incoming.progress===size.end-size.start)?Math.min(local.progress,incoming.progress):Math.max(local.progress,incoming.progress);
+    mergedBooks[name]={progress,completions:[...new Set([...local.completions,...incoming.completions])].sort()};
+  }
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys'];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -73,12 +82,13 @@ function importBackup(data){
     localStorage.setItem(keys[2],name);
     if(completedAt)localStorage.setItem(keys[3],completedAt);else localStorage.removeItem(keys[3]);
     localStorage.setItem(keys[4],JSON.stringify(completions));
+    localStorage.setItem(keys[5],JSON.stringify(mergedBooks));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
   const added=merged.length-history.length;
-  history=merged;bookProgress=progress;journeyCompletedAt=completedAt;journeyCompletions=completions;
+  bookJourneys=mergedBooks;history=merged;bookProgress=progress;journeyCompletedAt=completedAt;journeyCompletions=completions;
   updateProfileLabel();
   if(mode==='book')reset();
   if($('#profileName'))$('#profileName').value=name;
@@ -102,7 +112,7 @@ document.addEventListener('click',event=>{
     backupInput.click();
   }
   if(button.id==='exportData'){
-    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,bookJourneys,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
