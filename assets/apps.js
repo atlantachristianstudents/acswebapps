@@ -17,7 +17,7 @@ window.APPS = [
     name: "Logos Type",
     description: "Type the scriptures. No account required; your results stay in this browser.",
     icon: "⌨",
-    iconUrl: "apps/logostype/icons/icon.svg",
+    iconUrl: "apps/logostype/dist/icons/icon.svg",
     tags: ["Study", "Memory"],
     status: "live",
     url: "apps/logostypes"

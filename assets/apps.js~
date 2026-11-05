@@ -19,7 +19,7 @@ window.APPS = [
     icon: "⌨",
     iconUrl: "apps/logostype/icons/icon.svg",
     tags: ["Study", "Memory"],
-    status: "live"
+    status: "live",
     url: "apps/logostypes"
   },
   {
@@ -29,7 +29,7 @@ window.APPS = [
     icon: "✍️",
     iconUrl: "apps/memorize/icons/icon.svg",
     tags: ["Study", "Memory"],
-    status: "beta"
+    status: "beta",
     url: "apps/memorize"
   },
   {
