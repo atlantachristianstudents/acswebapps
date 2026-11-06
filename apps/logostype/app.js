@@ -451,7 +451,6 @@ function limits() {
           ? `<button data-duration class="${values.includes(limit) ? "" : "active"}" aria-label="Custom time duration">${values.includes(limit) ? "custom" : limit + "s ✎"}</button>`
           : "");
 }
-let testPassages = [];
 function generate(append = false) {
   let passage = "",
     sources = [];
@@ -477,30 +476,9 @@ function generate(append = false) {
       passage = sources.map((source) => source.text).join(" ");
     }
   }
-  testPassages = append ? [...testPassages, ...sources] : sources;
   rawTarget = append && rawTarget ? rawTarget + " " + passage : passage;
   return normalizeScripture(passage);
 }
-function renderResultReferences() {
-  const section = $("#resultReferences"),
-    list = $("#resultReferenceList");
-  list.replaceChildren();
-  section.hidden = true;
-  if (window.friendRace?.active || mode === "custom" || mode === "book") return;
-  let offset = 0;
-  for (const source of testPassages) {
-    const length = normalizeScripture(source.text).length;
-    if (length && typed.length > offset) {
-      const item = document.createElement("li");
-      const full = source.whole && typed.length >= offset + length;
-      item.textContent = `${scriptureReferences[source.index]} · ${full ? "fully typed" : "partially typed"}`;
-      list.append(item);
-    }
-    offset += length + 1;
-  }
-  section.hidden = !list.children.length;
-}
-
 let lastInput = "",
   extraLetters = new Map();
 function parseTyping(value, capped = false) {
@@ -582,7 +560,6 @@ function reset(preservePassage = false) {
     (!scriptureLines.length && mode !== "custom") ||
     (mode === "book" && currentJourney().progress >= currentJourney().end - currentJourney().start);
   document.body.classList.remove("focus", "running");
-  $("#resultReferences").hidden = true;
   $("#results").style.display = "none";
   $("#testSection").style.display = "block";
   $("#counter").textContent = "";
@@ -638,7 +615,6 @@ function finish() {
   $("#resultDetails").textContent = `${Math.round(elapsed)}s · ${typed.length} characters · ${errors} errors`;
   $("#testSection").style.display = "none";
   $("#results").style.display = "block";
-  renderResultReferences();
   history.unshift({
     id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
     wpm,

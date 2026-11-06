@@ -88,7 +88,9 @@ async function loadScripture(forceRefresh = false) {
 
   const lines = text
     .split(/\r?\n/)
-    .map((line) => line.trim())
+    // The API may prefix verse text with a reference such as "Gen. 2:1".
+    // Normalize both downloaded and cached text before typing or reading it.
+    .map((line) => line.trim().replace(/^(?:[1-3]\s*)?[A-Za-z][A-Za-z .-]*?\s*\d+:\d+\s+/, ""))
     .filter((line) => line.replace(/\p{P}/gu, "").trim());
 
   if (scriptureReferences.length !== lines.length) {

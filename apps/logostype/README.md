@@ -14,13 +14,13 @@ When a space is expected, other characters appear as red extra letters after the
 
 Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
-Time, word-count, and quote test results list the Scripture references reached beneath the WPM graph. Each verse is labeled fully or partially typed based on how much of the verse was covered, including verses cut short by the word limit. These labels describe coverage; accuracy is reported separately. Custom text and friend races do not show inferred verse references.
+Typing Test results show speed, accuracy, and the chart, without a Scripture reference list. Scripture Journey keeps verse references in its context and saved history.
 
 Friend races require correcting all characters, or end at the time limit. Input stops at the passage length, and any remaining corrections are counted beside the timer. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. The room stays open for a rematch.
 
-Scripture is downloaded by the shared classic script `scripture-text.js` from the configured Scripture API, then cached in IndexedDB with a localStorage backup for 15 days. Typing and reading use the same loader and validate the verse count against `scripture-references.js`. First use and cache refresh require an internet connection; a fresh cached copy works offline. `RcV.txt` remains a local reference file.
+Scripture is downloaded by the shared classic script `scripture-text.js` from the configured Scripture API, then cached in IndexedDB with a localStorage backup for 15 days. Typing and reading use the same loader, strip embedded verse-reference prefixes such as `Gen. 2:1` from downloaded or cached text, and validate the verse count against `scripture-references.js`. Separate verse labels remain visible in Scripture Journey and reading. First use and cache refresh require an internet connection; a fresh cached copy works offline. `RcV.txt` remains a local reference file.
 
 The same folder can also be hosted as a static website. Installable PWA and service worker caching require HTTPS or localhost; direct file use skips service worker registration. Race rooms require an internet connection.
 
