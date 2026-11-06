@@ -1,6 +1,6 @@
 # Logostype
 
-Open `dist/index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep the entire `dist` folder together; its scripts and icons use relative paths.
+Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 
 Under Scripture Journey, open the journey picker and choose **entire Scriptures** or any of the 66 books directly from the popup grid. Each book saves its own verse progress and completion dates, independently of the entire Scriptures journey. The journey picker follows your chosen theme, colors Old Testament books blue and New Testament books purple with a legend, and highlights the current selection and keyboard focus. Switching books resumes where you left off. Book journeys stop at the final verse; restart starts that book again and preserves its past completion dates. Progress and completion dates for every book are included in backups.
 
@@ -20,7 +20,7 @@ Friend races require correcting all characters, or end at the time limit. Input 
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. The room stays open for a rematch.
 
-Scripture is loaded from the bundled classic script `dist/scripture-text.js`, without fetching a text file. If editing the Scripture text, keep that script's `scriptureText` string in sync with `dist/RcV.txt`.
+Scripture is loaded from the bundled classic script `scripture-text.js`, without fetching a text file. If editing the Scripture text, keep that script's `scriptureText` string in sync with `RcV.txt`.
 
 The same folder can also be hosted as a static website. Installable PWA and service worker caching require HTTPS or localhost; direct file use skips service worker registration. Race rooms require an internet connection.
 
@@ -40,7 +40,7 @@ The Scripture Journey controls use fixed top spacing so the journey selector sta
 
 The left Scripture Journey bar tracks completed words as a share of all words in the selected journey. It shows word and book counts, with word details still available on hover or keyboard focus. Words count once their verse is completed.
 
-**Read the scriptures you typed** lives at `dist/reading.html` with its own `reading.js`. Its book grid and chapter views stay on that page; book choices have links that can be bookmarked and support browser back/forward. Both files are cached for offline reading.
+**Read the scriptures you typed** lives at `reading.html` with its own `reading.js`. Its book grid and chapter views stay on that page; book choices have links that can be bookmarked and support browser back/forward. Both files are cached for offline reading.
 
 The reading page keeps the main menu: Scripture Journey, the highlighted glasses icon, typing, races, and the right-aligned settings cog. Menu links return directly to the selected section of the typing app.
 
@@ -51,3 +51,5 @@ Under settings → **your data**, choose the alert-colored **clear saved data** 
 Opening the reading page or switching between its grid and book views starts at the top without focus scrolling the menu out of view. The header uses the same desktop and mobile spacing as the typing page.
 
 Scripture Journey opens by default. The Typing Test menu icon opens timed/word/verse/custom tests; the Logostype brand returns to Scripture Journey. Links to `index.html#typing` open Typing Test directly.
+
+The app files live directly in `apps/logostype/`, matching the other Adless apps. The `dist/` folder contains only compatibility pages and a worker that forward old hosted URLs and installed copies to the new location; it is not a build directory. Hosted progress stays on the same origin. For direct `file://` use, export a backup before moving an existing copy, then import it at the new location because browsers may isolate storage by file path.

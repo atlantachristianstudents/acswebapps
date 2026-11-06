@@ -8,7 +8,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
-| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/dist/) | Type Scripture in timed tests or Scripture Journeys, save per-verse WPM and progress, export backups, and race friends online. | live |
+| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture in timed tests or Scripture Journeys, save per-verse WPM and progress, export backups, and race friends online. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Paste text or import a file, PDF, or URL, recall it on a blank page, then check missing, changed, and extra words. Optional Test mode requests full-screen, accepts Shift + Command + Enter to submit, and requires a passcode to restart or edit. | beta |
 | [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | beta |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
@@ -42,7 +42,7 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
-  logostype/               Scripture typing; runnable app files are in dist/
+  logostype/               Scripture typing, journeys, reading, and races
   memorize/                Memorization practice with word comparison
   big-text/                Big Text app (full-screen hymn numbers and text)
   tunes/                   Tuner app (microphone, metronome, tone generator)
@@ -50,7 +50,7 @@ apps/
   songs/                   Songbook (catalog, songbooks, lyrics presentation)
 ```
 
-Most app folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. Logos Type keeps its runnable files in `apps/logostype/dist/`, with its README one level above. That folder is served directly; no build step is needed.
+App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. Logos Type also retains small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
 
 ## Requirements
 
@@ -68,7 +68,7 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-Reload after editing. A service worker may continue serving cached files; see the cache-version guidance below. To open Logos Type locally, visit <http://localhost:8000/apps/logostype/dist/>.
+Reload after editing. A service worker may continue serving cached files; see the cache-version guidance below. To open Logos Type locally, visit <http://localhost:8000/apps/logostype/>.
 
 ## Adding a new app
 
@@ -89,13 +89,13 @@ Reload after editing. A service worker may continue serving cached files; see th
 
 4. Commit and push. The card appears on the home page automatically.
 
-Statuses: `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination, as Logos Type does for its `dist/` folder.
+Statuses: `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination when needed.
 
 ### Service-worker cache versions
 
 The home page has its own `sw.js` (`VERSION` = `adless-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
 
-Every app's `sw.js` has a cache-version string, usually `VERSION` (e.g. `"verse-lookup-v7"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/dist/sw.js`; Tuner uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
+Every app's `sw.js` has a cache-version string, usually `VERSION` (e.g. `"verse-lookup-v7"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/sw.js`; Tuner uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
 
 ## Deploying on GitHub Pages
 

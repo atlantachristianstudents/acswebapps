@@ -17,10 +17,10 @@ window.APPS = [
     name: "Logos Type",
     description: "Type the scriptures. No account required; your results stay in this browser.",
     icon: "⌨",
-    iconUrl: "apps/logostype/dist/icons/icon.png",
+    iconUrl: "apps/logostype/icons/icon.png",
     tags: ["Study", "Memory"],
     status: "live",
-    url: "apps/logostype/dist/"
+    url: "apps/logostype/"
   },
   {
     id: "memorize",
