@@ -1,3 +1,4 @@
+async function startReading(){
 const $=selector=>document.querySelector(selector);
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let transferredProgress=null;
@@ -9,7 +10,7 @@ function saved(key,fallback){
   }
   try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}
 }
-const scriptureLines=scriptureText.split(/\r?\n/).map(line=>line.trim()).filter(line=>line.replace(/\p{P}/gu,'').trim());
+const scriptureLines=await loadScripture();
 const journeyBooks=[];
 scriptureReferences.forEach((reference,index)=>{const name=reference.replace(/ \d+:\d+$/,'');let book=journeyBooks.at(-1);if(!book||book.name!==name){book={name,start:index,end:index};journeyBooks.push(book)}book.end=index+1});
 const clamp=(value,max)=>Number.isSafeInteger(value)?Math.max(0,Math.min(value,max)):0;
@@ -104,3 +105,6 @@ document.addEventListener('keydown',event=>{
   event.preventDefault();const step=key==='n'?1:-1;
   if(event.shiftKey)moveReadingBook(step);else showReadingChapter(readingChapter+step);
 });
+
+}
+startReading().catch(error=>{const content=document.querySelector('#readingContent');content.textContent='Scripture unavailable: '+error.message+'. Connect to the internet and reload to try again.'});

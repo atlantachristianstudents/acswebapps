@@ -1,5 +1,1399 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Logostype — type the scriptures and practice your typing with passages from the Recovery Version."><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#323437"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="icons/icon-192.png"><title>Logostype | Type the scriptures</title><style>
-:root{--bg:#323437;--panel:#2c2e31;--text:#d1d0c5;--muted:#646669;--accent:#e2b714;--error:#ca4754}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--muted);font-family:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace;transition:background .2s}button,input,textarea{font:inherit}button{border:0;background:none;color:var(--muted);cursor:pointer;transition:color .15s}button:hover,button:focus-visible{color:var(--text)}button:focus-visible{outline:1px solid var(--accent);outline-offset:5px}button.active{color:var(--accent)}.shell{max-width:1280px;margin:auto;min-height:100svh;padding:38px 48px 25px;display:flex;flex-direction:column}header{display:flex;align-items:center;gap:30px}.brand{display:flex;align-items:center;gap:12px;color:var(--text);text-align:left;padding:0}.brand svg{color:var(--accent);width:42px}.brand small{font-size:11px;color:var(--muted);display:block;margin-bottom:-3px}.brand strong{font-family:Arial,sans-serif;font-weight:500;font-size:31px;letter-spacing:-1px}nav{display:flex;gap:22px;align-items:center}nav button,.account{display:inline-flex;align-items:center;justify-content:center;line-height:1;min-width:44px;min-height:44px;padding:8px}.account{margin-left:auto;gap:8px}.profile-name{font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:700px){.profile-name{max-width:90px}}#friends{display:flex;align-items:center;gap:7px;font-size:14px}header .menu-icon{display:block;width:28px;height:28px;flex-shrink:0}main{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:55px}.config{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:17px;background:var(--panel);border-radius:8px;width:fit-content;margin:0 auto 75px;padding:13px 19px;font-size:12px}.group{display:flex;gap:16px}.divider{height:19px;width:4px;background:var(--bg);border-radius:4px}.config button{padding:0}.journey-progress{position:fixed;z-index:10;left:max(12px,calc((100vw - 1280px)/2 - 130px));top:50%;transform:translateY(-50%);width:110px;display:flex;align-items:center;flex-direction:column;gap:10px;font-size:11px;text-align:center;color:var(--muted)}.journey-progress strong{color:var(--accent);font-size:17px;font-weight:400}.journey-word-tooltip{position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);z-index:5;pointer-events:none;visibility:hidden;opacity:0;transition:opacity .15s;background:var(--panel);color:var(--text);border:1px solid var(--muted);border-radius:6px;padding:12px 14px;text-align:left;font-size:12px;line-height:1.8;white-space:nowrap;box-shadow:0 4px 16px #0003}.journey-word-tooltip small{color:var(--muted);font-size:10px}#journeyWordCount{color:var(--accent);font-size:14px}.journey-progress:hover .journey-word-tooltip,.journey-progress:focus-within .journey-word-tooltip{visibility:visible;opacity:1}.journey-progress-track{position:relative;width:8px;height:220px;background:var(--panel);border-radius:8px;overflow:hidden}.journey-progress-track div{position:absolute;bottom:0;width:100%;background:var(--accent);border-radius:8px;transition:height .25s}body.book-mode main{padding-left:90px;padding-top:48px;justify-content:flex-start}@media(max-width:700px){body.book-mode main{padding-left:36px;padding-top:32px}.journey-progress{left:5px;width:44px;font-size:9px;gap:8px}.journey-progress>span:first-child{writing-mode:vertical-rl}.journey-progress strong{font-size:10px}.journey-progress-track{height:150px;width:5px}#journeyProgressCount{font-size:8px;overflow-wrap:anywhere}}.book-progress{text-align:center;color:var(--text);font-size:13px;line-height:1.8;margin:0 0 22px}.book-progress strong{color:var(--accent)}body.book-mode .config,body.book-mode .language,body.book-mode .test-metrics{display:none}.verse-context{font-size:18px;line-height:1.65;color:var(--muted);padding:16px 0}.verse-context-reference{font-size:12px;color:var(--muted)}.verse-context p{margin:4px 0;max-height:5em;overflow:auto}body.book-mode .words{height:auto;min-height:100px;max-height:245px;padding:12px 0;border-top:1px solid var(--panel);border-bottom:1px solid var(--panel)}body.book-mode .book-progress{color:var(--accent)}.language{text-align:center;font-size:13px;margin-bottom:25px}.test{position:relative;cursor:text;outline:none}.test-metrics{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}.race-countdown{position:absolute;inset:31px 0 0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--bg);pointer-events:none}.race-countdown span{font-size:15px;letter-spacing:3px;color:var(--text)}.race-countdown strong{font-size:clamp(72px,12vw,112px);line-height:1.1;color:var(--accent);font-weight:500;animation:countdown-beat 1s ease-out infinite}.race-countdown.is-go{background:transparent;align-items:flex-end;justify-content:flex-start;inset:0 0 auto auto}.race-countdown.is-go span{display:none}.race-countdown.is-go strong{font-size:36px;animation:none}@keyframes countdown-beat{from{transform:scale(1.16);opacity:.65}35%,to{transform:scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.race-countdown strong{animation:none}}.counter{color:var(--accent);height:31px;font-size:23px}.words{height:145px;overflow:hidden;font-size:29px;line-height:1.68;letter-spacing:.2px;position:relative;scroll-behavior:auto}.word{display:inline-block;margin-right:.6em}.letter{position:relative}.correct{color:var(--text)}.incorrect{color:var(--error)}.typing-caret{position:absolute;top:0;left:0;width:2px;background:var(--accent);border-radius:1px;pointer-events:none;transition:transform 85ms ease-out,height 85ms ease-out;will-change:transform;animation:blink 1s infinite}.running .typing-caret{animation:none}@media(prefers-reduced-motion:reduce){.typing-caret{transition:none;animation:none}}@keyframes blink{50%{opacity:0}}#typing{position:absolute;opacity:0;width:1px;height:1px;left:50%;top:50%;pointer-events:none}.restart{display:block;margin:34px auto 0;font-size:24px;padding:8px 15px}.hint{text-align:center;font-size:11px;margin-top:20px;opacity:0;transition:.2s}.test:hover .hint{opacity:1}.shortcuts{text-align:center;font-size:12px;margin-top:auto;padding:30px 0 45px}kbd{background:var(--text);color:var(--bg);padding:2px 5px;border-radius:3px;font-size:10px}footer{display:flex;align-items:center;gap:23px;font-size:11px}footer .right{margin-left:auto;display:flex;gap:20px}.results{display:none}.stats{display:flex;flex-wrap:wrap;gap:55px;align-items:center;margin-bottom:40px}.stat label{display:block;font-size:15px}.stat strong{display:block;color:var(--accent);font-weight:400;font-size:65px}.detail{font-size:14px;line-height:1.8}.detail b{font-weight:400;color:var(--text)}.chart-wrap{position:relative}.chart-wrap canvas{display:block}.chart-marker{position:absolute;top:15px;height:130px;width:1px;background:var(--text);opacity:.7;pointer-events:none}.chart-tooltip{position:absolute;top:20px;z-index:2;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--muted);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.7;white-space:nowrap;box-shadow:0 4px 16px #0003}.chart-tooltip strong{font-weight:500}#chartHoverTime{color:var(--muted);margin-bottom:3px}.chart-legend{display:flex;gap:24px;flex-wrap:wrap;font-size:12px;margin-bottom:12px;color:var(--text)}.mistake-key{color:var(--error)}.raw-key{color:var(--muted)}.average-key{color:var(--accent)}canvas{width:100%;height:170px}.results .restart{margin-top:20px}dialog{background:var(--panel);color:var(--text);border:0;border-radius:12px;width:min(560px,90vw);padding:30px;box-shadow:0 20px 100px #0006}#leaveRaceDialog{position:fixed;inset:0;margin:auto;width:min(440px,90vw)}.confirm-actions{display:flex;align-items:center;justify-content:flex-end;gap:16px;margin-top:24px}.confirm-actions .race-leave{margin-left:0}dialog::backdrop{background:#0008;backdrop-filter:blur(4px)}dialog h2{font-size:22px;font-weight:400;margin:0 0 25px}dialog p{font-size:13px;line-height:1.8}dialog button.option{display:block;background:var(--bg);border-radius:5px;padding:12px;margin:9px 0;width:100%;text-align:left;color:var(--text)}.close{float:right;font-size:20px}textarea{width:100%;height:130px;background:var(--bg);border:1px solid var(--muted);color:var(--text);padding:12px;border-radius:5px}.history-row{width:100%;text-align:left;gap:16px;display:flex;justify-content:space-between;font-size:12px;padding:13px 0;border-bottom:1px solid var(--muted)}.focus header,.focus footer,.focus .config,.focus .language{opacity:.18;transition:opacity .3s}.focus header:hover,.focus .config:hover{opacity:1}@media(max-width:700px){.shell{padding:25px 23px}.brand strong{font-size:25px}header{gap:20px}nav{gap:14px}.config{margin:0 auto 45px;gap:13px;padding:15px}.group{gap:12px}.words{font-size:23px;height:120px}main{padding-bottom:25px}.shortcuts{padding-bottom:28px}footer{gap:12px;flex-wrap:wrap}footer .right{margin-left:0}.stats{gap:25px;flex-wrap:wrap}.stat strong{font-size:50px}}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Logostype — type the scriptures and practice your typing with passages from the Recovery Version." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#323437" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <title>Logostype | Type the scriptures</title>
+    <style>
+      :root {
+        --bg: #323437;
+        --panel: #2c2e31;
+        --text: #d1d0c5;
+        --muted: #646669;
+        --accent: #e2b714;
+        --error: #ca4754;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--muted);
+        font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        transition: background 0.2s;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+      button:hover,
+      button:focus-visible {
+        color: var(--text);
+      }
+      button:focus-visible {
+        outline: 1px solid var(--accent);
+        outline-offset: 5px;
+      }
+      button.active {
+        color: var(--accent);
+      }
+      .shell {
+        max-width: 1280px;
+        margin: auto;
+        min-height: 100svh;
+        padding: 38px 48px 25px;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text);
+        text-align: left;
+        padding: 0;
+      }
+      .brand svg {
+        color: var(--accent);
+        width: 42px;
+      }
+      .brand small {
+        font-size: 11px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: -3px;
+      }
+      .brand strong {
+        font-family: Arial, sans-serif;
+        font-weight: 500;
+        font-size: 31px;
+        letter-spacing: -1px;
+      }
+      nav {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+      }
+      nav button,
+      .account {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+      }
+      .account {
+        margin-left: auto;
+        gap: 8px;
+      }
+      .profile-name {
+        font-size: 13px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @media (max-width: 700px) {
+        .profile-name {
+          max-width: 90px;
+        }
+      }
+      #friends {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 14px;
+      }
+      header .menu-icon {
+        display: block;
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+      }
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-bottom: 55px;
+      }
+      .config {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 17px;
+        background: var(--panel);
+        border-radius: 8px;
+        width: fit-content;
+        margin: 0 auto 75px;
+        padding: 13px 19px;
+        font-size: 12px;
+      }
+      .group {
+        display: flex;
+        gap: 16px;
+      }
+      .divider {
+        height: 19px;
+        width: 4px;
+        background: var(--bg);
+        border-radius: 4px;
+      }
+      .config button {
+        padding: 0;
+      }
+      .journey-progress {
+        position: fixed;
+        z-index: 10;
+        left: max(12px, calc((100vw - 1280px) / 2 - 130px));
+        top: 50%;
+        transform: translateY(-50%);
+        width: 110px;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 11px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .journey-progress strong {
+        color: var(--accent);
+        font-size: 17px;
+        font-weight: 400;
+      }
+      .journey-word-tooltip {
+        position: absolute;
+        left: calc(100% + 12px);
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+        pointer-events: none;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.15s;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--muted);
+        border-radius: 6px;
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 12px;
+        line-height: 1.8;
+        white-space: nowrap;
+        box-shadow: 0 4px 16px #0003;
+      }
+      .journey-word-tooltip small {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      #journeyWordCount {
+        color: var(--accent);
+        font-size: 14px;
+      }
+      .journey-progress:hover .journey-word-tooltip,
+      .journey-progress:focus-within .journey-word-tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+      .journey-progress-track {
+        position: relative;
+        width: 8px;
+        height: 220px;
+        background: var(--panel);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .journey-progress-track div {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: var(--accent);
+        border-radius: 8px;
+        transition: height 0.25s;
+      }
+      body.book-mode main {
+        padding-left: 90px;
+        padding-top: 48px;
+        justify-content: flex-start;
+      }
+      @media (max-width: 700px) {
+        body.book-mode main {
+          padding-left: 36px;
+          padding-top: 32px;
+        }
+        .journey-progress {
+          left: 5px;
+          width: 44px;
+          font-size: 9px;
+          gap: 8px;
+        }
+        .journey-progress > span:first-child {
+          writing-mode: vertical-rl;
+        }
+        .journey-progress strong {
+          font-size: 10px;
+        }
+        .journey-progress-track {
+          height: 150px;
+          width: 5px;
+        }
+        #journeyProgressCount {
+          font-size: 8px;
+          overflow-wrap: anywhere;
+        }
+      }
+      .book-progress {
+        text-align: center;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.8;
+        margin: 0 0 22px;
+      }
+      .book-progress strong {
+        color: var(--accent);
+      }
+      body.book-mode .config,
+      body.book-mode .language,
+      body.book-mode .test-metrics {
+        display: none;
+      }
+      .verse-context {
+        font-size: 18px;
+        line-height: 1.65;
+        color: var(--muted);
+        padding: 16px 0;
+      }
+      .verse-context-reference {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .verse-context p {
+        margin: 4px 0;
+        max-height: 5em;
+        overflow: auto;
+      }
+      body.book-mode .words {
+        height: auto;
+        min-height: 100px;
+        max-height: 245px;
+        padding: 12px 0;
+        border-top: 1px solid var(--panel);
+        border-bottom: 1px solid var(--panel);
+      }
+      body.book-mode .book-progress {
+        color: var(--accent);
+      }
+      .language {
+        text-align: center;
+        font-size: 13px;
+        margin-bottom: 25px;
+      }
+      .test {
+        position: relative;
+        cursor: text;
+        outline: none;
+      }
+      .test-metrics {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .race-countdown {
+        position: absolute;
+        inset: 31px 0 0;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: var(--bg);
+        pointer-events: none;
+      }
+      .race-countdown span {
+        font-size: 15px;
+        letter-spacing: 3px;
+        color: var(--text);
+      }
+      .race-countdown strong {
+        font-size: clamp(72px, 12vw, 112px);
+        line-height: 1.1;
+        color: var(--accent);
+        font-weight: 500;
+        animation: countdown-beat 1s ease-out infinite;
+      }
+      .race-countdown.is-go {
+        background: transparent;
+        align-items: flex-end;
+        justify-content: flex-start;
+        inset: 0 0 auto auto;
+      }
+      .race-countdown.is-go span {
+        display: none;
+      }
+      .race-countdown.is-go strong {
+        font-size: 36px;
+        animation: none;
+      }
+      @keyframes countdown-beat {
+        from {
+          transform: scale(1.16);
+          opacity: 0.65;
+        }
+        35%,
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .race-countdown strong {
+          animation: none;
+        }
+      }
+      .counter {
+        color: var(--accent);
+        height: 31px;
+        font-size: 23px;
+      }
+      .words {
+        height: 145px;
+        overflow: hidden;
+        font-size: 29px;
+        line-height: 1.68;
+        letter-spacing: 0.2px;
+        position: relative;
+        scroll-behavior: auto;
+      }
+      .word {
+        display: inline-block;
+        margin-right: 0.6em;
+      }
+      .letter {
+        position: relative;
+      }
+      .correct {
+        color: var(--text);
+      }
+      .incorrect {
+        color: var(--error);
+      }
+      .typing-caret {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 2px;
+        background: var(--accent);
+        border-radius: 1px;
+        pointer-events: none;
+        transition:
+          transform 85ms ease-out,
+          height 85ms ease-out;
+        will-change: transform;
+        animation: blink 1s infinite;
+      }
+      .running .typing-caret {
+        animation: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .typing-caret {
+          transition: none;
+          animation: none;
+        }
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      #typing {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+        left: 50%;
+        top: 50%;
+        pointer-events: none;
+      }
+      .restart {
+        display: block;
+        margin: 34px auto 0;
+        font-size: 24px;
+        padding: 8px 15px;
+      }
+      .hint {
+        text-align: center;
+        font-size: 11px;
+        margin-top: 20px;
+        opacity: 0;
+        transition: 0.2s;
+      }
+      .test:hover .hint {
+        opacity: 1;
+      }
+      .shortcuts {
+        text-align: center;
+        font-size: 12px;
+        margin-top: auto;
+        padding: 30px 0 45px;
+      }
+      kbd {
+        background: var(--text);
+        color: var(--bg);
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 10px;
+      }
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 23px;
+        font-size: 11px;
+      }
+      footer .right {
+        margin-left: auto;
+        display: flex;
+        gap: 20px;
+      }
+      .results {
+        display: none;
+      }
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 55px;
+        align-items: center;
+        margin-bottom: 40px;
+      }
+      .stat label {
+        display: block;
+        font-size: 15px;
+      }
+      .stat strong {
+        display: block;
+        color: var(--accent);
+        font-weight: 400;
+        font-size: 65px;
+      }
+      .detail {
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      .detail b {
+        font-weight: 400;
+        color: var(--text);
+      }
+      .chart-wrap {
+        position: relative;
+      }
+      .chart-wrap canvas {
+        display: block;
+      }
+      .chart-marker {
+        position: absolute;
+        top: 15px;
+        height: 130px;
+        width: 1px;
+        background: var(--text);
+        opacity: 0.7;
+        pointer-events: none;
+      }
+      .chart-tooltip {
+        position: absolute;
+        top: 20px;
+        z-index: 2;
+        pointer-events: none;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--muted);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.7;
+        white-space: nowrap;
+        box-shadow: 0 4px 16px #0003;
+      }
+      .chart-tooltip strong {
+        font-weight: 500;
+      }
+      #chartHoverTime {
+        color: var(--muted);
+        margin-bottom: 3px;
+      }
+      .chart-legend {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      .mistake-key {
+        color: var(--error);
+      }
+      .raw-key {
+        color: var(--muted);
+      }
+      .average-key {
+        color: var(--accent);
+      }
+      canvas {
+        width: 100%;
+        height: 170px;
+      }
+      .results .restart {
+        margin-top: 20px;
+      }
+      dialog {
+        background: var(--panel);
+        color: var(--text);
+        border: 0;
+        border-radius: 12px;
+        width: min(560px, 90vw);
+        padding: 30px;
+        box-shadow: 0 20px 100px #0006;
+      }
+      #leaveRaceDialog {
+        position: fixed;
+        inset: 0;
+        margin: auto;
+        width: min(440px, 90vw);
+      }
+      .confirm-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 24px;
+      }
+      .confirm-actions .race-leave {
+        margin-left: 0;
+      }
+      dialog::backdrop {
+        background: #0008;
+        backdrop-filter: blur(4px);
+      }
+      dialog h2 {
+        font-size: 22px;
+        font-weight: 400;
+        margin: 0 0 25px;
+      }
+      dialog p {
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      dialog button.option {
+        display: block;
+        background: var(--bg);
+        border-radius: 5px;
+        padding: 12px;
+        margin: 9px 0;
+        width: 100%;
+        text-align: left;
+        color: var(--text);
+      }
+      .close {
+        float: right;
+        font-size: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 130px;
+        background: var(--bg);
+        border: 1px solid var(--muted);
+        color: var(--text);
+        padding: 12px;
+        border-radius: 5px;
+      }
+      .history-row {
+        width: 100%;
+        text-align: left;
+        gap: 16px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--muted);
+      }
+      .focus header,
+      .focus footer,
+      .focus .config,
+      .focus .language {
+        opacity: 0.18;
+        transition: opacity 0.3s;
+      }
+      .focus header:hover,
+      .focus .config:hover {
+        opacity: 1;
+      }
+      @media (max-width: 700px) {
+        .shell {
+          padding: 25px 23px;
+        }
+        .brand strong {
+          font-size: 25px;
+        }
+        header {
+          gap: 20px;
+        }
+        nav {
+          gap: 14px;
+        }
+        .config {
+          margin: 0 auto 45px;
+          gap: 13px;
+          padding: 15px;
+        }
+        .group {
+          gap: 12px;
+        }
+        .words {
+          font-size: 23px;
+          height: 120px;
+        }
+        main {
+          padding-bottom: 25px;
+        }
+        .shortcuts {
+          padding-bottom: 28px;
+        }
+        footer {
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        footer .right {
+          margin-left: 0;
+        }
+        .stats {
+          gap: 25px;
+          flex-wrap: wrap;
+        }
+        .stat strong {
+          font-size: 50px;
+        }
+      }
 
-[hidden]{display:none!important}#racePanel{background:var(--panel);border-radius:8px;padding:22px;margin:0 0 30px;font-size:13px}.race-top{display:flex;justify-content:space-between;align-items:center}.race-top strong{font-weight:400;color:var(--accent);font-size:17px}#raceStatus{line-height:1.6;color:var(--text)}#raceInvite{display:flex;gap:12px;margin:15px 0}#inviteLink,.race-field{background:var(--bg);color:var(--text);border:1px solid var(--muted);border-radius:5px;padding:10px;min-width:0}#inviteLink{flex:1;font-size:12px}.race-field{display:block;width:100%;margin:8px 0 20px}.race-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}.race-actions .race-primary{margin-top:0}.race-leave{margin-left:auto;color:var(--error);border:1px solid currentColor;border-radius:5px;padding:10px 16px}.race-leave:hover,.race-leave:focus-visible{color:var(--error);background:color-mix(in srgb,var(--error) 12%,transparent)}.race-primary{background:var(--accent);color:var(--bg);padding:10px 16px;border-radius:5px;margin-top:14px}.race-primary:hover{color:var(--bg);filter:brightness(1.1)}button:disabled{opacity:.4;cursor:default}.racer{display:grid;grid-template-columns:minmax(75px,1fr) 2fr minmax(100px,1fr);gap:15px;align-items:center;margin:15px 0}.racer span:last-child{text-align:right;font-size:11px}.race-track{height:5px;background:var(--bg);border-radius:5px;overflow:hidden}.race-track i{display:block;height:100%;background:var(--accent);transition:width .2s}.race-label{color:var(--text);overflow-wrap:anywhere}#raceError{color:var(--error);min-height:20px;line-height:1.6}body.in-room .config{display:none}body.in-room #restart,body.in-room #again{display:none}body.in-room main{justify-content:flex-start;padding-top:40px}body.in-room .config{margin-bottom:30px}@media(max-width:700px){header{flex-wrap:wrap}nav{order:3;width:100%;justify-content:center}#raceInvite{flex-wrap:wrap}#inviteLink{flex-basis:100%}.racer{gap:8px;grid-template-columns:80px 1fr 100px}nav{gap:8px}}
-.result-references{margin-top:24px;font-size:14px;line-height:1.8}.result-references h3{font-size:14px;font-weight:400;color:var(--muted)}.result-references ul{padding-left:22px;color:var(--text)}.journey-options{margin:0 0 24px;font-size:14px}.journey-selectors{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.journey-options p{color:var(--muted);font-size:12px;margin:12px 0;line-height:1.6}.reading-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.reading-controls select{font:inherit;background:var(--bg);color:var(--text);max-width:100%;padding:8px}.reading-controls button{padding:10px}.reading-controls button:disabled{opacity:.35;cursor:default}.reading-verses{max-height:55vh;overflow:auto;padding:4px 12px 4px 0;line-height:1.9}.reading-verses p{font-size:17px}.reading-verses sup{color:var(--accent);font-size:11px;margin-right:8px}#modal:has(.reading-verses){width:min(760px,94vw)}@media(max-width:700px){header{flex-wrap:wrap}header nav{order:3;width:100%}header>.account{margin-left:auto}}.records-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px}.records-table th,.records-table td{text-align:left;padding:9px 0;border-bottom:1px solid var(--muted)}.records-table th{font-weight:400}.records-table thead{color:var(--muted)}.records-table td button{color:var(--accent);padding:6px}.records-table td:last-child,.records-table thead th:last-child{text-align:right}.journey-local-progress{display:flex;gap:24px;margin:0 auto 24px;width:min(100%,680px);font-size:12px}.journey-local-progress[hidden]{display:none}.journey-local-progress>div{flex:1;min-width:0}.journey-local-progress label{display:block;color:var(--text);margin-bottom:5px}.journey-local-progress span{display:block;margin-bottom:8px;font-size:11px}.journey-local-progress progress{display:block;appearance:none;border:0;border-radius:5px;overflow:hidden;width:100%;height:7px;background:var(--panel);accent-color:var(--accent)}.journey-local-progress progress::-webkit-progress-bar{background:var(--panel)}.journey-local-progress progress::-webkit-progress-value{background:var(--accent)}.journey-local-progress progress::-moz-progress-bar{background:var(--accent)}@media(max-width:700px){.journey-local-progress{gap:14px;font-size:11px}.journey-local-progress span{font-size:10px}}.journey-choice{padding:8px 12px;border:1px solid var(--muted);border-radius:5px;color:var(--text)}#modal:has(.journey-grid){width:min(940px,94vw)}.journey-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;max-height:65vh;overflow:auto;padding:6px}.journey-grid button{min-height:44px;padding:10px 8px;border:1px solid var(--muted);border-radius:5px;text-align:left;color:var(--text);font-size:12px}.journey-grid button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--bg)}.journey-grid .entire-journey{grid-column:1/-1;text-align:center}@media(max-width:700px){.journey-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.journey-grid button{font-size:11px}}:root{--old-testament:#88c0d0;--new-testament:#c4a7e7}.testament-legend{display:flex;gap:20px;flex-wrap:wrap}.testament-legend .old-testament,.journey-grid button.old-testament{color:var(--old-testament)}.testament-legend .new-testament,.journey-grid button.new-testament{color:var(--new-testament)}.journey-grid button[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}.journey-grid button.old-testament[aria-pressed="true"]{color:var(--old-testament)}.journey-grid button.new-testament[aria-pressed="true"]{color:var(--new-testament)}.journey-grid button:disabled{opacity:.4;cursor:default}.journey-grid button small{display:block;margin-top:5px;font-size:10px;color:var(--muted);line-height:1.4}#clearDataDialog{width:min(480px,90vw)}#clearData,.danger-button{color:var(--error)}#clearData:hover,#clearData:focus-visible,.danger-button:hover,.danger-button:focus-visible{color:var(--error);text-decoration:underline}.danger-button{border:1px solid var(--error);border-radius:5px;padding:10px 12px}</style></head><body><div class="shell"><header><button class="brand" aria-label="Logostype home"><svg viewBox="0 0 48 36" fill="none" stroke="currentColor" stroke-width="2.8"><rect x="2" y="3" width="44" height="30" rx="7"/><path d="M9 11h4m5 0h4m5 0h4m5 0h4M9 18h4m5 0h4m5 0h4m5 0h4M12 25h24"/></svg><span><small>type the scriptures</small><strong>logostype</strong></span></button><nav><button id="book" class="active" title="Scripture journey" aria-label="Scripture journey"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5C9 3 5 3 2 4v16c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v16"/></svg></button><button id="readJourney" type="button" title="Read the scriptures you typed" aria-label="Read the scriptures you typed"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M10 14c1-2 3-2 4 0M2 14l2-8h2m16 8-2-8h-2"/></svg></button><button title="Typing test" id="home" aria-label="Typing test"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 17h10"/></svg></button><button id="friends" title="Race friends" aria-label="Race friends" ><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V3m0 1c5-5 9 5 14 0v11c-5 5-9-5-14 0"/></svg></button></nav><button class="account" title="Settings, profile, and history" data-dialog="settings" aria-label="Settings, profile, and history"><svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 3-.5 2a8 8 0 0 0-2 1.2L5.5 6l-2 3.5L5 11v2l-1.5 1.5 2 3.5 2-.2a8 8 0 0 0 2 1.2l.5 2h4l.5-2a8 8 0 0 0 2-1.2l2 .2 2-3.5L19 13v-2l1.5-1.5-2-3.5-2 .2a8 8 0 0 0-2-1.2L14 3Z"/><circle cx="12" cy="12" r="3"/></svg></button></header><main><div class="config"><div class="group"><button id="punct" aria-pressed="false">@ punctuation</button><button id="capitalization" aria-pressed="false">Aa capitalization</button></div><i class="divider"></i><div class="group" id="modes"><button class="active" data-mode="time">◷ time</button><button data-mode="words">A words</button><button data-mode="quote">❝ quote</button><button data-mode="custom">⌘ custom</button></div><i class="divider"></i><div class="group" id="limits"></div></div><section id="racePanel" hidden aria-label="Friends race"><div class="race-top"><strong id="raceTitle">race friends</strong></div><p id="raceStatus" role="status" aria-live="polite"></p><div id="raceInvite"><input id="inviteLink" readonly aria-label="Invite link"><button id="copyInvite">copy invite</button></div><div id="racers"></div><form id="raceDurationForm"><label for="raceDuration">race time limit (seconds)</label><input id="raceDuration" class="race-field" type="number" min="1" max="3600" step="1" value="120" required aria-describedby="raceDurationHint"><p id="raceDurationHint">25 words · choose 1–3600 seconds before starting.</p></form><div class="race-actions"><button id="startRace" class="race-primary">start race →</button><button id="giveUpRace" class="race-leave" hidden>give up</button><button id="leaveRace" class="race-leave">leave room</button></div></section><div id="journeyOptions" class="journey-options" hidden><div class="journey-selectors"><span>journey</span><button type="button" id="chooseJourney" class="journey-choice" aria-haspopup="dialog">entire Scriptures ▦</button></div><p>Each book and the entire Scriptures keep separate progress.</p></div><aside id="journeyProgress" class="journey-progress" aria-label="Entire Scriptures progress" hidden><span id="journeyLabel">scriptures</span><strong id="journeyProgressValue">0.00%</strong><div id="journeyProgressTrack" class="journey-progress-track" role="progressbar" tabindex="0" aria-describedby="journeyWordTooltip" aria-label="Words completed in the entire Scriptures" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><div id="journeyProgressFill"></div></div><span id="journeyProgressCount">0 words</span><span id="journeyBookCount">0 / 66 books</span><div id="journeyWordTooltip" class="journey-word-tooltip" role="tooltip"><div id="journeyWordCount"></div><div id="journeyWordPercent"></div><small>words in completed verses</small></div></aside><p id="bookProgress" class="book-progress" role="status" hidden></p><div id="journeyLocalProgress" class="journey-local-progress" hidden><div><label for="currentChapterProgress" id="currentChapterLabel">current chapter</label><span id="currentChapterCount"></span><progress id="currentChapterProgress" value="0" max="1" aria-describedby="currentChapterCount"></progress></div><div><label for="currentBookProgress" id="currentBookLabel">current book</label><span id="currentBookCount"></span><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress></div></div><section id="testSection"><div class="language">◎ english</div><div class="test" tabindex="0" aria-label="Typing test. Start typing to begin."><div class="test-metrics"><div class="counter" id="counter"></div></div><div id="previousVerse" class="verse-context" hidden><span class="verse-context-reference"></span><p></p></div><div class="words" id="words"></div><div id="followingVerse" class="verse-context" hidden><span class="verse-context-reference"></span><p></p></div><div id="raceCountdown" class="race-countdown" role="status" aria-live="assertive" aria-atomic="true" hidden><span id="raceCountdownLabel">get ready</span><strong id="raceCountdownValue">3</strong></div><span id="typingCaret" class="typing-caret" aria-hidden="true"></span><input id="typing" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type the displayed words"><div class="hint">click here or press any key to focus</div></div><button class="restart" id="restart" title="Restart test" aria-label="Restart test">↻</button></section><section class="results" id="results"><div class="stats"><div class="stat"><label>average wpm</label><strong id="wpm">0</strong></div><div class="stat"><label title="All typed characters, including errors, divided by five and elapsed minutes">raw wpm</label><strong id="rawWpm">0</strong></div><div class="stat"><label>accuracy</label><strong id="accuracy">0%</strong></div><div class="detail">test type<br><b id="testType"></b><br><span id="resultDetails"></span></div></div><div id="chartLegend" class="chart-legend"><span class="average-key">━ average wpm</span><span>┄ instant wpm (last 3s)</span><span class="raw-key">┈ raw wpm</span><span class="mistake-key">× mistakes</span></div><div class="chart-wrap"><canvas id="chart" aria-label="Average, instant, and raw typing speed over time, with red crosses marking mistakes"></canvas><div id="chartMarker" class="chart-marker" hidden></div><div id="chartTooltip" class="chart-tooltip" hidden><div id="chartHoverTime"></div><div class="average-key">average <strong id="chartHoverAverage"></strong> wpm</div><div>instant <strong id="chartHoverInstant"></strong> wpm</div><div class="raw-key">raw <strong id="chartHoverRaw"></strong> wpm</div></div></div><section id="resultReferences" class="result-references" aria-labelledby="resultReferenceTitle" hidden><h3 id="resultReferenceTitle">verses typed</h3><ul id="resultReferenceList"></ul></section><button class="restart" id="again" title="Next test" aria-label="Next test">↦</button></section></main><div class="shortcuts"><div><kbd>tab</kbd> + <kbd>enter</kbd> - restart test</div><div style="margin-top:12px"><kbd>esc</kbd> - command line</div></div><footer><button id="installApp" hidden>↓ install app</button><span id="offlineStatus" role="status" aria-live="polite"></span><button data-dialog="about">◈ about</button><span class="right"><button data-dialog="themes">◐ <span id="themeName">serika dark</span></button><span>logostype v1.0</span></span></footer></div><dialog id="leaveRaceDialog" aria-labelledby="leaveRaceTitle" aria-describedby="leaveRaceMessage"><h2 id="leaveRaceTitle">close room?</h2><p id="leaveRaceMessage"></p><div class="confirm-actions"><button id="cancelLeaveRace" autofocus>cancel</button><button id="confirmLeaveRace" class="race-leave">close room</button></div></dialog><dialog id="clearDataDialog" aria-labelledby="clearDataTitle" aria-describedby="clearDataMessage"><h2 id="clearDataTitle">clear saved data?</h2><p id="clearDataMessage">This permanently deletes your Logostype name, theme, typing history, records, journey progress, completion dates, and time totals from this browser. Export a backup first if you want to keep them.</p><div class="confirm-actions"><button type="button" id="cancelClearData" autofocus>cancel</button><button type="button" id="confirmClearData" class="danger-button">clear saved data</button></div></dialog><dialog id="modal"><button class="close" aria-label="Close">×</button><div id="modalContent"></div></dialog><script src="vendor/peerjs.min.js"></script><script src="scripture-references.js"></script><script src="scripture-text.js"></script><script src="app.js"></script><script src="data.js"></script><script src="race.js"></script><script src="pwa.js"></script></body></html>
+      [hidden] {
+        display: none !important;
+      }
+      #racePanel {
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 22px;
+        margin: 0 0 30px;
+        font-size: 13px;
+      }
+      .race-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .race-top strong {
+        font-weight: 400;
+        color: var(--accent);
+        font-size: 17px;
+      }
+      #raceStatus {
+        line-height: 1.6;
+        color: var(--text);
+      }
+      #raceInvite {
+        display: flex;
+        gap: 12px;
+        margin: 15px 0;
+      }
+      #inviteLink,
+      .race-field {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        padding: 10px;
+        min-width: 0;
+      }
+      #inviteLink {
+        flex: 1;
+        font-size: 12px;
+      }
+      .race-field {
+        display: block;
+        width: 100%;
+        margin: 8px 0 20px;
+      }
+      .race-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 14px;
+      }
+      .race-actions .race-primary {
+        margin-top: 0;
+      }
+      .race-leave {
+        margin-left: auto;
+        color: var(--error);
+        border: 1px solid currentColor;
+        border-radius: 5px;
+        padding: 10px 16px;
+      }
+      .race-leave:hover,
+      .race-leave:focus-visible {
+        color: var(--error);
+        background: color-mix(in srgb, var(--error) 12%, transparent);
+      }
+      .race-primary {
+        background: var(--accent);
+        color: var(--bg);
+        padding: 10px 16px;
+        border-radius: 5px;
+        margin-top: 14px;
+      }
+      .race-primary:hover {
+        color: var(--bg);
+        filter: brightness(1.1);
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .racer {
+        display: grid;
+        grid-template-columns: minmax(75px, 1fr) 2fr minmax(100px, 1fr);
+        gap: 15px;
+        align-items: center;
+        margin: 15px 0;
+      }
+      .racer span:last-child {
+        text-align: right;
+        font-size: 11px;
+      }
+      .race-track {
+        height: 5px;
+        background: var(--bg);
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      .race-track i {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.2s;
+      }
+      .race-label {
+        color: var(--text);
+        overflow-wrap: anywhere;
+      }
+      #raceError {
+        color: var(--error);
+        min-height: 20px;
+        line-height: 1.6;
+      }
+      body.in-room .config {
+        display: none;
+      }
+      body.in-room #restart,
+      body.in-room #again {
+        display: none;
+      }
+      body.in-room main {
+        justify-content: flex-start;
+        padding-top: 40px;
+      }
+      body.in-room .config {
+        margin-bottom: 30px;
+      }
+      @media (max-width: 700px) {
+        header {
+          flex-wrap: wrap;
+        }
+        nav {
+          order: 3;
+          width: 100%;
+          justify-content: center;
+        }
+        #raceInvite {
+          flex-wrap: wrap;
+        }
+        #inviteLink {
+          flex-basis: 100%;
+        }
+        .racer {
+          gap: 8px;
+          grid-template-columns: 80px 1fr 100px;
+        }
+        nav {
+          gap: 8px;
+        }
+      }
+      .result-references {
+        margin-top: 24px;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      .result-references h3 {
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .result-references ul {
+        padding-left: 22px;
+        color: var(--text);
+      }
+      .journey-options {
+        margin: 0 0 24px;
+        font-size: 14px;
+      }
+      .journey-selectors {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .journey-options p {
+        color: var(--muted);
+        font-size: 12px;
+        margin: 12px 0;
+        line-height: 1.6;
+      }
+      .reading-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .reading-controls select {
+        font: inherit;
+        background: var(--bg);
+        color: var(--text);
+        max-width: 100%;
+        padding: 8px;
+      }
+      .reading-controls button {
+        padding: 10px;
+      }
+      .reading-controls button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .reading-verses {
+        max-height: 55vh;
+        overflow: auto;
+        padding: 4px 12px 4px 0;
+        line-height: 1.9;
+      }
+      .reading-verses p {
+        font-size: 17px;
+      }
+      .reading-verses sup {
+        color: var(--accent);
+        font-size: 11px;
+        margin-right: 8px;
+      }
+      #modal:has(.reading-verses) {
+        width: min(760px, 94vw);
+      }
+      @media (max-width: 700px) {
+        header {
+          flex-wrap: wrap;
+        }
+        header nav {
+          order: 3;
+          width: 100%;
+        }
+        header > .account {
+          margin-left: auto;
+        }
+      }
+      .records-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 28px;
+      }
+      .records-table th,
+      .records-table td {
+        text-align: left;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--muted);
+      }
+      .records-table th {
+        font-weight: 400;
+      }
+      .records-table thead {
+        color: var(--muted);
+      }
+      .records-table td button {
+        color: var(--accent);
+        padding: 6px;
+      }
+      .records-table td:last-child,
+      .records-table thead th:last-child {
+        text-align: right;
+      }
+      .journey-local-progress {
+        display: flex;
+        gap: 24px;
+        margin: 0 auto 24px;
+        width: min(100%, 680px);
+        font-size: 12px;
+      }
+      .journey-local-progress[hidden] {
+        display: none;
+      }
+      .journey-local-progress > div {
+        flex: 1;
+        min-width: 0;
+      }
+      .journey-local-progress label {
+        display: block;
+        color: var(--text);
+        margin-bottom: 5px;
+      }
+      .journey-local-progress span {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 11px;
+      }
+      .journey-local-progress progress {
+        display: block;
+        appearance: none;
+        border: 0;
+        border-radius: 5px;
+        overflow: hidden;
+        width: 100%;
+        height: 7px;
+        background: var(--panel);
+        accent-color: var(--accent);
+      }
+      .journey-local-progress progress::-webkit-progress-bar {
+        background: var(--panel);
+      }
+      .journey-local-progress progress::-webkit-progress-value {
+        background: var(--accent);
+      }
+      .journey-local-progress progress::-moz-progress-bar {
+        background: var(--accent);
+      }
+      @media (max-width: 700px) {
+        .journey-local-progress {
+          gap: 14px;
+          font-size: 11px;
+        }
+        .journey-local-progress span {
+          font-size: 10px;
+        }
+      }
+      .journey-choice {
+        padding: 8px 12px;
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        color: var(--text);
+      }
+      #modal:has(.journey-grid) {
+        width: min(940px, 94vw);
+      }
+      .journey-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        max-height: 65vh;
+        overflow: auto;
+        padding: 6px;
+      }
+      .journey-grid button {
+        min-height: 44px;
+        padding: 10px 8px;
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        text-align: left;
+        color: var(--text);
+        font-size: 12px;
+      }
+      .journey-grid button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--bg);
+      }
+      .journey-grid .entire-journey {
+        grid-column: 1/-1;
+        text-align: center;
+      }
+      @media (max-width: 700px) {
+        .journey-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 6px;
+        }
+        .journey-grid button {
+          font-size: 11px;
+        }
+      }
+      :root {
+        --old-testament: #88c0d0;
+        --new-testament: #c4a7e7;
+      }
+      .testament-legend {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .testament-legend .old-testament,
+      .journey-grid button.old-testament {
+        color: var(--old-testament);
+      }
+      .testament-legend .new-testament,
+      .journey-grid button.new-testament {
+        color: var(--new-testament);
+      }
+      .journey-grid button[aria-pressed="true"] {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .journey-grid button.old-testament[aria-pressed="true"] {
+        color: var(--old-testament);
+      }
+      .journey-grid button.new-testament[aria-pressed="true"] {
+        color: var(--new-testament);
+      }
+      .journey-grid button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .journey-grid button small {
+        display: block;
+        margin-top: 5px;
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      #clearDataDialog {
+        width: min(480px, 90vw);
+      }
+      #clearData,
+      .danger-button {
+        color: var(--error);
+      }
+      #clearData:hover,
+      #clearData:focus-visible,
+      .danger-button:hover,
+      .danger-button:focus-visible {
+        color: var(--error);
+        text-decoration: underline;
+      }
+      .danger-button {
+        border: 1px solid var(--error);
+        border-radius: 5px;
+        padding: 10px 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <button class="brand" aria-label="Logostype home">
+          <svg viewBox="0 0 48 36" fill="none" stroke="currentColor" stroke-width="2.8">
+            <rect x="2" y="3" width="44" height="30" rx="7" />
+            <path d="M9 11h4m5 0h4m5 0h4m5 0h4M9 18h4m5 0h4m5 0h4m5 0h4M12 25h24" /></svg
+          ><span><small>type the scriptures</small><strong>logostype</strong></span>
+        </button>
+        <nav>
+          <button id="book" class="active" title="Scripture journey" aria-label="Scripture journey">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M12 5C9 3 5 3 2 4v16c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v16" />
+            </svg></button
+          ><button
+            id="readJourney"
+            type="button"
+            title="Read the scriptures you typed"
+            aria-label="Read the scriptures you typed">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <circle cx="6" cy="14" r="4" />
+              <circle cx="18" cy="14" r="4" />
+              <path d="M10 14c1-2 3-2 4 0M2 14l2-8h2m16 8-2-8h-2" />
+            </svg></button
+          ><button title="Typing test" id="home" aria-label="Typing test">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <rect x="2" y="3" width="20" height="18" rx="2" />
+              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 17h10" />
+            </svg></button
+          ><button id="friends" title="Race friends" aria-label="Race friends">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M5 21V3m0 1c5-5 9 5 14 0v11c-5 5-9-5-14 0" />
+            </svg>
+          </button>
+        </nav>
+        <button
+          class="account"
+          title="Settings, profile, and history"
+          data-dialog="settings"
+          aria-label="Settings, profile, and history">
+          <svg
+            class="menu-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path
+              d="m10 3-.5 2a8 8 0 0 0-2 1.2L5.5 6l-2 3.5L5 11v2l-1.5 1.5 2 3.5 2-.2a8 8 0 0 0 2 1.2l.5 2h4l.5-2a8 8 0 0 0 2-1.2l2 .2 2-3.5L19 13v-2l1.5-1.5-2-3.5-2 .2a8 8 0 0 0-2-1.2L14 3Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      </header>
+      <main>
+        <div class="config">
+          <div class="group">
+            <button id="punct" aria-pressed="false">@ punctuation</button
+            ><button id="capitalization" aria-pressed="false">Aa capitalization</button>
+          </div>
+          <i class="divider"></i>
+          <div class="group" id="modes">
+            <button class="active" data-mode="time">◷ time</button><button data-mode="words">A words</button
+            ><button data-mode="quote">❝ quote</button><button data-mode="custom">⌘ custom</button>
+          </div>
+          <i class="divider"></i>
+          <div class="group" id="limits"></div>
+        </div>
+        <section id="racePanel" hidden aria-label="Friends race">
+          <div class="race-top"><strong id="raceTitle">race friends</strong></div>
+          <p id="raceStatus" role="status" aria-live="polite"></p>
+          <div id="raceInvite">
+            <input id="inviteLink" readonly aria-label="Invite link" /><button id="copyInvite">copy invite</button>
+          </div>
+          <div id="racers"></div>
+          <form id="raceDurationForm">
+            <label for="raceDuration">race time limit (seconds)</label
+            ><input
+              id="raceDuration"
+              class="race-field"
+              type="number"
+              min="1"
+              max="3600"
+              step="1"
+              value="120"
+              required
+              aria-describedby="raceDurationHint" />
+            <p id="raceDurationHint">25 words · choose 1–3600 seconds before starting.</p>
+          </form>
+          <div class="race-actions">
+            <button id="startRace" class="race-primary">start race →</button
+            ><button id="giveUpRace" class="race-leave" hidden>give up</button
+            ><button id="leaveRace" class="race-leave">leave room</button>
+          </div>
+        </section>
+        <div id="journeyOptions" class="journey-options" hidden>
+          <div class="journey-selectors">
+            <span>journey</span
+            ><button type="button" id="chooseJourney" class="journey-choice" aria-haspopup="dialog">
+              entire Scriptures ▦
+            </button>
+          </div>
+          <p>Each book and the entire Scriptures keep separate progress.</p>
+        </div>
+        <aside id="journeyProgress" class="journey-progress" aria-label="Entire Scriptures progress" hidden>
+          <span id="journeyLabel">scriptures</span><strong id="journeyProgressValue">0.00%</strong>
+          <div
+            id="journeyProgressTrack"
+            class="journey-progress-track"
+            role="progressbar"
+            tabindex="0"
+            aria-describedby="journeyWordTooltip"
+            aria-label="Words completed in the entire Scriptures"
+            aria-valuemin="0"
+            aria-valuemax="1"
+            aria-valuenow="0">
+            <div id="journeyProgressFill"></div>
+          </div>
+          <span id="journeyProgressCount">0 words</span><span id="journeyBookCount">0 / 66 books</span>
+          <div id="journeyWordTooltip" class="journey-word-tooltip" role="tooltip">
+            <div id="journeyWordCount"></div>
+            <div id="journeyWordPercent"></div>
+            <small>words in completed verses</small>
+          </div>
+        </aside>
+        <p id="bookProgress" class="book-progress" role="status" hidden></p>
+        <div id="journeyLocalProgress" class="journey-local-progress" hidden>
+          <div>
+            <label for="currentChapterProgress" id="currentChapterLabel">current chapter</label
+            ><span id="currentChapterCount"></span
+            ><progress id="currentChapterProgress" value="0" max="1" aria-describedby="currentChapterCount"></progress>
+          </div>
+          <div>
+            <label for="currentBookProgress" id="currentBookLabel">current book</label
+            ><span id="currentBookCount"></span
+            ><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress>
+          </div>
+        </div>
+        <section id="testSection">
+          <div class="language">◎ english</div>
+          <div class="test" tabindex="0" aria-label="Typing test. Start typing to begin.">
+            <div class="test-metrics"><div class="counter" id="counter"></div></div>
+            <div id="previousVerse" class="verse-context" hidden>
+              <span class="verse-context-reference"></span>
+              <p></p>
+            </div>
+            <div class="words" id="words"></div>
+            <div id="followingVerse" class="verse-context" hidden>
+              <span class="verse-context-reference"></span>
+              <p></p>
+            </div>
+            <div
+              id="raceCountdown"
+              class="race-countdown"
+              role="status"
+              aria-live="assertive"
+              aria-atomic="true"
+              hidden>
+              <span id="raceCountdownLabel">get ready</span><strong id="raceCountdownValue">3</strong>
+            </div>
+            <span id="typingCaret" class="typing-caret" aria-hidden="true"></span
+            ><input
+              id="typing"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              aria-label="Type the displayed words" />
+            <div class="hint">click here or press any key to focus</div>
+          </div>
+          <button class="restart" id="restart" title="Restart test" aria-label="Restart test">↻</button>
+        </section>
+        <section class="results" id="results">
+          <div class="stats">
+            <div class="stat"><label>average wpm</label><strong id="wpm">0</strong></div>
+            <div class="stat">
+              <label title="All typed characters, including errors, divided by five and elapsed minutes">raw wpm</label
+              ><strong id="rawWpm">0</strong>
+            </div>
+            <div class="stat"><label>accuracy</label><strong id="accuracy">0%</strong></div>
+            <div class="detail">test type<br /><b id="testType"></b><br /><span id="resultDetails"></span></div>
+          </div>
+          <div id="chartLegend" class="chart-legend">
+            <span class="average-key">━ average wpm</span><span>┄ instant wpm (last 3s)</span
+            ><span class="raw-key">┈ raw wpm</span><span class="mistake-key">× mistakes</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas
+              id="chart"
+              aria-label="Average, instant, and raw typing speed over time, with red crosses marking mistakes"></canvas>
+            <div id="chartMarker" class="chart-marker" hidden></div>
+            <div id="chartTooltip" class="chart-tooltip" hidden>
+              <div id="chartHoverTime"></div>
+              <div class="average-key">average <strong id="chartHoverAverage"></strong> wpm</div>
+              <div>instant <strong id="chartHoverInstant"></strong> wpm</div>
+              <div class="raw-key">raw <strong id="chartHoverRaw"></strong> wpm</div>
+            </div>
+          </div>
+          <section id="resultReferences" class="result-references" aria-labelledby="resultReferenceTitle" hidden>
+            <h3 id="resultReferenceTitle">verses typed</h3>
+            <ul id="resultReferenceList"></ul>
+          </section>
+          <button class="restart" id="again" title="Next test" aria-label="Next test">↦</button>
+        </section>
+      </main>
+      <div class="shortcuts">
+        <div><kbd>tab</kbd> + <kbd>enter</kbd> - restart test</div>
+        <div style="margin-top: 12px"><kbd>esc</kbd> - command line</div>
+      </div>
+      <footer>
+        <button id="installApp" hidden>↓ install app</button
+        ><span id="offlineStatus" role="status" aria-live="polite"></span><button data-dialog="about">◈ about</button
+        ><span class="right"
+          ><button data-dialog="themes">◐ <span id="themeName">serika dark</span></button
+          ><span>logostype v1.0</span></span
+        >
+      </footer>
+    </div>
+    <dialog id="leaveRaceDialog" aria-labelledby="leaveRaceTitle" aria-describedby="leaveRaceMessage">
+      <h2 id="leaveRaceTitle">close room?</h2>
+      <p id="leaveRaceMessage"></p>
+      <div class="confirm-actions">
+        <button id="cancelLeaveRace" autofocus>cancel</button
+        ><button id="confirmLeaveRace" class="race-leave">close room</button>
+      </div>
+    </dialog>
+    <dialog id="clearDataDialog" aria-labelledby="clearDataTitle" aria-describedby="clearDataMessage">
+      <h2 id="clearDataTitle">clear saved data?</h2>
+      <p id="clearDataMessage">
+        This permanently deletes your Logostype name, theme, typing history, records, journey progress, completion
+        dates, and time totals from this browser. Export a backup first if you want to keep them.
+      </p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelClearData" autofocus>cancel</button
+        ><button type="button" id="confirmClearData" class="danger-button">clear saved data</button>
+      </div>
+    </dialog>
+    <dialog id="modal">
+      <button class="close" aria-label="Close">×</button>
+      <div id="modalContent"></div>
+    </dialog>
+    <script src="vendor/peerjs.min.js"></script>
+    <script src="scripture-references.js"></script>
+    <script src="scripture-text.js"></script>
+    <script src="app.js"></script>
+    <script src="data.js"></script>
+    <script src="race.js"></script>
+    <script src="pwa.js"></script>
+  </body>
+</html>

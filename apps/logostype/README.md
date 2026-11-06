@@ -20,7 +20,7 @@ Friend races require correcting all characters, or end at the time limit. Input 
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. The room stays open for a rematch.
 
-Scripture is loaded from the bundled classic script `scripture-text.js`, without fetching a text file. If editing the Scripture text, keep that script's `scriptureText` string in sync with `RcV.txt`.
+Scripture is downloaded by the shared classic script `scripture-text.js` from the configured Scripture API, then cached in IndexedDB with a localStorage backup for 15 days. Typing and reading use the same loader and validate the verse count against `scripture-references.js`. First use and cache refresh require an internet connection; a fresh cached copy works offline. `RcV.txt` remains a local reference file.
 
 The same folder can also be hosted as a static website. Installable PWA and service worker caching require HTTPS or localhost; direct file use skips service worker registration. Race rooms require an internet connection.
 
