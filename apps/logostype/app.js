@@ -155,9 +155,9 @@ document.addEventListener("visibilitychange", () => {
 });
 function journeyTypingStats() {
   const attempts = journeyAttempts.filter((item) => item.journey === (selectedJourneyBook || "Entire Scriptures"));
-  const seconds = Math.floor(attempts.reduce((sum, item) => sum + (item.typingMs ?? 0), 0) / 1000);
-  const format = (seconds) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${seconds % 60}s`;
-  const allSeconds = Math.floor(attempts.reduce((sum, item) => sum + (item.elapsedMs ?? item.typingMs ?? 0), 0) / 1000);
+  const seconds = attempts.reduce((sum, item) => sum + (item.typingMs ?? 0), 0) / 1000;
+  const format = (seconds) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${(seconds % 60).toFixed(3)}s`;
+  const allSeconds = attempts.reduce((sum, item) => sum + (item.elapsedMs ?? item.typingMs ?? 0), 0) / 1000;
   return `Time spent typing (successful attempts): ${format(seconds)} · Total time spent (all attempts): ${format(allSeconds)}`;
 }
 function celebrateJourney(colorCount = 1) {
@@ -211,7 +211,7 @@ function setReadingView(active) {
 }
 function syncNavigation(racing = false) {
   const reading = document.body.classList.contains("reading-mode") && !racing;
-  if (racing) setReadingView(false);
+  if (racing && window.friendRace?.active) setReadingView(false);
   $("#readJourney").classList.toggle("active", reading);
   $("#home").classList.toggle("active", !racing && !reading && mode !== "book");
   $("#book").classList.toggle("active", !racing && !reading && mode === "book");
@@ -336,29 +336,78 @@ function renderBookContext() {
     element.querySelector("p").textContent = scriptureLines[index];
   }
 }
-function enterBook() {
+let currentMenu = "journey";
+const menuStates = new Map();
+function pauseMenu() {
+  if (currentMenu === "reading" || currentMenu === "race") return;
+  checkpointJourneyAttempt();
+  clearInterval(timer);
+  timer = null;
+  const resultText = {};
+  for (const id of ["wpm", "rawWpm", "accuracy", "testType", "resultDetails", "counter"]) resultText[id] = $("#" + id).textContent;
+  menuStates.set(currentMenu, {
+    mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start,
+    done, total, errors, samples, instantSamples, rawSamples, sampleTimes, mistakeEvents,
+    recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt, resultText,
+    inputValue: input.value, pausedAt: Date.now(),
+  });
+  activeJourneyAttempt = null;
+  document.body.classList.remove("focus", "running");
+}
+function switchTypingMenu(destination) {
+  if (currentMenu === destination) { input.focus(); return; }
+  pauseMenu();
+  currentMenu = destination;
   setReadingView(false);
-  if (mode !== "book") lastTypingMode = mode;
-  mode = "book";
-  reset();
-  input.focus();
+  const state = menuStates.get(destination);
+  if (state) {
+    ({ mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start,
+       done, total, errors, samples, instantSamples, rawSamples, sampleTimes, mistakeEvents,
+       recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt } = state);
+    const pause = Date.now() - state.pausedAt;
+    if (start && !done) {
+      start += pause;
+      recentCorrect = recentCorrect.map(hit => ({ ...hit, time: hit.time + pause }));
+      timer = setInterval(tickTest, 50);
+      document.body.classList.add("running");
+    }
+    input.value = state.inputValue;
+    input.disabled = (!scriptureLines.length && mode !== "custom") ||
+      (mode === "book" && currentJourney().progress >= currentJourney().end - currentJourney().start);
+    $("#results").style.display = done ? "block" : "none";
+    $("#testSection").style.display = done ? "none" : "block";
+    for (const [id, text] of Object.entries(state.resultText)) $("#" + id).textContent = text;
+    $("#testReferences").textContent = testReferences.join(" · ");
+    $("#testReferences").hidden = !done || !["time", "words", "quote"].includes(mode) || !testReferences.length;
+    $("#chart").hidden = false;
+    $("#chartLegend").hidden = false;
+    $("#wpm").parentElement.hidden = false;
+    $("#rawWpm").parentElement.hidden = false;
+    updateBookProgress(); limits(); render(false); syncNavigation();
+    if (done) drawChart();
+  } else {
+    mode = destination === "journey" ? "book" : lastTypingMode;
+    limit = mode === "time" ? 15 : 25;
+    punctuation = capitalization = false;
+    reset();
+  }
+  $("#modes").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+  $("#punct").classList.toggle("active", punctuation);
+  $("#punct").setAttribute("aria-pressed", String(punctuation));
+  if (done) $("#again").focus(); else input.focus();
+}
+function enterBook() {
+  if (mode !== "book" && currentMenu === "typing") lastTypingMode = mode;
+  switchTypingMenu("journey");
 }
 function enterTyping() {
-  setReadingView(false);
-  if (mode === "book") {
-    mode = lastTypingMode;
-    limit = mode === "time" ? 15 : 25;
-  }
-  $("#modes")
-    .querySelectorAll("button")
-    .forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
-  reset();
-  input.focus();
+  switchTypingMenu("typing");
 }
+
 function completeBookVerse() {
   if (mode !== "book") return;
   const previousPosition = journeyPosition();
-  const passed = typed === target && target.length > 0;
+  const passed = typed === target && target.length > 0 && !parseTyping(input.value).extraCount;
   if (passed) {
     if (!done) sampleWpm();
     if (activeJourneyAttempt) {
@@ -373,6 +422,8 @@ function completeBookVerse() {
       rawWpm: rawSpeed(),
       accuracy: total ? Math.round(((total - errors) / total) * 100) : 100,
       mode: "book",
+      punctuation: true,
+      capitalization: true,
       limit: 1,
       date: new Date().toLocaleString(),
       reference: scriptureReferences[journeyPosition()],
@@ -421,6 +472,8 @@ function completeBookVerse() {
   $("#again").setAttribute("aria-label", $("#again").title);
   return passed;
 }
+const defaultCustomText = "And when he sits on the throne of his kingdom, he shall write out for himself a copy of this law in a book, out of [that which is] before the Levitical priests.";
+let selectedTestVerse = null;
 let mode = "book",
   limit = 15,
   punctuation = false,
@@ -439,23 +492,28 @@ let mode = "book",
   sampleTimes = [],
   mistakeEvents = [],
   recentCorrect = [],
-  custom =
-    "And when he sits on the throne of his kingdom, he shall write out for himself a copy of this law in a book, out of [that which is] before the Levitical priests.",
+  custom = defaultCustomText,
   history = [];
 try {
   history = JSON.parse(localStorage.getItem("logostype-history") || "[]");
+  custom = localStorage.getItem("logostype-custom-text") || defaultCustomText;
 } catch {}
 const input = $("#typing");
 function limits() {
   const values = mode === "time" ? [15, 30, 60, 120] : [10, 25, 50, 100];
-  $("#limits").innerHTML =
-    mode === "quote" || mode === "custom" || mode === "book"
-      ? ""
-      : values.map((n) => `<button data-limit="${n}" class="${n === limit ? "active" : ""}">${n}</button>`).join("") +
-        (mode === "time"
-          ? `<button data-duration class="${values.includes(limit) ? "" : "active"}" aria-label="Custom time duration">${values.includes(limit) ? "custom" : limit + "s ✎"}</button>`
-          : "");
+  if (mode === "quote") {
+    $("#limits").innerHTML = `<button data-random-verse class="${selectedTestVerse === null ? "active" : ""}">random</button><button data-select-verse class="${selectedTestVerse !== null ? "active" : ""}">${selectedTestVerse === null ? "choose verse" : "chosen verse ✎"}</button>`;
+    return;
+  }
+  $("#limits").innerHTML = mode === "custom" || mode === "book" ? "" :
+    values.map(n => `<button data-limit="${n}" class="${n === limit ? "active" : ""}">${n}</button>`).join("") +
+    (mode === "time"
+      ? `<button data-duration class="${values.includes(limit) ? "" : "active"}" aria-label="Custom time duration">${values.includes(limit) ? "custom" : limit + "s ✎"}</button>`
+      : `<button data-word-count class="${values.includes(limit) ? "" : "active"}" aria-label="Custom word count">${values.includes(limit) ? "custom" : limit + " words ✎"}</button>`);
 }
+
+let testReferences = [];
+let testSourceRanges = [];
 function generate(append = false) {
   let passage = "",
     sources = [];
@@ -466,6 +524,7 @@ function generate(append = false) {
   else if (scriptureLines.length) {
     let index = Math.floor(Math.random() * scriptureLines.length);
     if (mode === "quote") {
+      if (selectedTestVerse !== null) index = selectedTestVerse;
       passage = scriptureLines[index];
       sources.push({ index, text: passage, whole: true });
     } else {
@@ -482,6 +541,15 @@ function generate(append = false) {
     }
   }
   rawTarget = append && rawTarget ? rawTarget + " " + passage : passage;
+  if (!append) testReferences = sources.map((source) => scriptureReferences[source.index]);
+  if (!append) testSourceRanges = [];
+  let offset = append ? target.length + 1 : 0;
+  for (const source of sources) {
+    const text = normalizeScripture(source.text);
+    if (!text.length) continue;
+    testSourceRanges.push({ reference: scriptureReferences[source.index], start: offset });
+    offset += text.length + 1;
+  }
   return normalizeScripture(passage);
 }
 let lastInput = "";
@@ -489,16 +557,24 @@ function parseTyping(value, capped = false) {
   let text = "",
     raw = "";
   const expected = [];
+  const spaceTypos = {};
+  let extraCount = 0;
   for (const character of value.split("")) {
     if (capped && text.length >= target.length) break;
     raw += character;
     expected.push(target[text.length]);
+    if (target[text.length] === " " && character !== " ") {
+      spaceTypos[text.length] = (spaceTypos[text.length] || "") + character;
+      extraCount++;
+      continue;
+    }
     text += character;
   }
-  return { text, raw, expected };
+  return { text, raw, expected, spaceTypos, extraCount };
 }
 function render(smooth = true) {
   renderBookContext();
+  const { spaceTypos } = parseTyping(input.value);
   let pos = 0;
   $("#words").innerHTML = target
     .split(" ")
@@ -530,6 +606,7 @@ function render(smooth = true) {
         pos++;
       }
       // Word separator: this target slot is a space
+      if (spaceTypos[pos]) html += `<span class="letter incorrect space-typo">${escapeHtml(spaceTypos[pos])}</span>`;
       if (pos === typed.length) {
         html += `<span class="letter cursor"> </span></span>`;
       } else if (pos < typed.length) {
@@ -602,24 +679,29 @@ function reset(preservePassage = false) {
   render(false);
 }
 function speed() {
+  const elapsed = Date.now() - start;
+  if (!start || elapsed <= 0 || typed.length < 2) return 0;
   let correct = 0;
   for (let i = 0; i < typed.length; i++) if (typed[i] === target[i]) correct++;
-  return Math.round(correct / 5 / Math.max((Date.now() - start) / 60000, 1 / 60));
+  return Math.round((correct / 5) * 60000 / elapsed);
 }
 function rawSpeed() {
-  if (!start) return 0;
-  return Math.round(input.value.length / 5 / Math.max((Date.now() - start) / 60000, 1 / 60));
+  const elapsed = Date.now() - start;
+  if (!start || elapsed <= 0 || typed.length < 2) return 0;
+  return Math.round((input.value.length / 5) * 60000 / elapsed);
 }
 function instantSpeed(now = Date.now()) {
   recentCorrect = recentCorrect.filter((hit) => now - hit.time < 3000);
-  if (!start) return 0;
-  return Math.round((recentCorrect.length / 5 / Math.max(1, Math.min(3, (now - start) / 1000))) * 60);
+  const elapsed = Math.min(3000, now - start);
+  if (!start || elapsed <= 0 || typed.length < 2) return 0;
+  return Math.round((recentCorrect.length / 5) * 60000 / elapsed);
 }
 function recordMistake() {
   errors++;
   mistakeEvents.push({ time: Math.max(0, (Date.now() - start) / 1000), wpm: instantSpeed() });
 }
 function sampleWpm() {
+  if (typed.length < 2) return;
   samples.push(speed());
   instantSamples.push(instantSpeed());
   rawSamples.push(rawSpeed());
@@ -642,24 +724,34 @@ function finish() {
   $("#chart").hidden = !!(window.friendRace?.active && window.friendRace.running);
   $("#chartLegend").hidden = $("#chart").hidden;
   $("#accuracy").textContent = accuracy + "%";
-  $("#testType").textContent = `${mode} ${mode === "time" ? limit + "s" : mode === "words" ? limit : ""} · english`;
-  $("#resultDetails").textContent = `${Math.round(elapsed)}s · ${typed.length} characters · ${errors} errors`;
+  $("#testType").textContent = `${mode === "quote" ? "verse" : mode} ${mode === "time" ? limit + "s" : mode === "words" ? limit : ""} · english`;
+  $("#resultDetails").textContent = `${elapsed.toFixed(3)}s · ${typed.length} characters · ${errors} errors`;
+  const references = $("#testReferences");
+  if (mode === "time") testReferences = [...new Set(testSourceRanges.filter(source => source.start < typed.length).map(source => source.reference))];
+  references.hidden = !["time", "words", "quote"].includes(mode) || !!window.friendRace?.active || !testReferences.length;
+  references.textContent = testReferences.join(" · ");
   $("#testSection").style.display = "none";
   $("#results").style.display = "block";
-  history.unshift({
+  const result = {
     id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
     wpm,
     rawWpm: rawSpeed(),
     accuracy,
     mode,
+    punctuation,
+    capitalization,
     limit,
     date: new Date().toLocaleString(),
+    ...(mode === "custom" && !window.friendRace?.active && rawTarget === defaultCustomText ? { customPreset: "default" } : {}),
     chart: captureChart(),
-  });
+  };
+  const record = newPersonalRecord(result, mode === "book" ? history.slice(1) : history);
+  if (record) $("#resultDetails").insertAdjacentHTML("beforeend", `<br><span class="new-record">★ ${escapeHtml(record)}</span>`);
+  history.unshift(result);
   try {
     localStorage.setItem("logostype-history", JSON.stringify(history));
   } catch {}
-  window.friendRace?.report(true);
+  window.friendRace?.report(true, Math.round(elapsed * 1000));
   drawChart();
 }
 function hideChartHover() {
@@ -675,6 +767,23 @@ function captureChart() {
     mistakeEvents: mistakeEvents.map((event) => ({ ...event })),
   };
 }
+function chartLegend(target) {
+  return `<div class="chart-legend" data-chart-target="${target}">
+    <button type="button" class="average-key" data-chart-series="samples" aria-pressed="true">━ average wpm</button>
+    <button type="button" data-chart-series="instantSamples" aria-pressed="true">┄ instant wpm (last 3s)</button>
+    <button type="button" class="raw-key" data-chart-series="rawSamples" aria-pressed="true">┈ raw wpm</button>
+    <span class="mistake-key">× mistakes</span></div>`;
+}
+document.addEventListener("click", event => {
+  const button = event.target.closest("[data-chart-series]");
+  if (!button) return;
+  const canvas = document.getElementById(button.closest("[data-chart-target]").dataset.chartTarget);
+  const hidden = canvas._hiddenSeries || (canvas._hiddenSeries = new Set());
+  const series = button.dataset.chartSeries;
+  if (hidden.has(series)) hidden.delete(series); else hidden.add(series);
+  button.setAttribute("aria-pressed", String(!hidden.has(series)));
+  drawChart(canvas, canvas._chartData || captureChart());
+});
 function drawChart(c = $("#chart"), data = captureChart()) {
   if (c.id === "chart") hideChartHover();
   if (c.hidden) return;
@@ -700,17 +809,28 @@ function drawChart(c = $("#chart"), data = captureChart()) {
     x.fillStyle = styles.getPropertyValue("--muted");
     x.fillText(Math.round(max * (1 - i / 4)), 0, y + 4);
   }
-  for (const [values, color, dash] of [
-    [rawSamples, "--muted", [2, 4]],
-    [instantSamples, "--text", [5, 4]],
-    [samples, "--accent", []],
+  const ticks = w < 400 ? 2 : 4;
+  for (let i = 0; i <= ticks; i++) {
+    x.textAlign = i === 0 ? "left" : i === ticks ? "right" : "center";
+    x.fillText((duration * i / ticks).toFixed(duration < 10 ? 1 : 0) + "s", 35 + i / ticks * (w - 40), 165);
+  }
+  x.textAlign = "left";
+  for (const [series, values, color, dash] of [
+    ["rawSamples", rawSamples, "--muted", [2, 4]],
+    ["instantSamples", instantSamples, "--text", [5, 4]],
+    ["samples", samples, "--accent", []],
   ]) {
+    if (c._hiddenSeries?.has(series)) continue;
     x.strokeStyle = styles.getPropertyValue(color);
     x.lineWidth = 2;
     x.setLineDash(dash);
     x.beginPath();
-    x.moveTo(35, 145);
-    values.forEach((v, i) => x.lineTo(35 + (sampleTimes[i] / duration) * (w - 40), 145 - (v / max) * 130));
+    values.forEach((v, i) => {
+      const px = 35 + (sampleTimes[i] / duration) * (w - 40);
+      const py = 145 - (v / max) * 130;
+      if (i === 0) x.moveTo(px, py);
+      else x.lineTo(px, py);
+    });
     x.stroke();
   }
   x.setLineDash([]);
@@ -734,15 +854,21 @@ function chartHoverPoint(pointerX, width) {
   let index = 0;
   for (let i = 1; i < sampleTimes.length; i++)
     if (Math.abs(sampleTimes[i] - time) < Math.abs(sampleTimes[index] - time)) index = i;
-  return { x, index };
+  return { x: 35 + (sampleTimes[index] / Math.max(1, ...sampleTimes)) * (width - 40), index };
 }
-$("#chart").addEventListener("pointermove", (event) => {
+document.addEventListener("pointermove", (event) => {
   const chart = $("#chart");
-  if (chart.hidden || !done) {
+  if (chart.hidden || !done || !chart.getClientRects().length || document.querySelector('dialog[open]')) {
     hideChartHover();
     return;
   }
   const rect = chart.getBoundingClientRect();
+  const dx = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
+  const dy = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
+  if (Math.hypot(dx, dy) > 24) {
+    hideChartHover();
+    return;
+  }
   const point = chartHoverPoint(event.clientX - rect.left, rect.width);
   if (!point) {
     hideChartHover();
@@ -753,7 +879,7 @@ $("#chart").addEventListener("pointermove", (event) => {
     marker = $("#chartMarker");
   marker.hidden = false;
   marker.style.left = x + "px";
-  $("#chartHoverTime").textContent = sampleTimes[index].toFixed(1) + "s";
+  $("#chartHoverTime").textContent = sampleTimes[index].toFixed(3) + "s";
   $("#chartHoverAverage").textContent = samples[index];
   $("#chartHoverInstant").textContent = instantSamples[index];
   $("#chartHoverRaw").textContent = rawSamples[index];
@@ -762,8 +888,9 @@ $("#chart").addEventListener("pointermove", (event) => {
   const left = x + 12 + tooltipWidth > rect.width ? x - tooltipWidth - 12 : x + 12;
   tooltip.style.left = Math.max(0, Math.min(rect.width - tooltipWidth, left)) + "px";
 });
-$("#chart").addEventListener("pointerleave", hideChartHover);
-$("#chart").addEventListener("pointercancel", hideChartHover);
+document.documentElement.addEventListener("pointerleave", hideChartHover);
+document.addEventListener("pointercancel", hideChartHover);
+window.addEventListener("blur", hideChartHover);
 window.addEventListener("resize", () => {
   hideChartHover();
   if (done && !$("#chart").hidden) drawChart();
@@ -782,6 +909,17 @@ input.addEventListener("beforeinput", (event) => {
   )
     event.preventDefault();
 });
+function tickTest() {
+      const elapsed = (Date.now() - start) / 1000;
+      if (activeJourneyAttempt && Math.floor(elapsed) > Math.floor((activeJourneyAttempt.elapsedMs || 0) / 1000)) {
+        checkpointJourneyAttempt();
+        updateBookProgress();
+      }
+      sampleWpm();
+      $("#counter").textContent =
+        mode === "time" ? Math.max(0, Math.ceil(limit - elapsed)) : `${typed.length}/${target.length}`;
+      if (mode === "time" && elapsed >= limit) finish();
+}
 input.addEventListener("input", () => {
   if (done) {
     input.value = lastInput;
@@ -805,17 +943,7 @@ input.addEventListener("input", () => {
     start = Date.now();
     if (mode === "book" && !window.friendRace?.active) startJourneyAttempt();
     document.body.classList.add("focus", "running");
-    timer = setInterval(() => {
-      const elapsed = (Date.now() - start) / 1000;
-      if (activeJourneyAttempt && Math.floor(elapsed) > Math.floor((activeJourneyAttempt.elapsedMs || 0) / 1000)) {
-        checkpointJourneyAttempt();
-        updateBookProgress();
-      }
-      sampleWpm();
-      $("#counter").textContent =
-        mode === "time" ? Math.max(0, Math.ceil(limit - elapsed)) : `${typed.length}/${target.length}`;
-      if (mode === "time" && elapsed >= limit) finish();
-    }, 250);
+    timer = setInterval(tickTest, 50);
   }
   for (let i = 0; i < parsed.raw.length; i++)
     if (i >= lastInput.length || parsed.raw[i] !== lastInput[i]) {
@@ -834,7 +962,7 @@ input.addEventListener("input", () => {
   if (
     mode !== "time" &&
     typed.length >= target.length &&
-    ((!window.friendRace?.active && mode !== "book") || typed === target)
+    ((!window.friendRace?.active && mode !== "book") || (typed === target && !parsed.extraCount))
   ) {
     if (mode === "book") {
       completeBookVerse();
@@ -869,6 +997,9 @@ $("#modes").onclick = (e) => {
   reset();
 };
 $("#limits").onclick = (e) => {
+  if (e.target.hasAttribute("data-word-count")) { openModal("wordCount"); return; }
+  if (e.target.hasAttribute("data-select-verse")) { openModal("verseSelection"); return; }
+  if (e.target.hasAttribute("data-random-verse")) { selectedTestVerse = null; reset(); return; }
   if (e.target.hasAttribute("data-duration")) {
     openModal("duration");
     return;
@@ -878,42 +1009,79 @@ $("#limits").onclick = (e) => {
     reset();
   }
 };
-for (const [id, getValue, toggle] of [
-  ["punct", () => punctuation, () => (punctuation = !punctuation)],
-  ["capitalization", () => capitalization, () => (capitalization = !capitalization)],
-]) {
-  $("#" + id).onclick = () => {
-    if (window.friendRace?.active || mode === "book") return;
-    toggle();
-    $("#" + id).classList.toggle("active", getValue());
-    $("#" + id).setAttribute("aria-pressed", String(getValue()));
-    reset(true);
-  };
-}
+$("#punct").onclick = () => {
+  if (window.friendRace?.active || mode === "book") return;
+  punctuation = capitalization = !punctuation;
+  $("#punct").classList.toggle("active", punctuation);
+  $("#punct").setAttribute("aria-pressed", String(punctuation));
+  reset(true);
+};
 const themes = {
   "black on white": ["#ffffff", "#f5f5f5", "#000000", "#666666", "#000000"],
   "white on black": ["#000000", "#151515", "#ffffff", "#999999", "#ffffff"],
-  typeracer: ["#eeeeee", "#ffffff", "#20588f", "#62676c", "#005894"],
   "serika dark": ["#323437", "#2c2e31", "#d1d0c5", "#646669", "#e2b714"],
   serika: ["#e1e1e3", "#d1d3d8", "#323437", "#aaaeb3", "#b68b00"],
   nord: ["#2e3440", "#272d38", "#d8dee9", "#6c7a90", "#88c0d0"],
   "rose pine": ["#191724", "#1f1d2e", "#e0def4", "#6e6a86", "#ebbcba"],
 };
+const defaultThemeColors = { primary: "#ffffff", secondary: "#2457c5", tertiary: "#7351a6" };
+let customThemeColors = { ...defaultThemeColors };
+try {
+  const saved = JSON.parse(localStorage.getItem("logostype-custom-colors"));
+  if (saved && Object.keys(defaultThemeColors).every(key => typeof saved[key] === "string" && /^#[0-9a-f]{6}$/i.test(saved[key]))) customThemeColors = saved;
+} catch {}
+function colorLuminance(color) {
+  const channels = color.match(/[0-9a-f]{2}/gi).map(value => {
+    const v = parseInt(value, 16) / 255;
+    return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+  });
+  return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+}
+function colorContrast(a, b) {
+  const x = colorLuminance(a), y = colorLuminance(b);
+  return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+}
+function mixThemeColor(a, b, amount) {
+  return '#' + [1, 3, 5].map(index => Math.round(parseInt(a.slice(index, index + 2), 16) * (1 - amount) +
+    parseInt(b.slice(index, index + 2), 16) * amount).toString(16).padStart(2, '0')).join('');
+}
+function readableThemeColor(color, surfaces, fallback) {
+  for (let step = 0; step <= 100; step++) {
+    const candidate = mixThemeColor(color, fallback, step / 100);
+    if (surfaces.every(surface => colorContrast(candidate, surface) >= 4.5)) return candidate;
+  }
+  return fallback;
+}
+function customThemePalette(colors) {
+  const bg = colors.primary;
+  const text = colorContrast('#000000', bg) >= colorContrast('#ffffff', bg) ? '#000000' : '#ffffff';
+  let panel = mixThemeColor(bg, colors.tertiary, .16);
+  const tintedPanel = panel;
+  for (let step = 1; step <= 100 && colorContrast(text, panel) < 4.5; step++) panel = mixThemeColor(tintedPanel, bg, step / 100);
+  const surfaces = [bg, panel];
+  return [bg, panel, text,
+    readableThemeColor(mixThemeColor(bg, text, .55), surfaces, text),
+    readableThemeColor(colors.secondary, surfaces, text)];
+}
 function theme(name) {
-  const vals = themes[name] || themes["black on white"];
-  const light = name === "black on white" || name === "serika" || name === "typeracer";
+  if (name !== "custom" && !Object.hasOwn(themes, name)) name = "black on white";
+  const vals = name === "custom" ? customThemePalette(customThemeColors) : themes[name];
+  const light = colorLuminance(vals[0]) > .179;
+  const surfaces = [vals[0], vals[1]];
   document.documentElement.dataset.theme = name;
   document.documentElement.style.colorScheme = light ? "light" : "dark";
-  document.documentElement.style.setProperty("--old-testament", light ? "#256579" : "#88c0d0");
-  document.documentElement.style.setProperty("--new-testament", light ? "#734799" : "#c4a7e7");
+  document.documentElement.style.setProperty("--old-testament", name === "custom" ?
+    readableThemeColor(customThemeColors.secondary, surfaces, vals[2]) : light ? "#256579" : "#88c0d0");
+  document.documentElement.style.setProperty("--new-testament", name === "custom" ?
+    readableThemeColor(customThemeColors.tertiary, surfaces, vals[2]) : light ? "#734799" : "#c4a7e7");
+  document.documentElement.style.setProperty("--error", readableThemeColor("#ca4754", surfaces, vals[2]));
   ["--bg", "--panel", "--text", "--muted", "--accent"].forEach((k, i) =>
     document.documentElement.style.setProperty(k, vals[i]),
   );
-  $("#themeName").textContent = name;
-  try {
-    localStorage.setItem("logostype-theme", name);
-  } catch {}
+  $("#themeName").textContent = name === "custom" ? "custom colors" : name;
+  try { localStorage.setItem("logostype-theme", name); } catch {}
 }
+
 function renderKeyboardShortcuts() {
   return `<h3>keyboard shortcuts</h3>
     <table class="records-table"><thead><tr><th scope="col">key</th><th scope="col">action</th></tr></thead><tbody>
@@ -938,7 +1106,11 @@ function openModal(type) {
       "<h2>theme</h2>" +
       Object.keys(themes)
         .map((t) => `<button class="option" data-theme="${t}">◐ ${t}</button>`)
-        .join("");
+        .join("") + '<button class="option" data-open="customTheme">◐ custom colors</button>';
+  if (type === "customTheme") content.innerHTML = '<button class="option" data-open="themes">← themes</button><h2>custom colors</h2><form id="customThemeForm"><p>Choose three colors. Text, panels, highlights, and error colors adapt for readability.</p>' +
+    [["primary", "primary — background"], ["secondary", "secondary — accents"], ["tertiary", "tertiary — panel tint and supporting accents"]].map(([key, label]) =>
+      '<label class="theme-color-field" for="theme-' + key + '"><span>' + label + '</span><input type="color" id="theme-' + key + '" name="' + key + '" value="' + customThemeColors[key] + '"></label>'
+    ).join("") + '<button class="option" type="submit">save colors →</button></form>';
   if (type === "settings")
     content.innerHTML =
       '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
@@ -955,7 +1127,7 @@ function openModal(type) {
         ? history
             .map(
               (h, index) =>
-                `<button type="button" class="history-row" data-history-index="${index}" aria-label="View result: ${escapeHtml(h.reference || h.mode)} ${escapeHtml(h.date)}"><span>${escapeHtml(h.date)} · ${escapeHtml(h.reference || h.mode)} ${h.reference ? "" : h.limit}</span><span>${h.wpm} wpm · ${h.accuracy}% ↗</span></button>`,
+                `<button type="button" class="history-row" data-history-index="${index}" aria-label="View result: ${escapeHtml(h.reference || (h.mode === "quote" ? "verse" : h.mode))} ${escapeHtml(h.date)}"><span>${escapeHtml(h.date)} · ${escapeHtml(h.reference || (h.mode === "quote" ? "verse" : h.mode))} ${h.reference ? "" : h.limit}</span><span>${h.wpm} wpm · ${h.accuracy}% ↗</span></button>`,
             )
             .join("")
         : "<p>Your first personal best is one test away. Finish a test to save your results here.</p>");
@@ -984,7 +1156,9 @@ function openModal(type) {
   }
   if (type === "custom")
     content.innerHTML =
-      '<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" id="saveCustom">start test →</button>';
+      '<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" type="button" id="saveCustom">save →</button><button class="option" type="button" id="defaultCustom">default</button>';
+  if (type === "wordCount") content.innerHTML = '<h2>custom word count</h2><form id="wordCountForm"><label for="wordCount">number of words</label><input class="race-field" id="wordCount" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 words.</p><button class="option" type="submit">start test →</button></form>';
+  if (type === "verseSelection") content.innerHTML = '<h2>choose verse</h2><form id="verseSelectionForm"><label for="verseReference">verse reference</label><input class="race-field" id="verseReference" placeholder="John 3:16" autocomplete="off" required><p>Enter a full book name, chapter, and verse, for example 1 Corinthians 13:4.</p><button class="option" type="submit">start test →</button></form>';
   if (type === "duration")
     content.innerHTML =
       '<h2>custom duration</h2><form id="durationForm"><label for="durationSeconds">duration in seconds</label><input class="race-field" id="durationSeconds" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 seconds. The timer starts on your first keystroke.</p><button class="option" type="submit">apply duration →</button></form>';
@@ -1013,6 +1187,13 @@ function openModal(type) {
   if (!$("#modal").open) $("#modal").showModal();
   if (type === "settings" || type === "profile") $("#profileName").value = getProfileName();
   if (type === "custom") $("#customText").value = custom;
+  if (type === "wordCount") { $("#wordCount").value = limit; $("#wordCount").focus(); $("#wordCount").select(); }
+  if (type === "verseSelection") {
+    const field = $("#verseReference");
+    field.value = selectedTestVerse === null ? "" : scriptureReferences[selectedTestVerse];
+    field.oninput = () => field.setCustomValidity("");
+    field.focus();
+  }
   if (type === "duration") {
     $("#durationSeconds").value = limit;
     $("#durationSeconds").focus();
@@ -1041,8 +1222,10 @@ document.addEventListener("click", (e) => {
     theme(b.dataset.theme);
     $("#modal").close();
   }
+  if (b.id === "defaultCustom") { $("#customText").value = defaultCustomText; $("#customText").focus(); }
   if (b.id === "saveCustom") {
-    custom = $("#customText").value.trim() || custom;
+    custom = $("#customText").value.trim() || defaultCustomText;
+    try { localStorage.setItem("logostype-custom-text", custom); } catch {}
     $("#modal").close();
     reset();
     input.focus();
@@ -1096,6 +1279,7 @@ document.addEventListener("keydown", (e) => {
     e.key.length === 1 &&
     !e.ctrlKey &&
     !e.metaKey &&
+    !document.activeElement?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') &&
     document.activeElement !== input
   ) {
     input.focus();
@@ -1110,6 +1294,30 @@ reset();
 input.focus();
 
 document.addEventListener("submit", (e) => {
+  if (e.target.id === "customThemeForm") {
+    e.preventDefault();
+    customThemeColors = Object.fromEntries(Object.keys(defaultThemeColors).map(key => [key, $("#theme-" + key).value]));
+    try { localStorage.setItem("logostype-custom-colors", JSON.stringify(customThemeColors)); } catch {}
+    theme("custom");
+    $("#modal").close();
+    return;
+  }
+  if (e.target.id === "wordCountForm" || e.target.id === "verseSelectionForm") {
+    e.preventDefault();
+    if (e.target.id === "wordCountForm") {
+      const field = $("#wordCount"), count = Number(field.value);
+      if (!field.reportValidity() || !Number.isInteger(count) || count < 1 || count > 3600) return;
+      limit = count;
+    } else {
+      const field = $("#verseReference");
+      const reference = field.value.trim().replace(/\s+/g, " ").replace(/\s*:\s*/g, ":").toLowerCase();
+      const index = scriptureReferences.findIndex(value => value.toLowerCase() === reference);
+      field.setCustomValidity(index < 0 ? "Enter a valid verse reference, such as John 3:16." : "");
+      if (!field.reportValidity()) return;
+      selectedTestVerse = index;
+    }
+    $("#modal").close(); reset(); input.focus(); return;
+  }
   if (e.target.id !== "durationForm") return;
   e.preventDefault();
   const field = $("#durationSeconds");
@@ -1193,6 +1401,7 @@ loadScripture()
     bookProgress = Math.min(bookProgress, scriptureLines.length);
 
     $("#friends").disabled = false;
+    menuStates.clear();
     reset();
     if (document.body.classList.contains("reading-mode")) window.readingView.open();
     else input.focus();
@@ -1210,7 +1419,7 @@ function openHistoryResult(index) {
   content.innerHTML =
     '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p>';
   $("#historyResultSummary").textContent =
-    `${result.date} · ${result.reference || result.mode + " " + result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
+    `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
   if (!result.chart) {
     content.insertAdjacentHTML(
       "beforeend",
@@ -1220,7 +1429,7 @@ function openHistoryResult(index) {
   }
   content.insertAdjacentHTML(
     "beforeend",
-    '<div class="chart-legend"><span class="average-key">━ average wpm</span><span>┄ instant wpm</span><span class="raw-key">┈ raw wpm</span><span class="mistake-key">× mistakes</span></div><canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
+    chartLegend('historyChart') + '<canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
   );
   const canvas = $("#historyChart");
   canvas._chartData = result.chart;
@@ -1230,16 +1439,31 @@ function openHistoryResult(index) {
     if (!times.length) return;
     const rect = canvas.getBoundingClientRect(),
       time = Math.max(0, Math.min(1, (event.clientX - rect.left - 35) / (rect.width - 40))) * Math.max(1, ...times);
+    if (time < times[0]) {
+      $("#historyChartPoint").textContent = "WPM readings begin after the second character.";
+      return;
+    }
     let closest = 0;
     for (let i = 1; i < times.length; i++) if (Math.abs(times[i] - time) < Math.abs(times[closest] - time)) closest = i;
     $("#historyChartPoint").textContent =
-      `${times[closest].toFixed(1)}s · average ${result.chart.samples[closest]} wpm · instant ${result.chart.instantSamples[closest]} wpm · raw ${result.chart.rawSamples[closest]} wpm`;
+      `${times[closest].toFixed(3)}s · average ${result.chart.samples[closest]} wpm · instant ${result.chart.instantSamples[closest]} wpm · raw ${result.chart.rawSamples[closest]} wpm`;
   });
 }
 
-function renderPersonalRecords() {
-  const categories = [
+function newPersonalRecord(result, previous = history) {
+  if (window.friendRace?.active) return "";
+  const category = personalRecordCategories().find(category => category.matches(result));
+  if (!category || !Number.isFinite(result.wpm) || result.wpm <= 0) return "";
+  const beats = entries => entries.every(item => !Number.isFinite(item.wpm) || result.wpm > item.wpm);
+  const entries = previous.filter(item => category.matches(item));
+  if (beats(entries)) return `New personal record · ${category.label} · overall`;
+  const matching = entries.filter(item => item.capitalization === result.capitalization && item.punctuation === result.punctuation);
+  return beats(matching) ? `New personal record · ${category.label} · caps and punctuation ${result.capitalization ? "on" : "off"}` : "";
+}
+function personalRecordCategories() {
+  return [
     { label: "verse", matches: (result) => result.mode === "quote" || result.mode === "book" },
+    { label: "default custom text", matches: (result) => result.mode === "custom" && result.customPreset === "default" },
     ...[15, 30, 60, 120].map((limit) => ({
       label: limit + " seconds",
       matches: (result) => result.mode === "time" && result.limit === limit,
@@ -1249,41 +1473,35 @@ function renderPersonalRecords() {
       matches: (result) => result.mode === "words" && result.limit === limit,
     })),
   ];
-  return (
-    '<h3>personal records</h3><table class="records-table"><thead><tr><th scope="col">test</th><th scope="col">fastest wpm</th></tr></thead><tbody>' +
-    categories
-      .map((category) => {
+}
+function renderPersonalRecords() {
+  const categories = personalRecordCategories();
+  const settings = [
+    { label: "overall", short: "all", matches: () => true },
+    { label: "no caps or punctuation", short: "caps off", matches: result => result.capitalization === false && result.punctuation === false },
+    { label: "caps and punctuation", short: "caps on", matches: result => result.capitalization === true && result.punctuation === true },
+  ];
+  return '<h3>personal records</h3><table class="records-table personal-records"><thead><tr><th scope="col">test</th>' +
+    settings.map(setting => '<th scope="col" aria-label="' + setting.label + '"><span class="record-full-label">' + setting.label + '</span><span class="record-short-label" aria-hidden="true">' + setting.short + '</span></th>').join('') +
+    '</tr></thead><tbody>' + categories.map(category =>
+      '<tr><th scope="row">' + category.label + '</th>' + settings.map(setting => {
         let best = -1;
         history.forEach((result, index) => {
-          if (category.matches(result) && Number.isFinite(result.wpm) && (best < 0 || result.wpm > history[best].wpm))
-            best = index;
+          if (category.matches(result) && setting.matches(result) && Number.isFinite(result.wpm) &&
+              (best < 0 || result.wpm > history[best].wpm)) best = index;
         });
         const result = history[best];
-        return (
-          '<tr><th scope="row">' +
-          category.label +
-          "</th><td>" +
-          (result
-            ? '<button type="button" data-history-index="' +
-              best +
-              '" aria-label="View ' +
-              escapeHtml(category.label) +
-              " record: " +
-              result.wpm +
-              ' wpm">' +
-              result.wpm +
-              " wpm ↗</button>"
-            : '<span aria-label="No completed result">—</span>') +
-          "</td></tr>"
-        );
-      })
-      .join("") +
-    "</tbody></table>"
-  );
+        return '<td>' + (result
+          ? '<button type="button" data-history-index="' + best + '" aria-label="View ' +
+            escapeHtml(category.label + ' ' + setting.label) + ' record: ' + result.wpm + ' wpm">' + result.wpm + ' wpm ↗</button>'
+          : '<span aria-label="No completed result">—</span>') + '</td>';
+      }).join('') + '</tr>'
+    ).join('') + '</tbody></table>';
 }
 
 function openReadingPage() {
-  reset();
+  if (currentMenu !== "reading") pauseMenu();
+  currentMenu = "reading";
   setReadingView(true);
   syncNavigation();
   window.readingView.open();

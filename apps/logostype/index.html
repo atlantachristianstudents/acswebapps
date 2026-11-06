@@ -307,6 +307,12 @@
         font-size: 12px;
         color: var(--muted);
       }
+      #testReferences {
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 16px 0 0;
+      }
       .verse-context p {
         margin: 4px 0;
         max-height: 5em;
@@ -404,6 +410,8 @@
         font-size: 29px;
         line-height: 1.68;
         letter-spacing: 0.2px;
+        /* Each letter has its own color and position; avoid shared ligature glyphs. */
+        font-variant-ligatures: none;
         position: relative;
         scroll-behavior: auto;
       }
@@ -578,6 +586,16 @@
         font-size: 12px;
         margin-bottom: 12px;
         color: var(--text);
+      }
+      .chart-legend button { padding: 4px 0; color: inherit; }
+      .chart-legend button[aria-pressed="false"] { opacity: 0.45; text-decoration: line-through; }
+      .chart-legend button.average-key, .new-record { color: var(--accent); }
+      .new-record { display: inline-block; margin-top: 8px; }
+      .record-short-label { display: none; }
+      @media (max-width: 600px) {
+        .record-full-label { display: none; }
+        .record-short-label { display: inline; }
+        .personal-records th, .personal-records td { padding: 9px 3px; }
       }
       .mistake-key {
         color: var(--error);
@@ -771,6 +789,9 @@
         width: 100%;
         margin: 8px 0 20px;
       }
+      .race-passage-options { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0 20px; }
+      .race-passage-options button { padding: 8px 12px; border: 1px solid var(--muted); border-radius: 5px; }
+      .race-passage-options button.active { border-color: var(--accent); }
       .race-actions {
         display: flex;
         align-items: center;
@@ -968,6 +989,22 @@
       .records-table td:last-child,
       .records-table thead th:last-child {
         text-align: right;
+      }
+      .personal-records {
+        table-layout: fixed;
+      }
+      .personal-records th,
+      .personal-records td {
+        width: 25%;
+        padding: 9px 6px;
+        overflow-wrap: anywhere;
+      }
+      .personal-records td,
+      .personal-records thead th:not(:first-child) {
+        text-align: center;
+      }
+      .personal-records th:first-child {
+        padding-left: 0;
       }
       .journey-local-progress {
         display: flex;
@@ -1230,13 +1267,12 @@
       <main id="typingContent">
         <div class="config">
           <div class="group">
-            <button id="punct" aria-pressed="false">@ punctuation</button
-            ><button id="capitalization" aria-pressed="false">Aa capitalization</button>
+            <button id="punct" aria-pressed="false">Aa @ capitalization + punctuation</button>
           </div>
           <i class="divider"></i>
           <div class="group" id="modes">
             <button class="active" data-mode="time">◷ time</button><button data-mode="words">A words</button
-            ><button data-mode="quote">❝ quote</button><button data-mode="custom">⌘ custom</button>
+            ><button data-mode="quote">❝ verse</button><button data-mode="custom">⌘ custom</button>
           </div>
           <i class="divider"></i>
           <div class="group" id="limits"></div>
@@ -1249,18 +1285,29 @@
           </div>
           <div id="racers"></div>
           <form id="raceDurationForm">
+            <div class="race-passage-options" role="group" aria-label="Race passage">
+              <button type="button" data-race-passage="verse" class="active" aria-pressed="true">verse</button>
+              <button type="button" data-race-passage="custom" aria-pressed="false">custom</button>
+              <button type="button" id="shuffleRacePassage" aria-label="Shuffle race verse">↻ shuffle</button>
+              <button type="button" id="raceFormatting" aria-pressed="false">Aa @ capitalization + punctuation</button>
+            </div>
+            <div id="raceCustomTextGroup" hidden>
+              <label for="raceCustomText">custom race text</label>
+              <textarea id="raceCustomText" class="race-field" rows="4" maxlength="10000" placeholder="Enter the passage everyone will type"></textarea>
+            </div>
             <label for="raceDuration">race time limit (seconds)</label
             ><input
               id="raceDuration"
               class="race-field"
               type="number"
+              inputmode="numeric"
               min="1"
-              max="3600"
+              max="4000"
               step="1"
-              value="120"
+              value="30"
               required
               aria-describedby="raceDurationHint" />
-            <p id="raceDurationHint">25 words · choose 1–3600 seconds before starting.</p>
+            <p id="raceDurationHint">Defaults to 30 WPM for this passage, rounded up to 5 seconds. Type a time limit from 1–4000 seconds.</p>
           </form>
           <div class="race-actions">
             <button id="startRace" class="race-primary">start race →</button
@@ -1354,9 +1401,9 @@
             <div class="stat"><label>accuracy</label><strong id="accuracy">0%</strong></div>
             <div class="detail">test type<br /><b id="testType"></b><br /><span id="resultDetails"></span></div>
           </div>
-          <div id="chartLegend" class="chart-legend">
-            <span class="average-key">━ average wpm</span><span>┄ instant wpm (last 3s)</span
-            ><span class="raw-key">┈ raw wpm</span><span class="mistake-key">× mistakes</span>
+          <div id="chartLegend" class="chart-legend" data-chart-target="chart">
+            <button type="button" class="average-key" data-chart-series="samples" aria-pressed="true">━ average wpm</button><button type="button" data-chart-series="instantSamples" aria-pressed="true">┄ instant wpm (last 3s)</button
+            ><button type="button" class="raw-key" data-chart-series="rawSamples" aria-pressed="true">┈ raw wpm</button><span class="mistake-key">× mistakes</span>
           </div>
           <div class="chart-wrap">
             <canvas
@@ -1371,6 +1418,7 @@
             </div>
           </div>
 
+          <p id="testReferences" aria-label="Passage references" hidden></p>
           <button class="restart" id="again" title="Next test" aria-label="Next test">↦</button>
         </section>
       </main>

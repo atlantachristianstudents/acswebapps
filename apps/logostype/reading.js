@@ -55,7 +55,18 @@ function showReadingChapter(index){
 
 
 document.addEventListener('click',event=>{const button=event.target.closest('[data-reader-step]');if(button)showReadingChapter(readingChapter+Number(button.dataset.readerStep))});
-window.readingView = { open: openJourneyReader };
+window.readingView = { open() {
+  const scroll = window.scrollY, chapter = readingChapter;
+  if (readingJourneyName !== null && readingJourney(readingJourneyName).progress) {
+    openReadingJourney(readingJourneyName);
+    showReadingChapter(chapter);
+    window.scrollTo(0, scroll);
+  } else if (!$('#readingContent').children.length || readingJourneyName !== null) openJourneyReader();
+  else {
+    openJourneyReader();
+    window.scrollTo(0, scroll);
+  }
+} };
 document.addEventListener('click', event => {
   if (event.target.closest('[data-reading-choices]')) openJourneyReader();
   if (event.target.closest('[data-reading-back]')) enterBook();

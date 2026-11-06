@@ -24,6 +24,16 @@ function validateBackup(data){
   const history=data.history.map(item=>{
     if(!item||!Number.isFinite(item.wpm)||item.wpm<0||!Number.isFinite(item.accuracy)||item.accuracy<0||item.accuracy>100||!modes.includes(item.mode)||!Number.isInteger(item.limit)||item.limit<1||item.limit>3600||typeof item.date!=='string'||item.date.length>100)throw new Error('The backup contains an invalid typing result.');
     const result={wpm:item.wpm,accuracy:item.accuracy,mode:item.mode,limit:item.limit,date:item.date};
+    for(const key of ['punctuation','capitalization']){
+      if(item[key]!==undefined){
+        if(typeof item[key]!=='boolean')throw new Error('The backup has invalid typing settings.');
+        result[key]=item[key];
+      }
+    }
+    if(item.customPreset!==undefined){
+      if(item.mode!=='custom'||item.customPreset!=='default')throw new Error('The backup has an invalid custom text preset.');
+      result.customPreset=item.customPreset;
+    }
     if(item.rawWpm!==undefined){
       if(!Number.isFinite(item.rawWpm)||item.rawWpm<0)throw new Error('The backup contains an invalid raw WPM.');
       result.rawWpm=item.rawWpm;
@@ -148,8 +158,8 @@ document.addEventListener('click',event=>{
         keys.forEach((key,index)=>{try{localStorage.setItem(key,previous[index])}catch{}});throw error;
       }
       clearInterval(timer);timer=null;activeJourneyAttempt=null;
-      history=[];bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];selectedJourneyBook='';
-      theme('serika dark');localStorage.removeItem('logostype-theme');
+      menuStates.clear();currentMenu="journey";setReadingView(false);custom=defaultCustomText;selectedTestVerse=null;history=[];bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];selectedJourneyBook='';
+      customThemeColors={...defaultThemeColors};theme('black on white');localStorage.removeItem('logostype-theme');
       updateProfileLabel();reset();openModal('settings');
       dataStatus('Saved data cleared.');
     }catch{dataStatus('Could not clear saved data in this browser. Please try again.')}

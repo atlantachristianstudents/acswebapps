@@ -3,12 +3,41 @@
   const api = window.friendRace = {active:false, running:false, preparing:false, report};
   let peer, host=false, self='', room='', players={}, links=new Map(), phase='lobby', round=0;
   let countdownTimeout, clock, connectionTimeout, lastReport=0, saved, duration=120, gaveUp=false;
+  let passageMode='verse', preparedText='', preparedVerseIndex=-1, raceFormatting=false, finishMs=null;
   const cleanName = value => String(value || 'typist').trim().slice(0,24) || 'typist';
   const status = message => { $('#raceStatus').textContent=message; };
   function send(connection, data) { if(connection?.open) connection.send(data); }
   function broadcast(data) { for(const connection of links.values()) send(connection,data); }
-  function snapshot() { return {type:'roster', players, phase, round}; }
+  function snapshot() { return {type:'roster', players, phase, round, preview:{text:preparedText, custom:passageMode==='custom', duration:Number($('#raceDuration').value), formatting:raceFormatting}}; }
   function publish() { paint(); if(host) broadcast(snapshot()); }
+  function defaultRaceDuration(text) {
+    return Math.max(10, Math.ceil((Array.from(text).length / 5 / 30 * 60) / 5) * 5);
+  }
+  function showPreparedPassage(text, customMode) {
+    punctuation=capitalization=raceFormatting;
+    api.preparing=true;mode=customMode?'custom':'quote';reset();api.preparing=false;
+    target=text;rawTarget=text;render(false);input.disabled=true;
+    $('#counter').textContent='';
+  }
+  function preparePassage(shuffle=true) {
+    if(!host||!api.active||phase==='countdown'||phase==='racing')return;
+    const customMode=passageMode==='custom';
+    if(customMode)preparedText=$('#raceCustomText').value.trim().replace(/\s+/g,' ');
+    else {
+      if(shuffle||preparedVerseIndex<0){
+        const exclude=preparedVerseIndex>=0&&scriptureLines.length>1;
+        let index=Math.floor(Math.random()*(scriptureLines.length-(exclude?1:0)));
+        if(exclude&&index>=preparedVerseIndex)index++;
+        preparedVerseIndex=index;
+      }
+      preparedText=scriptureLines[preparedVerseIndex];
+    }
+    if(!raceFormatting)preparedText=preparedText.replace(/\p{P}/gu,'').toLowerCase();
+    preparedText=preparedText.replace(/\s+/g,' ').trim();
+    $('#raceDuration').value=defaultRaceDuration(preparedText);
+    showPreparedPassage(preparedText,customMode);
+    publish();
+  }
   function lastRacer(id){
     const others=Object.entries(players).filter(([other,p])=>other!==id&&p.connected!==false);
     return phase==='racing'&&players[id]?.connected!==false&&!players[id]?.finished&&others.length>0&&others.every(([,p])=>p.finished);
@@ -20,12 +49,21 @@
       const row=document.createElement('div');row.className='racer';
       const name=document.createElement('span');name.className='race-label';name.textContent=p.name+(id===self?' (you)':'')+(p.connected===false?' · left':'');
       const track=document.createElement('div');track.className='race-track';const bar=document.createElement('i');bar.style.width=`${Math.max(0,Math.min(100,p.progress||0))}%`;track.append(bar);
-      const score=document.createElement('span');score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy||100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
+      const score=document.createElement('span');score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy??100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
+      if(p.finished&&!p.gaveUp&&Number.isFinite(p.finishMs))score.textContent+=` · ${(p.finishMs/1000).toFixed(3)}s`;
       row.append(name,track,score);list.append(row);
     }
     const connected=Object.values(players).filter(p=>p.connected!==false);
     $('#giveUpRace').hidden=done||!lastRacer(self);
     $('#startRace').hidden=!host;$('#raceDurationForm').hidden=!host;$('#raceDuration').disabled=phase==='countdown'||phase==='racing';
+    const locked=phase==='countdown'||phase==='racing';
+    $('#raceCustomText').disabled=locked;
+    document.querySelectorAll('[data-race-passage]').forEach(button=>button.disabled=locked);
+    $('#shuffleRacePassage').hidden=passageMode!=='verse';
+    $('#shuffleRacePassage').disabled=locked;
+    $('#raceFormatting').disabled=locked;
+    $('#raceFormatting').classList.toggle('active',raceFormatting);
+    $('#raceFormatting').setAttribute('aria-pressed',String(raceFormatting));
     $('#startRace').disabled=connected.length<2||phase==='countdown'||phase==='racing';
     $('#startRace').textContent=phase==='finished'?'race again →':'start race →';
     if(phase==='lobby')status(host?'Share the invite link. Start when everyone has joined.':'You’re in! Waiting for the host to start.');
@@ -34,14 +72,14 @@
   }
   function showError(message) { const el=$('#raceError');if(el)el.textContent=message;else status(message); }
   function showRoom() {
-    saved={mode,limit};api.active=true;api.running=false;updateBookProgress();renderBookContext();
+    pauseMenu();currentMenu="race";saved={mode,limit};api.active=true;api.running=false;updateBookProgress();renderBookContext();
     syncNavigation(true);
     clearInterval(timer);document.body.classList.remove('focus','running');
     document.body.classList.add('in-room');$('.config').inert=true;
     $('#racePanel').hidden=false;$('#raceTitle').textContent=`friends · ${room}`;
     $('#leaveRace').textContent=host?'close room':'leave room';
     $('#inviteLink').value=`${location.origin}${location.pathname}?race=${room}`;
-    $('#modal').close();paint();
+    $('#modal').close();if(host)preparePassage();paint();
   }
   function showCountdown(value){
     const overlay=$('#raceCountdown');
@@ -86,11 +124,11 @@
     if(saved){({mode,limit}=saved);saved=null;}
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     const url=new URL(location.href);url.searchParams.delete('race');window.history.replaceState(null,'',url);
-    reset();if(message){open();showError(message);}
+    switchTypingMenu(mode==='book'?'journey':'typing');if(message){open();showError(message);}
   }
   function connect(isHost, code, name) {
     if(peer)peer.destroy();clearTimeout(connectionTimeout);
-    host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;
+    host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;preparedText='';
     showError('Connecting…');$('#createRoom').disabled=$('#joinRoom').disabled=true;
     if(typeof Peer==='undefined'){failure('Could not load racing. Refresh and try again.');return;}
     peer=new Peer(isHost?`logostype-${code}`:undefined);
@@ -127,6 +165,7 @@
             if(!p.finished){
               p.progress=Math.max(0,Math.min(100,Number(data.progress)||0));p.wpm=Math.max(0,Math.min(500,Number(data.wpm)||0));p.accuracy=Math.max(0,Math.min(100,Number(data.accuracy)||0));p.finished=!!data.finished;
               p.gaveUp=!!data.gaveUp;
+              p.finishMs=p.finished&&Number.isSafeInteger(data.finishMs)&&data.finishMs>=0&&data.finishMs<=duration*1000?data.finishMs:null;
             }
             checkFinished();publish();
           }
@@ -135,9 +174,16 @@
           if(data.type==='roster'){
             if(!data.players||!data.players[self])return;
             players=data.players;phase=data.phase;round=data.round;if(phase==='finished'){clearInterval(clock);api.running=false;}
-            if(!api.active){clearTimeout(connectionTimeout);showRoom();}paint();
+            if(!api.active){clearTimeout(connectionTimeout);showRoom();}
+            const preview=data.preview;
+            if((phase==='lobby'||phase==='finished')&&preview&&typeof preview.text==='string'&&preview.text.length<=10000&&Number.isInteger(preview.duration)&&preview.duration>=1&&preview.duration<=4000){
+              raceFormatting=preview.formatting!==false;
+              if(preparedText!==preview.text){preparedText=preview.text;showPreparedPassage(preparedText,preview.custom===true);}
+              $('#raceDuration').value=preview.duration;
+            }
+            paint();
           }
-          if(data.type==='start'&&typeof data.text==='string'&&data.text.length<=10000&&Number.isInteger(data.duration)&&data.duration>=1&&data.duration<=3600)begin(data);
+          if(data.type==='start'&&typeof data.text==='string'&&data.text.trim().length>0&&data.text.length<=10000&&Number.isInteger(data.duration)&&data.duration>=1&&data.duration<=4000)begin(data);
         }
       });
       connection.on('close',()=>{
@@ -153,17 +199,20 @@
     if(phase==='racing'&&Object.values(players).filter(p=>p.connected!==false).every(p=>p.finished)){phase='finished';clearInterval(clock);api.running=false;}
   }
   function begin(data){
+    raceFormatting=data.formatting!==false;
+    punctuation=capitalization=raceFormatting;
     hideCountdown();showCountdown(3);
-    duration=data.duration;round=data.round;phase='countdown';api.running=false;lastReport=0;gaveUp=false;
-    for(const p of Object.values(players)){p.progress=0;p.wpm=0;p.finished=false;p.gaveUp=false;}
-    api.preparing=true;mode='words';limit=25;reset();api.preparing=false;
+    duration=data.duration;round=data.round;phase='countdown';api.running=false;lastReport=0;gaveUp=false;finishMs=null;
+    for(const p of Object.values(players)){p.progress=0;p.wpm=0;p.finished=false;p.gaveUp=false;p.finishMs=null;}
+    api.preparing=true;mode=data.custom===true?'custom':'quote';limit=25;reset();api.preparing=false;
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-    target=data.text;render();input.blur();done=false;
+    target=data.text;rawTarget=data.text;render();input.blur();done=false;
+    const passageLabel=data.custom===true?'custom text':'verse';
     const startsAt=Date.now()+3000;
     paint();clearInterval(clock);
     clock=setInterval(()=>{
       const remaining=startsAt-Date.now();
-      if(remaining>0){showCountdown(Math.ceil(remaining/1000));status(`Starting in ${Math.ceil(remaining/1000)}… · 25 words · ${duration}s limit`);return;}
+      if(remaining>0){showCountdown(Math.ceil(remaining/1000));status(`Starting in ${Math.ceil(remaining/1000)}… · ${passageLabel} · ${duration}s limit`);return;}
       if(phase==='countdown'){
         phase='racing';api.running=true;start=startsAt;
         showCountdown('GO!');countdownTimeout=setTimeout(hideCountdown,700);
@@ -172,7 +221,7 @@
       if(phase==='racing'){
         const elapsed=(Date.now()-start)/1000;
         if(!done){
-          let corrections = 0;
+          let corrections = parseTyping(input.value).extraCount;
           if(typed.length===target.length)for(let i=0;i<typed.length;i++)if(typed[i]!==target[i])corrections++;
           $('#counter').textContent=`${Math.max(0,Math.ceil(duration-elapsed))}s`+(corrections?` · ${corrections} character${corrections===1?'':'s'} to correct`:'');
           sampleWpm();if(elapsed>=duration)finish();
@@ -181,30 +230,56 @@
         report(false);
       }
     },100);
-    status(`Starting in 3… · 25 words · ${duration}s limit`);
+    status(`Starting in 3… · ${passageLabel} · ${duration}s limit`);
   }
-  function report(finished){
+  function report(finished, elapsedMs){
     if(!api.active||phase!=='racing'||(!finished&&Date.now()-lastReport<150))return;
     lastReport=Date.now();let correct=0;for(let i=0;i<typed.length;i++)if(typed[i]===target[i])correct++;
     // A periodic update must never undo an already completed local race.
     const completed=!!(finished||done);
-    const data={type:'progress',round,progress:correct/target.length*100,wpm:completed&&history[0]?history[0].wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp};
+    if(completed&&finishMs===null)finishMs=Math.min(duration*1000,Math.max(0,elapsedMs??Date.now()-start));
+    const data={type:'progress',round,progress:correct/target.length*100,wpm:completed&&history[0]?history[0].wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp,finishMs};
     if(completed)status(gaveUp?'You gave up · waiting for the final standings.':'You finished · waiting for the other racers.');
     if(host){Object.assign(players[self],data);checkFinished();publish();}else send(links.get('host'),data);
   }
   function open(){
     if(api.active){$('#racePanel').scrollIntoView({behavior:'smooth'});return;}
     syncNavigation(true);
-    $('#modalContent').innerHTML='<h2>race friends</h2><p>Same words. A shared countdown. See who finds their rhythm first. Up to 8 friends, no account needed.</p><label for="racerName">your name</label><input class="race-field" id="racerName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" id="createRoom">create a room →</button><p>Or join a friend’s room</p><label for="roomCode">room code</label><input class="race-field" id="roomCode" maxlength="8" placeholder="e.g. a1b2c3d4" autocapitalize="off" spellcheck="false"><button class="option" id="joinRoom">join room →</button><p id="raceError" role="status" aria-live="polite"></p><p>Keep the host’s tab open. Direct connections may be blocked on some networks.</p>';
+    $('#modalContent').innerHTML='<h2>race friends</h2><p>Same words. A shared countdown. See who finds their rhythm first. Up to 8 friends, no account needed.</p><label for="racerName">your name</label><input class="race-field" id="racerName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" id="createRoom">create a room →</button><p id="joinRoomIntro">Or join a friend’s room</p><label for="roomCode">room code</label><input class="race-field" id="roomCode" maxlength="8" placeholder="e.g. a1b2c3d4" autocapitalize="off" spellcheck="false"><button class="option" id="joinRoom">join room →</button><p id="raceError" role="status" aria-live="polite"></p><p>Keep the host’s tab open. Direct connections may be blocked on some networks.</p>';
+    const invite=new URL(location.href).searchParams.get('race');
+    $('#createRoom').hidden=invite!==null;
+    $('#joinRoomIntro').hidden=invite!==null;
     if(!$('#modal').open)$('#modal').showModal();
-    $('#roomCode').value=new URL(location.href).searchParams.get('race')||'';
+    $('#roomCode').value=invite||'';
     try{$('#racerName').value=localStorage.getItem('logostype-racer')||'';}catch{}
     $('#racerName').focus();
     function name(){const value=cleanName($('#racerName').value);try{localStorage.setItem('logostype-racer',value);updateProfileLabel();}catch{}return value;}
     $('#createRoom').onclick=()=>connect(true,Array.from(crypto.getRandomValues(new Uint8Array(4)),n=>n.toString(16).padStart(2,'0')).join(''),name());
+    for(const field of [$('#racerName'),$('#roomCode')])field.onkeydown=event=>{
+      if(event.key==='Enter'&&!event.isComposing&&invite!==null){event.preventDefault();$('#joinRoom').click();}
+    };
     $('#joinRoom').onclick=()=>{const code=$('#roomCode').value.trim().toLowerCase();if(!/^[a-f0-9]{8}$/.test(code)){showError('Enter the 8-character room code from your friend.');return;}connect(false,code,name());};
   }
   $('#raceDurationForm').onsubmit=e=>e.preventDefault();
+  $('#shuffleRacePassage').onclick=()=>{if(passageMode==='verse')preparePassage();};
+  $('#raceFormatting').onclick=()=>{
+    if(!host||!api.active||phase==='countdown'||phase==='racing')return;
+    raceFormatting=!raceFormatting;
+    preparePassage(false);
+  };
+  document.querySelectorAll('[data-race-passage]').forEach(button=>button.onclick=()=>{
+    passageMode=button.dataset.racePassage;
+    document.querySelectorAll('[data-race-passage]').forEach(option=>{
+      const active=option.dataset.racePassage===passageMode;
+      option.classList.toggle('active',active);
+      option.setAttribute('aria-pressed',String(active));
+    });
+    $('#raceCustomTextGroup').hidden=passageMode!=='custom';
+    $('#raceCustomText').required=passageMode==='custom';
+    preparePassage();
+  });
+  $('#raceCustomText').oninput=()=>{$('#raceCustomText').setCustomValidity('');preparePassage();};
+  $('#raceDuration').oninput=()=>{if(host&&api.active)broadcast(snapshot());};
   $('#giveUpRace').onclick=()=>{
     if(done||!lastRacer(self))return;
     gaveUp=true;$('#giveUpRace').hidden=true;finish();
@@ -221,8 +296,17 @@
   $('#copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText($('#inviteLink').value);status('Invite copied. Send it to your friends.');}catch{$('#inviteLink').select();status('Select and copy the invite link to share it.');}};
   $('#startRace').onclick=()=>{
     if(!host||$('#startRace').disabled)return;
-    const field=$('#raceDuration');if(!field.reportValidity())return;const seconds=Number(field.value);if(!Number.isInteger(seconds)||seconds<1||seconds>3600)return;
-    mode='words';limit=25;const data={type:'start',round:round+1,text:generate(),duration:seconds};broadcast(data);begin(data);
+    const field=$('#raceDuration');if(!field.reportValidity())return;const seconds=Number(field.value);if(!Number.isInteger(seconds)||seconds<1||seconds>4000)return;
+    const customMode=passageMode==='custom';
+    let text=preparedText;
+    if(customMode){
+      const passage=$('#raceCustomText');
+      text=preparedText;
+      passage.setCustomValidity(!text?'Enter a passage for the race.':text.length>10000?'Use at most 10,000 characters.':'');
+      if(!passage.reportValidity())return;
+    }
+    if(!text)return;
+    const data={type:'start',round:round+1,text,duration:seconds,custom:customMode,formatting:raceFormatting};broadcast(data);begin(data);
   };
   $('#modal').addEventListener('close',()=>{if(!api.active){syncNavigation();if(peer){clearTimeout(connectionTimeout);peer.destroy();peer=null;}}});
   if(new URL(location.href).searchParams.has('race'))open();
