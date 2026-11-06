@@ -1,8 +1,8 @@
 // Bump the version whenever a cached app asset changes.
-const CACHE = 'logostype-v51';
+const CACHE = 'logostype-v62';
 const ASSETS = ['./', 'index.html', 'reading.html', 'reading.js', 'dist/index.html', 'dist/reading.html', 'app.js', 'data.js', 'race.js',
   'scripture-references.js', 'scripture-text.js', 'vendor/peerjs.min.js',
-  'pwa.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
+  'pwa.js', 'navigation.js', 'themes.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));

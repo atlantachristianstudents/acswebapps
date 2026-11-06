@@ -204,9 +204,17 @@ function celebrateJourney(colorCount = 1) {
   }
   requestAnimationFrame(frame);
 }
+function setReadingView(active) {
+  document.body.classList.toggle("reading-mode", active);
+  $("#typingContent").hidden = active;
+  $("#readingContent").hidden = !active;
+}
 function syncNavigation(racing = false) {
-  $("#home").classList.toggle("active", !racing && mode !== "book");
-  $("#book").classList.toggle("active", !racing && mode === "book");
+  const reading = document.body.classList.contains("reading-mode") && !racing;
+  if (racing) setReadingView(false);
+  $("#readJourney").classList.toggle("active", reading);
+  $("#home").classList.toggle("active", !racing && !reading && mode !== "book");
+  $("#book").classList.toggle("active", !racing && !reading && mode === "book");
   $("#friends").classList.toggle("active", racing);
 }
 function updateBookProgress(message = "") {
@@ -329,12 +337,14 @@ function renderBookContext() {
   }
 }
 function enterBook() {
+  setReadingView(false);
   if (mode !== "book") lastTypingMode = mode;
   mode = "book";
   reset();
   input.focus();
 }
 function enterTyping() {
+  setReadingView(false);
   if (mode === "book") {
     mode = lastTypingMode;
     limit = mode === "time" ? 15 : 25;
@@ -542,7 +552,10 @@ function positionCaret(smooth = true) {
   caret.hidden = !letter;
   if (!letter) return;
   const box = $("#words");
-  box.scrollTop = Math.max(0, letter.offsetTop - 48);
+  const lineHeight = parseFloat(getComputedStyle(box).lineHeight);
+  box.scrollTop = document.body.classList.contains("book-mode")
+    ? 0
+    : Math.max(0, letter.offsetTop - lineHeight);
   const r = letter.getBoundingClientRect(),
     parent = $(".test").getBoundingClientRect();
   if (!smooth) caret.style.transition = "none";
@@ -878,16 +891,21 @@ for (const [id, getValue, toggle] of [
   };
 }
 const themes = {
+  "black on white": ["#ffffff", "#f5f5f5", "#000000", "#666666", "#000000"],
+  "white on black": ["#000000", "#151515", "#ffffff", "#999999", "#ffffff"],
+  typeracer: ["#eeeeee", "#ffffff", "#20588f", "#62676c", "#005894"],
   "serika dark": ["#323437", "#2c2e31", "#d1d0c5", "#646669", "#e2b714"],
   serika: ["#e1e1e3", "#d1d3d8", "#323437", "#aaaeb3", "#b68b00"],
   nord: ["#2e3440", "#272d38", "#d8dee9", "#6c7a90", "#88c0d0"],
   "rose pine": ["#191724", "#1f1d2e", "#e0def4", "#6e6a86", "#ebbcba"],
 };
 function theme(name) {
-  const vals = themes[name] || themes["serika dark"];
-  document.documentElement.style.colorScheme = name === "serika" ? "light" : "dark";
-  document.documentElement.style.setProperty("--old-testament", name === "serika" ? "#256579" : "#88c0d0");
-  document.documentElement.style.setProperty("--new-testament", name === "serika" ? "#734799" : "#c4a7e7");
+  const vals = themes[name] || themes["black on white"];
+  const light = name === "black on white" || name === "serika" || name === "typeracer";
+  document.documentElement.dataset.theme = name;
+  document.documentElement.style.colorScheme = light ? "light" : "dark";
+  document.documentElement.style.setProperty("--old-testament", light ? "#256579" : "#88c0d0");
+  document.documentElement.style.setProperty("--new-testament", light ? "#734799" : "#c4a7e7");
   ["--bg", "--panel", "--text", "--muted", "--accent"].forEach((k, i) =>
     document.documentElement.style.setProperty(k, vals[i]),
   );
@@ -906,7 +924,7 @@ function openModal(type) {
         .join("");
   if (type === "settings")
     content.innerHTML =
-      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSize">A change font size</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
+      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
   if (type === "about")
     content.innerHTML =
       "<h2>logostype</h2><p>Type the scriptures. No account required; your results stay in this browser.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
@@ -1011,8 +1029,10 @@ document.addEventListener("click", (e) => {
     reset();
     input.focus();
   }
-  if (b.id === "fontSize") {
-    $("#words").style.fontSize = $("#words").style.fontSize === "24px" ? "29px" : "24px";
+  if (b.id === "fontSmaller" || b.id === "fontBigger") {
+    const words = $("#words");
+    const size = parseFloat(getComputedStyle(words).fontSize);
+    words.style.fontSize = Math.max(16, Math.min(64, size + (b.id === "fontBigger" ? 2 : -2))) + "px";
     positionCaret(false);
   }
   if (b.id === "restartCommand") {
@@ -1049,6 +1069,7 @@ document.addEventListener("keydown", (e) => {
   if (
     !$("#modal").open &&
     !done &&
+    !document.body.classList.contains("reading-mode") &&
     e.key.length === 1 &&
     !e.ctrlKey &&
     !e.metaKey &&
@@ -1058,8 +1079,10 @@ document.addEventListener("keydown", (e) => {
   }
 });
 try {
-  theme(localStorage.getItem("logostype-theme") || "serika dark");
-} catch {}
+  theme(localStorage.getItem("logostype-theme") || "black on white");
+} catch {
+  theme("black on white");
+}
 reset();
 input.focus();
 
@@ -1148,7 +1171,8 @@ loadScripture()
 
     $("#friends").disabled = false;
     reset();
-    input.focus();
+    if (document.body.classList.contains("reading-mode")) window.readingView.open();
+    else input.focus();
   })
   .catch((error) => {
     $("#counter").textContent = `Scripture unavailable: ${error.message}. Reload to try again.`;
@@ -1236,19 +1260,14 @@ function renderPersonalRecords() {
 }
 
 function openReadingPage() {
-  checkpointJourneyAttempt();
-  const url = new URL("reading.html", location.href);
-  if (location.protocol === "file:") {
-    let theme = "serika dark";
-    try {
-      theme = localStorage.getItem("logostype-theme") || theme;
-    } catch {}
-    url.searchParams.set("progress", JSON.stringify({ bookProgress, bookJourneys, theme }));
-  }
-  location.href = url.href;
+  reset();
+  setReadingView(true);
+  syncNavigation();
+  window.readingView.open();
 }
 
 function openMenuDestination() {
+  if (location.hash === "#reading") $("#readJourney").click();
   if (location.hash === "#journey") enterBook();
   if (location.hash === "#typing") enterTyping();
   if (location.hash === "#friends") $("#friends").click();

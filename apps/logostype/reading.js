@@ -1,32 +1,4 @@
-async function startReading(){
-const $=selector=>document.querySelector(selector);
-function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-let transferredProgress=null;
-try{transferredProgress=JSON.parse(new URLSearchParams(location.search).get('progress'))}catch{}
-function saved(key,fallback){
-  if(transferredProgress&&location.protocol==='file:'){
-    if(key==='logostype-book-progress')return transferredProgress.bookProgress;
-    if(key==='logostype-book-journeys')return transferredProgress.bookJourneys;
-  }
-  try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}
-}
-const scriptureLines=await loadScripture();
-const journeyBooks=[];
-scriptureReferences.forEach((reference,index)=>{const name=reference.replace(/ \d+:\d+$/,'');let book=journeyBooks.at(-1);if(!book||book.name!==name){book={name,start:index,end:index};journeyBooks.push(book)}book.end=index+1});
-const clamp=(value,max)=>Number.isSafeInteger(value)?Math.max(0,Math.min(value,max)):0;
-const bookProgress=clamp(saved('logostype-book-progress',0),scriptureLines.length);
-const storedBooks=saved('logostype-book-journeys',{}),bookJourneys={};
-journeyBooks.forEach(book=>{bookJourneys[book.name]={progress:clamp(storedBooks?.[book.name]?.progress,book.end-book.start)}});
-const themes={'serika dark':['#323437','#2c2e31','#d1d0c5','#646669','#e2b714'],'serika':['#e1e1e3','#d1d3d8','#323437','#777783','#b68b00'],'nord':['#2e3440','#272d38','#d8dee9','#6c7a90','#88c0d0'],'rose pine':['#191724','#1f1d2e','#e0def4','#6e6a86','#ebbcba']};
-let theme='serika dark';try{theme=localStorage.getItem('logostype-theme')||theme}catch{}
-if(location.protocol==='file:'&&transferredProgress){
-  if(typeof transferredProgress.theme==='string')theme=transferredProgress.theme;
-  try{localStorage.setItem('logostype-book-progress',JSON.stringify(bookProgress));localStorage.setItem('logostype-book-journeys',JSON.stringify(bookJourneys));localStorage.setItem('logostype-theme',theme)}catch{}
-  const cleanURL=new URL(location.href);cleanURL.searchParams.delete('progress');try{history.replaceState(null,'',cleanURL.href)}catch{}
-}
-const colors=themes[theme]||themes['serika dark'];['--bg','--panel','--text','--muted','--accent'].forEach((key,index)=>document.documentElement.style.setProperty(key,colors[index]));
-document.documentElement.style.colorScheme=theme==='serika'?'light':'dark';
-if(theme==='serika'){document.documentElement.style.setProperty('--old-testament','#256579');document.documentElement.style.setProperty('--new-testament','#734799')}
+(() => {
 let readingChapters=[],readingChapter=0,readingJourneyName=null;
 function readingJourney(name){
   const book=journeyBooks.find(book=>book.name===name);
@@ -40,7 +12,7 @@ function openJourneyReader(){
     const journey=readingJourney(name),available=journey.progress>0;
     return '<button type="button" data-reading-journey="'+escapeHtml(name)+'" class="'+(name?(index<=39?'old-testament':'new-testament'):'entire-journey')+'" '+(available?'':'disabled')+'>'+escapeHtml(name||'entire Scriptures')+'<small>'+(available?journey.progress.toLocaleString()+' verses completed':'No completed verses')+'</small></button>';
   }).join('')+'</div>';
-  $('.journey-grid').onclick=event=>{const button=event.target.closest('[data-reading-journey]');if(button&&!button.disabled)location.hash=encodeURIComponent(button.dataset.readingJourney||'entire')};
+  content.querySelector('.journey-grid').onclick=event=>{const button=event.target.closest('[data-reading-journey]');if(button&&!button.disabled)openReadingJourney(button.dataset.readingJourney)};
   $('#readingContent').focus({preventScroll:true});
   window.scrollTo(0,0);
 }
@@ -56,7 +28,7 @@ function openReadingJourney(name){
     chapter.end=index+1;
   }
   const content=$('#readingContent');
-  content.innerHTML='<a class="option" href="#">← reading choices</a><h1>Read the scriptures you typed</h1><p id="readingSummary"></p>';
+  content.innerHTML='<button class="option" type="button" data-reading-choices>← reading choices</button><h1>Read the scriptures you typed</h1><p id="readingSummary"></p>';
   $('#readingSummary').textContent=`${journey.name} · ${Math.max(0,end-journey.start).toLocaleString()} completed verses`;
   if(!readingChapters.length)content.insertAdjacentHTML('beforeend','<p>Complete your first verse in this journey to start reading here.</p>');
   else{
@@ -66,7 +38,7 @@ function openReadingJourney(name){
     select.onchange=()=>showReadingChapter(Number(select.value));
     showReadingChapter(0);
   }
-  content.insertAdjacentHTML('beforeend','<a href="index.html" class="option">← back to typing</a>');
+  content.insertAdjacentHTML('beforeend','<button type="button" class="option" data-reading-back>← back to typing</button>');
   $('#readingContent').focus({preventScroll:true});
   window.scrollTo(0,0);
 }
@@ -83,10 +55,11 @@ function showReadingChapter(index){
 
 
 document.addEventListener('click',event=>{const button=event.target.closest('[data-reader-step]');if(button)showReadingChapter(readingChapter+Number(button.dataset.readerStep))});
-function routeReader(){let name;try{name=decodeURIComponent(location.hash.slice(1))}catch{name=''}if(name==='entire'&&bookProgress>0)openReadingJourney('');else if(journeyBooks.some(book=>book.name===name)&&readingJourney(name).progress)openReadingJourney(name);else openJourneyReader()}
-window.addEventListener('hashchange',routeReader);
-routeReader();
-if(['http:','https:'].includes(location.protocol)&&'serviceWorker' in navigator&&window.isSecureContext)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+window.readingView = { open: openJourneyReader };
+document.addEventListener('click', event => {
+  if (event.target.closest('[data-reading-choices]')) openJourneyReader();
+  if (event.target.closest('[data-reading-back]')) enterBook();
+});
 
 function moveReadingBook(step){
   const chapter=readingChapters[readingChapter];if(!chapter)return;
@@ -97,14 +70,13 @@ function moveReadingBook(step){
   if(readingJourneyName===''){
     const index=readingChapters.findIndex(chapter=>chapter.start>=next.start&&chapter.start<next.end);
     if(index>=0)showReadingChapter(index);
-  }else location.hash=encodeURIComponent(next.name);
+  }else openReadingJourney(next.name);
 }
 document.addEventListener('keydown',event=>{
-  if(readingJourneyName===null||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(!document.body.classList.contains('reading-mode')||document.querySelector('dialog[open]')||readingJourneyName===null||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
   const key=event.key.toLowerCase();if(key!=='n'&&key!=='p')return;
   event.preventDefault();const step=key==='n'?1:-1;
   if(event.shiftKey)moveReadingBook(step);else showReadingChapter(readingChapter+step);
 });
 
-}
-startReading().catch(error=>{const content=document.querySelector('#readingContent');content.textContent='Scripture unavailable: '+error.message+'. Connect to the internet and reload to try again.'});
+})();
