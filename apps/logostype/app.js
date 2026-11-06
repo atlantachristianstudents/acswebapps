@@ -348,7 +348,7 @@ function enterTyping() {
 function completeBookVerse() {
   if (mode !== "book") return;
   const previousPosition = journeyPosition();
-  const passed = typed === target && target.length > 0 && !extraLetters.size;
+  const passed = typed === target && target.length > 0;
   if (passed) {
     if (!done) sampleWpm();
     if (activeJourneyAttempt) {
@@ -474,23 +474,18 @@ function generate(append = false) {
   rawTarget = append && rawTarget ? rawTarget + " " + passage : passage;
   return normalizeScripture(passage);
 }
-let lastInput = "",
-  extraLetters = new Map();
+let lastInput = "";
 function parseTyping(value, capped = false) {
   let text = "",
     raw = "";
-  const extras = new Map(),
-    expected = [];
+  const expected = [];
   for (const character of value.split("")) {
     if (capped && text.length >= target.length) break;
-    const position = text.length;
     raw += character;
-    expected.push(target[position]);
-    if (target[position] === " " && character !== " ") {
-      extras.set(position, (extras.get(position) || "") + character);
-    } else text += character;
+    expected.push(target[text.length]);
+    text += character;
   }
-  return { text, raw, extras, expected };
+  return { text, raw, expected };
 }
 function render(smooth = true) {
   renderBookContext();
@@ -500,12 +495,41 @@ function render(smooth = true) {
     .map((w) => {
       let html = '<span class="word">';
       for (const c of w) {
-        html += `<span class="letter ${pos < typed.length ? (typed[pos] === c ? "correct" : "incorrect") : ""} ${pos === typed.length ? "cursor" : ""}">${escapeHtml(c)}</span>`;
+        const isTyped = pos < typed.length;
+        const wrong = isTyped && typed[pos] !== c;
+        const cursor = pos === typed.length ? " cursor" : "";
+        let state = "";
+        let content = c;
+        if (isTyped) {
+          if (wrong) {
+            if (c !== " ") {
+              // Corrupted a letter: show the correct letter in red, not the wrong char
+              state = "incorrect";
+              content = c;
+            } else {
+              // Corrupted a space: show the wrong character in ghost
+              state = "incorrect";
+              content = typed[pos];
+            }
+          } else {
+            state = "correct";
+            content = typed[pos];
+          }
+        }
+        html += `<span class="letter ${state}${cursor}">${escapeHtml(content)}</span>`;
         pos++;
       }
-      if (extraLetters.has(pos))
-        html += `<span class="letter incorrect extra-letter">${escapeHtml(extraLetters.get(pos))}</span>`;
-      html += `<span class="letter ${pos === typed.length ? "cursor" : ""}"> </span></span>`;
+      // Word separator: this target slot is a space
+      if (pos === typed.length) {
+        html += `<span class="letter cursor"> </span></span>`;
+      } else if (pos < typed.length) {
+        const state = typed[pos] === " " ? "correct" : "incorrect";
+        const ghost = state === "incorrect" ? " ghost-space" : "";
+        const content = state === "incorrect" ? typed[pos] : " ";
+        html += `<span class="letter ${state}${ghost}">${escapeHtml(content)}</span></span>`;
+      } else {
+        html += `<span class="letter"> </span></span>`;
+      }
       pos++;
       return html;
     })
@@ -538,7 +562,6 @@ function reset(preservePassage = false) {
   activeJourneyAttempt = null;
   typed = "";
   lastInput = "";
-  extraLetters = new Map();
   input.value = "";
   start = 0;
   done = false;
@@ -787,7 +810,6 @@ input.addEventListener("input", () => {
       if (parsed.raw[i] !== parsed.expected[i]) recordMistake();
     }
   lastInput = parsed.raw;
-  extraLetters = parsed.extras;
   const previousLength = typed.length;
   typed = v.slice(0, target.length);
   recentCorrect = recentCorrect.filter((hit) => hit.position < typed.length);
@@ -799,7 +821,7 @@ input.addEventListener("input", () => {
   if (
     mode !== "time" &&
     typed.length >= target.length &&
-    ((!window.friendRace?.active && mode !== "book") || (typed === target && !extraLetters.size))
+    ((!window.friendRace?.active && mode !== "book") || typed === target)
   ) {
     if (mode === "book") {
       completeBookVerse();

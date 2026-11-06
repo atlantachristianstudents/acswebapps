@@ -10,7 +10,7 @@ After the selected book or entire Scriptures journey is completed, Scripture Jou
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
-When a space is expected, other characters appear as red extra letters after the preceding word. The typing position stays at that space until you type a space. Backspace removes the extra letters; Scripture Journey and races require removing all extras before completion.
+A mistyped character — letter or space — shows the character you actually typed in red in place of the pressed key, while the cursor moves on; correct it with backspace. Scripture Journey and races require every character to match before completion.
 
 Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
@@ -20,7 +20,7 @@ Friend races require correcting all characters, or end at the time limit. Input 
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. The room stays open for a rematch.
 
-Scripture is downloaded by the shared classic script `scripture-text.js` from the configured Scripture API, then cached in IndexedDB with a localStorage backup for 15 days. Typing and reading use the same loader, strip embedded verse-reference prefixes such as `Gen. 2:1` from downloaded or cached text, and validate the verse count against `scripture-references.js`. Separate verse labels remain visible in Scripture Journey and reading. First use and cache refresh require an internet connection; a fresh cached copy works offline. `RcV.txt` remains a local reference file.
+Scripture is downloaded by the shared classic script `scripture-text.js` from the configured Scripture API, then cached in IndexedDB with a localStorage backup for 15 days. Typing and reading use the same loader, strip embedded verse-reference prefixes such as `Gen. 2:1` from downloaded or cached text, and validate the verse count against `scripture-references.js`. Separate verse labels remain visible in Scripture Journey and reading. First use and cache refresh require an internet connection; a fresh cached copy works offline.
 
 The same folder can also be hosted as a static website. Installable PWA and service worker caching require HTTPS or localhost; direct file use skips service worker registration. Race rooms require an internet connection.
 
