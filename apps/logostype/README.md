@@ -10,7 +10,7 @@ After the selected book or entire Scriptures journey is completed, Scripture Jou
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
-When a non-space character is typed where a space is expected, it is inserted in red before that space and the cursor stays on the space. Type the space to continue, or use Backspace to remove the extra character. Other letter typos keep their existing behavior. Scripture Journey and races require correcting inserted space typos as well as all other mistakes before completion.
+When a non-space character is typed where a space is expected, it is inserted in red right after the word (whose margin gap shortens to nothing) and the cursor continues to the next word as if the space had been typed. Use Backspace to remove the extra characters; completion ignores them there. Letter typos show the correct letter in red in place. Scripture Journey and races require correcting space typos as well as all other mistakes before completion.
 
 The typing passage disables font ligatures so adjacent letters remain fully visible when colored individually.
 

@@ -435,6 +435,11 @@
         overflow-wrap: anywhere;
         margin-right: 0.6em;
       }
+      /* Wrong characters typed in place of a word's trailing space hang
+         after the word, so the gap they replace is removed. */
+      .word.no-space {
+        margin-right: 0;
+      }
       .letter {
         position: relative;
       }
@@ -443,13 +448,6 @@
       }
       .incorrect {
         color: var(--error);
-      }
-      /* A wrong character typed where a space is expected replaces the
-         space visually but removes one letter of width so the line
-         layout does not shift. */
-      .ghost-space {
-        display: inline-block;
-        width: 0;
       }
       .typing-caret {
         position: absolute;

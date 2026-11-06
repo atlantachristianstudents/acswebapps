@@ -572,6 +572,9 @@ function parseTyping(value, capped = false) {
     if (target[text.length] === " " && character !== " ") {
       spaceTypos[text.length] = (spaceTypos[text.length] || "") + character;
       extraCount++;
+      // The passage position advances past the slot as if the space had
+      // been typed correctly; the cursor moves on to the next word.
+      text += " ";
       continue;
     }
     text += character;
@@ -585,7 +588,12 @@ function render(smooth = true) {
   $("#words").innerHTML = target
     .split(" ")
     .map((w) => {
-      let html = '<span class="word">';
+      // The space slot after this word. Its gap lives in the word's
+      // margin-right: 0.6em for a real space, 0 when typo characters
+      // typed in place of the space hang after the word instead.
+      const slot = pos + w.length;
+      const typo = spaceTypos[slot] || "";
+      let html = `<span class="word${typo ? " no-space" : ""}">`;
       for (const c of w) {
         const isTyped = pos < typed.length;
         const wrong = isTyped && typed[pos] !== c;
@@ -594,12 +602,12 @@ function render(smooth = true) {
         let content = c;
         if (isTyped) {
           if (wrong) {
-            if (c !== " ") {
-              // Corrupted a letter: show the correct letter in red, not the wrong char
+            if (typed[pos] === " ") {
+              // A misplaced space occupying a letter position: show it as a red ▯
               state = "incorrect";
-              content = c;
+              content = "▯";
             } else {
-              // Corrupted a space: show the wrong character in ghost
+              // Corrupted a letter: show the actually-typed char in red
               state = "incorrect";
               content = typed[pos];
             }
@@ -611,20 +619,16 @@ function render(smooth = true) {
         html += `<span class="letter ${state}${cursor}">${escapeHtml(content)}</span>`;
         pos++;
       }
-      // Word separator: this target slot is a space
-      if (spaceTypos[pos]) html += `<span class="letter incorrect space-typo">${escapeHtml(spaceTypos[pos])}</span>`;
-      if (pos === typed.length) {
-        html += `<span class="letter cursor"> </span></span>`;
-      } else if (pos < typed.length) {
-        const state = typed[pos] === " " ? "correct" : "incorrect";
-        const ghost = state === "incorrect" ? " ghost-space" : "";
-        const content = state === "incorrect" ? typed[pos] : " ";
-        html += `<span class="letter ${state}${ghost}">${escapeHtml(content)}</span></span>`;
-      } else {
-        html += `<span class="letter"> </span></span>`;
+      // Characters typed where the space belongs: red, hanging after the
+      // word with the word's gap removed. The cursor itself is on the next
+      // word's letter, having moved on as if the space were typed.
+      if (typo) {
+        html += `<span class="letter incorrect">${escapeHtml(typo)}</span>`;
+      } else if (pos === typed.length) {
+        html += `<span class="letter cursor"></span>`;
       }
       pos++;
-      return html;
+      return html + "</span>";
     })
     .join("");
   positionCaret(smooth);
