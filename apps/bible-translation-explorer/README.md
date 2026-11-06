@@ -3,7 +3,8 @@
 Compare the included component scores for 11 Bible translations in an interactive scatter plot and sortable table. The original explorer’s data and scoring behavior are preserved.
 
 - Adjust literalness (transfer vs. lexical consistency), readability (fluency vs. vocabulary), and their contribution to overall scores. Each ratio ranges from 1:2 to 2:1 and starts at 1:1.
-- Show or hide translations, select chart points, sort the scores, and reset to equal weights.
+- Show or hide translations, select chart points, sort the scores, and reset to equal weights. LSV and YLT start unchecked; enable their checkboxes or choose Show all to include them.
+- A neutral layout, higher-contrast labels, and spaced table rows make scores easier to scan. On small screens, weighting controls stack above the chart, which scrolls horizontally to keep its labels readable.
 - Export the visible scores as CSV or save the chart as a PNG.
 - All data and processing stay in the browser; no accounts, network services, or external assets are needed. Slider and visibility choices reset on reload.
 

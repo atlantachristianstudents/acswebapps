@@ -11,61 +11,61 @@
 <style>
 :root { --ink:#14213d;--muted:#5a6683;--surface:#fff;--border:#e2e8f0;--page:#f4f7fc;--violet:#7658f2;--blue:#1c84d8; }
 * {box-sizing:border-box} html{font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--page)}
-body{margin:0;background:radial-gradient(circle at 80% 0%,#e9e9ff 0%,transparent 33%),radial-gradient(circle at 0% 18%,#ddecfd 0%,transparent 30%),var(--page);min-height:100vh}
+body{margin:0;background:#f5f6f8;min-height:100vh}
 main{max-width:1240px;padding:37px 24px 45px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:start;gap:25px;margin-bottom:24px}
-.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:900;color:#7161bb;margin-bottom:10px}
-h1{font-size:clamp(27px,3vw,42px);letter-spacing:-1.8px;line-height:1.15;margin:0 0 9px;font-weight:850}
-.lead{font-size:14px;color:var(--muted);line-height:1.6;margin:0;max-width:760px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-top:6px}
+header{display:flex;justify-content:space-between;align-items:start;gap:24px;margin-bottom:28px}
+.eyebrow{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:900;color:#635391;margin-bottom:10px}
+h1{font-size:clamp(26px,3vw,38px);letter-spacing:-1.1px;line-height:1.15;margin:0 0 9px;font-weight:850}
+.lead{font-size:15px;color:#475569;line-height:1.6;margin:0;max-width:720px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-top:6px;flex-shrink:0}
 button{font-family:inherit;cursor:pointer;transition:all .16s ease}
-.btn{background:white;color:#34415e;border:1px solid #d6def0;border-radius:12px;padding:11px 14px;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px #25346108}
+.btn{background:white;color:#34415e;border:1px solid #d6def0;border-radius:8px;padding:10px 13px;font-size:13px;font-weight:800;white-space:nowrap;box-shadow:none}
 .btn:hover{background:#f6f7ff;border-color:#a2a2ed;transform:translateY(-1px)}
 .btn-primary{background:var(--ink);color:white;border-color:var(--ink)}.btn-primary:hover{background:#2c3d69;color:white}
 .scope-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:15px;padding:12px 17px;margin:0 0 17px}.scope-bar select,.scope-bar input{font:inherit}.scope-bar select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:var(--ink)}.scope-status{font-size:12px;color:#64748b;flex:1;min-width:200px}.scope-status.warning{color:#9a3412}.scope-upload{display:none}.scope-upload.active{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}.scope-upload input{max-width:220px;font-size:11px}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px;margin-bottom:20px}
-.control{border:1px solid var(--border);border-radius:19px;background:rgba(255,255,255,.94);padding:18px 18px 16px;box-shadow:0 8px 23px #2433620c}
+.control{border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.94);padding:18px 18px 16px;box-shadow:none;border-color:#dce2ea}
 .control-top{display:flex;gap:14px;justify-content:space-between;align-items:start}
-.control-title{font-size:14px;font-weight:850;letter-spacing:-.3px}
-.control-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4;min-height:30px}
+.control-title{font-size:16px;font-weight:850;letter-spacing:-.3px}
+.control-sub{font-size:13px;color:#475569;margin-top:5px;line-height:1.4;min-height:30px}
 .ratio{font-size:15px;font-weight:900;letter-spacing:-.5px;min-width:76px;text-align:right;border-radius:9px;background:#f0eaff;color:#5a3fbc;padding:8px}
 .control.readable .ratio{background:#e5f3ff;color:#1269b3}
-.control.overall{grid-column:auto;background:linear-gradient(110deg,#fff 30%,#f5fff8 100%)}
+.control.overall{grid-column:auto;background:#fff}
 .control.overall .ratio{background:#e4f8ef;color:#087c60}
 .control.overall input[type=range]::-webkit-slider-thumb{background:#0f9c80;box-shadow:0 1px 0 2px #0f9c80,0 3px 14px #0f9c8044}
 .control.overall input[type=range]::-moz-range-thumb{background:#0f9c80;box-shadow:0 1px 0 2px #0f9c80}
-.overall-inline{font-size:11px;color:#547269;font-weight:700;margin:9px 0 0;line-height:1.35}
+.overall-inline{font-size:12px;color:#475569;font-weight:700;margin:9px 0 0;line-height:1.35}
 input[type=range]{appearance:none;width:100%;height:7px;border-radius:99px;background:#e5eaf4;outline:none;margin:27px 0 19px;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{appearance:none;width:23px;height:23px;border-radius:50%;background:#7658f2;border:4px solid white;box-shadow:0 1px 0 2px #7658f2,0 3px 14px #7658f244}
 input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#7658f2;border:4px solid white;box-shadow:0 1px 0 2px #7658f2}
 .control.readable input[type=range]::-webkit-slider-thumb{background:#1c84d8;box-shadow:0 1px 0 2px #1c84d8,0 3px 14px #1c84d844}
 .control.readable input[type=range]::-moz-range-thumb{background:#1c84d8;box-shadow:0 1px 0 2px #1c84d8}
-.range-head{display:flex;justify-content:space-between;gap:12px;font-weight:800;color:#273451;font-size:12px}
-.range-values{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#8993a9;margin-top:5px}
-.chart-card{background:white;border:1px solid var(--border);border-radius:21px;padding:19px 23px 17px;box-shadow:0 10px 34px #1b31500b;position:relative;overflow:hidden}
+.range-head{display:flex;justify-content:space-between;gap:12px;font-weight:800;color:#273451;font-size:13px}
+.range-values{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#475569;margin-top:5px;margin-bottom:16px}
+.chart-card{background:white;border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:none;position:relative;overflow:hidden;border-color:#dce2ea}
 .chart-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;flex-wrap:wrap}
-.chart-title{font-size:17px;font-weight:850;letter-spacing:-.5px}
+.chart-title{font-size:19px;font-weight:850;letter-spacing:-.3px}
 .chart-note{font-size:11px;color:#8793aa;font-weight:700}
 #plot{width:100%;height:auto;display:block;overflow:visible;touch-action:pan-y}
-.axis-tick{font-family:inherit;font-size:12px;fill:#8b94a8;font-weight:650}
-.axis-title{font-family:inherit;font-size:14px;fill:#40516c;font-weight:850}
+.axis-tick{font-family:inherit;font-size:12px;fill:#526177;font-weight:650}
+.axis-title{font-family:inherit;font-size:14px;fill:#334155;font-weight:850}
 .dot{cursor:pointer;transition:opacity .15s, r .15s}
 .dot:focus{outline:none;stroke:#1c2d50;stroke-width:4}
 .dot-label{font-size:12px;font-weight:900;fill:#273451;pointer-events:none}
 .tag{fill:#fff;stroke:#e9edf5;stroke-width:1;pointer-events:none}
 .guide{stroke:#edf1f7;stroke-width:1.3}
-.pill{background:#f2f5fa;color:#55647e;border-radius:18px;font-size:11px;font-weight:800;padding:7px 10px}
+.pill{background:#eef2f6;color:#334155;border-radius:18px;font-size:13px;font-weight:800;padding:7px 10px}
 .axis-annotation{display:flex;justify-content:space-between;gap:8px;color:#76849c;font-weight:650;font-size:11px;margin:2px 0 6px 54px}
-.legend{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:15px 3px 2px;border-top:1px solid #eef1f6;margin-top:5px}
-.legend-label{font-size:11px;font-weight:900;color:#9ca8bb;letter-spacing:1px;margin-right:2px;text-transform:uppercase}
-.translation-toggle{display:inline-flex;gap:7px;align-items:center;font-size:12px;font-weight:850;color:#34415c;cursor:pointer;border:1px solid #d9e1f0;background:#f9fbff;padding:8px 11px;border-radius:999px;transition:background .16s,opacity .16s,border-color .16s}
+.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:18px 0 0;border-top:1px solid #eef1f6;margin-top:14px}
+.legend-label{font-size:12px;font-weight:900;color:#475569;letter-spacing:.5px;margin-right:2px;text-transform:uppercase;flex-basis:100%}
+.translation-toggle{display:inline-flex;gap:7px;align-items:center;font-size:13px;font-weight:750;color:#34415c;cursor:pointer;border:1px solid #d9e1f0;background:#fff;padding:9px 12px;border-radius:8px;transition:background .16s,opacity .16s,border-color .16s}
 .translation-toggle:hover{border-color:#8b98b8;background:#eef4ff}
-.translation-toggle.off{opacity:.48;background:#f1f3f7;text-decoration:line-through}
+.translation-toggle.off{opacity:1;background:#f1f3f6;text-decoration:none;color:#64748b;border-color:#e2e8f0}
 .translation-toggle input{margin:0;accent-color:#6366f1;width:14px;height:14px;cursor:pointer}
-.legend-action{font-size:11px;font-weight:800;border:1px solid #d8e0ee;background:white;border-radius:8px;padding:7px 10px;color:#56657f;cursor:pointer}
+.legend-action{font-size:12px;font-weight:800;border:1px solid #d8e0ee;background:white;border-radius:8px;padding:9px 12px;color:#56657f;cursor:pointer}
 .legend-action:hover{border-color:#8998b9;color:#1b2e4e}
 .legend-actions{display:flex;gap:6px;margin-right:7px}
-.visibility-count{color:#8290a8;font-weight:750;font-size:11px;margin-left:auto}
-.table-head .sort-summary{font-size:11px;color:#75849e}
+.visibility-count{color:#475569;font-weight:750;font-size:12px;margin-left:0}
+.table-head .sort-summary{font-size:12px;color:#475569}
 .sort-btn{border:0;background:none;display:inline-flex;justify-content:flex-end;align-items:center;gap:5px;padding:4px 0;font:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;width:100%;white-space:nowrap}
 .sort-btn:hover{color:#2563eb}
 th:first-child .sort-btn{justify-content:flex-start}
@@ -79,37 +79,58 @@ th[aria-sort=ascending] .sort-mark,th[aria-sort=descending] .sort-mark{color:#51
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
 .tooltip{position:fixed;z-index:5;pointer-events:none;background:#192541;color:white;border-radius:11px;padding:12px 15px;box-shadow:0 10px 35px #0003;min-width:175px;font-size:12px;line-height:1.7;opacity:0;transition:opacity .1s}
 .tooltip strong{font-size:14px}.tooltip .mini{color:#c5cee6;font-size:11px}
-.table-card{margin-top:18px;background:#fff;border:1px solid var(--border);border-radius:19px;padding:19px 22px 18px;box-shadow:0 8px 25px #1b31500a}
+.table-card{margin-top:18px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:19px 22px 18px;box-shadow:none;border-color:#dce2ea}
 .table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
-.table-head strong{font-size:15px;font-weight:850}.table-head span{font-size:11px;color:#8490a7}
-.table-wrap{overflow-x:auto} table{width:100%;border-collapse:collapse;min-width:830px} th,td{padding:11px 10px;text-align:right;border-bottom:1px solid #edf1f7;font-size:12px;font-variant-numeric:tabular-nums}th{text-transform:uppercase;letter-spacing:.8px;color:#8690a5;font-size:10px;font-weight:900}td{color:#4d5c77;font-weight:650}tr:last-child td{border-bottom:0}th:first-child,td:first-child{text-align:left}td:first-child{font-weight:900;color:#273550}.sorted{background:#f7f8ff;color:#4b3bc0}td.sorted{color:#3528a5;font-weight:900}.overall-col{background:#ecfdf5;color:#047857;font-weight:900}td.overall-col{font-size:13px;color:#047857}.formula-note{font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.5}
+.table-head strong{font-size:17px;font-weight:850}.table-head span{font-size:11px;color:#8490a7}
+.table-wrap{overflow-x:auto} table{width:100%;border-collapse:collapse;min-width:830px} th,td{padding:13px 12px;text-align:right;border-bottom:1px solid #edf1f7;font-size:13px;font-variant-numeric:tabular-nums;color:#334155}th{text-transform:uppercase;letter-spacing:.35px;color:#475569;font-size:11px;font-weight:900;background:#f8fafc}td{color:#334155;font-weight:650}tr:last-child td{border-bottom:0;color:#334155}th:first-child,td:first-child{text-align:left}td:first-child{font-weight:900;color:#273550}.sorted{background:#f7f8ff;color:#4b3bc0}td.sorted{color:#3528a5;font-weight:900}.overall-col{background:#ecfdf5;color:#047857;font-weight:900}td.overall-col{font-size:13px;color:#047857}.formula-note{font-size:13px;color:#475569;margin:0 0 12px;line-height:1.65;max-width:920px}
 .swatch{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
-footer{font-size:12px;color:#6d7b93;line-height:1.6;margin:15px 3px 0}footer strong{color:#495974}
-@media(max-width:960px){.controls{grid-template-columns:1fr}.control.overall{grid-column:auto}header{flex-direction:column}main{padding:22px 12px 30px}.chart-card{padding:14px 8px}.axis-annotation{margin-left:45px}.actions{justify-content:flex-start}}
+footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width:960px}footer strong{color:#495974}
+@media(max-width:960px){.controls{grid-template-columns:1fr}.control.overall{grid-column:auto;background:#fff}header{flex-direction:column;align-items:start;gap:24px;margin-bottom:28px}main{padding:22px 12px 30px}.chart-card{padding:22px;box-shadow:none;border-radius:12px;border-color:#dce2ea}.axis-annotation{margin-left:45px}.actions{justify-content:flex-start;flex-shrink:0}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Axis-integrated controls: horizontal control tracks the x axis, vertical tracks y. */
 .plot-with-axis-controls{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:stretch;gap:0}
 .plot-main{min-width:0;position:relative}
 .plot-main #plot{width:100%}
-.axis-control{font-size:10px;color:#53617d;min-width:0}
-.axis-control strong{font-size:11px;color:#34415e}
+.axis-control{font-size:12px;color:#475569;min-width:0}
+.axis-control strong{font-size:12px;color:#34415e}
 .axis-control output{background:#f0eaff;color:#5a3fbc;border-radius:7px;padding:3px 7px;font-size:12px;font-weight:900;white-space:nowrap}
 .axis-control input[type=range]{margin:0;accent-color:#7658f2;cursor:pointer}
-.axis-control-x{margin: -5px 7.5% 8px 7.5%;padding:8px 12px 6px;border-radius:12px;background:#f7f4ff;border:1px solid #e5dcff;position:relative;z-index:1}
+.axis-control-x{margin: -5px 7.5% 8px 7.5%;padding:8px 12px 6px;border-radius:8px;background:#f8f7fc;border:1px solid #e5dcff;position:relative;z-index:1;border-color:#e5e1ef}
 .axis-control-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
 .axis-control-x input{display:block;width:100%;height:7px}
-.axis-endpoints{display:flex;justify-content:space-between;gap:8px;margin-top:11px;font-weight:700;flex-wrap:wrap}
-.axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 65px 0;padding:12px 7px;background:#eff7ff;border:1px solid #d9eafb;border-radius:12px}
+.axis-endpoints{display:flex;justify-content:space-between;gap:8px;margin-top:11px;font-weight:700;flex-wrap:wrap;font-size:11px}
+.axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 65px 0;padding:12px 7px;background:#f3f7fb;border:1px solid #d9eafb;border-radius:8px;border-color:#dce5ef}
 .axis-y-heading{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
 .axis-control-y output{background:#e5f3ff;color:#1269b3}
 .axis-control-y input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;height:clamp(180px,31vw,340px);width:23px;min-height:160px;background:transparent;accent-color:#1c84d8}
-.axis-y-label{text-align:center;font-size:10px;font-weight:750}
-.axis-y-values{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#64748b}
+.axis-y-label{text-align:center;font-size:11px;font-weight:750}
+.axis-y-values{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#475569}
 .controls-overall{grid-template-columns:minmax(0,1fr);max-width:100%;margin-top:16px}
-.controls-overall .control.overall{padding:14px 20px}
-.controls-overall .control-sub{min-height:0}
-@media(max-width:700px){.plot-with-axis-controls{grid-template-columns:82px minmax(0,1fr)}.axis-control-x{margin-left:0;margin-right:0;padding:8px}.axis-control-head{flex-wrap:wrap}.axis-endpoints{font-size:9px;gap:3px}.axis-control-y{margin-bottom:40px;padding:8px 3px}.axis-control-y input[type=range]{height:180px}.axis-control strong{font-size:10px}}
+.controls-overall .control.overall{padding:20px;background:#fff}
+.controls-overall .control-sub{min-height:0;font-size:13px;color:#475569}
+@media(max-width:700px){.plot-with-axis-controls{grid-template-columns:82px minmax(0,1fr)}.axis-control-x{margin-left:0;margin-right:0;padding:8px;background:#f8f7fc;border-color:#e5e1ef;border-radius:8px}.axis-control-head{flex-wrap:wrap}.axis-endpoints{font-size:11px;gap:3px}.axis-control-y{margin-bottom:40px;padding:8px 3px;background:#f3f7fb;border-color:#dce5ef;border-radius:8px}.axis-control-y input[type=range]{height:180px}.axis-control strong{font-size:12px}}
+
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #7658f2;outline-offset:4px}
+tbody tr:hover td{background:#f1f5f9}
+@media(max-width:700px){
+  .chart-card,.table-card{padding:16px 12px}
+  .plot-with-axis-controls{display:flex;flex-direction:column}
+  .axis-control-y{margin:12px 0;padding:12px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px}
+  .axis-y-heading{grid-column:1/-1;flex-direction:row;justify-content:space-between}
+  .axis-control-y input[type=range]{appearance:none;writing-mode:horizontal-tb;direction:rtl;width:100%;height:7px;min-height:0;grid-column:1/-1;grid-row:3}
+  .axis-control-y > .axis-y-label:nth-child(2){grid-column:1;grid-row:4;text-align:left}
+  .axis-y-label{grid-column:3;grid-row:4;text-align:right}
+  .axis-y-values{grid-column:2;grid-row:4;flex-direction:row;flex-wrap:wrap;justify-content:center}
+  .axis-control-x{margin:8px 0;padding:12px}
+  .axis-endpoints{font-size:11px;gap:6px}
+  .axis-control strong{font-size:12px}
+  .plot-main{overflow-x:auto}
+  #plot{min-width:560px}
+  .range-head{font-size:12px;gap:16px}
+  .control-top{gap:10px}
+  .controls-overall .control.overall{padding:16px}
+}
 </style>
 </head>
 <body>
@@ -118,8 +139,8 @@ footer{font-size:12px;color:#6d7b93;line-height:1.6;margin:15px 3px 0}footer str
 <header>
   <div>
     <div class="eyebrow">Whole Bible · 11 translations</div>
-    <h1>Bible Translation Explorer<span style="color:#795ce9">.</span></h1>
-    <p class="lead">Adjust literalness, readability, and their contribution to the overall score. All three ratios start at 1:1 and can be adjusted from 1:2 to 2:1. Literalness and readability sliders are placed along their chart axes; the overall slider below the chart changes rankings and overall scores.</p>
+    <h1>Bible Translation Explorer</h1>
+    <p class="lead">Compare literalness and readability across 11 translations. Adjust the sliders to explore how different priorities change the scores. Each ratio starts at 1:1 and ranges from 1:2 to 2:1.</p>
   </div>
   <div class="actions">
     <button class="btn" id="csvBtn" type="button">↓ Export CSV</button>
@@ -139,7 +160,7 @@ footer{font-size:12px;color:#6d7b93;line-height:1.6;margin:15px 3px 0}footer str
 <div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
     </div>
   </div>
-  <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">11 of 11 shown</span></div>
+  <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">9 of 11 shown</span></div>
 </section>
 
 <section class="controls controls-overall" aria-label="Overall weighting adjustment">
@@ -151,13 +172,13 @@ footer{font-size:12px;color:#6d7b93;line-height:1.6;margin:15px 3px 0}footer str
     <input id="overallSlider" aria-label="Overall literalness weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50">
     <div class="range-head"><span>1:2 · Readability emphasis</span><span>2:1 · Literalness emphasis</span></div>
     <div class="range-values"><span id="overallLeft">Literalness 50.0%</span><span id="overallRight">Readability 50.0%</span></div>
-    <button type="button" class="btn" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">1:1 preset · All three weights</button>
+    <button type="button" class="btn" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset all weights to 1:1</button>
     <p class="overall-inline">This slider changes the overall scores and rankings without changing each translation's X/Y coordinates.</p>
   </article>
 </section>
 
 <section class="table-card" aria-label="Full interactive score table">
-  <div class="table-head"><strong>Weighted scores · live data</strong><span id="sortSummary" class="sort-summary">Sorted by Overall, highest first · click any column heading to sort</span></div>
+  <div class="table-head"><strong>Translation scores</strong><span id="sortSummary" class="sort-summary">Sorted by Overall, highest first · click any column heading to sort</span></div>
   <p class="formula-note"><strong id="overallFormula">Overall = 50.0% × Literalness + 50.0% × Readability.</strong> Both axis scores use their own adjustable component ratios. Untick a translation to remove it from the chart and table; CSV exports include only visible translations.</p>
   <div class="table-wrap"><table><thead><tr>
     <th data-key="name"><button type="button" class="sort-btn" data-sort="name">Translation <span class="sort-mark">↕</span></button></th>
@@ -226,7 +247,7 @@ const litSlider = $('litSlider'), readSlider=$('readSlider'), overallSlider=$('o
 const NS='http://www.w3.org/2000/svg';
 const R = {left:82, top:25, right:1055, bottom:540};
 let selected=null, latest=[];
-const visible=new Set(originals.map(d=>d.name));
+const visible=new Set(originals.filter(d=>d.name!=='LSV'&&d.name!=='YLT').map(d=>d.name));
 let sortState={key:'overall',direction:'desc'};
 const sortLabels={name:'Translation',t:'Transfer',l:'Lexical',f:'Fluency',v:'Vocabulary',x:'Literalness',y:'Readability',overall:'Overall',c:'Align coverage'};
 function S(tag,attrs={},text='') { const e=document.createElementNS(NS,tag); Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v)); if(text!==undefined&&text!==null&&text!=='')e.textContent=text;return e; }
@@ -360,7 +381,7 @@ $('csvBtn').addEventListener('click',()=>{
 });
 $('pngBtn').addEventListener('click',()=>{
  const svg=plot.cloneNode(true);svg.setAttribute('width','1100');svg.setAttribute('height','620');
- const css=`.axis-tick{font-family:Arial,sans-serif;font-size:12px;fill:#8b94a8;font-weight:650}.axis-title{font-family:Arial,sans-serif;font-size:14px;fill:#40516c;font-weight:850}.dot-label{font-family:Arial,sans-serif;font-size:12px;font-weight:900;fill:#273451}.tag{fill:white;stroke:#e9edf5;stroke-width:1}.guide{stroke:#edf1f7;stroke-width:1.3}`;
+ const css=`.axis-tick{font-family:Arial,sans-serif;font-size:12px;fill:#526177;font-weight:650}.axis-title{font-family:Arial,sans-serif;font-size:14px;fill:#334155;font-weight:850}.dot-label{font-family:Arial,sans-serif;font-size:12px;font-weight:900;fill:#273451}.tag{fill:white;stroke:#e9edf5;stroke-width:1}.guide{stroke:#edf1f7;stroke-width:1.3}`;
  const style=S('style',{},css);svg.insertBefore(style,svg.firstChild);
  const xml=new XMLSerializer().serializeToString(svg);const image=new Image();const u=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
  image.onload=()=>{const c=document.createElement('canvas');c.width=2200;c.height=1240;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>{if(!b)return;const o=URL.createObjectURL(b);const a=document.createElement('a');a.href=o;a.download=(currentScope()==='all'?'whole_bible':currentScope())+'_translation_weights_chart.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(o),3000)},'image/png');};
