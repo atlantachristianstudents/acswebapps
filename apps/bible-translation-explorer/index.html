@@ -288,7 +288,12 @@ function sizeChart(){
 function legendWidth(){return Math.min(350,R.right-R.left-8);}
 function legendTrackWidth(){return legendWidth()-24;}
 let selected=null, latest=[];
-let legendPosition=null, legendDrag=null, legendWeightDrag=null;
+let legendPosition=null, legendDrag=null, legendWeightDrag=null, legendCollapsed=false;
+function legendHeight(){return legendCollapsed?36:148;}
+function toggleLegend(){
+ legendCollapsed=!legendCollapsed;render();
+ const handle=plot.querySelector('.legend-drag-handle');if(handle)handle.focus({preventScroll:true});
+}
 const visible=new Set(originals.filter(d=>d.name!=='LSV'&&d.name!=='YLT').map(d=>d.name));
 let sortState={key:'overall',direction:'desc'};
 const sortLabels={name:'Translation',t:'Transfer',l:'Lexical',f:'Fluency',v:'Vocabulary',x:'Literalness',y:'Readability',overall:'Overall',c:'Align coverage'};
@@ -321,7 +326,7 @@ function render(){
  drawChart(filtered);drawRows(filtered);
 }
 function clampLegendPosition(position){
- return {x:Math.max(R.left+4,Math.min(R.right-legendWidth()-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-148-4,position.y))};
+ return {x:Math.max(R.left+4,Math.min(R.right-legendWidth()-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-legendHeight()-4,position.y))};
 }
 function chartPointer(event){
  const point=plot.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
@@ -329,15 +334,19 @@ function chartPointer(event){
 }
 plot.addEventListener('pointermove',event=>{
  if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ if(!legendDrag.moved&&Math.hypot(event.clientX-legendDrag.startX,event.clientY-legendDrag.startY)<6)return;
+ legendDrag.moved=true;
  const point=chartPointer(event);
  legendPosition=clampLegendPosition({x:point.x-legendDrag.offsetX,y:point.y-legendDrag.offsetY});
  legendDrag.panel.setAttribute('transform',`translate(${legendPosition.x-legendDrag.box.x} ${legendPosition.y-legendDrag.box.y})`);
 });
 function finishLegendDrag(event){
  if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ const toggle=event.type==='pointerup'&&!legendDrag.moved;
+ legendPosition=legendPosition||{x:legendDrag.box.x,y:legendDrag.box.y};
  legendDrag=null;
  if(plot.hasPointerCapture(event.pointerId))plot.releasePointerCapture(event.pointerId);
- render();
+ if(toggle)toggleLegend();else render();
 }
 plot.addEventListener('pointerup',finishLegendDrag);
 plot.addEventListener('pointercancel',finishLegendDrag);
@@ -390,12 +399,13 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
    const line=S('line',{x1:XP(ends[0].x),y1:YP(ends[0].y),x2:XP(ends[1].x),y2:YP(ends[1].y),stroke:color,'stroke-width':3,'stroke-dasharray':dash,opacity:.9});
    line.append(S('title',{},`${label} overall: ${row.name} · ${fmt(score)}%`));group.append(line);
  }
- const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-148-12});
- const box={...position,w:legendWidth(),h:148};
+ const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-legendHeight()-12});
+ const box={...position,w:legendWidth(),h:legendHeight()};
  const panel=S('g',{class:'overall-legend'});
  panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
  const text=(x,y,value,size=12,bold=650)=>S('text',{x,y,fill:'#155e57','font-family':'Arial, sans-serif','font-size':size,'font-weight':bold},value);
  panel.append(text(box.x+12,box.y+20,'Overall score weighting',13,750));
+ if(!legendCollapsed){
  panel.append(text(box.x+12,box.y+40,`Literalness ${(a*100).toFixed(0)}% · Readability ${(b*100).toFixed(0)}%`));
  panel.append(S('rect',{x:box.x+12,y:box.y+50,width:legendTrackWidth()*a,height:7,rx:2,fill:'#7658f2'}));
  panel.append(S('rect',{x:box.x+12+legendTrackWidth()*a,y:box.y+50,width:legendTrackWidth()*b,height:7,rx:2,fill:'#1c84d8'}));
@@ -428,18 +438,21 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
  panel.append(text(box.x+44,box.y+134,`Lowest: ${least.name} · ${fmt(least.overall)}%`,12,750));
  panel.append(S('line',{x1:box.x+12,y1:box.y+110,x2:box.x+36,y2:box.y+110,stroke:'#0f766e','stroke-width':3}));
  panel.append(text(box.x+44,box.y+114,`Highest: ${best.name} · ${fmt(best.overall)}%`,12,750));
- const handle=S('g',{class:'legend-drag-handle',tabindex:0,role:'button','aria-label':'Move overall score legend. Drag or use arrow keys; hold Shift for larger steps.',style:'cursor:grab;touch-action:none'});
- handle.append(S('title',{},'Drag to move · Arrow keys to adjust'));
+ }
+ const handle=S('g',{class:'legend-drag-handle',tabindex:0,role:'button','aria-expanded':!legendCollapsed,'aria-label':`${legendCollapsed?'Expand':'Minimize'} overall score legend. Click to toggle; drag or use arrow keys to move.`,style:'cursor:grab;touch-action:none'});
+ handle.append(S('title',{},'Click to minimize or expand · Drag to move'));
  handle.append(S('rect',{x:box.x+box.w-38,y:box.y+4,width:32,height:32,rx:6,fill:'#f1f5f9',stroke:'#cbd5e1'}));
  handle.append(S('path',{d:`M ${box.x+box.w-22} ${box.y+10} v20 m-10-10 h20 m-13-7 3-3 3 3 m-3 17-3-3 m3 3 3-3 m-10-10-3 3 3 3 m17-3-3-3 m3 3-3 3`,fill:'none',stroke:'#475569','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','pointer-events':'none'}));
  handle.addEventListener('pointerdown',event=>{
    if(event.button!==0)return;
    event.preventDefault();hideTooltip();
    const point=chartPointer(event);
-   legendDrag={id:event.pointerId,offsetX:point.x-box.x,offsetY:point.y-box.y,box,panel};
+   legendDrag={id:event.pointerId,offsetX:point.x-box.x,offsetY:point.y-box.y,box,panel,startX:event.clientX,startY:event.clientY,moved:false};
    plot.setPointerCapture(event.pointerId);
  });
+ handle.addEventListener('click',event=>{if(event.detail===0)toggleLegend();});
  handle.addEventListener('keydown',event=>{
+   if(event.key==='Enter'||event.key===' '){event.preventDefault();legendPosition={x:box.x,y:box.y};toggleLegend();return;}
    const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
    const direction=directions[event.key];if(!direction)return;
    event.preventDefault();
