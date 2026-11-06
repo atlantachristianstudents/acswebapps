@@ -2,13 +2,15 @@
 let readingChapters=[],readingChapter=0,readingJourneyName=null;
 function readingJourney(name){
   const book=journeyBooks.find(book=>book.name===name);
-  if(!book)return {name:'Entire Scriptures',start:0,end:scriptureLines.length,progress:bookProgress};
-  return {...book,progress:Math.max(bookJourneys[name]?.progress||0,Math.max(0,Math.min(book.end-book.start,bookProgress-book.start)))};
+  const scriptureProgress=journeyCompletions.length?scriptureLines.length:bookProgress;
+  if(!book)return {name:'Entire Scriptures',start:0,end:scriptureLines.length,progress:scriptureProgress};
+  const state=bookJourneys[name],size=book.end-book.start;
+  return {...book,progress:Math.max(state?.completions.length?size:state?.progress||0,Math.max(0,Math.min(size,scriptureProgress-book.start)))};
 }
 function openJourneyReader(){
   readingJourneyName=null;
   const content=$('#readingContent');
-  content.innerHTML='<h1 id="readingPickerTitle">Read the scriptures you typed</h1><p>Choose a book or entire Scriptures to read completed verses. Complete at least one verse to unlock a choice.</p><p class="testament-legend"><span class="old-testament">Old Testament</span><span class="new-testament">New Testament</span></p><div class="journey-grid" role="group" aria-labelledby="readingPickerTitle">'+['',...journeyBooks.map(book=>book.name)].map((name,index)=>{
+  content.innerHTML='<h1 id="readingPickerTitle">Read the scriptures you typed</h1><p>Choose a book or entire Scriptures to read completed verses. Complete at least one verse to unlock a choice. Journeys completed at least once stay fully available after restarting.</p><p class="testament-legend"><span class="old-testament">Old Testament</span><span class="new-testament">New Testament</span></p><div class="journey-grid" role="group" aria-labelledby="readingPickerTitle">'+['',...journeyBooks.map(book=>book.name)].map((name,index)=>{
     const journey=readingJourney(name),available=journey.progress>0;
     return '<button type="button" data-reading-journey="'+escapeHtml(name)+'" class="'+(name?(index<=39?'old-testament':'new-testament'):'entire-journey')+'" '+(available?'':'disabled')+'>'+escapeHtml(name||'entire Scriptures')+'<small>'+(available?journey.progress.toLocaleString()+' verses completed':'No completed verses')+'</small></button>';
   }).join('')+'</div>';
@@ -75,7 +77,7 @@ document.addEventListener('click', event => {
 function moveReadingBook(step){
   const chapter=readingChapters[readingChapter];if(!chapter)return;
   const currentBook=journeyBooks.find(book=>chapter.start>=book.start&&chapter.start<book.end);
-  const available=journeyBooks.filter(book=>readingJourneyName===''?book.start<bookProgress:readingJourney(book.name).progress>0);
+  const available=journeyBooks.filter(book=>readingJourneyName===''?book.start<readingJourney('').progress:readingJourney(book.name).progress>0);
   const next=available[available.findIndex(book=>book.name===currentBook.name)+step];
   if(!next)return;
   if(readingJourneyName===''){

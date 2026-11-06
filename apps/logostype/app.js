@@ -180,18 +180,24 @@ function celebrateJourney(colorCount = 1) {
     spin: (Math.random() - 0.5) * 8,
     color: colors[index % colors.length],
   }));
+  const duration = 4500 * colorCount;
   let started, last;
   function frame(now) {
     started ??= now;
     const delta = Math.min((now - (last ?? now)) / 1000, 0.05);
     last = now;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.globalAlpha = Math.min(1, (4500 - (now - started)) / 800);
+    context.globalAlpha = Math.max(0, Math.min(1, (duration - (now - started)) / 800));
     for (const piece of pieces) {
       piece.x += piece.vx * delta;
       piece.y += piece.vy * delta;
       piece.vy += 70 * delta;
       piece.angle += piece.spin * delta;
+      if (colorCount > 1 && piece.y > canvas.height + 20 && now - started < duration - 800) {
+        piece.x = Math.random() * canvas.width;
+        piece.y = -20;
+        piece.vy = 100 + Math.random() * 180;
+      }
       context.save();
       context.translate(piece.x, piece.y);
       context.rotate(piece.angle);
@@ -199,7 +205,7 @@ function celebrateJourney(colorCount = 1) {
       context.fillRect(-4, -6, 8, 12);
       context.restore();
     }
-    if (now - started < 4500) requestAnimationFrame(frame);
+    if (now - started < duration) requestAnimationFrame(frame);
     else canvas.remove();
   }
   requestAnimationFrame(frame);
@@ -409,7 +415,7 @@ function completeBookVerse() {
   const previousPosition = journeyPosition();
   const passed = typed === target && target.length > 0 && !parseTyping(input.value).extraCount;
   if (passed) {
-    if (!done) sampleWpm();
+    if (!done) sampleWpm(true);
     if (activeJourneyAttempt) {
       checkpointJourneyAttempt();
       activeJourneyAttempt.typingMs = activeJourneyAttempt.elapsedMs;
@@ -700,16 +706,22 @@ function recordMistake() {
   errors++;
   mistakeEvents.push({ time: Math.max(0, (Date.now() - start) / 1000), wpm: instantSpeed() });
 }
-function sampleWpm() {
+function sampleWpm(final = false) {
   if (typed.length < 2) return;
+  const elapsed = Math.max(0, (Date.now() - start) / 1000);
+  if (elapsed < 1) return;
+  const previous = sampleTimes[sampleTimes.length - 1];
+  // Share a 250 ms sampling cadence across typing and race timer ticks.
+  if (!final && previous !== undefined && Math.floor(elapsed * 4) <= Math.floor(previous * 4)) return;
+  if (elapsed === previous) return;
   samples.push(speed());
   instantSamples.push(instantSpeed());
   rawSamples.push(rawSpeed());
-  sampleTimes.push(Math.max(0, (Date.now() - start) / 1000));
+  sampleTimes.push(elapsed);
 }
 function finish() {
   if (done) return;
-  sampleWpm();
+  sampleWpm(true);
   done = true;
   completeBookVerse();
   clearInterval(timer);
@@ -784,7 +796,25 @@ document.addEventListener("click", event => {
   button.setAttribute("aria-pressed", String(!hidden.has(series)));
   drawChart(canvas, canvas._chartData || captureChart());
 });
+function visibleChartData(data) {
+  const indices = data.sampleTimes.map((time, index) => time >= 1 ? index : -1).filter(index => index >= 0);
+  return { ...data,
+    sampleTimes: indices.map(index => data.sampleTimes[index]),
+    samples: indices.map(index => data.samples[index]),
+    instantSamples: indices.map(index => data.instantSamples[index]),
+    rawSamples: indices.map(index => data.rawSamples[index]),
+    mistakeEvents: data.mistakeEvents.filter(event => event.time >= 1),
+  };
+}
+function chartTimeRange(times) {
+  return { start: 1, span: Math.max(0.001, Math.max(1, ...times) - 1) };
+}
 function drawChart(c = $("#chart"), data = captureChart()) {
+  data = visibleChartData(data);
+  c._visibleData = data;
+  c.hidden = !data.sampleTimes.length || (c.id === "chart" && !!(window.friendRace?.active && window.friendRace.running));
+  const legend = document.querySelector(`[data-chart-target="${c.id}"]`);
+  if (legend) legend.hidden = c.hidden;
   if (c.id === "chart") hideChartHover();
   if (c.hidden) return;
   const { samples, instantSamples, rawSamples, sampleTimes, mistakeEvents } = data;
@@ -797,7 +827,7 @@ function drawChart(c = $("#chart"), data = captureChart()) {
   const w = r.width,
     styles = getComputedStyle(document.body);
   const max = Math.max(100, ...samples, ...instantSamples, ...rawSamples, ...mistakeEvents.map((event) => event.wpm));
-  const duration = Math.max(1, ...sampleTimes);
+  const range = chartTimeRange(sampleTimes);
   x.font = "11px monospace";
   for (let i = 0; i < 5; i++) {
     const y = 15 + i * 32;
@@ -812,7 +842,7 @@ function drawChart(c = $("#chart"), data = captureChart()) {
   const ticks = w < 400 ? 2 : 4;
   for (let i = 0; i <= ticks; i++) {
     x.textAlign = i === 0 ? "left" : i === ticks ? "right" : "center";
-    x.fillText((duration * i / ticks).toFixed(duration < 10 ? 1 : 0) + "s", 35 + i / ticks * (w - 40), 165);
+    x.fillText((range.start + range.span * i / ticks).toFixed(range.span < 10 ? 2 : 0) + "s", 35 + i / ticks * (w - 40), 165);
   }
   x.textAlign = "left";
   for (const [series, values, color, dash] of [
@@ -826,7 +856,7 @@ function drawChart(c = $("#chart"), data = captureChart()) {
     x.setLineDash(dash);
     x.beginPath();
     values.forEach((v, i) => {
-      const px = 35 + (sampleTimes[i] / duration) * (w - 40);
+      const px = 35 + ((sampleTimes[i] - range.start) / range.span) * (w - 40);
       const py = 145 - (v / max) * 130;
       if (i === 0) x.moveTo(px, py);
       else x.lineTo(px, py);
@@ -837,7 +867,7 @@ function drawChart(c = $("#chart"), data = captureChart()) {
   x.strokeStyle = styles.getPropertyValue("--error");
   x.lineWidth = 2;
   for (const event of mistakeEvents) {
-    const px = 35 + Math.min(event.time / duration, 1) * (w - 40);
+    const px = 35 + Math.min((event.time - range.start) / range.span, 1) * (w - 40);
     const py = 145 - (event.wpm / max) * 130;
     x.beginPath();
     x.moveTo(px - 4, py - 4);
@@ -848,13 +878,15 @@ function drawChart(c = $("#chart"), data = captureChart()) {
   }
 }
 function chartHoverPoint(pointerX, width) {
-  if (!sampleTimes.length || width <= 40) return null;
+  const times = $("#chart")._visibleData?.sampleTimes || [];
+  if (!times.length || width <= 40) return null;
+  const range = chartTimeRange(times);
   const x = Math.max(35, Math.min(width - 5, pointerX));
-  const time = ((x - 35) / (width - 40)) * Math.max(1, ...sampleTimes);
+  const time = range.start + ((x - 35) / (width - 40)) * range.span;
   let index = 0;
-  for (let i = 1; i < sampleTimes.length; i++)
-    if (Math.abs(sampleTimes[i] - time) < Math.abs(sampleTimes[index] - time)) index = i;
-  return { x: 35 + (sampleTimes[index] / Math.max(1, ...sampleTimes)) * (width - 40), index };
+  for (let i = 1; i < times.length; i++)
+    if (Math.abs(times[i] - time) < Math.abs(times[index] - time)) index = i;
+  return { x: 35 + ((times[index] - range.start) / range.span) * (width - 40), index };
 }
 document.addEventListener("pointermove", (event) => {
   const chart = $("#chart");
@@ -879,10 +911,11 @@ document.addEventListener("pointermove", (event) => {
     marker = $("#chartMarker");
   marker.hidden = false;
   marker.style.left = x + "px";
-  $("#chartHoverTime").textContent = sampleTimes[index].toFixed(3) + "s";
-  $("#chartHoverAverage").textContent = samples[index];
-  $("#chartHoverInstant").textContent = instantSamples[index];
-  $("#chartHoverRaw").textContent = rawSamples[index];
+  const plotted = chart._visibleData;
+  $("#chartHoverTime").textContent = plotted.sampleTimes[index].toFixed(3) + "s";
+  $("#chartHoverAverage").textContent = plotted.samples[index];
+  $("#chartHoverInstant").textContent = plotted.instantSamples[index];
+  $("#chartHoverRaw").textContent = plotted.rawSamples[index];
   tooltip.hidden = false;
   const tooltipWidth = tooltip.offsetWidth;
   const left = x + 12 + tooltipWidth > rect.width ? x - tooltipWidth - 12 : x + 12;
@@ -1113,7 +1146,7 @@ function openModal(type) {
     ).join("") + '<button class="option" type="submit">save colors →</button></form>';
   if (type === "settings")
     content.innerHTML =
-      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
+      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="journeyCompletions">↗ journey completion records</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
   if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
@@ -1131,10 +1164,12 @@ function openModal(type) {
             )
             .join("")
         : "<p>Your first personal best is one test away. Finish a test to save your results here.</p>");
-  if (type === "history" || type === "profile")
+  if (type === "journeyCompletions")
+    content.innerHTML = '<button class="option" data-open="settings">← settings</button><h2>journey completion records</h2>';
+  if (type === "journeyCompletions")
     content.insertAdjacentHTML(
       "beforeend",
-      "<h3>Scripture Journey completions</h3>" +
+      "<h3>Entire Scriptures completions</h3>" +
         (journeyCompletions.length
           ? "<ol>" +
             journeyCompletions
@@ -1165,7 +1200,7 @@ function openModal(type) {
   if (type === "commands")
     content.innerHTML =
       '<h2>command line</h2><button class="option" id="restartCommand">↻ restart test</button><button class="option" data-open="themes">◐ theme</button><button class="option" data-open="settings">⚙ settings</button><button class="option" data-open="history">♛ history</button>';
-  if (type === "history" || type === "profile") {
+  if (type === "journeyCompletions") {
     const completedBooks = journeyBooks.filter((book) => bookJourneys[book.name]?.completions.length);
     if (completedBooks.length)
       content.insertAdjacentHTML(
@@ -1183,6 +1218,7 @@ function openModal(type) {
             .join("") +
           "</ul>",
       );
+    else content.insertAdjacentHTML("beforeend", "<h3>Book journey completions</h3><p>No completed book journeys yet.</p>");
   }
   if (!$("#modal").open) $("#modal").showModal();
   if (type === "settings" || type === "profile") $("#profileName").value = getProfileName();
@@ -1427,26 +1463,31 @@ function openHistoryResult(index) {
     );
     return;
   }
+  const chartData = visibleChartData(result.chart);
+  if (!chartData.sampleTimes.length) {
+    content.insertAdjacentHTML("beforeend", "<p>No chart readings at or after one second for this attempt.</p>");
+    return;
+  }
   content.insertAdjacentHTML(
     "beforeend",
     chartLegend('historyChart') + '<canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
   );
   const canvas = $("#historyChart");
-  canvas._chartData = result.chart;
-  drawChart(canvas, result.chart);
+  canvas._chartData = chartData;
+  drawChart(canvas, chartData);
   canvas.addEventListener("pointermove", (event) => {
-    const times = result.chart.sampleTimes;
+    const times = chartData.sampleTimes;
     if (!times.length) return;
-    const rect = canvas.getBoundingClientRect(),
-      time = Math.max(0, Math.min(1, (event.clientX - rect.left - 35) / (rect.width - 40))) * Math.max(1, ...times);
+    const rect = canvas.getBoundingClientRect(), range = chartTimeRange(times),
+      time = range.start + Math.max(0, Math.min(1, (event.clientX - rect.left - 35) / (rect.width - 40))) * range.span;
     if (time < times[0]) {
-      $("#historyChartPoint").textContent = "WPM readings begin after the second character.";
+      $("#historyChartPoint").textContent = "Chart readings begin after one second and at least two characters.";
       return;
     }
     let closest = 0;
     for (let i = 1; i < times.length; i++) if (Math.abs(times[i] - time) < Math.abs(times[closest] - time)) closest = i;
     $("#historyChartPoint").textContent =
-      `${times[closest].toFixed(3)}s · average ${result.chart.samples[closest]} wpm · instant ${result.chart.instantSamples[closest]} wpm · raw ${result.chart.rawSamples[closest]} wpm`;
+      `${times[closest].toFixed(3)}s · average ${chartData.samples[closest]} wpm · instant ${chartData.instantSamples[closest]} wpm · raw ${chartData.rawSamples[closest]} wpm`;
   });
 }
 

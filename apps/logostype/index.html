@@ -160,6 +160,20 @@
         display: flex;
         gap: 16px;
       }
+      #modes button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+      }
+      .mode-icon {
+        display: inline-block;
+        width: 0.75em;
+        height: 0.75em;
+        width: 1cap;
+        height: 1cap;
+        flex-shrink: 0;
+        pointer-events: none;
+      }
       .divider {
         height: 19px;
         width: 4px;
@@ -1271,8 +1285,8 @@
           </div>
           <i class="divider"></i>
           <div class="group" id="modes">
-            <button class="active" data-mode="time">◷ time</button><button data-mode="words">A words</button
-            ><button data-mode="quote">❝ verse</button><button data-mode="custom">⌘ custom</button>
+            <button class="active" data-mode="time"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 5v7l5 3"/></svg>time</button><button data-mode="words">A words</button
+            ><button data-mode="quote"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H2v10h7c0 5-3 7-7 8M22 3h-8v10h7c0 5-3 7-7 8"/></svg>verse</button><button data-mode="custom"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7V4a3 3 0 1 0-3 3h16a3 3 0 1 0-3-3v16a3 3 0 1 0 3-3H4a3 3 0 1 0 3 3Z"/></svg>custom</button>
           </div>
           <i class="divider"></i>
           <div class="group" id="limits"></div>

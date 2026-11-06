@@ -14,6 +14,8 @@ When a non-space character is typed where a space is expected, it is inserted in
 
 The typing passage disables font ligatures so adjacent letters remain fully visible when colored individually.
 
+Typing and race charts wait until at least one second has elapsed and two characters have been typed, then record at most one WPM point per 250 ms interval, plus a final point at completion. The chart time axis starts at one second. Attempts shorter than one second keep their final score but hide the chart and legend, including in saved history. Older chart readings and mistake markers before one second are excluded from display. Timer ticks may place points slightly after each interval boundary. Mistakes retain their exact timestamps; final WPM calculations and the three-second instant-WPM window are unchanged.
+
 Typing tests and friend races default to capitalization and punctuation off. Use the **Aa @ capitalization + punctuation** toggle to enable both; returning to an existing typing test preserves its selection. Scripture Journey keeps the original Scripture formatting.
 
 Outside the typing field, use Tab / Shift+Tab or the arrow keys to move between visible controls. Left/right follow the Tab order; up/down move between visual rows, including the book picker. Open dialogs keep arrow navigation inside the dialog. Form fields and the reading region retain their normal arrow-key behavior. Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
@@ -34,7 +36,7 @@ The same folder can also be hosted as a static website. Installable PWA and serv
 
 Click any typing history entry to view its saved speed chart, including average, instant, and raw WPM and mistakes. Move over the chart to inspect samples. New typing tests and completed Scripture Journey verses save chart data, which is included in backups. Older entries show their result summary with a message when chart data is unavailable. Opening history leaves the current test in place.
 
-Choose the **glasses icon** beside Scripture Journey in the main menu to open reading mode within the app with a grid of **entire Scriptures** and all 66 books. Only choices with at least one completed verse are enabled. A book unlocks through its own journey or through progress in the entire Scriptures journey; its reader shows the furthest completed portion from either. Entire Scriptures uses its own journey progress. Reading mode is available from any typing mode. Read the original Scripture text chapter by chapter, using previous/next or the chapter selector. Only verses completed in the current journey are shown, including the completed portion of an unfinished chapter. Restarting a journey resets its reading progress; book reading remains available if the other journey still covers it. **Back to typing** returns to Scripture Journey at your saved verse progress. Switching menus preserves unfinished typing and pauses the timer until you return.
+Choose the **glasses icon** beside Scripture Journey in the main menu to open reading mode within the app with a grid of **entire Scriptures** and all 66 books. Only choices with at least one completed verse are enabled. A book unlocks through its own journey or through progress in the entire Scriptures journey; its reader shows the furthest completed portion from either. Entire Scriptures uses its own journey progress. Reading mode is available from any typing mode. Read the original Scripture text chapter by chapter, using previous/next or the chapter selector. While a journey has never been completed, only its completed verses are shown, including the completed portion of an unfinished chapter. Completing a book at least once keeps the whole book available for reading after restarting. Completing the entire Scriptures at least once keeps all Scripture and every book available after restarting. Restarting an unfinished journey resets its reading progress; book reading remains available if the other journey still covers it. **Back to typing** returns to Scripture Journey at your saved verse progress. Switching menus preserves unfinished typing and pauses the timer until you return.
 
 Name-save messages appear directly below the **save name** button. The settings cog at the right edge of the header contains your profile name, records and typing history, appearance settings, and data backups. Select **records and typing history** there to browse results and saved charts.
 
@@ -42,7 +44,7 @@ Personal records list the fastest saved WPM for a verse (verse tests and complet
 
 Scripture Journey stacks the current chapter and current book progress bars in the left sidebar above the overall word-progress bar, with completed verses for the chapter and completed chapters for the book, plus percentages. A chapter counts toward book progress only once all its verses are completed. They follow the current verse, start at zero when entering a new chapter or book, and remain full when the selected journey is complete. These appear alongside the overall journey progress in both entire Scriptures and individual book journeys.
 
-Confetti celebrates each completed chapter and book in Scripture Journey, including the entire Scriptures journey. Chapter completions use one confetti color, book completions use three, and completing the entire Scriptures journey uses seven. Overlapping milestones trigger only the highest celebration. Confetti respects the device’s reduced-motion preference.
+Confetti celebrates each completed chapter and book in Scripture Journey, including the entire Scriptures journey. Chapter completions use one confetti color for 4.5 seconds, book completions use three colors for 13.5 seconds (three times as long), and completing the entire Scriptures journey uses seven colors for 31.5 seconds (seven times as long). Confetti continues falling throughout the longer celebrations. Overlapping milestones trigger only the highest celebration. Confetti respects the device’s reduced-motion preference.
 
 The Scripture Journey controls use fixed top spacing so the journey selector stays in place as verse lengths change.
 
@@ -52,7 +54,7 @@ The left Scripture Journey bar tracks completed words as a share of all words in
 
 Reading keeps the main menu: Scripture Journey, the highlighted glasses icon, typing, races, and the right-aligned settings cog. Menu buttons switch views in place.
 
-In reading mode, **N/P** move to the next/previous completed chapter and **Shift+N/Shift+P** move to the next/previous available book. Entire Scriptures stays within its completed portion; individual book views skip locked books. Shortcuts leave inputs and chapter selectors to their normal keyboard behavior.
+In reading mode, **N/P** move to the next/previous completed chapter and **Shift+N/Shift+P** move to the next/previous available book. Entire Scriptures stays within its completed portion until completed at least once, after which navigation includes every book; individual book views skip locked books. Shortcuts leave inputs and chapter selectors to their normal keyboard behavior.
 
 Under settings → **your data**, choose the alert-colored **clear saved data** button and confirm in the theme-matched dialog to delete this browser’s Logostype name, theme, history and records, journey progress, completions, and typing-time totals. Export a backup first to keep a copy. Other apps’ browser data and downloaded backups are left intact. Leave any active race room before clearing data.
 
@@ -79,11 +81,11 @@ New typing history entries include the local date and time of completion, shown 
 
 After finishing a typing test, press **Tab** to focus **Next test**, then **Enter** to begin the next test. Further Tab presses follow the normal control order.
 
-WPM uses five characters per word and the actual elapsed time from the first keystroke, including fractions of a second. Average WPM counts currently correct characters; raw WPM counts entered characters. Instant WPM uses recent correct keystrokes over up to three seconds. Timing starts on the first character; WPM readings and chart samples begin after the second character. Early readings can fluctuate.
+WPM uses five characters per word and the actual elapsed time from the first keystroke, including fractions of a second. Average WPM counts currently correct characters; raw WPM counts entered characters. Instant WPM uses recent correct keystrokes over up to three seconds. Timing starts on the first character; WPM scores require at least two characters, and chart samples additionally wait until one second has elapsed. Early readings can fluctuate.
 
 New speed charts sample every 0.05 seconds; the vertical hover bar snaps to the nearest recorded point, with times shown to two decimal places in results and history. Actual sample times reflect browser timer scheduling, and older saved charts retain their original sampling intervals.
 
-Speed chart lines begin at the first recorded WPM sample after the second character, without a fabricated line from zero. The vertical hover line and tooltip appear within 24 pixels of the chart and snap to the nearest actual sample, including the first or last sample near its edges. They hide when the pointer moves farther away.
+Speed chart lines begin at the first recorded WPM sample after at least one second and two characters, without a fabricated line from zero. The vertical hover line and tooltip appear within 24 pixels of the chart and snap to the nearest actual sample, including the first or last sample near its edges. They hide when the pointer moves farther away.
 
 Word tests offer **custom** counts from 1–3600 words. **Verse** tests (formerly quote) offer random verses or **choose verse** to enter a full reference, such as John 3:16. A chosen verse stays selected for retries and next tests until **random** is selected. Existing history and backup mode identifiers remain compatible.
 
@@ -114,3 +116,7 @@ Result times use seconds with three decimal places (milliseconds), as do chart t
 Race standings include each finished racer’s elapsed time to milliseconds; time-limit finishes show the time limit, and racers who give up retain the “gave up” label. Invite links let you press Enter in the name or room-code field to join.
 
 Result and saved-history charts label elapsed seconds along the bottom. Select average, instant, or raw WPM in the legend to hide or show that line, without smoothing or changing the underlying readings. New personal records are highlighted on the results page for the overall category or the current capitalization/punctuation setting; ties do not count as new records. On mobile, record headings shorten to “all,” “caps off,” and “caps on”; accessible labels retain their full meanings.
+
+Typing Test mode icons use local SVGs sized to the text’s capital height and inherit the button color across themes.
+
+Under settings → **journey completion records**, view completion dates for the entire Scriptures and individual book journeys. These records are separate from **records and typing history**.
