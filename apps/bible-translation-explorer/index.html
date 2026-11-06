@@ -55,7 +55,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 .guide{stroke:#edf1f7;stroke-width:1.3}
 .pill{background:#eef2f6;color:#334155;border-radius:18px;font-size:13px;font-weight:800;padding:7px 10px}
 .axis-annotation{display:flex;justify-content:space-between;gap:8px;color:#76849c;font-weight:650;font-size:11px;margin:2px 0 6px 54px}
-.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:18px 0 0;border-top:1px solid #eef1f6;margin-top:14px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0 18px;border-bottom:1px solid #eef1f6;margin:0 0 16px}
 .legend-label{font-size:12px;font-weight:900;color:#475569;letter-spacing:.5px;margin-right:2px;text-transform:uppercase;flex-basis:100%}
 .translation-toggle{display:inline-flex;gap:7px;align-items:center;font-size:13px;font-weight:750;color:#34415c;cursor:pointer;border:1px solid #d9e1f0;background:#fff;padding:9px 12px;border-radius:8px;transition:background .16s,opacity .16s,border-color .16s}
 .translation-toggle:hover{border-color:#8b98b8;background:#eef4ff}
@@ -98,7 +98,12 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 .axis-control input[type=range]{margin:0;accent-color:#7658f2;cursor:pointer}
 .axis-control-x{margin: -5px 7.5% 8px 7.5%;padding:8px 12px 6px;border-radius:8px;background:#f8f7fc;border:1px solid #e5dcff;position:relative;z-index:1;border-color:#e5e1ef}
 .axis-control-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
-.axis-control-x input{display:block;width:100%;height:7px}
+.axis-control-x input{display:block;width:100%;height:7px;min-width:0;flex:1}
+.axis-slider-row{display:flex;align-items:center;gap:12px}
+.axis-reset{grid-column:1;grid-row:2;align-self:center;justify-self:center;white-space:normal;font-size:12px;padding:10px}
+.plot-main{grid-column:2;grid-row:1}
+.axis-control-x{grid-column:2;grid-row:2}
+.axis-control-y{grid-column:1;grid-row:1;margin-bottom:12px}
 .axis-endpoints{display:flex;justify-content:space-between;gap:8px;margin-top:11px;font-weight:700;flex-wrap:wrap;font-size:11px}
 .axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 65px 0;padding:12px 7px;background:#f3f7fb;border:1px solid #d9eafb;border-radius:8px;border-color:#dce5ef}
 .axis-y-heading{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
@@ -111,11 +116,15 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 .controls-overall .control-sub{min-height:0;font-size:13px;color:#475569}
 @media(max-width:700px){.plot-with-axis-controls{grid-template-columns:82px minmax(0,1fr)}.axis-control-x{margin-left:0;margin-right:0;padding:8px;background:#f8f7fc;border-color:#e5e1ef;border-radius:8px}.axis-control-head{flex-wrap:wrap}.axis-endpoints{font-size:11px;gap:3px}.axis-control-y{margin-bottom:40px;padding:8px 3px;background:#f3f7fb;border-color:#dce5ef;border-radius:8px}.axis-control-y input[type=range]{height:180px}.axis-control strong{font-size:12px}}
 
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #7658f2;outline-offset:4px}
+.legend-weight-slider:focus-visible,.legend-drag-handle:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #7658f2;outline-offset:4px}
 tbody tr:hover td{background:#f1f5f9}
 @media(max-width:700px){
   .chart-card,.table-card{padding:16px 12px}
-  .plot-with-axis-controls{display:flex;flex-direction:column}
+  .plot-with-axis-controls{display:grid;grid-template-columns:82px minmax(0,1fr);gap:0 8px}
+  .axis-control-y{grid-column:1/-1;grid-row:1}
+  .plot-main{grid-column:1/-1;grid-row:2}
+  .axis-reset{grid-column:1;grid-row:3}
+  .axis-control-x{grid-column:2;grid-row:3}
   .axis-control-y{margin:12px 0;padding:12px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px}
   .axis-y-heading{grid-column:1/-1;flex-direction:row;justify-content:space-between}
   .axis-control-y input[type=range]{appearance:none;writing-mode:horizontal-tb;direction:rtl;width:100%;height:7px;min-height:0;grid-column:1/-1;grid-row:3}
@@ -153,28 +162,15 @@ tbody tr:hover td{background:#f1f5f9}
 
 <section class="chart-card" aria-labelledby="scatterTitle">
   <div class="chart-title-row"><span class="chart-title" id="scatterTitle">Literalness × Readability</span><span class="pill" id="topOverall">Top overall: —</span></div>
+  <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">9 of 11 shown</span></div>
   <div class="plot-with-axis-controls">
 <div class="axis-control axis-control-y" aria-label="Readability axis weighting"><div class="axis-y-heading"><strong>Readability axis</strong><output id="readRatio" for="readSlider">1 : 1</output></div><div class="axis-y-label">2:1 · Fluency</div><input id="readSlider" aria-label="Syntactic fluency weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"><div class="axis-y-label">1:2 · Vocabulary</div><div class="axis-y-values"><span id="readLeft">50.0%</span><span id="readRight">50.0%</span></div></div>
     <div class="plot-main">
-  <svg id="plot" role="img" aria-label="Scatter plot showing 11 translations’ literalness and readability scores, with the third weighting slider changing their overall ranking" viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg"></svg>
-<div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
+  <svg id="plot" role="img" aria-label="Scatter plot showing 11 translations’ literalness and readability scores, with a lowest-to-highest overall score background gradient that responds to the overall weighting slider" viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
+    <button type="button" class="btn axis-reset" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset 1:1</button>
+<div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><div class="axis-slider-row"><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"></div><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
   </div>
-  <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">9 of 11 shown</span></div>
-</section>
-
-<section class="controls controls-overall" aria-label="Overall weighting adjustment">
-  <article class="control overall">
-    <div class="control-top">
-      <div><div class="control-title">Overall score weighting</div><div class="control-sub">Choose how much literalness counts versus readability in the final overall score</div></div>
-      <output class="ratio" id="overallRatio" for="overallSlider">1 : 1</output>
-    </div>
-    <input id="overallSlider" aria-label="Overall literalness weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50">
-    <div class="range-head"><span>1:2 · Readability emphasis</span><span>2:1 · Literalness emphasis</span></div>
-    <div class="range-values"><span id="overallLeft">Literalness 50.0%</span><span id="overallRight">Readability 50.0%</span></div>
-    <button type="button" class="btn" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset all weights to 1:1</button>
-    <p class="overall-inline">This slider changes the overall scores and rankings without changing each translation's X/Y coordinates.</p>
-  </article>
 </section>
 
 <section class="table-card" aria-label="Full interactive score table">
@@ -243,10 +239,12 @@ function parseCSV(text){
 }
 function updateScope(){render();}
 
-const litSlider = $('litSlider'), readSlider=$('readSlider'), overallSlider=$('overallSlider'), plot=$('plot');
+const litSlider = $('litSlider'), readSlider=$('readSlider'), plot=$('plot');
+let overallWeight=.5;
 const NS='http://www.w3.org/2000/svg';
 const R = {left:82, top:25, right:1055, bottom:540};
 let selected=null, latest=[];
+let legendPosition=null, legendDrag=null, legendWeightDrag=null;
 const visible=new Set(originals.filter(d=>d.name!=='LSV'&&d.name!=='YLT').map(d=>d.name));
 let sortState={key:'overall',direction:'desc'};
 const sortLabels={name:'Translation',t:'Transfer',l:'Lexical',f:'Fluency',v:'Vocabulary',x:'Literalness',y:'Readability',overall:'Overall',c:'Align coverage'};
@@ -254,7 +252,7 @@ function S(tag,attrs={},text='') { const e=document.createElementNS(NS,tag); Obj
 const fmt=n=>n.toFixed(2);
 const MIN_WEIGHT=1/3, MAX_WEIGHT=2/3;
 function clampWeight(p){return Math.max(MIN_WEIGHT,Math.min(MAX_WEIGHT,p));}
-function weight(){return {lit:clampWeight(Number(litSlider.value)/100),read:clampWeight(Number(readSlider.value)/100),overall:clampWeight(Number(overallSlider.value)/100)};}
+function weight(){return {lit:clampWeight(Number(litSlider.value)/100),read:clampWeight(Number(readSlider.value)/100),overall:overallWeight};}
 function ratio(p){if(Math.abs(p-2/3)<.001)return '2 : 1';if(Math.abs(p-.5)<.001)return '1 : 1';if(Math.abs(p-1/3)<.001)return '1 : 2';if(p<=.0001)return '0 : 1';if(p>=.9999)return '1 : 0';let k=p/(1-p);return k>=1?`${k.toFixed(2)} : 1`:`1 : ${(1/k).toFixed(2)}`;}
 function updateSliderVisual(slider,p,color){const progress=((clampWeight(p)-MIN_WEIGHT)/(MAX_WEIGHT-MIN_WEIGHT)*100).toFixed(2);slider.style.background=`linear-gradient(90deg,${color} 0%,${color} ${progress}%,#e5eaf4 ${progress}%,#e5eaf4 100%)`;}
 function dataScores(){const {lit,read,overall}=weight();return sourceRows().map(row=>{const x=lit*row.t+(1-lit)*row.l;const y=read*row.f+(1-read)*row.v;return {...row,x,y,overall:overall*x+(1-overall)*y};});}
@@ -265,12 +263,11 @@ function moveTooltip(e){const el=$('tooltip');const width=205;el.style.left=Math
 function hideTooltip(){ $('tooltip').style.opacity='0'; }
 function render(){
  const {lit,read,overall}=weight();
- $('litRatio').textContent=ratio(lit);$('readRatio').textContent=ratio(read);$('overallRatio').textContent=ratio(overall);
+ $('litRatio').textContent=ratio(lit);$('readRatio').textContent=ratio(read);
  $('litLeft').textContent=(lit*100).toFixed(1)+'%';$('litRight').textContent=((1-lit)*100).toFixed(1)+'%';
  $('readLeft').textContent=(read*100).toFixed(1)+'%';$('readRight').textContent=((1-read)*100).toFixed(1)+'%';
- $('overallLeft').textContent='Literalness '+(overall*100).toFixed(1)+'%';$('overallRight').textContent='Readability '+((1-overall)*100).toFixed(1)+'%';
  $('overallFormula').textContent='Overall = '+(overall*100).toFixed(1)+'% × Literalness + '+((1-overall)*100).toFixed(1)+'% × Readability.';
- updateSliderVisual(litSlider,lit,'#7658f2');updateSliderVisual(readSlider,read,'#1c84d8');updateSliderVisual(overallSlider,overall,'#0f9c80');
+ updateSliderVisual(litSlider,lit,'#7658f2');updateSliderVisual(readSlider,read,'#1c84d8');
  latest=dataScores();
  const filtered=latest.filter(d=>visible.has(d.name));
  const best=[...filtered].sort((a,b)=>b.overall-a.overall)[0];
@@ -278,6 +275,137 @@ function render(){
  $('visibilityCount').textContent=filtered.length+' of '+sourceRows().length+' shown';
  updateVisibilityChips();
  drawChart(filtered);drawRows(filtered);
+}
+function clampLegendPosition(position){
+ return {x:Math.max(R.left+4,Math.min(R.right-350-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-148-4,position.y))};
+}
+function chartPointer(event){
+ const point=plot.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
+ return point.matrixTransform(plot.getScreenCTM().inverse());
+}
+plot.addEventListener('pointermove',event=>{
+ if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ const point=chartPointer(event);
+ legendPosition=clampLegendPosition({x:point.x-legendDrag.offsetX,y:point.y-legendDrag.offsetY});
+ legendDrag.panel.setAttribute('transform',`translate(${legendPosition.x-legendDrag.box.x} ${legendPosition.y-legendDrag.box.y})`);
+});
+function finishLegendDrag(event){
+ if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ legendDrag=null;
+ if(plot.hasPointerCapture(event.pointerId))plot.releasePointerCapture(event.pointerId);
+ render();
+}
+plot.addEventListener('pointerup',finishLegendDrag);
+plot.addEventListener('pointercancel',finishLegendDrag);
+plot.addEventListener('lostpointercapture',finishLegendDrag);
+function setLegendWeight(value){
+ overallWeight=clampWeight(value);render();
+}
+plot.addEventListener('pointermove',event=>{
+ if(!legendWeightDrag||event.pointerId!==legendWeightDrag.id)return;
+ setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/326);
+});
+function finishLegendWeightDrag(event){
+ if(!legendWeightDrag||event.pointerId!==legendWeightDrag.id)return;
+ legendWeightDrag=null;
+ if(plot.hasPointerCapture(event.pointerId))plot.releasePointerCapture(event.pointerId);
+ const slider=plot.querySelector('.legend-weight-slider');if(slider)slider.focus({preventScroll:true});
+}
+plot.addEventListener('pointerup',finishLegendWeightDrag);
+plot.addEventListener('pointercancel',finishLegendWeightDrag);
+plot.addEventListener('lostpointercapture',finishLegendWeightDrag);
+// Project scores onto the screen-space gradient, accounting for unequal axis scales.
+function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
+ const a=weight().overall,b=1-a;
+ const best=[...data].sort((left,right)=>right.overall-left.overall)[0];
+ const least=[...data].sort((left,right)=>left.overall-right.overall)[0];
+ const spread=best.overall-least.overall;
+ const tied=spread<1e-9;
+ const group=S('g',{'aria-label':`Overall weighting: ${(a*100).toFixed(1)} percent literalness, ${(b*100).toFixed(1)} percent readability. ${tied?'All visible scores are equal.':'Amber marks the lowest score; green marks the highest score.'}`});
+ const defs=S('defs');
+ const addStops=gradient=>{
+   for(const [offset,color] of [[0,'#f6dfbb'],[.5,'#f4f7f4'],[1,'#bde4d6']])gradient.append(S('stop',{offset,'stop-color':color}));
+   defs.append(gradient);
+ };
+ if(!tied){
+   const gx=a/((XP(x1)-XP(x0))/(x1-x0));
+   const gy=b/((YP(y1)-YP(y0))/(y1-y0));
+   const distance=spread/(gx*gx+gy*gy);
+   const gradient=S('linearGradient',{id:'overall-field',gradientUnits:'userSpaceOnUse',x1:XP(least.x),y1:YP(least.y),x2:XP(least.x)+gx*distance,y2:YP(least.y)+gy*distance});
+   addStops(gradient);
+ }
+ addStops(S('linearGradient',{id:'overall-scale',x1:'0%',y1:'0%',x2:'100%',y2:'0%'}));
+ group.append(defs);
+ plot.firstChild.setAttribute('fill',tied?'#f1f5f4':'url(#overall-field)');
+ for(const [row,color,dash,label] of [[least,'#b45309','10 4','Lowest'],[best,'#0f766e','none','Highest']]){
+   const score=row.overall;
+   const candidates=[{x:x0,y:(score-a*x0)/b},{x:x1,y:(score-a*x1)/b},{x:(score-b*y0)/a,y:y0},{x:(score-b*y1)/a,y:y1}];
+   const ends=candidates.filter(p=>p.x>=x0-1e-9&&p.x<=x1+1e-9&&p.y>=y0-1e-9&&p.y<=y1+1e-9)
+     .filter((p,i,all)=>all.findIndex(q=>Math.abs(p.x-q.x)<1e-9&&Math.abs(p.y-q.y)<1e-9)===i);
+   if(ends.length<2)continue;
+   const line=S('line',{x1:XP(ends[0].x),y1:YP(ends[0].y),x2:XP(ends[1].x),y2:YP(ends[1].y),stroke:color,'stroke-width':3,'stroke-dasharray':dash,opacity:.9});
+   line.append(S('title',{},`${label} overall: ${row.name} · ${fmt(score)}%`));group.append(line);
+ }
+ const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-148-12});
+ const box={...position,w:350,h:148};
+ const panel=S('g',{class:'overall-legend'});
+ panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
+ const text=(x,y,value,size=12,bold=650)=>S('text',{x,y,fill:'#155e57','font-family':'Arial, sans-serif','font-size':size,'font-weight':bold},value);
+ panel.append(text(box.x+12,box.y+20,'Overall score weighting',13,750));
+ panel.append(text(box.x+12,box.y+40,`Literalness ${(a*100).toFixed(1)}% · Readability ${(b*100).toFixed(1)}%`));
+ panel.append(S('rect',{x:box.x+12,y:box.y+50,width:326*a,height:7,rx:2,fill:'#7658f2'}));
+ panel.append(S('rect',{x:box.x+12+326*a,y:box.y+50,width:326*b,height:7,rx:2,fill:'#1c84d8'}));
+ const weightControl=S('g',{class:'legend-weight-slider',tabindex:0,role:'slider','aria-label':'Overall literalness weighting','aria-valuemin':MIN_WEIGHT*100,'aria-valuemax':MAX_WEIGHT*100,'aria-valuenow':a*100,'aria-valuetext':`${(a*100).toFixed(1)}% literalness, ${(b*100).toFixed(1)}% readability`,'aria-orientation':'horizontal',style:'cursor:ew-resize;touch-action:none'});
+ weightControl.append(S('title',{},'Drag to weight literalness vs. readability · Arrow keys to adjust'));
+ weightControl.append(S('rect',{x:box.x+12,y:box.y+42,width:326,height:24,fill:'transparent'}));
+ weightControl.append(S('circle',{cx:box.x+12+326*a,cy:box.y+53.5,r:9,fill:'#fff',stroke:'#475569','stroke-width':2}));
+ weightControl.append(S('path',{d:`M ${box.x+12+326*a-3} ${box.y+50.5} v6 m6-6 v6`,stroke:'#64748b','stroke-width':1.5,'pointer-events':'none'}));
+ weightControl.addEventListener('pointerdown',event=>{
+   if(event.button!==0)return;
+   event.preventDefault();event.stopPropagation();hideTooltip();
+   legendWeightDrag={id:event.pointerId,left:box.x+12};
+   plot.setPointerCapture(event.pointerId);
+   setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/326);
+ });
+ weightControl.addEventListener('keydown',event=>{
+   let next=a;const step=event.shiftKey?.05:.01;
+   if(event.key==='ArrowLeft'||event.key==='ArrowDown')next-=step;
+   else if(event.key==='ArrowRight'||event.key==='ArrowUp')next+=step;
+   else if(event.key==='Home')next=MIN_WEIGHT;
+   else if(event.key==='End')next=MAX_WEIGHT;
+   else return;
+   event.preventDefault();setLegendWeight(next);
+   plot.querySelector('.legend-weight-slider').focus({preventScroll:true});
+ });
+ panel.append(weightControl);
+ panel.append(text(box.x+12,box.y+77,tied?'All visible translations have the same score.':'Background color shows the overall score.',11,500));
+ panel.append(S('rect',{x:box.x+12,y:box.y+86,width:326,height:9,rx:3,fill:tied?'#f1f5f4':'url(#overall-scale)'}));
+ panel.append(S('line',{x1:box.x+12,y1:box.y+130,x2:box.x+36,y2:box.y+130,stroke:'#b45309','stroke-width':3,'stroke-dasharray':'10 4'}));
+ panel.append(text(box.x+44,box.y+134,`Lowest: ${least.name} · ${fmt(least.overall)}%`,12,750));
+ panel.append(S('line',{x1:box.x+12,y1:box.y+110,x2:box.x+36,y2:box.y+110,stroke:'#0f766e','stroke-width':3}));
+ panel.append(text(box.x+44,box.y+114,`Highest: ${best.name} · ${fmt(best.overall)}%`,12,750));
+ const handle=S('g',{class:'legend-drag-handle',tabindex:0,role:'button','aria-label':'Move overall score legend. Drag or use arrow keys; hold Shift for larger steps.',style:'cursor:grab;touch-action:none'});
+ handle.append(S('title',{},'Drag to move · Arrow keys to adjust'));
+ handle.append(S('rect',{x:box.x+312,y:box.y+4,width:32,height:32,rx:6,fill:'#f1f5f9',stroke:'#cbd5e1'}));
+ handle.append(S('path',{d:`M ${box.x+328} ${box.y+10} v20 m-10-10 h20 m-13-7 3-3 3 3 m-3 17-3-3 m3 3 3-3 m-10-10-3 3 3 3 m17-3-3-3 m3 3-3 3`,fill:'none',stroke:'#475569','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','pointer-events':'none'}));
+ handle.addEventListener('pointerdown',event=>{
+   if(event.button!==0)return;
+   event.preventDefault();hideTooltip();
+   const point=chartPointer(event);
+   legendDrag={id:event.pointerId,offsetX:point.x-box.x,offsetY:point.y-box.y,box,panel};
+   plot.setPointerCapture(event.pointerId);
+ });
+ handle.addEventListener('keydown',event=>{
+   const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+   const direction=directions[event.key];if(!direction)return;
+   event.preventDefault();
+   const step=event.shiftKey?30:10;
+   legendPosition=clampLegendPosition({x:box.x+direction[0]*step,y:box.y+direction[1]*step});
+   render();plot.querySelector('.legend-drag-handle').focus();
+ });
+ panel.append(handle);group.append(panel);
+ plot.append(group);
+ return box;
 }
 function drawChart(data){
  if(!data.length){
@@ -299,9 +427,10 @@ function drawChart(data){
  makeTicks(y0,y1).forEach(v=>{let y=YP(v);plot.append(S('line',{x1:R.left,y1:y,x2:R.right,y2:y,class:'guide'}));plot.append(S('text',{x:R.left-14,y:y+4,'text-anchor':'end',class:'axis-tick'},tickFormat(v)));});
  plot.append(S('text',{x:(R.left+R.right)/2,y:603,'text-anchor':'middle',class:'axis-title'},'Literalness (%)  →'));
  plot.append(S('text',{x:22,y:(R.top+R.bottom)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 22 ${(R.top+R.bottom)/2})`},'Readability (%)  →'));
+ const overallGuide=drawOverallGuide(x0,x1,y0,y1,XP,YP,data);
  const pnts=data.map(d=>({...d,px:XP(d.x),py:YP(d.y)}));
  // Place compact labels using candidate offsets, avoiding overlaps whenever possible.
- const taken=[];
+ const taken=[overallGuide];
  const placements=new Map();
  for(const d of [...pnts].sort((a,b)=>a.py-b.py)){
    const w=d.name.length*8+20,h=25;
@@ -333,6 +462,8 @@ function drawChart(data){
    circle.addEventListener('click',()=>{selected=selected===d.name?null:d.name;render();});
    plot.append(g);
  }
+ // Keep the movable legend above chart points and labels.
+ const panel=plot.querySelector('.overall-legend');if(panel)plot.append(panel);
 }
 function sortData(data){
  return [...data].sort((a,b)=>{
@@ -387,8 +518,8 @@ $('pngBtn').addEventListener('click',()=>{
  image.onload=()=>{const c=document.createElement('canvas');c.width=2200;c.height=1240;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>{if(!b)return;const o=URL.createObjectURL(b);const a=document.createElement('a');a.href=o;a.download=(currentScope()==='all'?'whole_bible':currentScope())+'_translation_weights_chart.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(o),3000)},'image/png');};
  image.onerror=()=>{URL.revokeObjectURL(u);alert('Could not export PNG; try downloading the CSV instead.')};image.src=u;
 });
-$('equalWeightsBtn').addEventListener('click',()=>{litSlider.value='50';readSlider.value='50';overallSlider.value='50';render();});
-litSlider.addEventListener('input',render);readSlider.addEventListener('input',render);overallSlider.addEventListener('input',render);
+$('equalWeightsBtn').addEventListener('click',()=>{litSlider.value='50';readSlider.value='50';overallWeight=.5;render();});
+litSlider.addEventListener('input',render);readSlider.addEventListener('input',render);
 // Sort on any live-score column. Clicking the active column toggles direction.
 document.querySelectorAll('.sort-btn').forEach(button=>button.addEventListener('click',()=>{
  const key=button.dataset.sort;
@@ -398,7 +529,7 @@ document.querySelectorAll('.sort-btn').forEach(button=>button.addEventListener('
 }));
 $('showAllBtn').addEventListener('click',()=>{sourceRows().forEach(d=>visible.add(d.name));render();});
 $('hideAllBtn').addEventListener('click',()=>{visible.clear();selected=null;render();});
-for(const d of originals){
+for(const d of [...originals].sort((a,b)=>a.name.localeCompare(b.name))){
  const chip=document.createElement('label');chip.className='translation-toggle';chip.dataset.name=d.name;
  chip.innerHTML=`<input type="checkbox" checked aria-label="Show ${d.name}"><span class="legend-dot" style="background:${d.color}"></span><span>${d.name}</span>`;
  chip.querySelector('input').addEventListener('change',e=>setVisible(d.name,e.target.checked));
