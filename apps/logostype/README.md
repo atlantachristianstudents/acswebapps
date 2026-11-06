@@ -67,3 +67,9 @@ Choose **white on black** under settings → **change theme** for a black backgr
 In settings, **smaller font** and **bigger font** adjust the typing passage by 2 pixels per click, from 16 to 64 pixels. The size applies for the current page session.
 
 Typing tests show at least three lines at every font size. Scripture Journey expands to show the entire current verse without an internal scrollbar, including at the largest font size. Long words wrap to fit narrow screens.
+
+Settings includes a **keyboard shortcuts** reference for menus, settings, commands, restarting, control navigation, and reading chapters and books, with notes explaining when shortcuts are disabled.
+
+New typing history entries include the local date and time of completion, shown in both the history list and result details and preserved in backups. Older entries retain their original date; their time of day was not recorded.
+
+After finishing a typing test, press **Tab** to focus **Next test**, then **Enter** to begin the next test. Further Tab presses follow the normal control order.

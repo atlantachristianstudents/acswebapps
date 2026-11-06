@@ -374,7 +374,7 @@ function completeBookVerse() {
       accuracy: total ? Math.round(((total - errors) / total) * 100) : 100,
       mode: "book",
       limit: 1,
-      date: new Date().toLocaleDateString(),
+      date: new Date().toLocaleString(),
       reference: scriptureReferences[journeyPosition()],
       journey: selectedJourneyBook || "Entire Scriptures",
       chart: captureChart(),
@@ -653,7 +653,7 @@ function finish() {
     accuracy,
     mode,
     limit,
-    date: new Date().toLocaleDateString(),
+    date: new Date().toLocaleString(),
     chart: captureChart(),
   });
   try {
@@ -914,6 +914,23 @@ function theme(name) {
     localStorage.setItem("logostype-theme", name);
   } catch {}
 }
+function renderKeyboardShortcuts() {
+  return `<h3>keyboard shortcuts</h3>
+    <table class="records-table"><thead><tr><th scope="col">key</th><th scope="col">action</th></tr></thead><tbody>
+      <tr><td><kbd>1</kbd></td><td>Scripture Journey</td></tr>
+      <tr><td><kbd>2</kbd></td><td>Reading</td></tr>
+      <tr><td><kbd>3</kbd></td><td>Typing Test</td></tr>
+      <tr><td><kbd>4</kbd></td><td>Race Friends</td></tr>
+      <tr><td><kbd>&#92;</kbd></td><td>Settings</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Open commands; close an open dialog</td></tr>
+      <tr><td><kbd>Tab</kbd>, then <kbd>Enter</kbd></td><td>Restart from the typing field (outside races)</td></tr>
+      <tr><td><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></td><td>Move between controls</td></tr>
+      <tr><td>Arrow keys</td><td>Move between controls outside text fields and the reading region</td></tr>
+      <tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Reading: next / previous chapter</td></tr>
+      <tr><td><kbd>Shift+N</kbd> / <kbd>Shift+P</kbd></td><td>Reading: next / previous available book</td></tr>
+    </tbody></table>
+    <p>Menu and settings shortcuts use no modifier keys. They are disabled during custom typing tests, in open dialogs, and in other form fields. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
+}
 function openModal(type) {
   const content = $("#modalContent");
   if (type === "themes")
@@ -925,6 +942,7 @@ function openModal(type) {
   if (type === "settings")
     content.innerHTML =
       '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
+  if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
       "<h2>logostype</h2><p>Type the scriptures. No account required; your results stay in this browser.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
@@ -1057,7 +1075,12 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "Tab" && !$("#modal").open) {
-    if (!e.shiftKey && document.activeElement === input && !window.friendRace?.active) {
+    const active = document.activeElement;
+    if (!e.shiftKey && done && $("#again").getClientRects().length &&
+        (active === input || active === document.body || $("#testSection").contains(active))) {
+      e.preventDefault();
+      $("#again").focus();
+    } else if (!e.shiftKey && active === input && !window.friendRace?.active) {
       e.preventDefault();
       $("#restart").focus();
     } else if (e.shiftKey && document.activeElement === $("#restart")) {
