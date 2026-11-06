@@ -20,7 +20,7 @@ window.APPS = [
     iconUrl: "apps/logostype/dist/icons/icon.png",
     tags: ["Study", "Memory"],
     status: "live",
-    url: "apps/logostypes/dist"
+    url: "apps/logostype/dist/"
   },
   {
     id: "memorize",
@@ -38,7 +38,7 @@ window.APPS = [
     description: "Display hymn number or text in full-screen seemlessly.",
     icon: "A",
     tags: ["Worship", "Presentation"],
-    status: "live",
+    status: "beta",
     url: "apps/big-text"
   },
   {
