@@ -8,6 +8,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 
 | App | Description | Status |
 | --- | --- | --- |
+| [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations with adjustable literalness, readability, and overall weights; export scores and charts offline. | beta |
 | [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture in timed tests or Scripture Journeys, save per-verse WPM and progress, export backups, and race friends online. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Paste text or import a file, PDF, or URL, recall it on a blank page, then check missing, changed, and extra words. Optional Test mode requests full-screen, accepts Shift + Command + Enter to submit, and requires a passcode to restart or edit. | beta |
 | [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | beta |
@@ -42,6 +43,7 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, journeys, reading, and races
   memorize/                Memorization practice with word comparison
   big-text/                Big Text app (full-screen hymn numbers and text)

@@ -13,6 +13,15 @@
  */
 window.APPS = [
   {
+    id: "bible-translation-explorer",
+    name: "Bible Translation Explorer",
+    description: "Compare 11 Bible translations with adjustable literalness and readability weights. Export scores and charts offline.",
+    icon: "📊",
+    iconUrl: "apps/bible-translation-explorer/icons/icon.svg",
+    tags: ["Study"],
+    status: "beta"
+  },
+  {
     id: "logostype",
     name: "Logos Type",
     description: "Type the scriptures. No account required; your results stay in this browser.",
