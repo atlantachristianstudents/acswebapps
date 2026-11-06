@@ -170,8 +170,9 @@
         position: fixed;
         z-index: 10;
         left: max(12px, calc((100vw - 1280px) / 2 - 130px));
-        top: 50%;
-        transform: translateY(-50%);
+        top: 170px;
+        max-height: calc(100svh - 190px);
+        overflow-y: auto;
         width: 110px;
         display: flex;
         align-items: center;
@@ -187,8 +188,8 @@
         font-weight: 400;
       }
       .journey-word-tooltip {
-        position: absolute;
-        left: calc(100% + 12px);
+        position: fixed;
+        left: max(134px, calc((100vw - 1280px) / 2 - 8px));
         top: 50%;
         transform: translateY(-50%);
         z-index: 5;
@@ -223,7 +224,8 @@
       .journey-progress-track {
         position: relative;
         width: 8px;
-        height: 220px;
+        height: clamp(80px, 25vh, 220px);
+        flex-shrink: 0;
         background: var(--panel);
         border-radius: 8px;
         overflow: hidden;
@@ -243,17 +245,19 @@
       }
       @media (max-width: 700px) {
         body.book-mode main {
-          padding-left: 36px;
+          padding-left: 104px;
           padding-top: 32px;
         }
         .journey-progress {
           left: 5px;
-          width: 44px;
+          width: 104px;
           font-size: 9px;
           gap: 8px;
         }
-        .journey-progress > span:first-child {
-          writing-mode: vertical-rl;
+        .journey-word-tooltip {
+          left: 121px;
+          max-width: calc(100vw - 133px);
+          white-space: normal;
         }
         .journey-progress strong {
           font-size: 10px;
@@ -275,7 +279,15 @@
         margin: 0 0 22px;
       }
       .book-progress strong {
+        display: block;
         color: var(--accent);
+        font-size: clamp(22px, 2.2vw, 28px);
+        font-weight: 500;
+      }
+      .journey-instruction {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
       }
       body.book-mode .config,
       body.book-mode .language,
@@ -947,10 +959,12 @@
       }
       .journey-local-progress {
         display: flex;
-        gap: 24px;
-        margin: 0 auto 24px;
-        width: min(100%, 680px);
-        font-size: 12px;
+        flex-direction: column;
+        gap: 18px;
+        margin: 0 0 12px;
+        width: 100%;
+        font-size: 11px;
+        flex-shrink: 0;
       }
       .journey-local-progress[hidden] {
         display: none;
@@ -992,10 +1006,10 @@
       @media (max-width: 700px) {
         .journey-local-progress {
           gap: 14px;
-          font-size: 11px;
+          font-size: 10px;
         }
         .journey-local-progress span {
-          font-size: 10px;
+          font-size: 9px;
         }
       }
       .journey-choice {
@@ -1239,6 +1253,18 @@
           <p>Each book and the entire Scriptures keep separate progress.</p>
         </div>
         <aside id="journeyProgress" class="journey-progress" aria-label="Entire Scriptures progress" hidden>
+        <div id="journeyLocalProgress" class="journey-local-progress" hidden>
+          <div>
+            <label for="currentChapterProgress" id="currentChapterLabel">current chapter</label
+            ><span id="currentChapterCount"></span
+            ><progress id="currentChapterProgress" value="0" max="1" aria-describedby="currentChapterCount"></progress>
+          </div>
+          <div>
+            <label for="currentBookProgress" id="currentBookLabel">current book</label
+            ><span id="currentBookCount"></span
+            ><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress>
+          </div>
+        </div>
           <span id="journeyLabel">scriptures</span><strong id="journeyProgressValue">0.00%</strong>
           <div
             id="journeyProgressTrack"
@@ -1260,18 +1286,6 @@
           </div>
         </aside>
         <p id="bookProgress" class="book-progress" role="status" hidden></p>
-        <div id="journeyLocalProgress" class="journey-local-progress" hidden>
-          <div>
-            <label for="currentChapterProgress" id="currentChapterLabel">current chapter</label
-            ><span id="currentChapterCount"></span
-            ><progress id="currentChapterProgress" value="0" max="1" aria-describedby="currentChapterCount"></progress>
-          </div>
-          <div>
-            <label for="currentBookProgress" id="currentBookLabel">current book</label
-            ><span id="currentBookCount"></span
-            ><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress>
-          </div>
-        </div>
         <section id="testSection">
           <div class="language">◎ english</div>
           <div class="test" tabindex="0" aria-label="Typing test. Start typing to begin.">

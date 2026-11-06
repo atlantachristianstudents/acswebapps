@@ -32,7 +32,7 @@ Name-save messages appear directly below the **save name** button. The settings 
 
 Personal records list the fastest saved WPM for a verse (verse tests and completed Scripture Journey verses), each preset time (15, 30, 60, 120 seconds), and each preset word count (10, 25, 50, 100 words). Categories without a result show a dash. Select a record to open that result and its saved chart. Records update from local and imported history.
 
-Scripture Journey shows separate progress bars for the current chapter and current book, with completed verses for the chapter and completed chapters for the book, plus percentages. A chapter counts toward book progress only once all its verses are completed. They follow the current verse, start at zero when entering a new chapter or book, and remain full when the selected journey is complete. These appear alongside the overall journey progress in both entire Scriptures and individual book journeys.
+Scripture Journey stacks the current chapter and current book progress bars in the left sidebar above the overall word-progress bar, with completed verses for the chapter and completed chapters for the book, plus percentages. A chapter counts toward book progress only once all its verses are completed. They follow the current verse, start at zero when entering a new chapter or book, and remain full when the selected journey is complete. These appear alongside the overall journey progress in both entire Scriptures and individual book journeys.
 
 Confetti celebrates each completed chapter and book in Scripture Journey, including the entire Scriptures journey. Chapter completions use one confetti color, book completions use three, and completing the entire Scriptures journey uses seven. Overlapping milestones trigger only the highest celebration. Confetti respects the device’s reduced-motion preference.
 
@@ -53,3 +53,5 @@ Opening the reading page or switching between its grid and book views starts at 
 Scripture Journey opens by default. The Typing Test menu icon opens timed/word/verse/custom tests; the Logostype brand returns to Scripture Journey. Links to `index.html#typing` open Typing Test directly.
 
 The app files live directly in `apps/logostype/`, matching the other Adless apps. The `dist/` folder contains only compatibility pages and a worker that forward old hosted URLs and installed copies to the new location; it is not a build directory. Hosted progress stays on the same origin. For direct `file://` use, export a backup before moving an existing copy, then import it at the new location because browsers may isolate storage by file path.
+
+Scripture Journey highlights the current verse reference above the typing area, with the correction hint beneath it. The status line omits completed-verse and completed-journey counts; progress stays in the sidebar and completion history stays in records.

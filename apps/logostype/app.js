@@ -275,17 +275,12 @@ function updateBookProgress(message = "") {
     `${completedWords} of ${totalWords} words completed (${percent.toFixed(2)}%)`,
   );
   const finished = size > 0 && completed === size;
-  $("#bookProgress").textContent =
-    message ||
-    (finished
-      ? `${journey.name} journey complete — every verse completed.`
-      : `${scriptureReferences[position] || "Scripture journey"} · ${completed} verses completed · correct all typos to advance`);
+  const progressLabel = $("#bookProgress");
+  if (finished) progressLabel.textContent = `${journey.name} journey complete — every verse completed.`;
+  else progressLabel.innerHTML = `<strong>${escapeHtml(scriptureReferences[position] || "Scripture journey")}</strong><span class="journey-instruction">${escapeHtml(message || "correct all typos to advance")}</span>`;
   const completedAt = selectedJourneyBook ? journey.completions.at(-1) : journeyCompletedAt;
   if (finished && completedAt)
     $("#bookProgress").textContent += ` Completed on ${new Date(completedAt).toLocaleString()}.`;
-  if (journey.completions.length)
-    $("#bookProgress").textContent +=
-      ` ${journey.completions.length} journey${journey.completions.length === 1 ? "" : "s"} completed.`;
   if (finished) $("#bookProgress").textContent += " " + journeyTypingStats();
   $("#restart").disabled = false;
   $("#restart").title = finished ? `Start a new ${journey.name} journey` : "Restart verse";
