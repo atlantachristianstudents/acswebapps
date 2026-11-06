@@ -89,7 +89,7 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Axis-integrated controls: horizontal control tracks the x axis, vertical tracks y. */
-.plot-with-axis-controls{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:stretch;gap:0}
+.plot-with-axis-controls{display:grid;grid-template-columns:112px minmax(0,1fr) 56px;align-items:stretch;gap:0 8px;max-width:calc(var(--chart-size,640px) + 184px);margin-inline:auto}
 .plot-main{min-width:0;position:relative}
 .plot-main #plot{width:100%}
 .axis-control{font-size:12px;color:#475569;min-width:0}
@@ -105,7 +105,7 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 .axis-control-x{grid-column:2;grid-row:2}
 .axis-control-y{grid-column:1;grid-row:1;margin-bottom:12px}
 .axis-endpoints{display:flex;justify-content:space-between;gap:8px;margin-top:11px;font-weight:700;flex-wrap:wrap;font-size:11px}
-.axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 65px 0;padding:12px 7px;background:#f3f7fb;border:1px solid #d9eafb;border-radius:8px;border-color:#dce5ef}
+.axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 12px 0;padding:12px 7px;background:#f3f7fb;border:1px solid #d9eafb;border-radius:8px;border-color:#dce5ef}
 .axis-y-heading{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
 .axis-control-y output{background:#e5f3ff;color:#1269b3}
 .axis-control-y input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;height:clamp(180px,31vw,340px);width:23px;min-height:160px;background:transparent;accent-color:#1c84d8}
@@ -124,21 +124,49 @@ tbody tr:hover td{background:#f1f5f9}
   .axis-control-y{grid-column:1/-1;grid-row:1}
   .plot-main{grid-column:1/-1;grid-row:2}
   .axis-reset{grid-column:1;grid-row:3}
-  .axis-control-x{grid-column:2;grid-row:3}
+  .axis-control-x{grid-column:1/-1;grid-row:3;margin-left:82px}
   .axis-control-y{margin:12px 0;padding:12px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px}
   .axis-y-heading{grid-column:1/-1;flex-direction:row;justify-content:space-between}
   .axis-control-y input[type=range]{appearance:none;writing-mode:horizontal-tb;direction:rtl;width:100%;height:7px;min-height:0;grid-column:1/-1;grid-row:3}
   .axis-control-y > .axis-y-label:nth-child(2){grid-column:1;grid-row:4;text-align:left}
   .axis-y-label{grid-column:3;grid-row:4;text-align:right}
   .axis-y-values{grid-column:2;grid-row:4;flex-direction:row;flex-wrap:wrap;justify-content:center}
-  .axis-control-x{margin:8px 0;padding:12px}
+  .axis-control-x{margin:8px 0 8px 82px;padding:12px}
   .axis-endpoints{font-size:11px;gap:6px}
   .axis-control strong{font-size:12px}
-  .plot-main{overflow-x:auto}
-  #plot{min-width:560px}
+  .plot-main{overflow:visible}
+  #plot{min-width:0;width:100%;aspect-ratio:1}
   .range-head{font-size:12px;gap:16px}
   .control-top{gap:10px}
   .controls-overall .control.overall{padding:16px}
+}
+
+#plot{aspect-ratio:1}
+main,.chart-card,.table-card{min-width:0}
+.legend-action,.translation-toggle,.btn{min-height:40px}
+@media(max-width:700px){
+ main{padding:18px 8px 24px}
+ .chart-card,.table-card{padding:14px 8px}
+ .actions{width:100%}
+ .actions .btn{flex:1;white-space:normal}
+ .legend{gap:8px}
+ .translation-toggle{padding:9px 10px}
+ .axis-reset{max-width:74px}
+ .axis-control-x .axis-endpoints{display:grid;grid-template-columns:1fr 1fr}
+ .axis-control-head strong{line-height:1.5}
+ .table-wrap{max-width:100%;overscroll-behavior-x:contain}
+}
+
+.chart-size-control{grid-column:3;grid-row:1;align-self:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 4px;color:#475569;font-size:11px;text-align:center}
+.chart-size-control label{font-size:12px;font-weight:800}
+.chart-size-control input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:24px;height:180px;margin:0;background:transparent;accent-color:#7658f2}
+.chart-size-control output{font-variant-numeric:tabular-nums}
+@media(max-width:700px){
+ .plot-with-axis-controls{grid-template-columns:minmax(0,1fr) 48px;max-width:calc(var(--chart-size,640px) + 56px)}
+ .plot-main{grid-column:1;grid-row:2}
+ .chart-size-control{grid-column:2;grid-row:2;gap:8px;padding:8px 0}
+ .chart-size-control input[type=range]{height:130px}
+ .axis-reset{grid-column:1;justify-self:start}
 }
 </style>
 </head>
@@ -163,10 +191,17 @@ tbody tr:hover td{background:#f1f5f9}
 <section class="chart-card" aria-labelledby="scatterTitle">
   <div class="chart-title-row"><span class="chart-title" id="scatterTitle">Literalness × Readability</span><span class="pill" id="topOverall">Top overall: —</span></div>
   <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">9 of 11 shown</span></div>
-  <div class="plot-with-axis-controls">
+  <div class="plot-with-axis-controls" id="chartLayout">
 <div class="axis-control axis-control-y" aria-label="Readability axis weighting"><div class="axis-y-heading"><strong>Readability axis</strong><output id="readRatio" for="readSlider">1 : 1</output></div><div class="axis-y-label">2:1 · Fluency</div><input id="readSlider" aria-label="Syntactic fluency weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"><div class="axis-y-label">1:2 · Vocabulary</div><div class="axis-y-values"><span id="readLeft">50.0%</span><span id="readRight">50.0%</span></div></div>
     <div class="plot-main">
-  <svg id="plot" role="img" aria-label="Scatter plot showing 11 translations’ literalness and readability scores, with a lowest-to-highest overall score background gradient that responds to the overall weighting slider" viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg"></svg>
+  <svg id="plot" role="img" aria-label="Scatter plot showing 11 translations’ literalness and readability scores, with a lowest-to-highest overall score background gradient that responds to the overall weighting slider" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="chart-size-control">
+      <label for="chartSizeSlider">Chart size</label>
+      <span aria-hidden="true">Larger</span>
+      <input id="chartSizeSlider" type="range" min="320" max="900" step="20" value="640" aria-label="Maximum chart size in pixels" aria-orientation="vertical">
+      <span aria-hidden="true">Smaller</span>
+      <output id="chartSizeValue" for="chartSizeSlider">640px</output>
     </div>
     <button type="button" class="btn axis-reset" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset 1:1</button>
 <div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><div class="axis-slider-row"><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"></div><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
@@ -242,7 +277,14 @@ function updateScope(){render();}
 const litSlider = $('litSlider'), readSlider=$('readSlider'), plot=$('plot');
 let overallWeight=.5;
 const NS='http://www.w3.org/2000/svg';
-const R = {left:82, top:25, right:1055, bottom:540};
+const R = {left:54, top:16, right:684, bottom:646};
+function sizeChart(){
+ const size=Math.max(320,Math.round(plot.clientWidth||700));
+ plot.setAttribute('viewBox',`0 0 ${size} ${size}`);
+ R.right=size-16;R.bottom=size-54;
+}
+function legendWidth(){return Math.min(350,R.right-R.left-8);}
+function legendTrackWidth(){return legendWidth()-24;}
 let selected=null, latest=[];
 let legendPosition=null, legendDrag=null, legendWeightDrag=null;
 const visible=new Set(originals.filter(d=>d.name!=='LSV'&&d.name!=='YLT').map(d=>d.name));
@@ -277,7 +319,7 @@ function render(){
  drawChart(filtered);drawRows(filtered);
 }
 function clampLegendPosition(position){
- return {x:Math.max(R.left+4,Math.min(R.right-350-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-148-4,position.y))};
+ return {x:Math.max(R.left+4,Math.min(R.right-legendWidth()-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-148-4,position.y))};
 }
 function chartPointer(event){
  const point=plot.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
@@ -303,7 +345,7 @@ function setLegendWeight(value){
 }
 plot.addEventListener('pointermove',event=>{
  if(!legendWeightDrag||event.pointerId!==legendWeightDrag.id)return;
- setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/326);
+ setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/legendTrackWidth());
 });
 function finishLegendWeightDrag(event){
  if(!legendWeightDrag||event.pointerId!==legendWeightDrag.id)return;
@@ -347,25 +389,25 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
    line.append(S('title',{},`${label} overall: ${row.name} · ${fmt(score)}%`));group.append(line);
  }
  const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-148-12});
- const box={...position,w:350,h:148};
+ const box={...position,w:legendWidth(),h:148};
  const panel=S('g',{class:'overall-legend'});
  panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
  const text=(x,y,value,size=12,bold=650)=>S('text',{x,y,fill:'#155e57','font-family':'Arial, sans-serif','font-size':size,'font-weight':bold},value);
  panel.append(text(box.x+12,box.y+20,'Overall score weighting',13,750));
- panel.append(text(box.x+12,box.y+40,`Literalness ${(a*100).toFixed(1)}% · Readability ${(b*100).toFixed(1)}%`));
- panel.append(S('rect',{x:box.x+12,y:box.y+50,width:326*a,height:7,rx:2,fill:'#7658f2'}));
- panel.append(S('rect',{x:box.x+12+326*a,y:box.y+50,width:326*b,height:7,rx:2,fill:'#1c84d8'}));
+ panel.append(text(box.x+12,box.y+40,`Literalness ${(a*100).toFixed(0)}% · Readability ${(b*100).toFixed(0)}%`));
+ panel.append(S('rect',{x:box.x+12,y:box.y+50,width:legendTrackWidth()*a,height:7,rx:2,fill:'#7658f2'}));
+ panel.append(S('rect',{x:box.x+12+legendTrackWidth()*a,y:box.y+50,width:legendTrackWidth()*b,height:7,rx:2,fill:'#1c84d8'}));
  const weightControl=S('g',{class:'legend-weight-slider',tabindex:0,role:'slider','aria-label':'Overall literalness weighting','aria-valuemin':MIN_WEIGHT*100,'aria-valuemax':MAX_WEIGHT*100,'aria-valuenow':a*100,'aria-valuetext':`${(a*100).toFixed(1)}% literalness, ${(b*100).toFixed(1)}% readability`,'aria-orientation':'horizontal',style:'cursor:ew-resize;touch-action:none'});
  weightControl.append(S('title',{},'Drag to weight literalness vs. readability · Arrow keys to adjust'));
- weightControl.append(S('rect',{x:box.x+12,y:box.y+42,width:326,height:24,fill:'transparent'}));
- weightControl.append(S('circle',{cx:box.x+12+326*a,cy:box.y+53.5,r:9,fill:'#fff',stroke:'#475569','stroke-width':2}));
- weightControl.append(S('path',{d:`M ${box.x+12+326*a-3} ${box.y+50.5} v6 m6-6 v6`,stroke:'#64748b','stroke-width':1.5,'pointer-events':'none'}));
+ weightControl.append(S('rect',{x:box.x+12,y:box.y+42,width:legendTrackWidth(),height:24,fill:'transparent'}));
+ weightControl.append(S('circle',{cx:box.x+12+legendTrackWidth()*a,cy:box.y+53.5,r:9,fill:'#fff',stroke:'#475569','stroke-width':2}));
+ weightControl.append(S('path',{d:`M ${box.x+12+legendTrackWidth()*a-3} ${box.y+50.5} v6 m6-6 v6`,stroke:'#64748b','stroke-width':1.5,'pointer-events':'none'}));
  weightControl.addEventListener('pointerdown',event=>{
    if(event.button!==0)return;
    event.preventDefault();event.stopPropagation();hideTooltip();
    legendWeightDrag={id:event.pointerId,left:box.x+12};
    plot.setPointerCapture(event.pointerId);
-   setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/326);
+   setLegendWeight((chartPointer(event).x-legendWeightDrag.left)/legendTrackWidth());
  });
  weightControl.addEventListener('keydown',event=>{
    let next=a;const step=event.shiftKey?.05:.01;
@@ -378,16 +420,16 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
    plot.querySelector('.legend-weight-slider').focus({preventScroll:true});
  });
  panel.append(weightControl);
- panel.append(text(box.x+12,box.y+77,tied?'All visible translations have the same score.':'Background color shows the overall score.',11,500));
- panel.append(S('rect',{x:box.x+12,y:box.y+86,width:326,height:9,rx:3,fill:tied?'#f1f5f4':'url(#overall-scale)'}));
+ panel.append(text(box.x+12,box.y+77,tied?'All visible scores are equal.':'Amber = lowest · Green = highest',11,500));
+ panel.append(S('rect',{x:box.x+12,y:box.y+86,width:legendTrackWidth(),height:9,rx:3,fill:tied?'#f1f5f4':'url(#overall-scale)'}));
  panel.append(S('line',{x1:box.x+12,y1:box.y+130,x2:box.x+36,y2:box.y+130,stroke:'#b45309','stroke-width':3,'stroke-dasharray':'10 4'}));
  panel.append(text(box.x+44,box.y+134,`Lowest: ${least.name} · ${fmt(least.overall)}%`,12,750));
  panel.append(S('line',{x1:box.x+12,y1:box.y+110,x2:box.x+36,y2:box.y+110,stroke:'#0f766e','stroke-width':3}));
  panel.append(text(box.x+44,box.y+114,`Highest: ${best.name} · ${fmt(best.overall)}%`,12,750));
  const handle=S('g',{class:'legend-drag-handle',tabindex:0,role:'button','aria-label':'Move overall score legend. Drag or use arrow keys; hold Shift for larger steps.',style:'cursor:grab;touch-action:none'});
  handle.append(S('title',{},'Drag to move · Arrow keys to adjust'));
- handle.append(S('rect',{x:box.x+312,y:box.y+4,width:32,height:32,rx:6,fill:'#f1f5f9',stroke:'#cbd5e1'}));
- handle.append(S('path',{d:`M ${box.x+328} ${box.y+10} v20 m-10-10 h20 m-13-7 3-3 3 3 m-3 17-3-3 m3 3 3-3 m-10-10-3 3 3 3 m17-3-3-3 m3 3-3 3`,fill:'none',stroke:'#475569','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','pointer-events':'none'}));
+ handle.append(S('rect',{x:box.x+box.w-38,y:box.y+4,width:32,height:32,rx:6,fill:'#f1f5f9',stroke:'#cbd5e1'}));
+ handle.append(S('path',{d:`M ${box.x+box.w-22} ${box.y+10} v20 m-10-10 h20 m-13-7 3-3 3 3 m-3 17-3-3 m3 3 3-3 m-10-10-3 3 3 3 m17-3-3-3 m3 3-3 3`,fill:'none',stroke:'#475569','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','pointer-events':'none'}));
  handle.addEventListener('pointerdown',event=>{
    if(event.button!==0)return;
    event.preventDefault();hideTooltip();
@@ -408,11 +450,12 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
  return box;
 }
 function drawChart(data){
+ sizeChart();
  if(!data.length){
    plot.replaceChildren();
    plot.append(S('rect',{x:R.left,y:R.top,width:R.right-R.left,height:R.bottom-R.top,rx:12,fill:'#fbfcff'}));
-   plot.append(S('text',{x:550,y:290,'text-anchor':'middle',fill:'#64748b','font-size':19,'font-weight':750},(currentScope()!=='all'&&!passageScores[currentScope()]?'Import passage scores to compare':'No translations selected')));
-   plot.append(S('text',{x:550,y:322,'text-anchor':'middle',fill:'#94a3b8','font-size':13},(currentScope()!=='all'&&!passageScores[currentScope()]?'Passage-only metrics must be computed separately.':'Use the checkboxes below to show translations.')));
+   plot.append(S('text',{x:(R.left+R.right)/2,y:(R.top+R.bottom)/2-12,'text-anchor':'middle',fill:'#64748b','font-size':19,'font-weight':750},(currentScope()!=='all'&&!passageScores[currentScope()]?'Import passage scores to compare':'No translations selected')));
+   plot.append(S('text',{x:(R.left+R.right)/2,y:(R.top+R.bottom)/2+16,'text-anchor':'middle',fill:'#94a3b8','font-size':13},(currentScope()!=='all'&&!passageScores[currentScope()]?'Passage-only metrics must be computed separately.':'Use the checkboxes below to show translations.')));
    return;
  }
  const xs=data.map(d=>d.x),ys=data.map(d=>d.y);
@@ -425,8 +468,8 @@ function drawChart(data){
  plot.append(S('rect',{x:R.left,y:R.top,width:R.right-R.left,height:R.bottom-R.top,rx:12,fill:'#fbfcff'}));
  makeTicks(x0,x1).forEach(v=>{let x=XP(v);plot.append(S('line',{x1:x,y1:R.top,x2:x,y2:R.bottom,class:'guide'}));plot.append(S('text',{x,y:R.bottom+26,'text-anchor':'middle',class:'axis-tick'},tickFormat(v)));});
  makeTicks(y0,y1).forEach(v=>{let y=YP(v);plot.append(S('line',{x1:R.left,y1:y,x2:R.right,y2:y,class:'guide'}));plot.append(S('text',{x:R.left-14,y:y+4,'text-anchor':'end',class:'axis-tick'},tickFormat(v)));});
- plot.append(S('text',{x:(R.left+R.right)/2,y:603,'text-anchor':'middle',class:'axis-title'},'Literalness (%)  →'));
- plot.append(S('text',{x:22,y:(R.top+R.bottom)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 22 ${(R.top+R.bottom)/2})`},'Readability (%)  →'));
+ plot.append(S('text',{x:(R.left+R.right)/2,y:R.bottom+44,'text-anchor':'middle',class:'axis-title'},'Literalness (%)  →'));
+ plot.append(S('text',{x:16,y:(R.top+R.bottom)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 16 ${(R.top+R.bottom)/2})`},'Readability (%)  →'));
  const overallGuide=drawOverallGuide(x0,x1,y0,y1,XP,YP,data);
  const pnts=data.map(d=>({...d,px:XP(d.x),py:YP(d.y)}));
  // Place compact labels using candidate offsets, avoiding overlaps whenever possible.
@@ -511,11 +554,11 @@ $('csvBtn').addEventListener('click',()=>{
  makeDownload((currentScope()==='all'?'whole_bible':currentScope())+'_translation_weighted_scores.csv',rows.map(r=>r.join(',')).join('\n')+'\n','text/csv;charset=utf-8');
 });
 $('pngBtn').addEventListener('click',()=>{
- const svg=plot.cloneNode(true);svg.setAttribute('width','1100');svg.setAttribute('height','620');
+ const svg=plot.cloneNode(true);const chartSize=plot.viewBox.baseVal.width;svg.setAttribute('width',chartSize);svg.setAttribute('height',chartSize);
  const css=`.axis-tick{font-family:Arial,sans-serif;font-size:12px;fill:#526177;font-weight:650}.axis-title{font-family:Arial,sans-serif;font-size:14px;fill:#334155;font-weight:850}.dot-label{font-family:Arial,sans-serif;font-size:12px;font-weight:900;fill:#273451}.tag{fill:white;stroke:#e9edf5;stroke-width:1}.guide{stroke:#edf1f7;stroke-width:1.3}`;
  const style=S('style',{},css);svg.insertBefore(style,svg.firstChild);
  const xml=new XMLSerializer().serializeToString(svg);const image=new Image();const u=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
- image.onload=()=>{const c=document.createElement('canvas');c.width=2200;c.height=1240;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>{if(!b)return;const o=URL.createObjectURL(b);const a=document.createElement('a');a.href=o;a.download=(currentScope()==='all'?'whole_bible':currentScope())+'_translation_weights_chart.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(o),3000)},'image/png');};
+ image.onload=()=>{const c=document.createElement('canvas');c.width=2200;c.height=2200;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>{if(!b)return;const o=URL.createObjectURL(b);const a=document.createElement('a');a.href=o;a.download=(currentScope()==='all'?'whole_bible':currentScope())+'_translation_weights_chart.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(o),3000)},'image/png');};
  image.onerror=()=>{URL.revokeObjectURL(u);alert('Could not export PNG; try downloading the CSV instead.')};image.src=u;
 });
 $('equalWeightsBtn').addEventListener('click',()=>{litSlider.value='50';readSlider.value='50';overallWeight=.5;render();});
@@ -535,6 +578,20 @@ for(const d of [...originals].sort((a,b)=>a.name.localeCompare(b.name))){
  chip.querySelector('input').addEventListener('change',e=>setVisible(d.name,e.target.checked));
  $('legend').append(chip);
 }
+const chartSizeSlider=$('chartSizeSlider');
+function updateChartSize(){
+ const size=Math.max(320,Math.min(900,Number(chartSizeSlider.value)||640));
+ $('chartLayout').style.setProperty('--chart-size',size+'px');
+ $('chartSizeValue').value=size+'px';
+ legendDrag=null;legendWeightDrag=null;
+ render();
+}
+chartSizeSlider.addEventListener('input',updateChartSize);
+let resizeFrame;
+window.addEventListener('resize',()=>{
+ cancelAnimationFrame(resizeFrame);
+ resizeFrame=requestAnimationFrame(()=>{legendDrag=null;legendWeightDrag=null;render();});
+});
 render();
 </script>
 <script>
