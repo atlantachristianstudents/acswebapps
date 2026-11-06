@@ -505,7 +505,14 @@ function render(smooth = true) {
     .map((w) => {
       let html = '<span class="word">';
       for (const c of w) {
-        html += `<span class="letter ${pos < typed.length ? (typed[pos] === c ? "correct" : "incorrect") : ""} ${pos === typed.length ? "cursor" : ""}">${escapeHtml(c)}</span>`;
+        if (pos < typed.length && typed[pos] !== c) {
+          // Show the character actually typed in red, then the expected
+          // target character in normal color so it stays visible.
+          html += `<span class="letter incorrect">${escapeHtml(typed[pos])}</span>`;
+          html += `<span class="letter${pos === typed.length ? " cursor" : ""}">${escapeHtml(c)}</span>`;
+        } else {
+          html += `<span class="letter ${pos < typed.length ? "correct" : ""}${pos === typed.length ? " cursor" : ""}">${escapeHtml(c)}</span>`;
+        }
         pos++;
       }
       if (extraLetters.has(pos))
