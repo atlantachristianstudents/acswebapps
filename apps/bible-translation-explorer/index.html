@@ -161,6 +161,7 @@ main,.chart-card,.table-card{min-width:0}
 .chart-size-control label{font-size:12px;font-weight:800}
 .chart-size-control input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:24px;height:180px;margin:0;background:transparent;accent-color:#7658f2}
 .chart-size-control output{font-variant-numeric:tabular-nums}
+.chart-size-reset{font-size:11px;padding:8px 4px;width:100%;min-height:40px}
 @media(max-width:700px){
  .plot-with-axis-controls{grid-template-columns:minmax(0,1fr) 48px;max-width:calc(var(--chart-size,640px) + 56px)}
  .plot-main{grid-column:1;grid-row:2}
@@ -202,6 +203,7 @@ main,.chart-card,.table-card{min-width:0}
       <input id="chartSizeSlider" type="range" min="320" max="900" step="20" value="640" aria-label="Maximum chart size in pixels" aria-orientation="vertical">
       <span aria-hidden="true">Smaller</span>
       <output id="chartSizeValue" for="chartSizeSlider">640px</output>
+      <button type="button" class="btn chart-size-reset" id="resetChartSizeBtn" aria-label="Reset chart size to 640 pixels">Reset</button>
     </div>
     <button type="button" class="btn axis-reset" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset 1:1</button>
 <div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><div class="axis-slider-row"><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"></div><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
@@ -587,6 +589,7 @@ function updateChartSize(){
  render();
 }
 chartSizeSlider.addEventListener('input',updateChartSize);
+$('resetChartSizeBtn').addEventListener('click',()=>{chartSizeSlider.value='640';updateChartSize();});
 let resizeFrame;
 window.addEventListener('resize',()=>{
  cancelAnimationFrame(resizeFrame);
