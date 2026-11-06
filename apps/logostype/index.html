@@ -405,6 +405,13 @@
       .incorrect {
         color: var(--error);
       }
+      /* A wrong character typed where a space is expected replaces the
+         space visually but removes one letter of width so the line
+         layout does not shift. */
+      .ghost-space {
+        display: inline-block;
+        width: 0;
+      }
       .typing-caret {
         position: absolute;
         top: 0;

@@ -172,7 +172,7 @@
       if(phase==='racing'){
         const elapsed=(Date.now()-start)/1000;
         if(!done){
-          let corrections=[...extraLetters.values()].reduce((sum,letters)=>sum+letters.length,0);
+          let corrections = 0;
           if(typed.length===target.length)for(let i=0;i<typed.length;i++)if(typed[i]!==target[i])corrections++;
           $('#counter').textContent=`${Math.max(0,Math.ceil(duration-elapsed))}s`+(corrections?` · ${corrections} character${corrections===1?'':'s'} to correct`:'');
           sampleWpm();if(elapsed>=duration)finish();

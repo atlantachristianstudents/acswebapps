@@ -10,7 +10,7 @@ After the selected book or entire Scriptures journey is completed, Scripture Jou
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
-When a space is expected, other characters appear as red extra letters after the preceding word. The typing position stays at that space until you type a space. Backspace removes the extra letters; Scripture Journey and races require removing all extras before completion.
+A mistyped character — letter or space — shows the character you actually typed in red in place of the pressed key, while the cursor moves on; correct it with backspace. Scripture Journey and races require every character to match before completion.
 
 Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
