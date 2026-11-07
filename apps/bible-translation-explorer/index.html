@@ -169,6 +169,19 @@ main,.chart-card,.table-card{min-width:0}
  .chart-size-control input[type=range]{height:130px}
  .axis-reset{grid-column:1;justify-self:start}
 }
+
+/* Keep axis controls tied to the rendered chart rather than viewport height. */
+@media(min-width:701px){
+ .axis-control-y{height:calc(var(--rendered-chart-size,640px) - 16px);margin:8px 5px 8px 0;min-height:0}
+ .axis-control-y input[type=range]{height:auto;min-height:0;flex:1}
+ .axis-control-x{margin:0 16px 8px 54px}
+}
+@media(max-width:700px){
+ .axis-control-y{grid-column:1;grid-row:1;margin:8px 0}
+ .axis-control-x{grid-column:1;grid-row:3;margin:8px 0}
+ .axis-reset{grid-column:1;grid-row:4;justify-self:start;margin:4px 0}
+ .axis-control-y input[type=range]{width:100%;height:7px;min-height:0}
+}
 </style>
 </head>
 <body>
@@ -284,14 +297,18 @@ function sizeChart(){
  const size=Math.max(320,Math.round(plot.clientWidth||700));
  plot.setAttribute('viewBox',`0 0 ${size} ${size}`);
  R.right=size-16;R.bottom=size-54;
+ $('chartLayout').style.setProperty('--rendered-chart-size',plot.clientWidth+'px');
 }
-function legendWidth(){return Math.min(350,R.right-R.left-8);}
+function legendWidth(){return legendCollapsed?44:Math.min(350,R.right-R.left-8);}
 function legendTrackWidth(){return legendWidth()-24;}
 let selected=null, latest=[];
 let legendPosition=null, legendDrag=null, legendWeightDrag=null, legendCollapsed=false;
-function legendHeight(){return legendCollapsed?36:148;}
+function legendHeight(){return legendCollapsed?40:148;}
 function toggleLegend(){
- legendCollapsed=!legendCollapsed;render();
+ const oldWidth=legendWidth();
+ legendCollapsed=!legendCollapsed;
+ if(legendPosition)legendPosition.x+=oldWidth-legendWidth();
+ render();
  const handle=plot.querySelector('.legend-drag-handle');if(handle)handle.focus({preventScroll:true});
 }
 const visible=new Set(originals.filter(d=>d.name!=='LSV'&&d.name!=='YLT').map(d=>d.name));
@@ -402,10 +419,10 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
  const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-legendHeight()-12});
  const box={...position,w:legendWidth(),h:legendHeight()};
  const panel=S('g',{class:'overall-legend'});
- panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
+ if(!legendCollapsed)panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
  const text=(x,y,value,size=12,bold=650)=>S('text',{x,y,fill:'#155e57','font-family':'Arial, sans-serif','font-size':size,'font-weight':bold},value);
- panel.append(text(box.x+12,box.y+20,'Overall score weighting',13,750));
  if(!legendCollapsed){
+ panel.append(text(box.x+12,box.y+20,'Overall score weighting',13,750));
  panel.append(text(box.x+12,box.y+40,`Literalness ${(a*100).toFixed(0)}% · Readability ${(b*100).toFixed(0)}%`));
  panel.append(S('rect',{x:box.x+12,y:box.y+50,width:legendTrackWidth()*a,height:7,rx:2,fill:'#7658f2'}));
  panel.append(S('rect',{x:box.x+12+legendTrackWidth()*a,y:box.y+50,width:legendTrackWidth()*b,height:7,rx:2,fill:'#1c84d8'}));
