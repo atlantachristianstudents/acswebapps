@@ -24,7 +24,7 @@ window.APPS = [
   {
     id: "logostype",
     name: "Logos Type",
-    description: "Type the scriptures. No account required; your results stay in this browser.",
+    description: "Type the Scriptures and read what you typed. Practice on your own or race against friends.",
     icon: "⌨",
     iconUrl: "apps/logostype/icons/icon.png",
     tags: ["Study", "Memory"],

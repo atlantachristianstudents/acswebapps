@@ -9,7 +9,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 | App | Description | Status |
 | --- | --- | --- |
 | [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations with adjustable literalness, readability, and overall weights; export scores and charts offline. | beta |
-| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture in timed tests or Scripture Journeys, save per-verse WPM and progress, export backups, and race friends online. | live |
+| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type the Scriptures and read what you typed. Practice on your own or race against friends. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Paste text or import a file, PDF, or URL, recall it on a blank page, then check missing, changed, and extra words. Optional Test mode requests full-screen, accepts Shift + Command + Enter to submit, and requires a passcode to restart or edit. | beta |
 | [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Type a hymn number or short text and it scales to fill the screen, for projectors and livestreams. | beta |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator and chord detector using your device microphone. | live |
@@ -21,6 +21,7 @@ Live site: <https://atlantachristianstudents.github.io/adless/>
 - No accounts, no tracking, no ads — everything runs in the browser.
 - The home page and apps are installable PWAs with service workers. Once their assets are cached, core features work offline; Songbook also needs an initial catalog sync.
 - Light/dark themes on the home page; per-app theming inside each app.
+- Home-page apps are grouped by status (live, beta, then coming soon) and sorted alphabetically within each group, including when searching or filtering.
 - Progress, settings, and saved content are stored on the device. Online features include Logos Type friend races, Songbook catalog sync, and Memorize URL imports; URL imports contact the source website without uploading your reference or answers.
 
 ## Technologies

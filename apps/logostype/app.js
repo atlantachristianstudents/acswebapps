@@ -1154,7 +1154,7 @@ function openModal(type) {
   if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
-      "<h2>logostype</h2><p>Type the scriptures. No account required; your results stay in this browser.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
+      "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
   if (type === "history" || type === "profile")
     content.innerHTML =
       '<button class="option" data-open="settings">← settings</button><h2>records and typing history</h2>' +

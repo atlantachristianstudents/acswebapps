@@ -95,6 +95,11 @@
 
   /* ---------- cards ---------- */
   const STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
+  const STATUS_ORDER = { live: 0, beta: 1, soon: 2 };
+  const sortedApps = apps.slice().sort((a, b) =>
+    ((STATUS_ORDER[a.status || "live"] ?? 3) - (STATUS_ORDER[b.status || "live"] ?? 3)) ||
+    (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" })
+  );
 
   function el(tag, cls, text) {
     const node = document.createElement(tag);
@@ -151,7 +156,7 @@
     const query = search.value.trim().toLowerCase();
     grid.innerHTML = "";
     let shown = 0;
-    apps.forEach((app) => {
+    sortedApps.forEach((app) => {
       const inTag = activeTag === "All" || (app.tags || []).indexOf(activeTag) !== -1;
       const haystack = (app.name + " " + (app.description || "") + " " + (app.tags || []).join(" ")).toLowerCase();
       if (inTag && (!query || haystack.indexOf(query) !== -1)) {

@@ -1,5 +1,9 @@
 # Logostype
 
+Type the Scriptures and read what you typed. Practice on your own or race against friends.
+
+The About dialog uses the same description as the Adless home-page listing.
+
 Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 
 Under Scripture Journey, open the journey picker and choose **entire Scriptures** or any of the 66 books directly from the popup grid. Each book saves its own verse progress and completion dates, independently of the entire Scriptures journey. The journey picker follows your chosen theme, colors Old Testament books blue and New Testament books purple with a legend, and highlights the current selection and keyboard focus. Switching books resumes where you left off. Book journeys stop at the final verse; restart starts that book again and preserves its past completion dates. Progress and completion dates for every book are included in backups.
