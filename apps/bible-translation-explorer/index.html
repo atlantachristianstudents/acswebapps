@@ -297,8 +297,8 @@ const litSlider = $('litSlider'), readSlider=$('readSlider'), plot=$('plot');
 let overallWeight=.5;
 const NS='http://www.w3.org/2000/svg';
 const R = {left:54, top:16, right:684, bottom:646};
-function sizeChart(){
- const size=Math.max(320,Math.round(plot.clientWidth||700));
+function sizeChart(exportSize){
+ const size=exportSize||Math.max(320,Math.round(plot.clientWidth||700));
  plot.setAttribute('viewBox',`0 0 ${size} ${size}`);
  R.right=size-16;R.bottom=size-54;
  $('chartLayout').style.setProperty('--rendered-chart-size',plot.clientWidth+'px');
@@ -484,8 +484,8 @@ function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
  plot.append(group);
  return box;
 }
-function drawChart(data){
- sizeChart();
+function drawChart(data,exportSize){
+ sizeChart(exportSize);
  if(!data.length){
    plot.replaceChildren();
    plot.append(S('rect',{x:R.left,y:R.top,width:R.right-R.left,height:R.bottom-R.top,rx:12,fill:'#fbfcff'}));
@@ -589,7 +589,19 @@ $('csvBtn').addEventListener('click',()=>{
  makeDownload((currentScope()==='all'?'whole_bible':currentScope())+'_translation_weighted_scores.csv',rows.map(r=>r.join(',')).join('\n')+'\n','text/csv;charset=utf-8');
 });
 $('pngBtn').addEventListener('click',()=>{
- const svg=plot.cloneNode(true);const chartSize=plot.viewBox.baseVal.width;svg.setAttribute('width',chartSize);svg.setAttribute('height',chartSize);
+ // Lay out the export at full size, independent of the responsive on-screen chart.
+ const chartSize=900;
+ const screenNodes=[...plot.childNodes],screenViewBox=plot.getAttribute('viewBox'),screenBounds={...R};
+ let svg;
+ try{
+   drawChart(latest.filter(d=>visible.has(d.name)),chartSize);
+   svg=plot.cloneNode(true);
+ }finally{
+   plot.replaceChildren(...screenNodes);
+   plot.setAttribute('viewBox',screenViewBox);
+   Object.assign(R,screenBounds);
+ }
+ svg.setAttribute('width',chartSize);svg.setAttribute('height',chartSize);
  const css=`.axis-tick{font-family:Arial,sans-serif;font-size:12px;fill:#526177;font-weight:650}.axis-title{font-family:Arial,sans-serif;font-size:14px;fill:#334155;font-weight:850}.dot-label{font-family:Arial,sans-serif;font-size:12px;font-weight:900;fill:#273451}.tag{fill:white;stroke:#e9edf5;stroke-width:1}.guide{stroke:#edf1f7;stroke-width:1.3}`;
  const style=S('style',{},css);svg.insertBefore(style,svg.firstChild);
  const xml=new XMLSerializer().serializeToString(svg);const image=new Image();const u=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
