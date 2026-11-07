@@ -233,6 +233,10 @@ button {
   color: var(--accent);
 }
 
+.nav .icon-btn + .icon-btn {
+  margin-left: -1rem !important;
+}
+
 .icon-btn {
   display: inline-grid;
   place-items: center;
@@ -669,6 +673,14 @@ a.card:hover {
 
   .nav {
     gap: .85rem;
+  }
+
+  .nav .icon-btn + .icon-btn {
+    margin-left: -.35rem !important;
+  }
+
+  .nav a.icon-btn {
+    display: inline-grid;
   }
 
   .nav a {
