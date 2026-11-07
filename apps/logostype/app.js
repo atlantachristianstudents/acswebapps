@@ -1207,6 +1207,9 @@ function openModal(type) {
     else content.insertAdjacentHTML("beforeend", "<h3>Book journey completions</h3><p>No completed book journeys yet.</p>");
   }
   if (type === "history" || type === "profile") {
+    $("#historyDateFrom").value = historyDateFrom;
+    $("#historyDateTo").value = historyDateTo;
+    updateHistoryDateRange();
     $("#historySearch").value = historySearchQuery;
     renderHistorySearch();
   }
@@ -1439,6 +1442,37 @@ loadScripture()
   });
 
 let historySearchQuery = "";
+let historyDateFrom = "";
+let historyDateTo = "";
+function historyResultDate(result) {
+  // Date-only legacy results have no recorded time; interpret them at local midnight.
+  return new Date(/^\d{4}-\d{2}-\d{2}$/.test(result.date) ? result.date + "T00:00:00" : result.date);
+}
+function historyWithinDateRange(result) {
+  if (!historyDateFrom && !historyDateTo) return true;
+  const from = historyDateFrom ? new Date(historyDateFrom).getTime() : -Infinity;
+  const to = historyDateTo ? new Date(historyDateTo).getTime() : Infinity;
+  const time = historyResultDate(result).getTime();
+  return Number.isFinite(time) && time >= from && time <= to;
+}
+function updateHistoryDateRange() {
+  $("#historyDateStatus").textContent = historyDateFrom && historyDateTo && historyDateFrom > historyDateTo
+    ? "The from date and time must be on or before the through date and time."
+    : historyDateFrom || historyDateTo ? "Date range applies only to the progression chart. Results with unreadable dates are excluded." : "Showing all dates and times.";
+  $("#historyProgressionChart").innerHTML = renderHistoryProgressionChart();
+}
+document.addEventListener("input", event => {
+  if (event.target.id === "historyDateFrom") historyDateFrom = event.target.value;
+  else if (event.target.id === "historyDateTo") historyDateTo = event.target.value;
+  else return;
+  updateHistoryDateRange();
+});
+document.addEventListener("click", event => {
+  if (!event.target.closest("#historyDateClear")) return;
+  historyDateFrom = historyDateTo = "";
+  $("#historyDateFrom").value = $("#historyDateTo").value = "";
+  updateHistoryDateRange();
+});
 let historyProgressionFormat = null;
 let historyProgressionSettings = null;
 function progressionFormat(result) {
@@ -1453,11 +1487,13 @@ function progressionFormatLabel(value) {
   return ({ book: "Scripture Journey", quote: "verse", custom: length === "default" ? "default custom text" : "custom text" })[format] || format;
 }
 document.addEventListener("click", event => {
-  const button = event.target.closest("[data-progression-format]");
+  const button = event.target.closest("[data-progression-format], [data-progression-settings]");
   if (!button) return;
-  historyProgressionFormat = button.dataset.progressionFormat;
-  historyProgressionSettings = button.dataset.progressionSettings;
-  document.querySelectorAll("[data-progression-format]").forEach(option => {
+  const key = button.hasAttribute("data-progression-format") ? "progressionFormat" : "progressionSettings";
+  if (key === "progressionFormat") historyProgressionFormat = button.dataset[key];
+  else historyProgressionSettings = button.dataset[key];
+  const attribute = key === "progressionFormat" ? "data-progression-format" : "data-progression-settings";
+  document.querySelectorAll("[" + attribute + "]").forEach(option => {
     option.setAttribute("aria-pressed", String(option === button));
   });
   $("#historyProgressionChart").innerHTML = renderHistoryProgressionChart();
@@ -1487,32 +1523,84 @@ function renderHistoryProgression() {
   if (historyProgressionFormat === null) historyProgressionFormat = progressionFormat({ mode, limit,
     customPreset: mode === "custom" && rawTarget === defaultCustomText ? "default" : undefined });
   if (historyProgressionSettings === null) historyProgressionSettings = mode === "book" || (capitalization && punctuation) ? "on" : !capitalization && !punctuation ? "off" : "all";
-  const formats = [...new Set([historyProgressionFormat, "book", "quote", "custom:default", "custom",
+  const formats = ["book", "quote", "custom:default",
     ...[15, 30, 60, 120].map(value => "time:" + value),
-    ...[10, 25, 50, 100].map(value => "words:" + value), ...history.map(progressionFormat)])];
+    ...[10, 25, 50, 100].map(value => "words:" + value)];
+  if (!formats.includes(historyProgressionFormat)) {
+    historyProgressionFormat = mode === "time" ? "time:15" : mode === "words" ? "words:25" : "custom:default";
+  }
   const settings = [["off", "caps off", "no caps or punctuation"],
     ["on", "caps on", "caps and punctuation"], ["all", "all", "all settings (including older results)"]];
-  return '<h3>history progression</h3><div class="progression-table-wrap"><table class="records-table progression-options"><caption>Choose a typing format and capitalization/punctuation settings</caption><thead><tr><th scope="col">typing format</th>' +
-    settings.map(([, label, description]) => '<th scope="col" aria-label="' + description + '">' + label + '</th>').join("") +
-    '</tr></thead><tbody>' + formats.map(format => '<tr><th scope="row">' + escapeHtml(progressionFormatLabel(format)) + '</th>' +
-      settings.map(([value, label, description]) => '<td><button type="button" data-progression-format="' + escapeHtml(format) +
-        '" data-progression-settings="' + value + '" aria-label="' + escapeHtml(progressionFormatLabel(format) + ', ' + description) +
-        '" aria-pressed="' + (format === historyProgressionFormat && value === historyProgressionSettings) + '">' + label + '</button></td>').join("") +
-      '</tr>').join("") + '</tbody></table></div><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>';
+  const formatGroups = [formats.slice(0, 3), formats.slice(3, 7), formats.slice(7)];
+  const formatRows = formatGroups.map(group => '<tr>' + group.map(format =>
+    '<td><button type="button" data-progression-format="' + escapeHtml(format) + '" aria-pressed="' +
+    (format === historyProgressionFormat) + '">' + escapeHtml(progressionFormatLabel(format)) + '</button></td>'
+  ).join("") + (group.length === 3 ? '<td></td>' : '') + '</tr>');
+  return '<h3>history progression</h3><div class="progression-table-wrap"><table class="records-table progression-options"><caption>typing format</caption><tbody>' +
+    formatRows.join("") + '</tbody></table></div>' +
+    '<div class="progression-table-wrap"><table class="records-table progression-options"><caption>capitalization and punctuation</caption><tbody><tr>' +
+    settings.map(([value, label, description]) => '<td><button type="button" data-progression-settings="' + value +
+      '" aria-label="' + description + '" aria-pressed="' + (value === historyProgressionSettings) + '">' + label + '</button></td>').join("") +
+    '</tr></tbody></table></div><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>' +
+    '<div class="history-date-range"><div><label for="historyDateFrom">from date and time</label><input class="race-field" id="historyDateFrom" type="datetime-local" step="1"></div><div><label for="historyDateTo">through date and time</label><input class="race-field" id="historyDateTo" type="datetime-local" step="1"></div></div><button class="option" id="historyDateClear" type="button">clear date range</button><p id="historyDateStatus" role="status" aria-live="polite"></p>';
 
 }
+function showProgressionPoint(point) {
+  const tooltip = $("#progressionTooltip");
+  const result = history[Number(point.dataset.progressionIndex)];
+  if (!tooltip || !result) return;
+  const settings = result.capitalization === true && result.punctuation === true ? "caps on"
+    : result.capitalization === false && result.punctuation === false ? "caps off" : "mixed or unrecorded settings";
+  const date = historyResultDate(result);
+  const readableDate = Number.isFinite(date.getTime());
+  const rows = [
+    ["date", readableDate ? date.toLocaleDateString() : result.date || "unknown"],
+    ["time", readableDate && !/^\d{4}-\d{2}-\d{2}$/.test(result.date) ? date.toLocaleTimeString() : "not recorded"],
+    ["speed", result.wpm + " WPM"],
+    ["accuracy", result.accuracy + "%"],
+    ["format", progressionFormatLabel(progressionFormat(result))],
+    ["settings", settings],
+  ];
+  if (result.reference) rows.push(["verse", result.reference]);
+  if (result.journey) rows.push(["journey", result.journey]);
+  tooltip.innerHTML = '<dl>' + rows.map(([label, value]) =>
+    '<div><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(value) + '</dd></div>'
+  ).join("") + '</dl>';
+  tooltip.hidden = false;
+  const container = tooltip.parentElement.getBoundingClientRect();
+  const rect = point.getBoundingClientRect();
+  const left = rect.left + rect.width / 2 - container.left - tooltip.offsetWidth / 2;
+  tooltip.style.left = Math.max(0, Math.min(container.width - tooltip.offsetWidth, left)) + "px";
+  tooltip.style.top = Math.max(0, rect.top - container.top - tooltip.offsetHeight - 8) + "px";
+}
+function hideProgressionPoint() {
+  const tooltip = $("#progressionTooltip");
+  if (tooltip) tooltip.hidden = true;
+}
+["pointerover", "focusin", "pointerdown"].forEach(type => document.addEventListener(type, event => {
+  const point = event.target.closest("[data-progression-index]");
+  if (point) showProgressionPoint(point);
+  else if (type === "pointerdown") hideProgressionPoint();
+}));
+["pointerout", "focusout"].forEach(type => document.addEventListener(type, event => {
+  const point = event.target.closest("[data-progression-index]");
+  if (point && !point.contains(event.relatedTarget)) hideProgressionPoint();
+}));
+window.addEventListener("resize", hideProgressionPoint);
+window.addEventListener("blur", hideProgressionPoint);
+
 function renderHistoryProgressionChart() {
   const entries = history.map((result, index) => ({ result, index })).filter(({ result }) =>
-    progressionFormat(result) === historyProgressionFormat && Number.isFinite(result.wpm) &&
+    historyWithinDateRange(result) && progressionFormat(result) === historyProgressionFormat && Number.isFinite(result.wpm) &&
     (historyProgressionSettings === "all" || (result.capitalization === (historyProgressionSettings === "on") &&
       result.punctuation === (historyProgressionSettings === "on")))
   ).reverse();
   // Modern records have ISO dates; retain saved order for older, unparseable dates.
   entries.sort((a, b) => {
-    const first = Date.parse(a.result.date), second = Date.parse(b.result.date);
+    const first = historyResultDate(a.result).getTime(), second = historyResultDate(b.result).getTime();
     return Number.isFinite(first) && Number.isFinite(second) ? first - second : 0;
   });
-  if (!entries.length) return '<p>No saved results for this typing format and settings yet.</p>';
+  if (!entries.length) return '<p>No saved results match this typing format, settings, and date range.</p>';
   const max = entries.reduce((value, entry) => Math.max(value, entry.result.wpm), 100);
   const x = index => entries.length === 1 ? 310 : 45 + index / (entries.length - 1) * 535;
   const y = value => 165 - value / max * 140;
@@ -1521,9 +1609,19 @@ function renderHistoryProgressionChart() {
     return `<line x1="45" y1="${py}" x2="580" y2="${py}" stroke="var(--muted)" opacity=".25"/><text x="38" y="${py + 4}" text-anchor="end">${Math.round(value)}</text>`;
   }).join("");
   const points = entries.map((entry, index) => `${x(index)},${y(entry.result.wpm)}`).join(" ");
-  const dots = entries.map((entry, index) => `<circle cx="${x(index)}" cy="${y(entry.result.wpm)}" r="3" fill="var(--accent)"><title>${escapeHtml(historyDescription(entry.result))}</title></circle>`).join("");
+  const dots = entries.map((entry, index) => `<g class="progression-point" data-progression-index="${entry.index}" tabindex="0" aria-label="${escapeHtml(historyDescription(entry.result) + ' · ' + progressionFormatLabel(progressionFormat(entry.result)))}" aria-describedby="progressionTooltip"><circle cx="${x(index)}" cy="${y(entry.result.wpm)}" r="10" fill="transparent"/><circle class="progression-dot" cx="${x(index)}" cy="${y(entry.result.wpm)}" r="3" fill="var(--accent)"/></g>`).join("");
+  const tickIndices = [...new Set([0, Math.floor((entries.length - 1) / 2), entries.length - 1])];
+  const ticks = tickIndices.map(index => {
+    const date = historyResultDate(entries[index].result);
+    const readable = Number.isFinite(date.getTime());
+    const dateLabel = readable ? date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "unknown date";
+    const timeLabel = readable && !/^\d{4}-\d{2}-\d{2}$/.test(entries[index].result.date)
+      ? date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "time not recorded";
+    const px = x(index), anchor = entries.length === 1 ? "middle" : index === 0 ? "start" : index === entries.length - 1 ? "end" : "middle";
+    return `<line x1="${px}" y1="165" x2="${px}" y2="173" stroke="var(--muted)"/><text x="${px}" y="190" text-anchor="${anchor}">${escapeHtml(dateLabel)}</text><text x="${px}" y="206" text-anchor="${anchor}">${escapeHtml(timeLabel)}</text>`;
+  }).join("");
   return '<p>WPM across ' + entries.length + ' saved results for ' + escapeHtml(progressionFormatLabel(historyProgressionFormat)) + ', from oldest to newest. Each point is one result. Search filters only the list below.</p>' +
-    `<svg class="history-progression" viewBox="0 0 600 205" role="img" aria-label="Typing speed progression across ${entries.length} results, oldest to newest. First result ${entries[0].result.wpm} WPM; latest result ${entries[entries.length - 1].result.wpm} WPM."><text x="4" y="13">WPM</text>${grid}<polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2"/>${dots}<text x="45" y="195">oldest</text><text x="580" y="195" text-anchor="end">newest</text></svg>`;
+    `<div class="progression-plot"><svg class="history-progression" viewBox="0 0 600 220" role="group" aria-label="Typing speed progression across ${entries.length} results, oldest to newest. First result ${entries[0].result.wpm} WPM; latest result ${entries[entries.length - 1].result.wpm} WPM."><text x="4" y="13">WPM</text>${grid}<polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2"/>${dots}${ticks}</svg><div id="progressionTooltip" class="progression-tooltip" role="tooltip" hidden></div></div>`;
 }
 
 function openHistoryResult(index) {
