@@ -2,7 +2,9 @@
 // A well-known peer coordinates listings; another browser takes over on disconnect.
 (() => {
   const directoryId = 'logostype-room-directory-v1';
-  let peer, leader, candidate, connection, retryTimer, heartbeat, listener;
+  let peer, leader, candidate, connection, retryTimer, heartbeat, listener, chatListener;
+  let chatMessages=[], chatSequence=0, localChatAt=-Infinity;
+  const chatTimes=new Map();
   let listing = null, rooms = [], state = 'connecting', stopped = false;
   const entries = new Map(), clients = new Map();
   function cleanListing(value) {
@@ -11,8 +13,28 @@
         !['lobby', 'countdown', 'racing', 'finished'].includes(value.phase)) return null;
     return { code: value.code, name: value.name.trim().slice(0, 24) || 'typist', count: value.count, phase: value.phase };
   }
-  function emit() { if (listener) listener(rooms, state); }
+  function emit() { if (listener) listener(rooms, state); if(chatListener)chatListener(chatMessages,state); }
   function send(link, data) { if (link?.open) link.send(data); }
+  function cleanChat(value){
+    if(!value||typeof value.id!=='string'||value.id.length>150||typeof value.name!=='string'||value.name.length>24||typeof value.text!=='string'||!value.text.trim()||value.text.length>500||!Number.isFinite(value.time)||value.time<0)return null;
+    return {id:value.id,name:value.name,text:value.text,time:value.time};
+  }
+  function receiveChat(value){
+    const message=cleanChat(value);
+    if(!message||chatMessages.some(item=>item.id===message.id))return;
+    chatMessages=[...chatMessages,message].slice(-50);
+    if(chatListener)chatListener(chatMessages,state);
+  }
+  function acceptChat(id,name,text){
+    if(typeof name!=='string'||typeof text!=='string'||!text.trim()||text.length>500)return false;
+    const now=Date.now();
+    if(now-(chatTimes.get(id)??-Infinity)<750)return false;
+    chatTimes.set(id,now);
+    const message={id:peer.id+'-'+now+'-'+(++chatSequence),name:name.trim().slice(0,24)||'typist',text:text.trim(),time:now};
+    receiveChat(message);
+    for(const client of clients.values())send(client,{type:'chat',message});
+    return true;
+  }
   function flush() {
     const now = Date.now();
     for (const [id, entry] of entries) if (now - entry.seen > 20000) entries.delete(id);
@@ -42,13 +64,15 @@
       if (candidate !== attempt) return;
       candidate = null; leader = attempt;
       connection?.close(); connection = null;
-      entries.clear(); clients.clear(); announce();
+      entries.clear(); clients.clear();chatTimes.clear(); announce();
     });
     attempt.on('connection', client => {
       if (client.metadata?.directory !== directoryId || clients.size >= 256) { client.close(); return; }
-      client.on('open', () => { clients.set(client.peer, client); flush(); });
+      client.on('open', () => { clients.set(client.peer, client); flush();send(client,{type:'chatHistory',messages:chatMessages}); });
       client.on('data', data => {
-        if (!clients.has(client.peer) || data?.type !== 'listing') return;
+        if (!clients.has(client.peer)) return;
+        if(data?.type==='chat'){acceptChat(client.peer,data.name,data.text);return;}
+        if(data?.type!=='listing')return;
         if (data.listing === null) entries.delete(client.peer);
         else {
           const value = cleanListing(data.listing);
@@ -60,7 +84,7 @@
       function remove() {
         // A replacement connection with the same peer ID owns its own listing.
         if (clients.get(client.peer) !== client) return;
-        clients.delete(client.peer); entries.delete(client.peer); flush();
+        clients.delete(client.peer); entries.delete(client.peer);chatTimes.delete(client.peer); flush();
       }
       client.on('close', remove); client.on('error', remove);
     });
@@ -89,7 +113,10 @@
       if (connection === link) announce();
     });
     link.on('data', data => {
-      if (connection !== link || data?.type !== 'rooms' || !Array.isArray(data.rooms) || data.rooms.length > 256) return;
+      if(connection!==link)return;
+      if(data?.type==='chat'){receiveChat(data.message);return;}
+      if(data?.type==='chatHistory'&&Array.isArray(data.messages)&&data.messages.length<=50){chatMessages=data.messages.map(cleanChat).filter(Boolean);if(chatListener)chatListener(chatMessages,state);return;}
+      if (data?.type !== 'rooms' || !Array.isArray(data.rooms) || data.rooms.length > 256) return;
       rooms = data.rooms.map(cleanListing).filter(Boolean); state = 'ready'; emit();
     });
     function lost() {
@@ -123,12 +150,21 @@
   }
   window.raceRooms = {
     start(callback) {
-      listener = callback; stopped = false; emit(); ensurePeer();
+      if(typeof callback==='function')listener = callback; stopped = false; emit(); ensurePeer();
       if (!heartbeat) heartbeat = setInterval(() => {
         if (!peer) ensurePeer();
         else if (leader?.open || connection?.open) announce();
         else { state = 'connecting'; emit(); connectDirectory(); }
       }, 5000);
+    },
+    startChat(callback){chatListener=callback;this.start(listener);},
+    sendChat(name,text){
+      if(typeof text!=='string'||!text.trim()||text.length>500||Date.now()-localChatAt<1000)return false;
+      let accepted=false;
+      if(leader?.open)accepted=acceptChat(peer.id,name,text);
+      else if(connection?.open){send(connection,{type:'chat',name,text:text.trim()});accepted=true;}
+      if(accepted)localChatAt=Date.now();
+      return accepted;
     },
     setRoom(value) {
       const next = value === null ? null : cleanListing(value);

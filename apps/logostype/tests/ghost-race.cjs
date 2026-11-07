@@ -5,9 +5,10 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const elements = new Map();
 function element() {
-  return { children: [], style: {}, parentElement: {}, value: '', disabled: false,
+  return { children: [], dataset: {}, style: {}, parentElement: {}, value: '', disabled: false,
     classList: { add() {}, remove() {}, toggle() {} },
-    append(...children) { this.children.push(...children); },
+    append(...children) { this.children.push(...children);for(const child of children)child.parentElement=this; },
+    remove(){if(this.parentElement?.children)this.parentElement.children=this.parentElement.children.filter(child=>child!==this);},
     replaceChildren() { this.children = []; }, setAttribute() {},
     querySelectorAll: () => [], addEventListener() {}, focus() {}, blur() {},
     close() { this.open = false; }, showModal() { this.open = true; } };
@@ -22,7 +23,7 @@ const context = vm.createContext({
   document: { createElement: element, querySelectorAll: () => [], body: { classList: { add() {}, remove() {}, toggle() {} } } },
   window: { addEventListener() {}, history: { replaceState() {} } },
   location: { href: 'http://localhost/', origin: 'http://localhost', pathname: '/' }, URL,
-  Date: { now: () => now },
+  Date: class extends Date { constructor(...args){super(...(args.length?args:[now]));} static now(){return now;} },
   Peer: function() { peerCalls++; throw new Error('Ghost races must not connect to a server'); },
   setInterval: callback => { timers.set(++nextTimer, callback); return nextTimer; },
   clearInterval: id => timers.delete(id), setTimeout: () => 0, clearTimeout() {},
@@ -343,8 +344,9 @@ console.log('Room-code popup checks passed: open without connecting, inline vali
 // Hosts can keep rooms unlisted and remove a viewer after confirming.
 context.Peer=function(){hostPeer=this;this.handlers={};this.on=(type,callback)=>{this.handlers[type]=callback;};this.destroy=()=>{};};
 const listings=[];context.window.raceRooms={start(){},setRoom:value=>listings.push(value)};
-elements.get('#privateRoom').checked=true;
-elements.get('#createRoom').onclick();hostPeer.handlers.open('private-host');
+elements.get('#createPrivateRoom').onclick();hostPeer.handlers.open('private-host');
+assert.equal(elements.get('#createRoom').disabled,true);
+assert.equal(elements.get('#createPrivateRoom').disabled,true);
 assert(listings.length&&listings.every(value=>value===null),'private rooms never advertise');
 assert(elements.get('#roomPrivacyStatus').textContent.includes('private'));
 elements.get('#roomVisibility').onclick();assert(listings.at(-1)?.code,'host can make a room public');
@@ -356,3 +358,47 @@ elements.get('#confirmRemoveRacer').onclick();
 assert(removedViewer.messages.some(message=>message.type==='removed'));
 assert.equal(elements.get('#raceAudience').children.length,0);
 console.log('Room privacy and moderation checks passed: unlisted creation, visibility toggle, confirmed viewer removal.');
+
+const roomGuest=addGuest('room-chatter','watch');
+roomGuest.handlers.data({type:'chat-message',text:'<img src=x onerror=alert(1)>'});
+const chat=elements.get('#roomChatLog').children;
+assert.equal(chat.length,1);
+assert.equal(chat[0].children[0].textContent,'room-chatter');
+assert.equal(chat[0].children[2].textContent,' · <img src=x onerror=alert(1)>','chat uses literal text, not HTML');
+assert(roomGuest.messages.some(message=>message.type==='roomChat'));
+roomGuest.handlers.data({type:'chat-message',text:'too fast'});assert.equal(chat.length,1);
+const lateRoomGuest=addGuest('late-room-viewer','watch');
+assert.equal(lateRoomGuest.messages.find(message=>message.type==='roomChatHistory').messages.length,1);
+now+=1100;
+elements.get('#roomChatInput').value='host reply';elements.get('#roomChatForm').onsubmit({preventDefault(){}});
+assert.equal(elements.get('#roomChatInput').value,'');assert.equal(elements.get('#roomChatLog').children.length,2);
+assert(roomGuest.messages.some(message=>message.type==='roomChat'&&message.message.text==='host reply'));
+console.log('Room chat checks passed: watcher sending, host relay, literal HTML text, throttling, late history, composer clearing.');
+
+api.requestLeave();elements.get('#confirmLeaveRace').onclick();
+assert.equal(elements.get('#roomChatLog').children.length,0,'room messages clear on leave');
+console.log('Room chat cleanup passed: leaving clears the room transcript.');
+elements.get('#createRoom').onclick();hostPeer.handlers.open('chat-lock-host');
+const typingGuest=addGuest('typing-guest','join'),chatViewer=addGuest('chat-viewer','watch');
+elements.get('#startRace').onclick();
+assert.equal(elements.get('#roomChatInput').disabled,true);
+assert.equal(elements.get('#roomChatSend').disabled,true);
+elements.get('#roomChatInput').value='blocked during race';elements.get('#roomChatForm').onsubmit({preventDefault(){}});
+assert.equal(elements.get('#roomChatLog').children.length,0);
+typingGuest.handlers.data({type:'chat-message',text:'bypass attempt'});
+assert.equal(elements.get('#roomChatLog').children.length,0,'host rejects racer chat during countdown');
+chatViewer.handlers.data({type:'chat-message',text:'watchers can chat'});
+assert.equal(elements.get('#roomChatLog').children.length,1);
+assert(/\d+:\d{2}:\d{2}/.test(elements.get('#roomChatLog').children[0].children[1].textContent),'timestamps include seconds');
+const chatRound=typingGuest.messages.filter(message=>message.type==='start').at(-1).round;
+const chatStart=now+3000;tick(chatStart);
+typingGuest.handlers.data({type:'chat-message',text:'still blocked'});
+assert.equal(elements.get('#roomChatLog').children.length,1);
+typingGuest.handlers.data({type:'progress',round:chatRound,progress:100,position:3,finished:true,finishMs:1000,wpm:36,accuracy:100,passageComplete:true});
+now=chatStart+1000;context.typed=context.input.value='cat';context.finish();
+assert.equal(elements.get('#roomChatInput').disabled,false);
+assert.equal(elements.get('#roomChatSend').disabled,false);
+elements.get('#roomChatForm').onsubmit({preventDefault(){}});
+assert.equal(elements.get('#roomChatInput').value,'');
+assert.equal(elements.get('#roomChatLog').children.length,2,'racers can send after the round ends');
+console.log('Racer chat restriction checks passed: disabled UI, host enforcement, spectator access, seconds, and post-round recovery.');

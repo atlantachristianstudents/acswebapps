@@ -19,7 +19,7 @@ for(const field of [target('typing'),target('words',false),target('readingConten
  assert(blocked('beforeinput',field,'insertFromPasteAsQuotation'));
  assert(!blocked('beforeinput',field,'insertText'),'normal keystrokes remain allowed');
 }
-for(const id of ['profileName','raceName','roomCode','historySearch','customText','raceCustomText','verseReference']){
+for(const id of ['profileName','raceName','roomCode','historySearch','customText','raceCustomText','verseReference','roomChatInput','lobbyChatInput']){
  const field=target(id);
  assert(!blocked('paste',field),id);
  assert(!blocked('beforeinput',field,'insertFromPaste'),id);

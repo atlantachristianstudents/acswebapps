@@ -4,6 +4,8 @@
   let peer, host=false, self='', room='', players={}, links=new Map(), phase='lobby', round=0;
   let countdownTimeout, clock, connectionTimeout, lastReport=0, saved, duration=120, gaveUp=false, celebratedRound=null;
   let unlisted=false, pendingRemove=null;
+  let roomMessages=[], roomChatSequence=0, localRoomChatAt=-Infinity;
+  const roomChatTimes=new Map();
   const removedPeers=new Set();
   let ghost=null, attemptReplays=new Map(), roundReplay=null, submittedReplay=false, localResultId=null;
   let roundStartsAt=0, watchStartsAt=0, queueSequence=0, directoryRooms=[], raceNameSession='', pendingNameAction=null;
@@ -71,6 +73,44 @@
     const value=index+1;
     return value+(['th','st','nd','rd'][value%100>=11&&value%100<=13?0:Math.min(value%10,4)]||'th');
   }
+  function cleanRoomChat(value){
+    if(!value||typeof value.id!=='string'||value.id.length>150||typeof value.name!=='string'||value.name.length>24||typeof value.text!=='string'||!value.text.trim()||value.text.length>500||!Number.isFinite(value.time)||value.time<0)return null;
+    return {id:value.id,name:value.name,text:value.text,time:value.time};
+  }
+  function renderChat(logId,messages){
+    const log=$('#'+logId);
+    const nearBottom=!log.children.length||log.scrollHeight-log.scrollTop-log.clientHeight<30;
+    const wanted=new Set(messages.map(message=>message.id));
+    const nodes=new Map(Array.from(log.children).map(node=>[node.dataset?.chatId,node]));
+    for(const [id,node] of nodes)if(!wanted.has(id))node.remove();
+    for(const message of messages){
+      if(nodes.has(message.id))continue;
+      const row=document.createElement('p');row.className='race-chat-message';row.dataset.chatId=message.id;
+      const name=document.createElement('strong');name.textContent=message.name;
+      const time=document.createElement('time');const date=new Date(message.time);time.textContent=date.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});time.setAttribute('datetime',date.toISOString());
+      const text=document.createElement('span');text.textContent=' · '+message.text;
+      row.append(name,time,text);log.append(row);nodes.set(message.id,row);
+    }
+    if(nearBottom)log.scrollTop=log.scrollHeight;
+  }
+  function receiveRoomChat(value){
+    const message=cleanRoomChat(value);
+    if(!message||roomMessages.some(item=>item.id===message.id))return;
+    roomMessages=[...roomMessages,message].slice(-50);renderChat('roomChatLog',roomMessages);
+  }
+  function racerChatLocked(id){return !!players[id]&&isRacer(players[id])&&(phase==='countdown'||phase==='racing');}
+  function acceptRoomChat(id,text){
+    if(!players[id]||players[id].connected===false||removedPeers.has(id)||racerChatLocked(id)||typeof text!=='string'||!text.trim()||text.length>500)return false;
+    const now=Date.now();if(now-(roomChatTimes.get(id)??-Infinity)<750)return false;roomChatTimes.set(id,now);
+    const message={id:room+'-'+now+'-'+(++roomChatSequence),name:players[id].name,text:text.trim(),time:now};
+    receiveRoomChat(message);broadcast({type:'roomChat',message});return true;
+  }
+  function sendRoomChat(text){
+    if(!api.active||racerChatLocked(self)||typeof text!=='string'||!text.trim()||text.length>500||Date.now()-localRoomChatAt<1000)return false;
+    if(host){if(!acceptRoomChat(self,text))return false;}
+    else{const link=links.get('host');if(!link?.open)return false;send(link,{type:'chat-message',text:text.trim()});}
+    localRoomChatAt=Date.now();return true;
+  }
   function clearTextPositions(){
     textMarkers.clear();markerLayout='';$('#raceTextMarkers').replaceChildren();
   }
@@ -137,6 +177,10 @@
     api.spectating=!!players[self]&&!isRacer(players[self]);
     document.body.classList.toggle('race-spectator',api.spectating);
     if(api.spectating){api.running=false;input.disabled=true;$('#typingCaret').hidden=true;}
+    const chatLocked=racerChatLocked(self), wasChatLocked=$('#roomChatInput').disabled;
+    $('#roomChatInput').disabled=chatLocked;$('#roomChatSend').disabled=chatLocked;
+    if(chatLocked)$('#roomChatStatus').textContent='Chat is disabled for racers until this round ends.';
+    else if(wasChatLocked)$('#roomChatStatus').textContent='';
     const list=$('#racers'); list.replaceChildren();
     paintTextPositions();
     const ordered=raceStandings(players);
@@ -151,8 +195,8 @@
       }
       const score=document.createElement('span');score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy??100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
       if(p.finished&&!p.gaveUp&&Number.isFinite(p.finishMs))score.textContent+=` · ${(p.finishMs/1000).toFixed(2)}s`;
+      if(host&&!ghost&&id!==self&&p.connected!==false)name.append(removeButton(id,p));
       row.append(name,track,score);
-      if(host&&!ghost&&id!==self&&p.connected!==false)row.append(removeButton(id,p));
       list.append(row);
     }
     const connected=Object.values(players).filter(p=>p.connected!==false&&p.role!=='watcher');
@@ -161,8 +205,9 @@
     $('#raceAudience').replaceChildren();
     for(const [id,player] of Object.entries(players).filter(([,player])=>player.connected!==false&&!isRacer(player))){
       const row=document.createElement('div');row.className='race-audience-member';
-      const label=document.createElement('span');label.textContent=player.name+(id===self?' (you)':'')+' · '+(player.role==='queued'?'queued for next race':'watching');row.append(label);
+      const label=document.createElement('span');label.textContent=player.name+(id===self?' (you)':'');row.append(label);
       if(host&&!ghost&&id!==self)row.append(removeButton(id,player));
+      const state=document.createElement('span');state.textContent=player.role==='queued'?'queued for next race':'watching';row.append(state);
       $('#raceAudience').append(row);
     }
     $('#roomVisibility').hidden=!host||!!ghost;
@@ -201,7 +246,7 @@
     $('#racePanel').setAttribute('aria-label',ghost?'Race against replay':'Friends race');
     $('#leaveRace').textContent=ghost?'leave replay race':host?'close room':'leave room';
     $('#inviteLink').value=`${location.origin}${location.pathname}?race=${room}`;
-    $('#modal').close();if(host&&!ghost)preparePassage();paint();
+    $('#modal').close();renderChat('roomChatLog',roomMessages);if(host&&!ghost)preparePassage();paint();
   }
   function showCountdown(value){
     const overlay=$('#raceCountdown');
@@ -241,6 +286,7 @@
     if($('#leaveRaceDialog').open)$('#leaveRaceDialog').close();
     clearInterval(clock);clearTimeout(connectionTimeout);clearInterval(timer);
     api.active=false;api.running=false;api.spectating=false;
+    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;renderChat('roomChatLog',[]);$('#roomChatInput').value='';$('#roomChatStatus').textContent='';
     window.raceRooms?.setRoom(null);
     $('#raceTextMarkers').hidden=true;clearTextPositions();
     syncNavigation();
@@ -251,10 +297,11 @@
     const url=new URL(location.href);url.searchParams.delete('race');window.history.replaceState(null,'',url);
     if(returnToLobby){open();if(message)showError(message);}
   }
-  function connect(isHost, code, name, intent='join') {
+  function connect(isHost, code, name, intent='join', privateRoom=false) {
     if(peer)peer.destroy();clearTimeout(connectionTimeout);
-    ghost=null;removedPeers.clear();unlisted=!!isHost&&!!$('#privateRoom').checked;host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;queueSequence=0;celebratedRound=null;preparedText='';
-    showError('Connecting…');$('#createRoom').disabled=$('#joinRoom').disabled=true;
+    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;roomChatSequence=0;
+    ghost=null;removedPeers.clear();unlisted=!!isHost&&privateRoom;host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;queueSequence=0;celebratedRound=null;preparedText='';
+    showError('Connecting…');$('#createRoom').disabled=$('#createPrivateRoom').disabled=$('#joinRoom').disabled=true;
     if(typeof Peer==='undefined'){failure('Could not load racing. Refresh and try again.');return;}
     peer=new Peer(isHost?`logostype-${code}`:undefined);
     connectionTimeout=setTimeout(()=>failure('Could not connect. Check the code and your network, then try again.'),15000);
@@ -278,7 +325,7 @@
         const reserved=Object.values(players).filter(p=>p.connected!==false&&p.role!=='watcher').length;
         const role=requested==='watch'?'watcher':locked||reserved>=8?'queued':'racer';
         players[connection.peer]={name:cleanName(connection.metadata?.name),role,queueOrder:role==='queued'?++queueSequence:0,connected:true,finished:false,wpm:0,progress:0};
-        links.set(connection.peer,connection);wire(connection);publish();
+        links.set(connection.peer,connection);wire(connection);send(connection,{type:'roomChatHistory',messages:roomMessages});publish();
       });
     });
     function wire(connection){
@@ -287,7 +334,8 @@
         if(!data||typeof data!=='object')return;
         if(host){
           if(!players[connection.peer]||removedPeers.has(connection.peer))return;
-          if(data.type==='hello')send(connection,snapshot());
+          if(data.type==='hello'){send(connection,snapshot());send(connection,{type:'roomChatHistory',messages:roomMessages});}
+          if(data.type==='chat-message'){acceptRoomChat(connection.peer,data.text);return;}
           if(data.type==='queue'&&!isRacer(players[connection.peer])){
             players[connection.peer].role='queued';players[connection.peer].queueOrder||=++queueSequence;publish();
           }
@@ -313,6 +361,8 @@
             checkFinished();publish();
           }
         } else {
+          if(data.type==='roomChat'){receiveRoomChat(data.message);return;}
+          if(data.type==='roomChatHistory'&&Array.isArray(data.messages)&&data.messages.length<=50){roomMessages=data.messages.map(cleanRoomChat).filter(Boolean);renderChat('roomChatLog',roomMessages);return;}
           if(data.type==='removed'){leave('The host removed you from this room.');return;}
           if(data.type==='reject'){failure(data.message);return;}
           if(data.type==='roundReplay'&&data.round===round){saveRaceReplay(data.replay);paint();}
@@ -450,6 +500,7 @@
       [self]:{name,connected:true,finished:false,wpm:0,progress:0},
       'replay-ghost':{name:'replay · '+result.date,connected:true,finished:false,wpm:0,progress:0}
     };
+    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;
     showRoom();
     startGhostRound();
   }
@@ -523,11 +574,12 @@
     pauseMenu();currentMenu='raceLobby';setReadingView(false);updateBookProgress();syncNavigation(true);
     document.body.classList.add('race-lobby-open');$('#raceLobby').hidden=false;
     $('#modal').close();
-    $('#createRoom').disabled=$('#joinRoom').disabled=false;showError('');
+    $('#createRoom').disabled=$('#createPrivateRoom').disabled=$('#joinRoom').disabled=false;showError('');
     const invite=new URL(location.href).searchParams.get('race');
     $('#roomCode').value=invite||'';
     $('#joinRoom').focus();
     window.raceRooms?.start(renderAvailableRooms);
+    window.raceRooms?.startChat?.((messages,state)=>{renderChat('lobbyChatLog',messages);$('#lobbyChatStatus').textContent=state==='ready'?'':'Lobby chat is reconnecting. You can send when it reconnects.';});
   }
   function randomRacerName(){
     const adjectives=['Swift','Bright','Calm','Brave','Keen','Nimble','Steady','Quiet'];
@@ -591,10 +643,12 @@
       row.append(details,actions);list.append(row);
     }
   }
-  $('#createRoom').onclick=()=>{
-    if($('#createRoom').disabled)return;
-    showError('');withRacerName(name=>connect(true,Array.from(crypto.getRandomValues(new Uint8Array(4)),n=>n.toString(16).padStart(2,'0')).join(''),name));
-  };
+  function createRoom(privateRoom=false){
+    if($('#createRoom').disabled||$('#createPrivateRoom').disabled)return;
+    showError('');withRacerName(name=>connect(true,Array.from(crypto.getRandomValues(new Uint8Array(4)),n=>n.toString(16).padStart(2,'0')).join(''),name,'join',privateRoom));
+  }
+  $('#createRoom').onclick=()=>createRoom();
+  $('#createPrivateRoom').onclick=()=>createRoom(true);
   $('#joinRoom').onclick=()=>{
     if($('#joinRoom').disabled)return;
     $('#roomCodeError').textContent='';updateJoinAction();
@@ -650,6 +704,19 @@
     event.preventDefault();event.returnValue='';
   });
   $('#copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText($('#inviteLink').value);status('Invite copied. Send it to your friends.');}catch{$('#inviteLink').select();status('Select and copy the invite link to share it.');}};
+  $('#lobbyChatForm').onsubmit=event=>{
+    event.preventDefault();const field=$('#lobbyChatInput'),text=field.value.trim();if(!text)return;
+    withRacerName(name=>{
+      if(window.raceRooms?.sendChat(name,text)){$('#lobbyChatStatus').textContent='';if(field.value.trim()===text)field.value='';}
+      else $('#lobbyChatStatus').textContent='Please wait a moment and retry. Chat may be reconnecting.';
+    });
+  };
+  $('#roomChatForm').onsubmit=event=>{
+    event.preventDefault();const field=$('#roomChatInput'),text=field.value.trim();if(!text)return;
+    if(racerChatLocked(self)){$('#roomChatStatus').textContent='Chat is disabled for racers until this round ends.';return;}
+    if(sendRoomChat(text)){$('#roomChatStatus').textContent='';field.value='';}
+    else $('#roomChatStatus').textContent='Please wait a moment and retry. Chat may be reconnecting.';
+  };
   $('#roomVisibility').onclick=()=>{if(host&&!ghost&&api.active){unlisted=!unlisted;publish();}};
   $('#cancelRemoveRacer').onclick=()=>{pendingRemove=null;$('#removeRacerDialog').close();};
   $('#removeRacerDialog').addEventListener('cancel',()=>{pendingRemove=null;});

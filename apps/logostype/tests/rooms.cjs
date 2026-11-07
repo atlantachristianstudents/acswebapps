@@ -70,7 +70,7 @@ function browser(name) {
     }
     reconnect() {}
   }
-  const updates=[];
+  const updates=[],chatUpdates=[];
   const context=vm.createContext({
     Peer,Date:{now:()=>now},Math:{random:()=>0},
     setTimeout:(fn,delay)=>schedule(name,fn,delay),clearTimeout:id=>tasks.delete(id),
@@ -80,7 +80,8 @@ function browser(name) {
   vm.runInContext(source,context);
   const api=context.window.raceRooms;
   api.start((rooms,state)=>updates.push({rooms:JSON.parse(JSON.stringify(rooms)),state}));
-  return {api,lifecycle,updates,last:()=>updates.at(-1),name};
+  api.startChat((messages)=>chatUpdates.push(JSON.parse(JSON.stringify(messages))));
+  return {api,lifecycle,updates,last:()=>updates.at(-1),chat:()=>chatUpdates.at(-1)||[],name};
 }
 const first=browser('first'), second=browser('second');
 advance(2000);
@@ -95,6 +96,12 @@ first.api.setRoom({code:'1234abcd',name:'Host',count:3,phase:'racing'});
 advance(2300);
 assert.equal(second.last().rooms.find(room=>room.code==='1234abcd').phase,'racing');
 assert.equal(second.last().rooms.find(room=>room.code==='1234abcd').count,3);
+assert(first.api.sendChat('Host','<b>hello lobby</b>'));
+assert(!first.api.sendChat('Host','too fast'));
+assert(second.api.sendChat('Guest','hello from guest'));
+advance(2400);
+assert.equal(first.chat().length,2);assert.equal(second.chat().length,2);
+assert.equal(second.chat()[0].text,'<b>hello lobby</b>');
 first.lifecycle.pagehide();
 advance(5000);
 assert.equal(second.last().state,'ready','another browser takes over the directory');
@@ -102,6 +109,7 @@ assert.deepEqual(second.last().rooms.map(room=>room.code),['5678abcd']);
 const third=browser('third');
 advance(7000);
 assert.equal(third.last().rooms[0].code,'5678abcd');
+assert.equal(third.chat().length,2,'recent lobby chat survives coordinator handover and reaches new arrivals');
 second.api.setRoom(null);advance(7100);
 assert.equal(third.last().rooms.length,0,'leaving removes the shared listing');
 third.api.setRoom({code:'abcdef12',name:'Suspended host',count:1,phase:'lobby'});
@@ -114,3 +122,10 @@ second.api.setRoom({code:'bad',name:'Invalid',count:99,phase:'lobby'});
 advance(35100);
 assert.equal(second.last().rooms.length,0);
 console.log('Shared room checks passed: concurrent discovery, global listings, occupancy/status updates, coordinator failover, removal, stale expiry, invalid listings.');
+
+for(let index=0;index<55;index++){advance(36100+index*1000);assert(second.api.sendChat('Guest','message '+index));advance(now+1);}
+assert.equal(second.chat().length,50);assert.equal(third.chat().length,50);
+assert(!second.api.sendChat('Guest','x'.repeat(501)));
+const late=browser('late');advance(now+2000);
+assert.equal(late.chat().length,50,'late arrivals receive bounded recent chat');
+console.log('Lobby chat checks passed: shared delivery, literal text, rate limits, recent history, coordinator failover, message cap, late arrival.');

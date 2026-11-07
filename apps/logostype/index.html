@@ -1125,9 +1125,25 @@
         background: var(--accent);
         transition: width 0.2s;
       }
-      .race-remove { font-size: 12px; padding: 6px; color: var(--error); }
-      .race-audience-member { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; }
+      .race-remove { flex-shrink: 0; font-size: 12px; padding: 6px; color: var(--error); }
+      .race-audience-member { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 10px; font-size: 12px; }
+      #replayRetentionRange { display: block; width: 100%; margin: 14px 0; }
+      #replayRetentionPreview { display: block; font-size: 13px; color: var(--muted); margin: 10px 0; }
+      .race-chat { margin-top: 24px; width: 100%; }
+      .race-chat-log { max-height: 220px; overflow-y: auto; border: 1px solid var(--muted); border-radius: 6px; padding: 10px; min-height: 65px; }
+      .race-chat-log:empty::before { content: "No messages yet."; color: var(--muted); font-size: 13px; }
+      .race-chat-message { margin: 0 0 9px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+      .race-chat-message strong { color: var(--accent); }
+      .race-chat-message time { color: var(--muted); font-size: 11px; margin-left: 8px; }
+      .race-chat-form { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+      .race-chat-form .race-field { flex: 1; min-width: 0; margin: 0; }
+      .race-chat-form .race-primary { margin: 0; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
       .race-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
         color: var(--text);
         overflow-wrap: anywhere;
       }
@@ -1171,7 +1187,7 @@
         }
         .racer {
           gap: 8px;
-          grid-template-columns: 80px 1fr 100px;
+          grid-template-columns: minmax(120px, 1fr) minmax(40px, 1fr) 90px;
         }
         nav {
           gap: 8px;
@@ -1559,7 +1575,7 @@
         <section id="raceLobby" hidden aria-labelledby="raceLobbyTitle">
           <h2 id="raceLobbyTitle">race friends</h2>
           <div class="race-lobby-controls">
-            <button type="button" id="createRoom" class="race-primary">create room →</button><label><input type="checkbox" id="privateRoom"> private room (code only)</label>
+            <button type="button" id="createRoom" class="race-primary">create public room →</button><button type="button" id="createPrivateRoom" class="race-primary">create private room →</button>
             <button type="button" id="joinRoom" class="race-primary">join by code →</button>
           </div>
           <p id="raceError" role="status" aria-live="polite"></p>
@@ -1567,6 +1583,12 @@
           <h3>available rooms</h3>
           <p id="roomDirectoryStatus" role="status" aria-live="polite">Looking for rooms…</p>
           <div id="availableRooms"></div>
+          <section class="race-chat" aria-labelledby="lobbyChatTitle">
+            <h3 id="lobbyChatTitle">lobby chat</h3><p>Messages here are visible to everyone browsing race rooms.</p>
+            <div id="lobbyChatLog" class="race-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form id="lobbyChatForm" class="race-chat-form"><label class="sr-only" for="lobbyChatInput">Message the race lobby</label><input id="lobbyChatInput" class="race-field" maxlength="500" autocomplete="off" placeholder="message the lobby…"><button type="submit" class="race-primary">send</button></form>
+            <p id="lobbyChatStatus" role="status" aria-live="polite"></p>
+          </section>
         </section>
         <div class="config">
           <div class="group">
@@ -1617,6 +1639,12 @@
             ><button id="giveUpRace" class="race-leave" hidden>give up</button
             ><button id="leaveRace" class="race-leave">leave room</button>
           </div>
+          <section class="race-chat" aria-labelledby="roomChatTitle">
+            <h3 id="roomChatTitle">room chat</h3>
+            <div id="roomChatLog" class="race-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form id="roomChatForm" class="race-chat-form"><label class="sr-only" for="roomChatInput">Message this race room</label><input id="roomChatInput" class="race-field" maxlength="500" autocomplete="off" placeholder="message this room…"><button type="submit" id="roomChatSend" class="race-primary">send</button></form>
+            <p id="roomChatStatus" role="status" aria-live="polite"></p>
+          </section>
         </section>
         <div id="journeyOptions" class="journey-options" hidden>
           <div class="journey-selectors">

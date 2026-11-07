@@ -55,7 +55,7 @@ function validateBackup(data){
   if(!data||data.format!=='logostype-backup'||data.version!==1)throw new Error('Choose a Logostype JSON backup (version 1).');
   if(!Number.isSafeInteger(data.bookProgress)||data.bookProgress<0||data.bookProgress>scriptureReferences.length)throw new Error('The backup has invalid Scripture Journey progress.');
   if(!Array.isArray(data.history))throw new Error('The backup has invalid typing history.');
-  if(data.replayRetentionLimit!==undefined&&![0,25,100,250].includes(data.replayRetentionLimit))throw new Error('Invalid replay retention.');
+  if(data.replayRetentionLimit!==undefined&&(!Number.isSafeInteger(data.replayRetentionLimit)||data.replayRetentionLimit<0||data.replayRetentionLimit>1000000))throw new Error('Invalid replay retention.');
   const modes=['time','words','quote','custom','book'];
   const history=data.history.map(item=>{
     if(!item||!Number.isFinite(item.wpm)||item.wpm<0||!Number.isFinite(item.accuracy)||item.accuracy<0||item.accuracy>100||!modes.includes(item.mode)||!Number.isInteger(item.limit)||item.limit<1||item.limit>3600||typeof item.date!=='string'||item.date.length>100)throw new Error('The backup contains an invalid typing result.');

@@ -3,7 +3,7 @@ let historyStorageMessage = '';
 let pendingHistoryCleanup = null;
 try {
   const saved = Number(localStorage.getItem('logostype-replay-limit'));
-  if ([0, 25, 100, 250].includes(saved)) replayRetentionLimit = saved;
+  if (Number.isSafeInteger(saved) && saved >= 0 && saved <= 1000000) replayRetentionLimit = saved;
 } catch {}
 function applyReplayRetention(entries, limit) {
   if (!limit) return entries;
@@ -36,9 +36,9 @@ function renderHistoryStorage() {
   const count = history.filter(result => result.replay || result.raceReplay).length;
   return '<button class="option" data-open="settings">← settings</button><h2>history and replay storage</h2>' +
     '<p>' + history.length + ' results · ' + count + ' recordings. Removing recordings keeps scores, records, and speed charts.</p>' +
-    '<label for="replayRetention">keep replay recordings</label><select class="race-field" id="replayRetention">' +
-    [0,25,100,250].map(limit => '<option value="' + limit + '"' + (limit === replayRetentionLimit ? ' selected' : '') + '>' +
-      (limit ? 'newest ' + limit : 'all recordings') + '</option>').join('') + '</select>' +
+    '<label for="replayRetentionRange">keep replay recordings</label><input id="replayRetentionRange" type="range" min="0" max="' + Math.max(1000, replayRetentionLimit, count) + '" step="1" value="' + replayRetentionLimit + '">' +
+    '<label for="replayRetention">number of newest recordings (0 keeps all)</label><input class="race-field" id="replayRetention" type="number" min="0" max="1000000" step="1" value="' + replayRetentionLimit + '">' +
+    '<output id="replayRetentionPreview" for="replayRetention replayRetentionRange">' + (replayRetentionLimit ? 'Keep the newest ' + replayRetentionLimit + ' recordings.' : 'Keep all recordings.') + '</output>' +
     '<button class="option" id="applyReplayRetention">apply retention</button>' +
     '<p id="historyStorageNotice" role="status">' + escapeHtml(historyStorageMessage) + '</p>' +
     '<button class="option" id="deleteAllHistory">delete all typing history</button>';
@@ -81,7 +81,10 @@ document.addEventListener('click', event => {
   }
   if (button.id === 'applyReplayRetention') {
     const limit = Number($('#replayRetention').value);
-    if (![0,25,100,250].includes(limit)) return;
+    if (!$('#replayRetention').value.trim() || !Number.isSafeInteger(limit) || limit < 0 || limit > 1000000) {
+      $('#historyStorageNotice').textContent = 'Enter a whole number from 0 to 1,000,000. Zero keeps all recordings.';
+      return;
+    }
     const before = history.filter(result => result.replay || result.raceReplay).length;
     const removed = limit ? Math.max(0, before - limit) : 0;
     confirmHistoryCleanup('apply replay retention?', 'Remove ' + removed + ' older recordings and keep ' + (limit ? 'the newest ' + limit : 'all recordings') + ' from now on? Scores and charts are kept.', () => {
@@ -98,4 +101,19 @@ document.addEventListener('click', event => {
       openModal('historyStorage');
     });
   }
+});
+
+document.addEventListener('input', event => {
+  if (!['replayRetention', 'replayRetentionRange'].includes(event.target.id)) return;
+  const limit = Number(event.target.value);
+  if (!event.target.value.trim() || !Number.isSafeInteger(limit) || limit < 0 || limit > 1000000) {
+    $('#historyStorageNotice').textContent = 'Enter a whole number from 0 to 1,000,000. Zero keeps all recordings.';
+    return;
+  }
+  $('#historyStorageNotice').textContent = '';
+  $('#replayRetention').value = String(limit);
+  const range = $('#replayRetentionRange');
+  range.max = String(Math.max(Number(range.max) || 1000, limit));
+  range.value = String(limit);
+  $('#replayRetentionPreview').textContent = limit ? 'Keep the newest ' + limit + ' recordings.' : 'Keep all recordings.';
 });

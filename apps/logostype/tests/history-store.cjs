@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const elements=new Map(),stored=new Map();
-let click,fail=false;
+let click,inputHandler,fail=false;
 const context=vm.createContext({
  history:Array.from({length:40},(_,index)=>({id:String(index),date:new Date(2026,0,index+1).toISOString(),wpm:index,chart:{keep:true},replay:{keep:true},raceReplay:{keep:true}})),
  historyResultDate:result=>new Date(result.date),historyDescription:result=>result.id,historyKey:result=>result.id,escapeHtml:String,
@@ -13,7 +13,7 @@ const context=vm.createContext({
   return elements.get(selector);
  },
  localStorage:{getItem:key=>stored.get(key)||null,setItem(key,value){if(fail)throw Error('full');stored.set(key,value);}},
- document:{addEventListener:(type,handler)=>{if(type==='click')click=handler;}},
+ document:{addEventListener:(type,handler)=>{if(type==='click')click=handler;if(type==='input')inputHandler=handler;}},
 });
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','history-store.js'),'utf8'),context);
 const run=code=>vm.runInContext(code,context);
@@ -41,3 +41,17 @@ vm.runInContext("var restored=mergeTypingHistory([{id:'saved',wpm:50}],[{id:'sav
 assert.equal(vm.runInContext('restored.length',context),1);
 assert(vm.runInContext('restored[0].replay.recovered&&restored[0].raceReplay.recovered',context));
 console.log('Replay restore checks passed: recover recordings without duplicating saved results.');
+
+inputHandler({target:{id:'replayRetentionRange',value:'137'}});
+assert.equal(context.$('#replayRetention').value,'137');
+assert(context.$('#replayRetentionPreview').textContent.includes('137'));
+inputHandler({target:{id:'replayRetention',value:'5000'}});
+assert.equal(context.$('#replayRetentionRange').value,'5000');
+assert.equal(context.$('#replayRetentionRange').max,'5000');
+press('applyReplayRetention');context.$('#confirmHistoryCleanup').onclick();
+assert.equal(stored.get('logostype-replay-limit'),'5000');
+inputHandler({target:{id:'replayRetention',value:'0'}});
+assert(context.$('#replayRetentionPreview').textContent.includes('all recordings'));
+context.$('#replayRetention').value='-1';press('applyReplayRetention');
+assert.equal(stored.get('logostype-replay-limit'),'5000');
+console.log('Retention range checks passed: slider/number synchronization, arbitrary limits, all recordings, validation, persistence.');
