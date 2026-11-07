@@ -602,15 +602,8 @@ function render(smooth = true) {
         let content = c;
         if (isTyped) {
           if (wrong) {
-            if (typed[pos] === " ") {
-              // A misplaced space occupying a letter position: show it as a red ▯
-              state = "incorrect";
-              content = "▯";
-            } else {
-              // Corrupted a letter: show the actually-typed char in red
-              state = "incorrect";
-              content = typed[pos];
-            }
+            // Keep the expected letter visible so mistakes do not rewrite the passage.
+            state = "incorrect";
           } else {
             state = "correct";
             content = typed[pos];
@@ -1134,7 +1127,7 @@ function renderKeyboardShortcuts() {
       <tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Reading: next / previous chapter</td></tr>
       <tr><td><kbd>Shift+N</kbd> / <kbd>Shift+P</kbd></td><td>Reading: next / previous available book</td></tr>
     </tbody></table>
-    <p>Menu and settings shortcuts use no modifier keys. They are disabled during custom typing tests, in open dialogs, and in other form fields. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
+    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and history. They are disabled during custom typing tests, in open dialogs, and in other form fields. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
 }
 function openModal(type) {
   const content = $("#modalContent");
@@ -1148,28 +1141,22 @@ function openModal(type) {
     [["primary", "primary — background"], ["secondary", "secondary — accents"], ["tertiary", "tertiary — panel tint and supporting accents"]].map(([key, label]) =>
       '<label class="theme-color-field" for="theme-' + key + '"><span>' + label + '</span><input type="color" id="theme-' + key + '" name="' + key + '" value="' + customThemeColors[key] + '"></label>'
     ).join("") + '<button class="option" type="submit">save colors →</button></form>';
+  if (type === "records") content.innerHTML = '<h2>records and history</h2><div class="records-controls" role="group" aria-label="Records"><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="journeyCompletions">↗ journey completion records</button></div>';
   if (type === "settings")
     content.innerHTML =
-      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="journeyCompletions">↗ journey completion records</button><button class="option" data-open="themes">◐ change theme</button><button class="option" id="fontSmaller" type="button">A− smaller font</button><button class="option" id="fontBigger" type="button">A+ bigger font</button><h3>your data</h3><button class="option" id="exportData">export progress and typing history ↓</button><button class="option" id="importData">import progress and typing history ↑</button><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, Scripture Journey progress, and all saved typing history. Import merges history and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
+      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="themes">◐ change theme</button><h3 id="fontSizeLabel">font size</h3><div class="font-size-controls" role="group" aria-labelledby="fontSizeLabel"><button class="option" id="fontSmaller" type="button">smaller</button><button class="option" id="fontDefault" type="button">default</button><button class="option" id="fontBigger" type="button">bigger</button></div><h3>your data</h3><div class="data-controls" role="group" aria-label="Progress and typing history backups"><button class="option" id="exportData">export data</button><button class="option" id="importData">import data</button></div><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, theme and custom colors, Scripture Journey progress, and all saved typing history. Import restores theme settings, merges history, and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
   if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
       "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
   if (type === "history" || type === "profile")
     content.innerHTML =
-      '<button class="option" data-open="settings">← settings</button><h2>records and typing history</h2>' +
+      '<button class="option" data-open="records">← records and history</button><h2>records and typing history</h2>' +
       renderPersonalRecords() +
-      "<h3>typing history</h3>" +
-      (history.length
-        ? history
-            .map(
-              (h, index) =>
-                `<button type="button" class="history-row" data-history-index="${index}" aria-label="View result: ${escapeHtml(h.reference || (h.mode === "quote" ? "verse" : h.mode))} ${escapeHtml(h.date)}"><span>${escapeHtml(h.date)} · ${escapeHtml(h.reference || (h.mode === "quote" ? "verse" : h.mode))} ${h.reference ? "" : h.limit}</span><span>${h.wpm} wpm · ${h.accuracy}% ↗</span></button>`,
-            )
-            .join("")
-        : "<p>Your first personal best is one test away. Finish a test to save your results here.</p>");
+      '<div id="historyProgression">' + renderHistoryProgression() + '</div>' +
+      '<h3>typing history</h3><label for="historySearch">search history</label><input class="race-field" id="historySearch" type="search" placeholder="Date, verse, journey, mode, WPM…"><p id="historyCount" role="status" aria-live="polite"></p><div id="historyResults"></div>';
   if (type === "journeyCompletions")
-    content.innerHTML = '<button class="option" data-open="settings">← settings</button><h2>journey completion records</h2>';
+    content.innerHTML = '<button class="option" data-open="records">← records and history</button><h2>journey completion records</h2>';
   if (type === "journeyCompletions")
     content.insertAdjacentHTML(
       "beforeend",
@@ -1224,8 +1211,12 @@ function openModal(type) {
       );
     else content.insertAdjacentHTML("beforeend", "<h3>Book journey completions</h3><p>No completed book journeys yet.</p>");
   }
+  if (type === "history" || type === "profile") {
+    $("#historySearch").value = historySearchQuery;
+    renderHistorySearch();
+  }
   if (!$("#modal").open) $("#modal").showModal();
-  if (type === "settings" || type === "profile") $("#profileName").value = getProfileName();
+  if (type === "settings") $("#profileName").value = getProfileName();
   if (type === "custom") $("#customText").value = custom;
   if (type === "wordCount") { $("#wordCount").value = limit; $("#wordCount").focus(); $("#wordCount").select(); }
   if (type === "verseSelection") {
@@ -1270,10 +1261,10 @@ document.addEventListener("click", (e) => {
     reset();
     input.focus();
   }
-  if (b.id === "fontSmaller" || b.id === "fontBigger") {
+  if (b.id === "fontSmaller" || b.id === "fontDefault" || b.id === "fontBigger") {
     const words = $("#words");
     const size = parseFloat(getComputedStyle(words).fontSize);
-    words.style.fontSize = Math.max(16, Math.min(64, size + (b.id === "fontBigger" ? 2 : -2))) + "px";
+    words.style.fontSize = b.id === "fontDefault" ? "" : Math.max(16, Math.min(64, size + (b.id === "fontBigger" ? 2 : -2))) + "px";
     positionCaret(false);
   }
   if (b.id === "restartCommand") {
@@ -1452,6 +1443,94 @@ loadScripture()
     console.error(error);
   });
 
+let historySearchQuery = "";
+let historyProgressionFormat = null;
+let historyProgressionSettings = null;
+function progressionFormat(result) {
+  if (result.mode === "time" || result.mode === "words") return result.mode + ":" + result.limit;
+  if (result.mode === "custom") return result.customPreset === "default" ? "custom:default" : "custom";
+  return result.mode;
+}
+function progressionFormatLabel(value) {
+  const [format, length] = value.split(":");
+  if (format === "time") return length + " seconds";
+  if (format === "words") return length + " words";
+  return ({ book: "Scripture Journey", quote: "verse", custom: length === "default" ? "default custom text" : "custom text" })[format] || format;
+}
+document.addEventListener("click", event => {
+  const button = event.target.closest("[data-progression-format]");
+  if (!button) return;
+  historyProgressionFormat = button.dataset.progressionFormat;
+  historyProgressionSettings = button.dataset.progressionSettings;
+  document.querySelectorAll("[data-progression-format]").forEach(option => {
+    option.setAttribute("aria-pressed", String(option === button));
+  });
+  $("#historyProgressionChart").innerHTML = renderHistoryProgressionChart();
+});
+
+function historyDescription(result) {
+  return `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit}${result.journey ? " · " + result.journey : ""} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
+}
+function renderHistorySearch() {
+  const terms = historySearchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = history.map((result, index) => ({ result, index })).filter(({ result }) => {
+    const text = (historyDescription(result) + " " + result.mode + " " +
+      (result.capitalization === true ? "caps and punctuation" : result.capitalization === false ? "no caps or punctuation" : "")).toLowerCase();
+    return terms.every(term => text.includes(term));
+  });
+  $("#historyCount").textContent = `${matches.length} of ${history.length} results`;
+  $("#historyResults").innerHTML = matches.length ? matches.map(({ result, index }) =>
+    `<button type="button" class="history-row" data-history-index="${index}">${escapeHtml(historyDescription(result))} ↗</button>`
+  ).join("") : "<p>" + (history.length ? "No matching results." : "Finish a test to save your first result here.") + "</p>";
+}
+document.addEventListener("input", event => {
+  if (event.target.id !== "historySearch") return;
+  historySearchQuery = event.target.value;
+  renderHistorySearch();
+});
+function renderHistoryProgression() {
+  if (historyProgressionFormat === null) historyProgressionFormat = progressionFormat({ mode, limit,
+    customPreset: mode === "custom" && rawTarget === defaultCustomText ? "default" : undefined });
+  if (historyProgressionSettings === null) historyProgressionSettings = mode === "book" || (capitalization && punctuation) ? "on" : !capitalization && !punctuation ? "off" : "all";
+  const formats = [...new Set([historyProgressionFormat, "book", "quote", "custom:default", "custom",
+    ...[15, 30, 60, 120].map(value => "time:" + value),
+    ...[10, 25, 50, 100].map(value => "words:" + value), ...history.map(progressionFormat)])];
+  const settings = [["off", "caps off", "no caps or punctuation"],
+    ["on", "caps on", "caps and punctuation"], ["all", "all", "all settings (including older results)"]];
+  return '<h3>history progression</h3><div class="progression-table-wrap"><table class="records-table progression-options"><caption>Choose a typing format and capitalization/punctuation settings</caption><thead><tr><th scope="col">typing format</th>' +
+    settings.map(([, label, description]) => '<th scope="col" aria-label="' + description + '">' + label + '</th>').join("") +
+    '</tr></thead><tbody>' + formats.map(format => '<tr><th scope="row">' + escapeHtml(progressionFormatLabel(format)) + '</th>' +
+      settings.map(([value, label, description]) => '<td><button type="button" data-progression-format="' + escapeHtml(format) +
+        '" data-progression-settings="' + value + '" aria-label="' + escapeHtml(progressionFormatLabel(format) + ', ' + description) +
+        '" aria-pressed="' + (format === historyProgressionFormat && value === historyProgressionSettings) + '">' + label + '</button></td>').join("") +
+      '</tr>').join("") + '</tbody></table></div><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>';
+
+}
+function renderHistoryProgressionChart() {
+  const entries = history.map((result, index) => ({ result, index })).filter(({ result }) =>
+    progressionFormat(result) === historyProgressionFormat && Number.isFinite(result.wpm) &&
+    (historyProgressionSettings === "all" || (result.capitalization === (historyProgressionSettings === "on") &&
+      result.punctuation === (historyProgressionSettings === "on")))
+  ).reverse();
+  // Modern records have ISO dates; retain saved order for older, unparseable dates.
+  entries.sort((a, b) => {
+    const first = Date.parse(a.result.date), second = Date.parse(b.result.date);
+    return Number.isFinite(first) && Number.isFinite(second) ? first - second : 0;
+  });
+  if (!entries.length) return '<p>No saved results for this typing format and settings yet.</p>';
+  const max = entries.reduce((value, entry) => Math.max(value, entry.result.wpm), 100);
+  const x = index => entries.length === 1 ? 310 : 45 + index / (entries.length - 1) * 535;
+  const y = value => 165 - value / max * 140;
+  const grid = Array.from({ length: 5 }, (_, index) => {
+    const value = max * index / 4, py = y(value);
+    return `<line x1="45" y1="${py}" x2="580" y2="${py}" stroke="var(--muted)" opacity=".25"/><text x="38" y="${py + 4}" text-anchor="end">${Math.round(value)}</text>`;
+  }).join("");
+  const points = entries.map((entry, index) => `${x(index)},${y(entry.result.wpm)}`).join(" ");
+  const dots = entries.map((entry, index) => `<circle cx="${x(index)}" cy="${y(entry.result.wpm)}" r="3" fill="var(--accent)"><title>${escapeHtml(historyDescription(entry.result))}</title></circle>`).join("");
+  return '<p>WPM across ' + entries.length + ' saved results for ' + escapeHtml(progressionFormatLabel(historyProgressionFormat)) + ', from oldest to newest. Each point is one result. Search filters only the list below.</p>' +
+    `<svg class="history-progression" viewBox="0 0 600 205" role="img" aria-label="Typing speed progression across ${entries.length} results, oldest to newest. First result ${entries[0].result.wpm} WPM; latest result ${entries[entries.length - 1].result.wpm} WPM."><text x="4" y="13">WPM</text>${grid}<polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2"/>${dots}<text x="45" y="195">oldest</text><text x="580" y="195" text-anchor="end">newest</text></svg>`;
+}
+
 function openHistoryResult(index) {
   const result = history[index];
   if (!result) return;
@@ -1557,6 +1636,7 @@ function openMenuDestination() {
   if (location.hash === "#journey") enterBook();
   if (location.hash === "#typing") enterTyping();
   if (location.hash === "#friends") $("#friends").click();
+  if (location.hash === "#records") openModal("records");
   if (location.hash === "#settings") openModal("settings");
 }
 window.addEventListener("load", openMenuDestination);

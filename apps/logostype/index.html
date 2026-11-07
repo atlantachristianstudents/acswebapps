@@ -99,7 +99,7 @@
         align-items: center;
       }
       nav button,
-      .account {
+      .account, #records {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -108,8 +108,13 @@
         min-height: 44px;
         padding: 8px;
       }
-      .account {
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         margin-left: auto;
+      }
+      .account {
         gap: 8px;
       }
       .profile-name {
@@ -673,6 +678,15 @@
         text-align: left;
         color: var(--text);
       }
+      .font-size-controls, .records-controls, .data-controls {
+        display: flex;
+        gap: 8px;
+      }
+      .font-size-controls button.option, .records-controls button.option, .data-controls button.option {
+        flex: 1;
+        width: auto;
+        text-align: center;
+      }
       .close {
         float: right;
         font-size: 20px;
@@ -685,6 +699,35 @@
         color: var(--text);
         padding: 12px;
         border-radius: 5px;
+      }
+      .progression-table-wrap {
+        overflow-x: auto;
+      }
+      .progression-options caption {
+        text-align: left;
+        color: var(--muted);
+        font-size: 12px;
+        padding-bottom: 10px;
+      }
+      .progression-options button {
+        width: 100%;
+        min-height: 40px;
+        padding: 6px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+      }
+      .progression-options button[aria-pressed="true"] {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--bg);
+        font-weight: bold;
+      }
+      .history-progression {
+        display: block;
+        width: 100%;
+        height: auto;
+        font: 11px monospace;
+        fill: var(--muted);
       }
       .history-row {
         width: 100%;
@@ -972,7 +1015,7 @@
           order: 3;
           width: 100%;
         }
-        header > .account {
+        header > .header-actions {
           margin-left: auto;
         }
       }
@@ -1256,11 +1299,17 @@
             </svg>
           </button>
         </nav>
+        <div class="header-actions">
+          <button id="records" title="Records and history" aria-label="Records and history" data-dialog="records">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 3h8v5a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 12v6m-4 3h8m-6-3h4v3h-4z" />
+            </svg>
+          </button>
         <button
           class="account"
-          title="Settings, profile, and history"
+          title="Settings and profile"
           data-dialog="settings"
-          aria-label="Settings, profile, and history">
+          aria-label="Settings and profile">
           <svg
             class="menu-icon"
             viewBox="0 0 24 24"
@@ -1275,6 +1324,7 @@
             <circle cx="12" cy="12" r="3" />
           </svg>
         </button>
+        </div>
       </header>
       <main id="typingContent">
         <div class="config">

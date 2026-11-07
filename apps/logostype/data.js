@@ -9,7 +9,7 @@ function getProfileName(){
 }
 function updateProfileLabel(){
   const name=getProfileName();
-  $('.account').title=name?`${name} · settings, profile, and history`:'Settings, profile, and history';
+  $('.account').title=name?`${name} · settings and profile`:'Settings and profile';
   $('.account').setAttribute('aria-label',$('.account').title);
 }
 function dataStatus(message){
@@ -54,6 +54,17 @@ function validateBackup(data){
     return result;
   });
   if(data.name!==undefined&&(typeof data.name!=='string'||data.name.length>24))throw new Error('The backup has an invalid name.');
+  let themeName, themeColors;
+  if(data.theme!==undefined){
+    if(typeof data.theme!=='string'||(data.theme!=='custom'&&!Object.hasOwn(themes,data.theme)))throw new Error('The backup has an invalid theme.');
+    themeName=data.theme;
+  }
+  if(data.customThemeColors!==undefined){
+    const colors=data.customThemeColors;
+    if(!colors||!Object.keys(defaultThemeColors).every(key=>typeof colors[key]==='string'&&/^#[0-9a-f]{6}$/i.test(colors[key])))throw new Error('The backup has invalid custom theme colors.');
+    themeColors=Object.fromEntries(Object.keys(defaultThemeColors).map(key=>[key,colors[key]]));
+  }
+  if(themeName==='custom'&&!themeColors)throw new Error('The backup is missing custom theme colors.');
   let completedAt=null;
   if(data.journeyCompletedAt!=null){
     if(typeof data.journeyCompletedAt!=='string'||!Number.isFinite(Date.parse(data.journeyCompletedAt))||data.bookProgress!==scriptureReferences.length)throw new Error('The backup has an invalid journey completion date.');
@@ -61,7 +72,7 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
@@ -107,7 +118,7 @@ function importBackup(data){
     const progress=incoming.completions.length>local.completions.length?incoming.progress:local.completions.length>incoming.completions.length?local.progress:same&&local.completions.length&&(local.progress===size.end-size.start||incoming.progress===size.end-size.start)?Math.min(local.progress,incoming.progress):Math.max(local.progress,incoming.progress);
     mergedBooks[name]={progress,completions:[...new Set([...local.completions,...incoming.completions])].sort()};
   }
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts'];
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors'];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -117,6 +128,8 @@ function importBackup(data){
     localStorage.setItem(keys[4],JSON.stringify(completions));
     localStorage.setItem(keys[5],JSON.stringify(mergedBooks));
     localStorage.setItem(keys[6],JSON.stringify(mergedAttempts));
+    if(backup.theme!==undefined)localStorage.setItem(keys[7],backup.theme);
+    if(backup.customThemeColors!==undefined)localStorage.setItem(keys[8],JSON.stringify(backup.customThemeColors));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
@@ -124,6 +137,9 @@ function importBackup(data){
   const added=merged.length-history.length;
   journeyAttempts=mergedAttempts;
   bookJourneys=mergedBooks;history=merged;bookProgress=progress;journeyCompletedAt=completedAt;journeyCompletions=completions;
+  if(backup.customThemeColors!==undefined)customThemeColors=backup.customThemeColors;
+  if(backup.theme!==undefined)theme(backup.theme);
+  else if(backup.customThemeColors!==undefined)theme(document.documentElement.dataset.theme);
   updateProfileLabel();
   if(mode==='book')reset();
   if($('#profileName'))$('#profileName').value=name;
@@ -170,7 +186,7 @@ document.addEventListener('click',event=>{
   }
   if(button.id==='exportData'){
     checkpointJourneyAttempt();
-    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),bookProgress,bookJourneys,journeyAttempts,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},bookProgress,bookJourneys,journeyAttempts,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);

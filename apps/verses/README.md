@@ -17,6 +17,10 @@ Open the address once while online; the app caches itself. After that it works w
 - On the start screen, **Load Recovery Version** fetches the Recovery Version text (hosted separately) and stores it on the device like any other version.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 
+## Verse references
+
+Displayed and copied references use consistent book abbreviations across imported versions (for example, `Gen. 1:1` and `1 Cor. 13:4–7`). Chapter and verse use a colon; ranges use an en dash, with the ending chapter included only when it changes (`John 3:36–4:2`). Single-chapter books omit the chapter (`Jude 5–7`), and a single verse never repeats its endpoint. Input book aliases remain supported.
+
 ## External display
 
 With a display connected, Present puts the verses on that screen and turns this device into the control panel.

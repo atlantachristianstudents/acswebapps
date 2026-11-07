@@ -5,6 +5,7 @@
     '2': '#readJourney',
     '3': '#home',
     '4': '#friends',
+    '5': '#records',
     '\\': 'header .account',
   };
   Object.entries(shortcuts).forEach(([key, selector]) => {

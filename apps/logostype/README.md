@@ -14,7 +14,7 @@ After the selected book or entire Scriptures journey is completed, Scripture Jou
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
-When a non-space character is typed where a space is expected, it is inserted in red right after the word (whose margin gap shortens to nothing) and the cursor continues to the next word as if the space had been typed. Use Backspace to remove the extra characters; completion ignores them there. Letter typos show the correct letter in red in place. Scripture Journey and races require correcting space typos as well as all other mistakes before completion.
+When a non-space character is typed where a space is expected, it is inserted in red right after the word (whose margin gap shortens to nothing) and the cursor continues to the next word as if the space had been typed. Use Backspace to remove the extra characters; completion ignores them there. Letter typos, including spaces typed in place of letters, show the expected letter in red rather than the mistyped character. Scripture Journey and races require correcting space typos as well as all other mistakes before completion.
 
 The typing passage disables font ligatures so adjacent letters remain fully visible when colored individually.
 
@@ -24,7 +24,7 @@ Typing tests and friend races default to capitalization and punctuation off. Use
 
 Outside the typing field, use Tab / Shift+Tab or the arrow keys to move between visible controls. Left/right follow the Tab order; up/down move between visual rows, including the book picker. Open dialogs keep arrow navigation inside the dialog. Form fields and the reading region retain their normal arrow-key behavior. Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
-Use **1 / 2 / 3 / 4** to open **Scripture Journey / Reading / Typing Test / Race Friends**, and **`\`** to open settings, in typing or reading mode. No modifier key is needed. These shortcuts are disabled in custom typing tests, open dialogs, and other form fields so you can enter those characters normally.
+Use **1 / 2 / 3 / 4 / 5** to open **Scripture Journey / Reading / Typing Test / Race Friends / Records and history**, and **`\`** to open settings, in typing or reading mode. No modifier key is needed. These shortcuts are disabled in custom typing tests, open dialogs, and other form fields so you can enter those characters normally.
 
 Typing Test results show speed, accuracy, and the chart, with passage references below the chart for timed, word, and verse tests. Scripture Journey keeps verse references in its context and saved history.
 
@@ -42,7 +42,7 @@ Click any typing history entry to view its saved speed chart, including average,
 
 Choose the **glasses icon** beside Scripture Journey in the main menu to open reading mode within the app with a grid of **entire Scriptures** and all 66 books. Only choices with at least one completed verse are enabled. A book unlocks through its own journey or through progress in the entire Scriptures journey; its reader shows the furthest completed portion from either. Entire Scriptures uses its own journey progress. Reading mode is available from any typing mode. Read the original Scripture text chapter by chapter, using previous/next or the chapter selector. While a journey has never been completed, only its completed verses are shown, including the completed portion of an unfinished chapter. Completing a book at least once keeps the whole book available for reading after restarting. Completing the entire Scriptures at least once keeps all Scripture and every book available after restarting. Restarting an unfinished journey resets its reading progress; book reading remains available if the other journey still covers it. **Back to typing** returns to Scripture Journey at your saved verse progress. Switching menus preserves unfinished typing and pauses the timer until you return.
 
-Name-save messages appear directly below the **save name** button. The settings cog at the right edge of the header contains your profile name, records and typing history, appearance settings, and data backups. Select **records and typing history** there to browse results and saved charts.
+Name-save messages appear directly below the **save name** button. The settings cog at the right edge of the header contains your profile name, appearance settings, and data backups. The trophy menu button immediately to its left opens **records and history**, containing typing records, typing history, and journey completion records. The typing and journey records buttons share one row. **export data** and **import data** share a row under **your data**. Backups include the selected theme and custom colors; importing restores them. Older backups without theme data keep your current theme. Select **records and typing history** in the records menu to browse results and saved charts.
 
 Personal records list the fastest saved WPM for a verse (verse tests and completed Scripture Journey verses), each preset time (15, 30, 60, 120 seconds), and each preset word count (10, 25, 50, 100 words). The table uses evenly sized columns with centered record values. Categories without a result show a dash. Select a record to open that result and its saved chart. Records update from local and imported history.
 
@@ -75,7 +75,7 @@ The default theme is **black on white**, with a white background, black text and
 
 Choose **white on black** under settings → **change theme** for a black background, white text and accents, and gray secondary controls. The choice is saved and applies to both typing and reading modes.
 
-In settings, **smaller font** and **bigger font** adjust the typing passage by 2 pixels per click, from 16 to 64 pixels. The size applies for the current page session.
+In settings, the **font size** row has **smaller**, **default**, and **bigger** buttons. Smaller and bigger adjust the typing passage by 2 pixels per click, from 16 to 64 pixels; default restores the original responsive size. The size applies for the current page session.
 
 Typing tests show at least three lines at every font size. Scripture Journey expands to show the entire current verse without an internal scrollbar, including at the largest font size. Long words wrap to fit narrow screens.
 
@@ -111,7 +111,7 @@ The **capitalization + punctuation** toggle turns both options on or off togethe
 
 Race hosts can toggle **capitalization + punctuation** for verse and custom passages before starting or rematching. It defaults on, updates everyone’s preview, and recalculates the time estimate without changing the selected verse. Turning it off removes punctuation and lowercases the passage; turning it on restores the original source text. The control locks during countdowns and races, and the chosen settings are saved with each result.
 
-Under settings → **change theme** → **custom colors**, choose a primary background color, secondary accent color, and tertiary panel tint/supporting accent color. Text, muted text, panels, error colors, and reading accents adapt automatically for contrast. Save applies the palette throughout typing, reading, and racing and remembers it on this device. Existing presets remain available; removed themes fall back to black on white. Custom colors are cleared with saved data and are not part of progress/history backups.
+Under settings → **change theme** → **custom colors**, choose a primary background color, secondary accent color, and tertiary panel tint/supporting accent color. Text, muted text, panels, error colors, and reading accents adapt automatically for contrast. Save applies the palette throughout typing, reading, and racing and remembers it on this device. Existing presets remain available; removed themes fall back to black on white. Custom colors are included in data backups and cleared with saved data.
 
 Opening a friend’s race invite link shows the join-room dialog with the room code filled in and hides the create-room option. Opening Race Friends without an invite offers both creating and joining a room.
 
@@ -123,4 +123,6 @@ Result and saved-history charts label elapsed seconds along the bottom. Select a
 
 Typing Test mode icons use local SVGs sized to the text’s capital height and inherit the button color across themes.
 
-Under settings → **journey completion records**, view completion dates for the entire Scriptures and individual book journeys. These records are separate from **records and typing history**.
+Under records and history → **journey completion records**, view completion dates for the entire Scriptures and individual book journeys. These records are separate from **records and typing history**.
+
+In **records and history → records and typing history**, search saved results by date, verse, journey, mode, WPM, or accuracy. Search terms match together, and opening a result then going back preserves the search. The history progression chart shows WPM from oldest to newest for the selected typing format and capitalization/punctuation settings, initially matching your current test setup. Use the table above the chart: rows select a time duration, word count, verse, Scripture Journey, default custom text, or custom text format; columns select caps off, caps on, or all settings. The selected cell is highlighted. Selections are retained while browsing results. Each point represents one matching result, including results without individual charts. Choose all settings to include older results whose settings were not saved. Search filters only the history list.

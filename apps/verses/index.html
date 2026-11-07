@@ -2363,13 +2363,19 @@
           }
         }
 
+        // Display references consistently, independent of an imported version's spelling.
+        function formatReference(bi, c1, v1, c2, v2) {
+          var label = BOOKS[bi][1],
+            single = !!SINGLE[BOOKS[bi][0]],
+            start = label + " " + (single ? "" : c1 + ":") + v1;
+          if (v2 === undefined || (+c1 === +c2 && +v1 === +v2)) return start;
+          return start + "\u2013" + (single || +c1 === +c2 ? "" : c2 + ":") + v2;
+        }
         function refOfV(ver, bi, ch, v) {
-          var l = ver.labels[bi] || BOOKS[bi][1];
-          return ver.noChap[bi] ? l + " " + v : l + " " + ch + ":" + v;
+          return formatReference(bi, ch, v);
         }
         function refOf(e) {
-          var l = labels[e.bi] || BOOKS[e.bi][1];
-          return noChap[e.bi] ? l + " " + e.v : l + " " + e.ch + ":" + e.v;
+          return formatReference(e.bi, e.ch, e.v);
         }
 
         // ---- query ----
@@ -4651,10 +4657,7 @@
           return refOf(a) + "\u2013" + refOf(b);
         }
         function rangeLabel(bi, c1, v1, c2, v2) {
-          var l = labels[bi] || BOOKS[bi][1];
-          if (noChap[bi]) return l + " " + v1 + "\u2013" + v2;
-          if (c1 === c2) return l + " " + c1 + ":" + v1 + "\u2013" + v2;
-          return l + " " + c1 + ":" + v1 + "\u2013" + c2 + ":" + v2;
+          return formatReference(bi, c1, v1, c2, v2);
         }
 
         // slides typed with "|": each part is looked up on its own; Enter presents them (see openSlides)
@@ -5217,10 +5220,7 @@
         // label for a run of verses in one particular version
         function rangeV(ver, a, b) {
           if (a.bi !== b.bi) return refOfV(ver, a.bi, a.ch, a.v) + "\u2013" + refOfV(ver, b.bi, b.ch, b.v);
-          var l = ver.labels[a.bi] || BOOKS[a.bi][1];
-          if (ver.noChap[a.bi]) return l + " " + a.v + "\u2013" + b.v;
-          if (a.ch === b.ch) return l + " " + a.ch + ":" + a.v + "\u2013" + b.v;
-          return l + " " + a.ch + ":" + a.v + "\u2013" + b.ch + ":" + b.v;
+          return formatReference(a.bi, a.ch, a.v, b.ch, b.v);
         }
         function cmpItems(lo, hi) {
           // every verse from lo to hi
