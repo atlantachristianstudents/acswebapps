@@ -97,6 +97,79 @@ function saveBookJourneys() {
     localStorage.setItem("logostype-book-journeys", JSON.stringify(bookJourneys));
   } catch {}
 }
+// Keep completion date arrays compatible; store start metadata separately.
+let journeyDates = {};
+function validateJourneyDates(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid journey dates.");
+  const result = {};
+  const date = value => {
+    if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) throw new Error("Invalid journey date.");
+    return new Date(value).toISOString();
+  };
+  for (const [name, state] of Object.entries(value)) {
+    if ((name !== "Entire Scriptures" && !journeyBooks.some(book => book.name === name)) ||
+        !state || typeof state !== "object" || !state.completions || typeof state.completions !== "object" || Array.isArray(state.completions)) throw new Error("Invalid journey dates.");
+    const startedAt = state.startedAt == null ? null : date(state.startedAt);
+    const afterCompletion = state.afterCompletion == null ? null : date(state.afterCompletion);
+    if (startedAt && afterCompletion && startedAt < afterCompletion) throw new Error("Invalid journey start date.");
+    const completions = {};
+    for (const [completed, started] of Object.entries(state.completions)) {
+      const end = date(completed), start = started == null ? null : date(started);
+      if (start && start > end) throw new Error("Journey starts after completion.");
+      completions[end] = start;
+    }
+    result[name] = { startedAt, afterCompletion, completions };
+  }
+  return result;
+}
+try { journeyDates = validateJourneyDates(JSON.parse(localStorage.getItem("logostype-journey-dates") || "{}")); } catch {}
+function saveJourneyDates() {
+  try { localStorage.setItem("logostype-journey-dates", JSON.stringify(journeyDates)); } catch {}
+}
+function currentJourneyDates(name, completions) {
+  const afterCompletion = completions[completions.length - 1] || null;
+  let state = journeyDates[name];
+  if (!state) state = journeyDates[name] = { startedAt: null, afterCompletion, completions: {} };
+  if (state.afterCompletion !== afterCompletion) { state.startedAt = null; state.afterCompletion = afterCompletion; }
+  return state;
+}
+function trackJourneyStart() {
+  const journey = currentJourney();
+  const state = currentJourneyDates(journey.name, journey.completions);
+  if (journey.progress === 0 && !state.startedAt) state.startedAt = new Date().toISOString();
+  saveJourneyDates();
+}
+function trackJourneyCompletion(name, completedAt, previousCompletions) {
+  const state = currentJourneyDates(name, previousCompletions);
+  state.completions[completedAt] = state.startedAt;
+  saveJourneyDates();
+}
+function resetJourneyStart(name, completions) {
+  const state = currentJourneyDates(name, completions);
+  state.startedAt = null;
+  saveJourneyDates();
+}
+function journeyCompletionDatesMarkup(name, completedAt) {
+  const startedAt = journeyDates[name]?.completions[completedAt];
+  return '<span>started: ' + (startedAt ? escapeHtml(new Date(startedAt).toLocaleString()) : 'not recorded') +
+    '</span><br><span>completed: ' + escapeHtml(new Date(completedAt).toLocaleString()) + '</span>';
+}
+function mergeJourneyDates(existing, incoming) {
+  const merged = validateJourneyDates(existing);
+  for (const [name, state] of Object.entries(validateJourneyDates(incoming))) {
+    const local = merged[name];
+    if (!local) { merged[name] = state; continue; }
+    const newest = (state.afterCompletion || '') > (local.afterCompletion || '') ? state : local;
+    const startedAt = state.afterCompletion === local.afterCompletion
+      ? [local.startedAt, state.startedAt].filter(Boolean).sort()[0] || null : newest.startedAt;
+    const completions = { ...local.completions };
+    for (const [end, start] of Object.entries(state.completions)) {
+      completions[end] = [completions[end], start].filter(Boolean).sort()[0] || null;
+    }
+    merged[name] = { startedAt, afterCompletion: newest.afterCompletion, completions };
+  }
+  return merged;
+}
 // Attempts are saved on the first character so abandoned attempts survive reloads.
 let journeyAttempts = [],
   activeJourneyAttempt = null;
@@ -133,6 +206,7 @@ function saveJourneyAttempts() {
   } catch {}
 }
 function startJourneyAttempt() {
+  trackJourneyStart();
   activeJourneyAttempt = {
     id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
     reference: scriptureReferences[journeyPosition()],
@@ -156,11 +230,11 @@ document.addEventListener("visibilitychange", () => {
 function journeyTypingStats() {
   const attempts = journeyAttempts.filter((item) => item.journey === (selectedJourneyBook || "Entire Scriptures"));
   const seconds = attempts.reduce((sum, item) => sum + (item.typingMs ?? 0), 0) / 1000;
-  const format = (seconds) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${(seconds % 60).toFixed(3)}s`;
+  const format = (seconds) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ${(seconds % 60).toFixed(2)}s`;
   const allSeconds = attempts.reduce((sum, item) => sum + (item.elapsedMs ?? item.typingMs ?? 0), 0) / 1000;
   return `Time spent typing (successful attempts): ${format(seconds)} · Total time spent (all attempts): ${format(allSeconds)}`;
 }
-function celebrateJourney(colorCount = 1) {
+function celebrateJourney(colorCount = 1, durationMs = 4500 * colorCount) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
@@ -180,7 +254,7 @@ function celebrateJourney(colorCount = 1) {
     spin: (Math.random() - 0.5) * 8,
     color: colors[index % colors.length],
   }));
-  const duration = 4500 * colorCount;
+  const duration = durationMs;
   let started, last;
   function frame(now) {
     started ??= now;
@@ -224,7 +298,7 @@ function syncNavigation(racing = false) {
   $("#friends").classList.toggle("active", racing);
 }
 function updateBookProgress(message = "") {
-  const active = mode === "book" && !window.friendRace?.active;
+  const active = currentMenu === "journey" && mode === "book" && !window.friendRace?.active;
   document.body.classList.toggle("book-mode", active);
   $("#bookProgress").hidden = !active;
   $("#journeyProgress").hidden = !active;
@@ -302,8 +376,10 @@ function updateBookProgress(message = "") {
 }
 
 function restartTest() {
+  if (window.friendRace?.active) { window.friendRace.restartReplay(); return; }
   const journey = currentJourney();
   if (mode === "book" && selectedJourneyBook && journey.progress === journey.end - journey.start) {
+    resetJourneyStart(journey.name, journey.completions);
     bookJourneys[selectedJourneyBook] = { progress: 0, completions: journey.completions };
     saveBookJourneys();
   } else if (
@@ -312,6 +388,7 @@ function restartTest() {
     bookProgress >= scriptureLines.length &&
     !selectedJourneyBook
   ) {
+    resetJourneyStart("Entire Scriptures", journeyCompletions);
     bookProgress = 0;
     journeyCompletedAt = null;
     try {
@@ -345,31 +422,33 @@ function renderBookContext() {
 let currentMenu = "journey";
 const menuStates = new Map();
 function pauseMenu() {
-  if (currentMenu === "reading" || currentMenu === "race") return;
+  if (currentMenu === "reading" || currentMenu === "race" || currentMenu === "raceLobby") return;
   checkpointJourneyAttempt();
   clearInterval(timer);
   timer = null;
   const resultText = {};
   for (const id of ["wpm", "rawWpm", "accuracy", "testType", "resultDetails", "counter"]) resultText[id] = $("#" + id).textContent;
   menuStates.set(currentMenu, {
-    mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start,
+    mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start, lastResultId,
     done, total, errors, samples, instantSamples, rawSamples, sampleTimes, mistakeEvents,
-    recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt, resultText,
+    attemptReplayEvents, recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt, resultText,
     inputValue: input.value, pausedAt: Date.now(),
   });
   activeJourneyAttempt = null;
   document.body.classList.remove("focus", "running");
 }
 function switchTypingMenu(destination) {
+  document.body.classList.remove("race-lobby-open");
+  $("#raceLobby").hidden = true;
   if (currentMenu === destination) { input.focus(); return; }
   pauseMenu();
   currentMenu = destination;
   setReadingView(false);
   const state = menuStates.get(destination);
   if (state) {
-    ({ mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start,
+    ({ mode, limit, punctuation, capitalization, target, rawTarget, typed, lastInput, start, lastResultId,
        done, total, errors, samples, instantSamples, rawSamples, sampleTimes, mistakeEvents,
-       recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt } = state);
+       attemptReplayEvents, recentCorrect, testReferences, testSourceRanges, activeJourneyAttempt } = state);
     const pause = Date.now() - state.pausedAt;
     if (start && !done) {
       start += pause;
@@ -390,6 +469,7 @@ function switchTypingMenu(destination) {
     $("#wpm").parentElement.hidden = false;
     $("#rawWpm").parentElement.hidden = false;
     updateBookProgress(); limits(); render(false); syncNavigation();
+    $("#replayAllResult").hidden = !history.find(result => result.id === lastResultId)?.raceReplay;
     if (done) drawChart();
   } else {
     mode = destination === "journey" ? "book" : lastTypingMode;
@@ -435,11 +515,11 @@ function completeBookVerse() {
       reference: scriptureReferences[journeyPosition()],
       journey: selectedJourneyBook || "Entire Scriptures",
       chart: captureChart(),
+      replay: captureAttemptReplay(),
     };
+    if (newPersonalRecord(result)) celebrateJourney(1);
     history.unshift(result);
-    try {
-      localStorage.setItem("logostype-history", JSON.stringify(history));
-    } catch {}
+    saveTypingHistory();
   }
 
   if (passed && selectedJourneyBook) {
@@ -448,7 +528,9 @@ function completeBookVerse() {
     if (journey.progress < size) {
       const state = { progress: journey.progress + 1, completions: [...journey.completions] };
       if (state.progress === size) {
-        state.completions.push(new Date().toISOString());
+        const completedAt = new Date().toISOString();
+        trackJourneyCompletion(selectedJourneyBook, completedAt, journey.completions);
+        state.completions.push(completedAt);
       }
       bookJourneys[selectedJourneyBook] = state;
       saveBookJourneys();
@@ -460,6 +542,7 @@ function completeBookVerse() {
     } catch {}
     if (bookProgress === scriptureLines.length) {
       journeyCompletedAt = new Date().toISOString();
+      trackJourneyCompletion("Entire Scriptures", journeyCompletedAt, journeyCompletions);
       journeyCompletions.push(journeyCompletedAt);
       try {
         localStorage.setItem("logostype-journey-completed-at", journeyCompletedAt);
@@ -497,6 +580,8 @@ let mode = "book",
   rawSamples = [],
   sampleTimes = [],
   mistakeEvents = [],
+  lastResultId = "",
+  attemptReplayEvents = [],
   recentCorrect = [],
   custom = defaultCustomText,
   history = [];
@@ -559,17 +644,17 @@ function generate(append = false) {
   return normalizeScripture(passage);
 }
 let lastInput = "";
-function parseTyping(value, capped = false) {
+function parseTyping(value, capped = false, passage = target) {
   let text = "",
     raw = "";
   const expected = [];
   const spaceTypos = {};
   let extraCount = 0;
   for (const character of value.split("")) {
-    if (capped && text.length >= target.length) break;
+    if (capped && text.length >= passage.length) break;
     raw += character;
-    expected.push(target[text.length]);
-    if (target[text.length] === " " && character !== " ") {
+    expected.push(passage[text.length]);
+    if (passage[text.length] === " " && character !== " ") {
       spaceTypos[text.length] = (spaceTypos[text.length] || "") + character;
       extraCount++;
       // Extra characters stay at this space until an actual space is typed.
@@ -582,8 +667,12 @@ function parseTyping(value, capped = false) {
 function render(smooth = true) {
   renderBookContext();
   const { spaceTypos } = parseTyping(input.value);
+  $("#words").innerHTML = typingPassageMarkup(target, typed, spaceTypos);
+  positionCaret(smooth);
+}
+function typingPassageMarkup(passage, entered, spaceTypos) {
   let pos = 0;
-  $("#words").innerHTML = target
+  return passage
     .split(" ")
     .map((w) => {
       // Show extra characters before the word gap without consuming the space.
@@ -591,9 +680,9 @@ function render(smooth = true) {
       const typo = spaceTypos[slot] || "";
       let html = '<span class="word">';
       for (const c of w) {
-        const isTyped = pos < typed.length;
-        const wrong = isTyped && typed[pos] !== c;
-        const cursor = pos === typed.length ? " cursor" : "";
+        const isTyped = pos < entered.length;
+        const wrong = isTyped && entered[pos] !== c;
+        const cursor = pos === entered.length ? " cursor" : "";
         let state = "";
         let content = c;
         if (isTyped) {
@@ -602,24 +691,21 @@ function render(smooth = true) {
             state = "incorrect";
           } else {
             state = "correct";
-            content = typed[pos];
+            content = entered[pos];
           }
         }
-        html += `<span class="letter ${state}${cursor}">${escapeHtml(content)}</span>`;
+        html += `<span class="letter ${state}${cursor}" data-typing-position="${pos}">${escapeHtml(content)}</span>`;
         pos++;
       }
       // Keep the cursor after the extras, at the untyped space.
       if (typo) {
         html += `<span class="letter incorrect">${escapeHtml(typo)}</span>`;
       }
-      if (pos === typed.length) {
-        html += `<span class="letter cursor"></span>`;
-      }
+      html += `<span class="letter${pos === entered.length ? " cursor" : ""}" data-typing-position="${pos}"></span>`;
       pos++;
       return html + "</span>";
     })
     .join("");
-  positionCaret(smooth);
 }
 function positionCaret(smooth = true) {
   const letter = $(".cursor"),
@@ -628,7 +714,7 @@ function positionCaret(smooth = true) {
   if (!letter) return;
   const box = $("#words");
   const lineHeight = parseFloat(getComputedStyle(box).lineHeight);
-  box.scrollTop = document.body.classList.contains("book-mode")
+  box.scrollTop = document.body.classList.contains("book-mode") || document.body.classList.contains("race-spectator")
     ? 0
     : Math.max(0, letter.offsetTop - lineHeight);
   const r = letter.getBoundingClientRect(),
@@ -640,6 +726,7 @@ function positionCaret(smooth = true) {
     void caret.offsetWidth;
     caret.style.transition = "";
   }
+  window.friendRace?.paintTextPositions?.();
 }
 function reset(preservePassage = false) {
   if (mode === "book" && done) preservePassage = false;
@@ -661,6 +748,9 @@ function reset(preservePassage = false) {
   sampleTimes = [];
   mistakeEvents = [];
   recentCorrect = [];
+  attemptReplayEvents = [];
+  lastResultId = "";
+  $("#replayAllResult").hidden = true;
   target = preservePassage ? normalizeScripture(rawTarget) : generate();
   input.disabled =
     (!scriptureLines.length && mode !== "custom") ||
@@ -676,18 +766,17 @@ function reset(preservePassage = false) {
   limits();
   render(false);
 }
-function averageCorrectCharacters() {
-  const { spaceTypos } = parseTyping(input.value);
+function averageCorrectCharacters(passage = target, entered = typed, spaceTypos = parseTyping(input.value).spaceTypos) {
   let correct = 0, position = 0;
-  while (position < typed.length) {
-    const space = target.indexOf(" ", position);
-    const end = space < 0 ? target.length : space;
-    const typedEnd = Math.min(end, typed.length);
+  while (position < entered.length) {
+    const space = passage.indexOf(" ", position);
+    const end = space < 0 ? passage.length : space;
+    const typedEnd = Math.min(end, entered.length);
     // A word with any remaining mistake earns no credit, including its separator.
     // Extras at its following space also invalidate the word until corrected.
-    if (typed.slice(position, typedEnd) === target.slice(position, typedEnd) && !spaceTypos[end]) {
+    if (entered.slice(position, typedEnd) === passage.slice(position, typedEnd) && !spaceTypos[end]) {
       correct += typedEnd - position;
-      if (typed.length > end && space >= 0) correct++;
+      if (entered.length > end && space >= 0) correct++;
     }
     position = end + 1;
   }
@@ -726,7 +815,7 @@ function sampleWpm(final = false) {
   rawSamples.push(rawSpeed());
   sampleTimes.push(elapsed);
 }
-function finish() {
+function finish(saveResult = true) {
   if (done) return;
   sampleWpm(true);
   done = true;
@@ -744,32 +833,40 @@ function finish() {
   $("#chartLegend").hidden = $("#chart").hidden;
   $("#accuracy").textContent = accuracy + "%";
   $("#testType").textContent = `${mode === "quote" ? "verse" : mode} ${mode === "time" ? limit + "s" : mode === "words" ? limit : ""} · english`;
-  $("#resultDetails").textContent = `${elapsed.toFixed(3)}s · ${typed.length} characters · ${errors} errors`;
+  $("#resultDetails").textContent = `${elapsed.toFixed(2)}s · ${typed.length} characters · ${errors} errors`;
   const references = $("#testReferences");
   if (mode === "time") testReferences = [...new Set(testSourceRanges.filter(source => source.start < typed.length).map(source => source.reference))];
   references.hidden = !["time", "words", "quote"].includes(mode) || !!window.friendRace?.active || !testReferences.length;
   references.textContent = testReferences.join(" · ");
   $("#testSection").style.display = "none";
   $("#results").style.display = "block";
-  const result = {
-    id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
-    wpm,
-    rawWpm: rawSpeed(),
-    accuracy,
-    mode,
-    punctuation,
-    capitalization,
-    limit,
-    date: new Date().toLocaleString(),
-    ...(mode === "custom" && !window.friendRace?.active && rawTarget === defaultCustomText ? { customPreset: "default" } : {}),
-    chart: captureChart(),
-  };
-  const record = newPersonalRecord(result, mode === "book" ? history.slice(1) : history);
-  if (record) $("#resultDetails").insertAdjacentHTML("beforeend", `<br><span class="new-record">★ ${escapeHtml(record)}</span>`);
-  history.unshift(result);
-  try {
-    localStorage.setItem("logostype-history", JSON.stringify(history));
-  } catch {}
+  if (saveResult) {
+    const result = {
+      id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
+      wpm,
+      rawWpm: rawSpeed(),
+      accuracy,
+      mode,
+      punctuation,
+      capitalization,
+      limit,
+      date: new Date().toLocaleString(),
+      ...(mode === "custom" && !window.friendRace?.active && rawTarget === defaultCustomText ? { customPreset: "default" } : {}),
+      chart: captureChart(),
+      replay: captureAttemptReplay(),
+    };
+    const record = newPersonalRecord(result, mode === "book" ? history.slice(1) : history);
+    if (record) {
+      $("#resultDetails").insertAdjacentHTML("beforeend", `<br><span class="new-record">★ ${escapeHtml(record)}</span>`);
+      if (mode !== "book") celebrateJourney(1);
+    }
+    history.unshift(result);
+    lastResultId = result.id;
+    saveTypingHistory();
+  } else {
+    lastResultId = "";
+    $("#replayAllResult").hidden = true;
+  }
   window.friendRace?.report(true, Math.round(elapsed * 1000));
   drawChart();
 }
@@ -920,7 +1017,7 @@ document.addEventListener("pointermove", (event) => {
   marker.hidden = false;
   marker.style.left = x + "px";
   const plotted = chart._visibleData;
-  $("#chartHoverTime").textContent = plotted.sampleTimes[index].toFixed(3) + "s";
+  $("#chartHoverTime").textContent = plotted.sampleTimes[index].toFixed(2) + "s";
   $("#chartHoverAverage").textContent = plotted.samples[index];
   $("#chartHoverInstant").textContent = plotted.instantSamples[index];
   $("#chartHoverRaw").textContent = plotted.rawSamples[index];
@@ -991,6 +1088,7 @@ input.addEventListener("input", () => {
       total++;
       if (parsed.raw[i] !== parsed.expected[i]) recordMistake();
     }
+  recordReplayEdit(lastInput, parsed.raw);
   lastInput = parsed.raw;
   const previousLength = typed.length;
   typed = v.slice(0, target.length);
@@ -1003,7 +1101,7 @@ input.addEventListener("input", () => {
   if (
     mode !== "time" &&
     typed.length >= target.length &&
-    ((!window.friendRace?.active && mode !== "book") || (typed === target && !parsed.extraCount))
+    (window.friendRace?.active || mode !== "book" || (typed === target && !parsed.extraCount))
   ) {
     if (mode === "book") {
       completeBookVerse();
@@ -1105,7 +1203,7 @@ function customThemePalette(colors) {
     readableThemeColor(colors.secondary, surfaces, text)];
 }
 function theme(name) {
-  if (name !== "custom" && !Object.hasOwn(themes, name)) name = "black on white";
+  if (name !== "custom" && !Object.hasOwn(themes, name)) name = "serika dark";
   const vals = name === "custom" ? customThemePalette(customThemeColors) : themes[name];
   const light = colorLuminance(vals[0]) > .179;
   const surfaces = [vals[0], vals[1]];
@@ -1130,6 +1228,10 @@ function renderKeyboardShortcuts() {
       <tr><td><kbd>2</kbd></td><td>Reading</td></tr>
       <tr><td><kbd>3</kbd></td><td>Typing Test</td></tr>
       <tr><td><kbd>4</kbd></td><td>Race Friends</td></tr>
+      <tr><td><kbd>5</kbd></td><td>Records</td></tr>
+      <tr><td><kbd>6</kbd></td><td>Typing history</td></tr>
+      <tr><td><kbd>J</kbd></td><td>Journey completion records (from records)</td></tr>
+      <tr><td><kbd>H</kbd></td><td>Focus the latest visible history result (from history)</td></tr>
       <tr><td><kbd>&#92;</kbd></td><td>Settings</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Open commands; close an open dialog</td></tr>
       <tr><td><kbd>Tab</kbd>, then <kbd>Enter</kbd></td><td>Restart from the typing field (outside races)</td></tr>
@@ -1138,9 +1240,10 @@ function renderKeyboardShortcuts() {
       <tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Reading: next / previous chapter</td></tr>
       <tr><td><kbd>Shift+N</kbd> / <kbd>Shift+P</kbd></td><td>Reading: next / previous available book</td></tr>
     </tbody></table>
-    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and history. They are disabled while entering a custom typing test, in open dialogs, and in other form fields. They work on the results screen, including custom test results. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
+    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and 6 to open typing history. They work in records, history, and settings dialogs. They are disabled in text fields, confirmation dialogs, other editors, and while entering a custom typing test. They work on the results screen, including custom test results. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
 }
 function openModal(type) {
+  $("#modal").dataset.view = type;
   const content = $("#modalContent");
   if (type === "themes")
     content.innerHTML =
@@ -1152,22 +1255,22 @@ function openModal(type) {
     [["primary", "primary — background"], ["secondary", "secondary — accents"], ["tertiary", "tertiary — panel tint and supporting accents"]].map(([key, label]) =>
       '<label class="theme-color-field" for="theme-' + key + '"><span>' + label + '</span><input type="color" id="theme-' + key + '" name="' + key + '" value="' + customThemeColors[key] + '"></label>'
     ).join("") + '<button class="option" type="submit">save colors →</button></form>';
-  if (type === "records") content.innerHTML = '<h2>records and history</h2><div class="records-controls" role="group" aria-label="Records"><button class="option" data-open="history">↗ records and typing history</button><button class="option" data-open="journeyCompletions">↗ journey completion records</button></div>';
+  if (type === "records") content.innerHTML = '<h2>records</h2><p>Press J for Journey completion records.</p>' + renderPersonalRecords() + '<button class="option" data-open="journeyCompletions">↗ journey completion records</button>';
   if (type === "settings")
     content.innerHTML =
       '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="themes">◐ change theme</button><h3 id="fontSizeLabel">font size</h3><div class="font-size-controls" role="group" aria-labelledby="fontSizeLabel"><button class="option" id="fontSmaller" type="button">smaller</button><button class="option" id="fontDefault" type="button">default</button><button class="option" id="fontBigger" type="button">bigger</button></div><h3>your data</h3><div class="data-controls" role="group" aria-label="Progress and typing history backups"><button class="option" id="exportData">export data</button><button class="option" id="importData">import data</button></div><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, theme and custom colors, Scripture Journey progress, and all saved typing history. Import restores theme settings, merges history, and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
-  if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
+  if (type === "settings") content.innerHTML += '<button class="option" data-open="historyStorage">history and replay storage</button>' + renderKeyboardShortcuts();
+  if (type === "historyStorage") content.innerHTML = renderHistoryStorage();
   if (type === "about")
     content.innerHTML =
       "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Average WPM excludes each word with an uncorrected mistake, including its following space. Correcting the word restores its credit. Accuracy includes all keystrokes, even corrected mistakes.</p>";
   if (type === "history" || type === "profile")
     content.innerHTML =
-      '<button class="option" data-open="records">← records and history</button><h2>records and typing history</h2>' +
-      renderPersonalRecords() +
+      '<h2>typing history</h2><p>Press H to focus the latest result.</p>' +
       '<div id="historyProgression">' + renderHistoryProgression() + '</div>' +
-      '<h3>typing history</h3><label for="historySearch">search history</label><input class="race-field" id="historySearch" type="search" placeholder="Date, verse, journey, mode, WPM…"><p id="historyCount" role="status" aria-live="polite"></p><div id="historyResults"></div>';
+      '<p id="historyStorageNotice" role="status"></p><h3>typing history</h3><label for="historySearch">search history</label><input class="race-field" id="historySearch" type="search" placeholder="Date, verse, journey, mode, WPM…"><p id="historyCount" role="status" aria-live="polite"></p><div id="historyResults"></div>';
   if (type === "journeyCompletions")
-    content.innerHTML = '<button class="option" data-open="records">← records and history</button><h2>journey completion records</h2>';
+    content.innerHTML = '<button class="option" data-open="records">← records</button><h2>journey completion records</h2>';
   if (type === "journeyCompletions")
     content.insertAdjacentHTML(
       "beforeend",
@@ -1177,7 +1280,7 @@ function openModal(type) {
             journeyCompletions
               .slice()
               .reverse()
-              .map((date) => "<li>" + escapeHtml(new Date(date).toLocaleString()) + "</li>")
+              .map((date) => "<li>" + journeyCompletionDatesMarkup("Entire Scriptures", date) + "</li>")
               .join("") +
             "</ol>"
           : "<p>No completed journeys yet.</p>"),
@@ -1193,7 +1296,7 @@ function openModal(type) {
   }
   if (type === "custom")
     content.innerHTML =
-      '<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" type="button" id="saveCustom">save →</button><button class="option" type="button" id="defaultCustom">default</button>';
+      '<h2>custom text</h2><textarea id="customText" aria-label="Custom typing text"></textarea><button class="option" type="button" id="saveCustom">save &amp; go →</button><button class="option" type="button" id="defaultCustom">default</button>';
   if (type === "wordCount") content.innerHTML = '<h2>custom word count</h2><form id="wordCountForm"><label for="wordCount">number of words</label><input class="race-field" id="wordCount" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 words.</p><button class="option" type="submit">start test →</button></form>';
   if (type === "verseSelection") content.innerHTML = '<h2>choose verse</h2><form id="verseSelectionForm"><label for="verseReference">verse reference</label><input class="race-field" id="verseReference" placeholder="John 3:16" autocomplete="off" required><p>Enter a full book name, chapter, and verse, for example 1 Corinthians 13:4.</p><button class="option" type="submit">start test →</button></form>';
   if (type === "duration")
@@ -1201,7 +1304,7 @@ function openModal(type) {
       '<h2>custom duration</h2><form id="durationForm"><label for="durationSeconds">duration in seconds</label><input class="race-field" id="durationSeconds" type="number" min="1" max="3600" step="1" required><p>Choose 1–3600 seconds. The timer starts on your first keystroke.</p><button class="option" type="submit">apply duration →</button></form>';
   if (type === "commands")
     content.innerHTML =
-      '<h2>command line</h2><button class="option" id="restartCommand">↻ restart test</button><button class="option" data-open="themes">◐ theme</button><button class="option" data-open="settings">⚙ settings</button><button class="option" data-open="history">♛ history</button>';
+      '<h2>command line</h2><button class="option" id="restartCommand">↻ restart test</button><button class="option" data-open="themes">◐ theme</button><button class="option" data-open="settings">⚙ settings</button><button class="option" data-open="records">♛ records</button><button class="option" data-open="history">◷ history</button>';
   if (type === "journeyCompletions") {
     const completedBooks = journeyBooks.filter((book) => bookJourneys[book.name]?.completions.length);
     if (completedBooks.length)
@@ -1213,7 +1316,7 @@ function openModal(type) {
               bookJourneys[book.name].completions
                 .map(
                   (date) =>
-                    "<li>" + escapeHtml(book.name) + " · " + escapeHtml(new Date(date).toLocaleString()) + "</li>",
+                    "<li>" + escapeHtml(book.name) + "<br>" + journeyCompletionDatesMarkup(book.name, date) + "</li>",
                 )
                 .join(""),
             )
@@ -1251,6 +1354,24 @@ document.addEventListener("click", (e) => {
   if (b.id === "readJourney") {
     if (window.friendRace?.active) window.friendRace.requestLeave(openReadingPage);
     else openReadingPage();
+    return;
+  }
+  if (b.dataset.raceReplayIndex !== undefined) {
+    const index = Number(b.dataset.raceReplayIndex);
+    openRaceReplay(history[index], index);
+    return;
+  }
+  if (b.dataset.replayIndex !== undefined) {
+    const index = Number(b.dataset.replayIndex);
+    openAttemptReplay(history[index], index);
+    return;
+  }
+  if (b.dataset.raceAgainstIndex !== undefined) {
+    window.friendRace.raceReplay(history[Number(b.dataset.raceAgainstIndex)]);
+    return;
+  }
+  if (b.dataset.retryIndex !== undefined) {
+    retrySavedAttempt(history[Number(b.dataset.retryIndex)]);
     return;
   }
   if (b.dataset.historyIndex !== undefined) {
@@ -1291,7 +1412,7 @@ $("#modal").onclick = (e) => {
   if (e.target === $("#modal")) $("#modal").close();
 };
 document.addEventListener("keydown", (e) => {
-  if ($("#leaveRaceDialog").open || $("#clearDataDialog").open) return;
+  if (document.querySelector('dialog[open]:not(#modal)')) return;
   if (e.key === "Escape" && !$("#modal").open) {
     e.preventDefault();
     openModal("commands");
@@ -1319,7 +1440,7 @@ document.addEventListener("keydown", (e) => {
   }
   if (
     !$("#modal").open &&
-    !done &&
+    !done && currentMenu !== "raceLobby" &&
     !document.body.classList.contains("reading-mode") &&
     e.key.length === 1 &&
     !e.ctrlKey &&
@@ -1331,9 +1452,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 try {
-  theme(localStorage.getItem("logostype-theme") || "black on white");
+  theme(localStorage.getItem("logostype-theme") || "serika dark");
 } catch {
-  theme("black on white");
+  theme("serika dark");
 }
 reset();
 input.focus();
@@ -1491,6 +1612,8 @@ document.addEventListener("click", event => {
 });
 let historyProgressionFormat = null;
 let historyProgressionSettings = "all";
+let historyProgressionBand = "all";
+let historyProgressionPercent = 25;
 function progressionFormat(result) {
   if (result.mode === "time" || result.mode === "words") return result.mode + ":" + result.limit;
   if (result.mode === "custom") return result.customPreset === "default" ? "custom:default" : "custom";
@@ -1503,17 +1626,40 @@ function progressionFormatLabel(value) {
   return ({ book: "Scripture Journey", quote: "verse", custom: length === "default" ? "default custom text" : "custom text" })[format] || format;
 }
 document.addEventListener("click", event => {
-  const button = event.target.closest("[data-progression-format], [data-progression-settings]");
+  const button = event.target.closest("[data-progression-format], [data-progression-settings], [data-progression-band]");
   if (!button) return;
-  const key = button.hasAttribute("data-progression-format") ? "progressionFormat" : "progressionSettings";
+  const key = button.hasAttribute("data-progression-format") ? "progressionFormat" : button.hasAttribute("data-progression-settings") ? "progressionSettings" : "progressionBand";
   if (key === "progressionFormat") historyProgressionFormat = button.dataset[key];
-  else historyProgressionSettings = button.dataset[key];
-  const attribute = key === "progressionFormat" ? "data-progression-format" : "data-progression-settings";
+  else if (key === "progressionSettings") historyProgressionSettings = button.dataset[key];
+  else historyProgressionBand = button.dataset[key];
+  const attribute = { progressionFormat: "data-progression-format", progressionSettings: "data-progression-settings", progressionBand: "data-progression-band" }[key];
   document.querySelectorAll("[" + attribute + "]").forEach(option => {
     option.setAttribute("aria-pressed", String(option === button));
   });
   $("#historyProgressionChart").innerHTML = renderHistoryProgressionChart();
 });
+
+document.addEventListener("input", event => {
+  if (event.target.id !== "historyProgressionPercent") return;
+  const percent = Number(event.target.value);
+  if (!Number.isInteger(percent) || percent < 1 || percent > 100) {
+    $("#historyPercentStatus").textContent = "Enter a whole percentage from 1 to 100. The chart keeps the last valid value.";
+    return;
+  }
+  historyProgressionPercent = percent;
+  $("#historyPercentStatus").textContent = "";
+  $("#historyProgressionChart").innerHTML = renderHistoryProgressionChart();
+});
+function progressionPercentileEntries(entries) {
+  if (historyProgressionBand === "all" || !entries.length) return entries;
+  const count = Math.max(1, Math.ceil(entries.length * historyProgressionPercent / 100));
+  const ranked = entries.map((entry, order) => ({ entry, order })).sort((a, b) =>
+    a.entry.result.wpm - b.entry.result.wpm || a.order - b.order);
+  const start = historyProgressionBand === "top" ? entries.length - count
+    : historyProgressionBand === "middle" ? Math.floor((entries.length - count) / 2) : 0;
+  const selected = new Set(ranked.slice(start, start + count).map(({ entry }) => entry.index));
+  return entries.filter(entry => selected.has(entry.index));
+}
 
 function historyDescription(result) {
   return `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit}${result.journey ? " · " + result.journey : ""} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
@@ -1526,9 +1672,20 @@ function renderHistorySearch() {
     return terms.every(term => text.includes(term));
   });
   $("#historyCount").textContent = `${matches.length} of ${history.length} results`;
+  if ($("#historyStorageNotice")) $("#historyStorageNotice").textContent = historyStorageMessage;
   $("#historyResults").innerHTML = matches.length ? matches.map(({ result, index }) =>
     `<button type="button" class="history-row" data-history-index="${index}">${escapeHtml(historyDescription(result))} ↗</button>`
   ).join("") : "<p>" + (history.length ? "No matching results." : "Finish a test to save your first result here.") + "</p>";
+}
+function focusLatestHistoryResult() {
+  const buttons = [...document.querySelectorAll('#historyResults [data-history-index]')];
+  let latest = buttons[0], latestTime = -Infinity;
+  for (const button of buttons) {
+    const result = history[Number(button.dataset.historyIndex)];
+    const time = result ? historyResultDate(result).getTime() : NaN;
+    if (Number.isFinite(time) && time > latestTime) { latest = button; latestTime = time; }
+  }
+  if (latest) { latest.focus(); latest.scrollIntoView({ block: 'nearest' }); }
 }
 document.addEventListener("input", event => {
   if (event.target.id !== "historySearch") return;
@@ -1556,7 +1713,9 @@ function renderHistoryProgression() {
     '<div class="progression-table-wrap"><table class="records-table progression-options"><caption>capitalization and punctuation</caption><tbody><tr>' +
     settings.map(([value, label, description]) => '<td><button type="button" data-progression-settings="' + value +
       '" aria-label="' + description + '" aria-pressed="' + (value === historyProgressionSettings) + '">' + label + '</button></td>').join("") +
-    '</tr></tbody></table></div><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>' +
+    '</tr></tbody></table></div><div class="progression-table-wrap"><table class="records-table progression-options"><caption>WPM range</caption><tbody><tr>' +
+    ["all", "top", "middle", "bottom"].map(value => '<td><button type="button" data-progression-band="' + value + '" aria-pressed="' + (value === historyProgressionBand) + '">' + value + '</button></td>').join("") +
+    '</tr></tbody></table></div><label for="historyProgressionPercent">percentage of matching results</label><input class="race-field" id="historyProgressionPercent" type="number" min="1" max="100" step="1" value="' + historyProgressionPercent + '"><p id="historyPercentStatus" role="status" aria-live="polite"></p><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>' +
     '<div class="history-date-range"><div><label for="historyDateFrom">from date and time</label><input class="race-field" id="historyDateFrom" type="datetime-local" step="1"></div><div><label for="historyDateTo">through date and time</label><input class="race-field" id="historyDateTo" type="datetime-local" step="1"></div></div><button class="option" id="historyDateClear" type="button">clear date range</button><p id="historyDateStatus" role="status" aria-live="polite"></p>';
 
 }
@@ -1631,7 +1790,7 @@ window.addEventListener("blur", hideProgressionPoint);
 document.addEventListener("scroll", hideProgressionPoint, true);
 
 function renderHistoryProgressionChart() {
-  const entries = history.map((result, index) => ({ result, index })).filter(({ result }) =>
+  let entries = history.map((result, index) => ({ result, index })).filter(({ result }) =>
     historyWithinDateRange(result) && progressionFormat(result) === historyProgressionFormat && Number.isFinite(result.wpm) &&
     (historyProgressionSettings === "all" || (result.capitalization === (historyProgressionSettings === "on") &&
       result.punctuation === (historyProgressionSettings === "on")))
@@ -1641,6 +1800,8 @@ function renderHistoryProgressionChart() {
     const first = historyResultDate(a.result).getTime(), second = historyResultDate(b.result).getTime();
     return Number.isFinite(first) && Number.isFinite(second) ? first - second : 0;
   });
+  const matchingCount = entries.length;
+  entries = progressionPercentileEntries(entries);
   if (!entries.length) return '<p>No saved results match this typing format, settings, and date range.</p>';
   const max = entries.reduce((value, entry) => Math.max(value, entry.result.wpm), 100);
   const x = index => entries.length === 1 ? 310 : 45 + index / (entries.length - 1) * 535;
@@ -1661,7 +1822,7 @@ function renderHistoryProgressionChart() {
     const px = x(index), anchor = entries.length === 1 ? "middle" : index === 0 ? "start" : index === entries.length - 1 ? "end" : "middle";
     return `<line x1="${px}" y1="165" x2="${px}" y2="173" stroke="var(--muted)"/><text x="${px}" y="190" text-anchor="${anchor}">${escapeHtml(dateLabel)}</text><text x="${px}" y="206" text-anchor="${anchor}">${escapeHtml(timeLabel)}</text>`;
   }).join("");
-  return '<p>WPM across ' + entries.length + ' saved results for ' + escapeHtml(progressionFormatLabel(historyProgressionFormat)) + ', from oldest to newest. Each point is one result. Search filters only the list below.</p>' +
+  return '<p>WPM across ' + entries.length + ' of ' + matchingCount + ' matching results' + (historyProgressionBand === 'all' ? '' : ' · ' + historyProgressionBand + ' ' + historyProgressionPercent + '% by WPM') + ' for ' + escapeHtml(progressionFormatLabel(historyProgressionFormat)) + ', from oldest to newest. Each point is one result. Search filters only the list below.</p>' +
     `<div class="progression-plot"><svg class="history-progression" viewBox="0 0 600 220" role="group" aria-label="Typing speed progression across ${entries.length} results, oldest to newest. First result ${entries[0].result.wpm} WPM; latest result ${entries[entries.length - 1].result.wpm} WPM."><text x="4" y="13">WPM</text>${grid}<polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2"/>${dots}${ticks}</svg><div id="progressionTooltip" class="progression-tooltip" role="tooltip" hidden></div></div>`;
 }
 
@@ -1670,24 +1831,27 @@ function openHistoryResult(index) {
   if (!result) return;
   const content = $("#modalContent");
   content.innerHTML =
-    '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p>';
+    '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p><button type="button" class="option" data-delete-history-index="' + index + '">delete this result</button>';
   $("#historyResultSummary").textContent =
     `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
+  const attemptActions = (result.raceReplay ? '<button class="option" data-race-replay-index="' + index + '">▶ replay all racers</button>' : "") + (result.replay
+    ? '<div class="records-controls"><button class="option" data-replay-index="' + index + '">▶ replay</button><button class="option" data-retry-index="' + index + '">↻ retry</button><button class="option" data-race-against-index="' + index + '">⚑ race against</button></div>'
+    : '<p>Replay, retry, and race against are unavailable because this older result has no saved passage or keystroke timing.</p>');
   if (!result.chart) {
     content.insertAdjacentHTML(
       "beforeend",
-      "<p>Chart data was not saved for this older result. New results include a chart.</p>",
+      "<p>Chart data was not saved for this older result. New results include a chart.</p>" + attemptActions,
     );
     return;
   }
   const chartData = visibleChartData(result.chart);
   if (!chartData.sampleTimes.length) {
-    content.insertAdjacentHTML("beforeend", "<p>No chart readings at or after one second for this attempt.</p>");
+    content.insertAdjacentHTML("beforeend", "<p>No chart readings at or after one second for this attempt.</p>" + attemptActions);
     return;
   }
   content.insertAdjacentHTML(
     "beforeend",
-    chartLegend('historyChart') + '<div class="chart-wrap"><canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><div id="historyChartMarker" class="chart-marker" aria-hidden="true" hidden></div></div><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
+    chartLegend('historyChart') + '<div class="chart-wrap"><canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><div id="historyChartMarker" class="chart-marker" aria-hidden="true" hidden></div></div><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>' + attemptActions,
   );
   const canvas = $("#historyChart");
   canvas._chartData = chartData;
@@ -1713,7 +1877,7 @@ function openHistoryResult(index) {
     marker.style.left = 35 + (times[closest] - range.start) / range.span * (rect.width - 40) + "px";
     marker.hidden = false;
     $("#historyChartPoint").textContent =
-      `${times[closest].toFixed(3)}s · average ${chartData.samples[closest]} wpm · instant ${chartData.instantSamples[closest]} wpm · raw ${chartData.rawSamples[closest]} wpm`;
+      `${times[closest].toFixed(2)}s · average ${chartData.samples[closest]} wpm · instant ${chartData.instantSamples[closest]} wpm · raw ${chartData.rawSamples[closest]} wpm`;
   });
 }
 
@@ -1780,6 +1944,7 @@ function openMenuDestination() {
   if (location.hash === "#typing") enterTyping();
   if (location.hash === "#friends") $("#friends").click();
   if (location.hash === "#records") openModal("records");
+  if (location.hash === "#history") openModal("history");
   if (location.hash === "#settings") openModal("settings");
 }
 window.addEventListener("load", openMenuDestination);

@@ -7,17 +7,18 @@
       name="description"
       content="Type the Scriptures and read what you typed. Practice on your own or race against friends." />
     <link rel="manifest" href="manifest.webmanifest" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#323437" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Logostype | Type the scriptures</title>
     <style>
       :root {
-        --bg: #ffffff;
-        --panel: #f5f5f5;
-        --text: #000000;
-        --muted: #666666;
-        --accent: #000000;
+        color-scheme: dark;
+        --bg: #323437;
+        --panel: #2c2e31;
+        --text: #d1d0c5;
+        --muted: #646669;
+        --accent: #e2b714;
         --error: #ca4754;
       }
       * {
@@ -99,7 +100,7 @@
         align-items: center;
       }
       nav button,
-      .account, #records {
+      .account, #records, #history {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -374,7 +375,7 @@
         align-items: center;
         justify-content: center;
         gap: 4px;
-        background: var(--bg);
+        background: color-mix(in srgb, var(--bg) 35%, transparent);
         pointer-events: none;
       }
       .race-countdown span {
@@ -387,6 +388,8 @@
         line-height: 1.1;
         color: var(--accent);
         font-weight: 500;
+        opacity: 0.85;
+        text-shadow: 0 1px 8px var(--bg);
         animation: countdown-beat 1s ease-out infinite;
       }
       .race-countdown.is-go {
@@ -453,6 +456,62 @@
       }
       .incorrect {
         color: var(--error);
+      }
+      body.in-room #words {
+        padding: 30px 6px 0;
+        height: calc(5.04em + 30px);
+        overflow: hidden;
+      }
+      body.in-room.race-spectator #words {
+        height: auto;
+        max-height: none;
+        min-height: 1.68em;
+        overflow: visible;
+      }
+      body.in-room .race-countdown:not(.is-go) {
+        bottom: auto;
+        height: min(180px, 45svh);
+      }
+      .race-text-markers {
+        position: absolute;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 2;
+      }
+      .race-text-marker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: transform 150ms linear;
+        width: 0;
+        height: 0;
+      }
+      .race-text-marker::before {
+        content: "";
+        position: absolute;
+        left: -6px;
+        bottom: 2px;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 9px solid var(--racer-color);
+      }
+      .race-text-marker span {
+        position: absolute;
+        display: block;
+        max-width: 110px;
+        padding: 0 4px;
+        border: 1px solid var(--racer-color);
+        border-radius: 3px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 10px;
+        line-height: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .race-text-marker { transition: none; }
       }
       .typing-caret {
         position: absolute;
@@ -559,6 +618,44 @@
         font-weight: 400;
         color: var(--text);
       }
+      .result-attempt-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+      }
+      .replay-live-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 28px;
+        margin-bottom: 16px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .replay-live-stats strong {
+        display: block;
+        color: var(--accent);
+        font-size: 26px;
+        font-weight: 500;
+      }
+      .words.attempt-replay-words,
+      body.book-mode .words.attempt-replay-words {
+        height: 9em;
+        overflow-y: auto;
+        font-size: 20px;
+        color: var(--muted);
+        scroll-behavior: auto;
+      }
+      .race-replay-participant {
+        margin-bottom: 20px;
+      }
+      .attempt-replay-words .cursor {
+        border-left: 2px solid var(--accent);
+      }
+      #attemptReplaySeek {
+        width: 100%;
+      }
       .chart-wrap {
         position: relative;
       }
@@ -639,7 +736,7 @@
         padding: 30px;
         box-shadow: 0 20px 100px #0006;
       }
-      #leaveRaceDialog {
+      #leaveRaceDialog, #restartReplayDialog, #raceNameDialog, #joinCodeDialog {
         position: fixed;
         inset: 0;
         margin: auto;
@@ -867,6 +964,44 @@
       [hidden] {
         display: none !important;
       }
+      #raceLobby {
+        width: 100%;
+        max-width: 850px;
+        margin: 0 auto;
+      }
+      .race-lobby-controls {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .race-lobby-controls > div {
+        flex: 1 1 150px;
+      }
+      .race-lobby-controls label { display: block; font-size: 13px; }
+      .race-lobby-controls .race-field { margin-bottom: 0; }
+      .race-lobby-controls .race-primary { margin-top: 0; }
+      #raceLobby p { font-size: 13px; line-height: 1.6; }
+      .available-room {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--panel);
+      }
+      .available-room small { display: block; margin-top: 5px; color: var(--muted); }
+      .room-actions { display: flex; gap: 8px; }
+      body.race-spectator #typingCaret, body.race-spectator .hint { display: none; }
+      .available-room button { padding: 10px 14px; border: 1px solid var(--accent); border-radius: 5px; }
+      body.race-lobby-open #testSection,
+      body.race-lobby-open #results,
+      body.race-lobby-open .config,
+      body.race-lobby-open #journeyOptions,
+      body.race-lobby-open #journeyProgress,
+      body.race-lobby-open #journeyLocalProgress,
+      body.race-lobby-open #bookProgress,
+      body.race-lobby-open .shortcuts { display: none !important; }
       #racePanel {
         background: var(--panel);
         border-radius: 8px;
@@ -963,10 +1098,26 @@
         font-size: 11px;
       }
       .race-track {
-        height: 5px;
+        position: relative;
+        height: 22px;
         background: var(--bg);
         border-radius: 5px;
         overflow: hidden;
+      }
+      .race-place {
+        position: absolute;
+        inset: 0 0 0 auto;
+        display: flex;
+        align-items: center;
+        padding: 0 7px;
+        background: var(--panel);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .race-winner .race-place {
+        background: var(--accent);
+        color: var(--bg);
       }
       .race-track i {
         display: block;
@@ -974,6 +1125,8 @@
         background: var(--accent);
         transition: width 0.2s;
       }
+      .race-remove { font-size: 12px; padding: 6px; color: var(--error); }
+      .race-audience-member { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; }
       .race-label {
         color: var(--text);
         overflow-wrap: anywhere;
@@ -987,8 +1140,12 @@
         display: none;
       }
       body.in-room #restart,
-      body.in-room #again {
+      body.in-room #again,
+      body.in-room .result-attempt-actions {
         display: none;
+      }
+      body.in-room.replay-race #restart {
+        display: inline-block;
       }
       body.in-room main {
         justify-content: flex-start;
@@ -1367,9 +1524,14 @@
           </button>
         </nav>
         <div class="header-actions">
-          <button id="records" title="Records and history" aria-label="Records and history" data-dialog="records">
+          <button id="records" title="Records" aria-label="Records" data-dialog="records">
             <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M8 3h8v5a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 12v6m-4 3h8m-6-3h4v3h-4z" />
+            </svg>
+          </button>
+          <button id="history" title="Typing history" aria-label="Typing history" data-dialog="history">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 11a9 9 0 1 1 2.7 7M3 4v7h7M12 7v5l3 2" />
             </svg>
           </button>
         <button
@@ -1394,6 +1556,18 @@
         </div>
       </header>
       <main id="typingContent">
+        <section id="raceLobby" hidden aria-labelledby="raceLobbyTitle">
+          <h2 id="raceLobbyTitle">race friends</h2>
+          <div class="race-lobby-controls">
+            <button type="button" id="createRoom" class="race-primary">create room →</button><label><input type="checkbox" id="privateRoom"> private room (code only)</label>
+            <button type="button" id="joinRoom" class="race-primary">join by code →</button>
+          </div>
+          <p id="raceError" role="status" aria-live="polite"></p>
+          <p>Public rooms appear in the shared list. Private rooms use a code or invite link. Keep the host’s tab open while racing.</p>
+          <h3>available rooms</h3>
+          <p id="roomDirectoryStatus" role="status" aria-live="polite">Looking for rooms…</p>
+          <div id="availableRooms"></div>
+        </section>
         <div class="config">
           <div class="group">
             <button id="punct" aria-pressed="false">Aa @ capitalization + punctuation</button>
@@ -1408,11 +1582,11 @@
         </div>
         <section id="racePanel" hidden aria-label="Friends race">
           <div class="race-top"><strong id="raceTitle">race friends</strong></div>
-          <p id="raceStatus" role="status" aria-live="polite"></p>
+          <p id="raceStatus" role="status" aria-live="polite"></p><p id="roomPrivacyStatus"></p><button type="button" id="roomVisibility" hidden>make private</button>
           <div id="raceInvite">
             <input id="inviteLink" readonly aria-label="Invite link" /><button id="copyInvite">copy invite</button>
           </div>
-          <div id="racers"></div>
+          <div id="racers"></div><div id="raceAudience" aria-live="polite"></div>
           <form id="raceDurationForm">
             <div class="race-passage-options" role="group" aria-label="Race passage">
               <button type="button" data-race-passage="verse" class="active" aria-pressed="true">verse</button>
@@ -1439,7 +1613,7 @@
             <p id="raceDurationHint">Defaults to 30 WPM for this passage, rounded up to 5 seconds. Type a time limit from 1–4000 seconds.</p>
           </form>
           <div class="race-actions">
-            <button id="startRace" class="race-primary">start race →</button
+            <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button><button id="startRace" class="race-primary">start race →</button
             ><button id="giveUpRace" class="race-leave" hidden>give up</button
             ><button id="leaveRace" class="race-leave">leave room</button>
           </div>
@@ -1495,7 +1669,7 @@
               <span class="verse-context-reference"></span>
               <p></p>
             </div>
-            <div class="words" id="words"></div>
+            <div class="words" id="words"></div><div id="raceTextMarkers" class="race-text-markers" aria-hidden="true" hidden></div>
             <div id="followingVerse" class="verse-context" hidden>
               <span class="verse-context-reference"></span>
               <p></p>
@@ -1547,7 +1721,9 @@
             </div>
           </div>
 
+          <button type="button" id="replayAllResult" hidden>▶ replay all racers</button>
           <p id="testReferences" aria-label="Passage references" hidden></p>
+          <div class="result-attempt-actions"><button type="button" id="replayResult">▶ replay</button><button type="button" id="retryResult">↻ retry</button><button type="button" id="raceAgainstResult">⚑ race against</button></div>
           <button class="restart" id="again" title="Next test" aria-label="Next test">↦</button>
         </section>
       </main>
@@ -1560,7 +1736,7 @@
         <button id="installApp" hidden>↓ install app</button
         ><span id="offlineStatus" role="status" aria-live="polite"></span><button data-dialog="about">◈ about</button
         ><span class="right"
-          ><button data-dialog="themes">◐ <span id="themeName">black on white</span></button
+          ><button data-dialog="themes">◐ <span id="themeName">serika dark</span></button
           ><span>logostype v1.0</span></span
         >
       </footer>
@@ -1571,6 +1747,41 @@
       <div class="confirm-actions">
         <button id="cancelLeaveRace" autofocus>cancel</button
         ><button id="confirmLeaveRace" class="race-leave">close room</button>
+      </div>
+    </dialog>
+    <dialog id="removeRacerDialog" aria-labelledby="removeRacerTitle">
+      <h2 id="removeRacerTitle">remove from room?</h2><p id="removeRacerMessage"></p>
+      <div class="confirm-actions"><button type="button" id="cancelRemoveRacer">cancel</button><button type="button" id="confirmRemoveRacer" class="race-leave">remove</button></div>
+    </dialog>
+    <dialog id="historyCleanupDialog" aria-labelledby="historyCleanupTitle">
+      <h2 id="historyCleanupTitle"></h2><p id="historyCleanupMessage"></p>
+      <div class="confirm-actions"><button type="button" id="cancelHistoryCleanup">cancel</button><button type="button" id="confirmHistoryCleanup" class="race-leave">confirm</button></div>
+    </dialog>
+    <dialog id="joinCodeDialog" aria-labelledby="joinCodeTitle">
+      <h2 id="joinCodeTitle">join by code</h2>
+      <label for="roomCode">room code</label>
+      <input class="race-field" id="roomCode" maxlength="8" placeholder="a1b2c3d4" autocapitalize="off" spellcheck="false" aria-describedby="roomCodeError">
+      <p id="roomCodeError" role="status" aria-live="polite"></p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelJoinCode">cancel</button>
+        <button type="button" id="confirmJoinRoom" class="race-primary">join →</button>
+      </div>
+    </dialog>
+    <dialog id="raceNameDialog" aria-labelledby="raceNameTitle" aria-describedby="raceNameMessage">
+      <h2 id="raceNameTitle">choose your race name</h2>
+      <p id="raceNameMessage">Enter a name, or continue with a randomly generated name.</p>
+      <label for="raceName">player name</label>
+      <input class="race-field" id="raceName" maxlength="24" autocomplete="nickname" placeholder="leave blank for a random name">
+      <div class="confirm-actions">
+        <button type="button" id="confirmRaceName" class="race-primary">continue →</button>
+      </div>
+    </dialog>
+    <dialog id="restartReplayDialog" aria-labelledby="restartReplayTitle" aria-describedby="restartReplayMessage">
+      <h2 id="restartReplayTitle">restart replay race?</h2>
+      <p id="restartReplayMessage">Restart both racers from the beginning? The unfinished attempt will not be saved. The race keeps running until you confirm.</p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelRestartReplay" autofocus>keep racing</button>
+        <button type="button" id="confirmRestartReplay" class="race-leave">restart race</button>
       </div>
     </dialog>
     <dialog id="clearDataDialog" aria-labelledby="clearDataTitle" aria-describedby="clearDataMessage">
@@ -1593,6 +1804,9 @@
     <script src="scripture-text.js"></script>
     <script src="app.js"></script>
     <script src="data.js"></script>
+    <script src="history-store.js"></script>
+    <script src="replay.js"></script>
+    <script src="rooms.js"></script>
     <script src="race.js"></script>
     <script src="reading.js"></script>
     <script src="navigation.js"></script>
