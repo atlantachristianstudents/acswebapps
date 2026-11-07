@@ -770,10 +770,24 @@
         cursor: pointer;
       }
       .progression-point:hover .progression-dot,
-      .progression-point:focus .progression-dot {
-        r: 5;
-        stroke: var(--text);
-        stroke-width: 1;
+      .progression-point:focus .progression-dot,
+      .progression-point.is-active .progression-dot {
+        r: 7;
+        fill: var(--text);
+        stroke: var(--bg);
+        stroke-width: 2;
+      }
+      .progression-halo {
+        opacity: 0;
+        fill: var(--bg);
+        stroke: var(--accent);
+        stroke-width: 3;
+        pointer-events: none;
+      }
+      .progression-point:hover .progression-halo,
+      .progression-point:focus .progression-halo,
+      .progression-point.is-active .progression-halo {
+        opacity: 1;
       }
       .history-progression {
         display: block;

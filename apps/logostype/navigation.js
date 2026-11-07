@@ -16,7 +16,8 @@
   document.addEventListener('keydown', event => {
     if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey ||
         event.altKey || event.shiftKey || !Object.hasOwn(shortcuts, event.key)) return;
-    if (typeof mode !== 'undefined' && mode === 'custom' && !document.body.classList.contains('reading-mode')) return;
+    if (typeof mode !== 'undefined' && mode === 'custom' &&
+        (typeof done === 'undefined' || !done) && !document.body.classList.contains('reading-mode')) return;
     if (document.querySelector('dialog[open]')) return;
     const active = document.activeElement;
     if (active?.id !== 'typing' &&

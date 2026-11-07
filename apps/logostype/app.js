@@ -676,12 +676,27 @@ function reset(preservePassage = false) {
   limits();
   render(false);
 }
+function averageCorrectCharacters() {
+  const { spaceTypos } = parseTyping(input.value);
+  let correct = 0, position = 0;
+  while (position < typed.length) {
+    const space = target.indexOf(" ", position);
+    const end = space < 0 ? target.length : space;
+    const typedEnd = Math.min(end, typed.length);
+    // A word with any remaining mistake earns no credit, including its separator.
+    // Extras at its following space also invalidate the word until corrected.
+    if (typed.slice(position, typedEnd) === target.slice(position, typedEnd) && !spaceTypos[end]) {
+      correct += typedEnd - position;
+      if (typed.length > end && space >= 0) correct++;
+    }
+    position = end + 1;
+  }
+  return correct;
+}
 function speed() {
   const elapsed = Date.now() - start;
   if (!start || elapsed <= 0 || typed.length < 2) return 0;
-  let correct = 0;
-  for (let i = 0; i < typed.length; i++) if (typed[i] === target[i]) correct++;
-  return Math.round((correct / 5) * 60000 / elapsed);
+  return Math.round((averageCorrectCharacters() / 5) * 60000 / elapsed);
 }
 function rawSpeed() {
   const elapsed = Date.now() - start;
@@ -808,6 +823,7 @@ function drawChart(c = $("#chart"), data = captureChart()) {
   const legend = document.querySelector(`[data-chart-target="${c.id}"]`);
   if (legend) legend.hidden = c.hidden;
   if (c.id === "chart") hideChartHover();
+  if (c.id === "historyChart" && $("#historyChartMarker")) $("#historyChartMarker").hidden = true;
   if (c.hidden) return;
   const { samples, instantSamples, rawSamples, sampleTimes, mistakeEvents } = data;
   const r = c.getBoundingClientRect(),
@@ -1122,7 +1138,7 @@ function renderKeyboardShortcuts() {
       <tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Reading: next / previous chapter</td></tr>
       <tr><td><kbd>Shift+N</kbd> / <kbd>Shift+P</kbd></td><td>Reading: next / previous available book</td></tr>
     </tbody></table>
-    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and history. They are disabled during custom typing tests, in open dialogs, and in other form fields. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
+    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and history. They are disabled while entering a custom typing test, in open dialogs, and in other form fields. They work on the results screen, including custom test results. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
 }
 function openModal(type) {
   const content = $("#modalContent");
@@ -1143,7 +1159,7 @@ function openModal(type) {
   if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
-      "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Accuracy includes all keystrokes, even corrected mistakes.</p>";
+      "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Average WPM excludes each word with an uncorrected mistake, including its following space. Correcting the word restores its credit. Accuracy includes all keystrokes, even corrected mistakes.</p>";
   if (type === "history" || type === "profile")
     content.innerHTML =
       '<button class="option" data-open="records">← records and history</button><h2>records and typing history</h2>' +
@@ -1474,7 +1490,7 @@ document.addEventListener("click", event => {
   updateHistoryDateRange();
 });
 let historyProgressionFormat = null;
-let historyProgressionSettings = null;
+let historyProgressionSettings = "all";
 function progressionFormat(result) {
   if (result.mode === "time" || result.mode === "words") return result.mode + ":" + result.limit;
   if (result.mode === "custom") return result.customPreset === "default" ? "custom:default" : "custom";
@@ -1522,15 +1538,14 @@ document.addEventListener("input", event => {
 function renderHistoryProgression() {
   if (historyProgressionFormat === null) historyProgressionFormat = progressionFormat({ mode, limit,
     customPreset: mode === "custom" && rawTarget === defaultCustomText ? "default" : undefined });
-  if (historyProgressionSettings === null) historyProgressionSettings = mode === "book" || (capitalization && punctuation) ? "on" : !capitalization && !punctuation ? "off" : "all";
   const formats = ["book", "quote", "custom:default",
     ...[15, 30, 60, 120].map(value => "time:" + value),
     ...[10, 25, 50, 100].map(value => "words:" + value)];
   if (!formats.includes(historyProgressionFormat)) {
     historyProgressionFormat = mode === "time" ? "time:15" : mode === "words" ? "words:25" : "custom:default";
   }
-  const settings = [["off", "caps off", "no caps or punctuation"],
-    ["on", "caps on", "caps and punctuation"], ["all", "all", "all settings (including older results)"]];
+  const settings = [["all", "all", "all settings (including older results)"],
+    ["off", "caps off", "no caps or punctuation"], ["on", "caps on", "caps and punctuation"]];
   const formatGroups = [formats.slice(0, 3), formats.slice(3, 7), formats.slice(7)];
   const formatRows = formatGroups.map(group => '<tr>' + group.map(format =>
     '<td><button type="button" data-progression-format="' + escapeHtml(format) + '" aria-pressed="' +
@@ -1545,12 +1560,26 @@ function renderHistoryProgression() {
     '<div class="history-date-range"><div><label for="historyDateFrom">from date and time</label><input class="race-field" id="historyDateFrom" type="datetime-local" step="1"></div><div><label for="historyDateTo">through date and time</label><input class="race-field" id="historyDateTo" type="datetime-local" step="1"></div></div><button class="option" id="historyDateClear" type="button">clear date range</button><p id="historyDateStatus" role="status" aria-live="polite"></p>';
 
 }
-function showProgressionPoint(point) {
+function expandProgressionPoint(point) {
+  hideProgressionPoint();
+  openHistoryResult(Number(point.dataset.progressionIndex));
+  $("#historyBack").focus();
+}
+document.addEventListener("click", event => {
+  const point = event.target.closest("[data-progression-index]");
+  if (point) expandProgressionPoint(point);
+});
+document.addEventListener("keydown", event => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const point = event.target.closest("[data-progression-index]");
+  if (!point) return;
+  event.preventDefault();
+  expandProgressionPoint(point);
+});
+function showProgressionPoint(point, event) {
   const tooltip = $("#progressionTooltip");
   const result = history[Number(point.dataset.progressionIndex)];
   if (!tooltip || !result) return;
-  const settings = result.capitalization === true && result.punctuation === true ? "caps on"
-    : result.capitalization === false && result.punctuation === false ? "caps off" : "mixed or unrecorded settings";
   const date = historyResultDate(result);
   const readableDate = Number.isFinite(date.getTime());
   const rows = [
@@ -1558,28 +1587,39 @@ function showProgressionPoint(point) {
     ["time", readableDate && !/^\d{4}-\d{2}-\d{2}$/.test(result.date) ? date.toLocaleTimeString() : "not recorded"],
     ["speed", result.wpm + " WPM"],
     ["accuracy", result.accuracy + "%"],
-    ["format", progressionFormatLabel(progressionFormat(result))],
-    ["settings", settings],
   ];
-  if (result.reference) rows.push(["verse", result.reference]);
-  if (result.journey) rows.push(["journey", result.journey]);
   tooltip.innerHTML = '<dl>' + rows.map(([label, value]) =>
     '<div><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(value) + '</dd></div>'
   ).join("") + '</dl>';
   tooltip.hidden = false;
+  document.querySelectorAll(".progression-point.is-active").forEach(active => {
+    if (active !== point) active.classList.remove("is-active");
+  });
+  point.classList.add("is-active");
   const container = tooltip.parentElement.getBoundingClientRect();
   const rect = point.getBoundingClientRect();
-  const left = rect.left + rect.width / 2 - container.left - tooltip.offsetWidth / 2;
-  tooltip.style.left = Math.max(0, Math.min(container.width - tooltip.offsetWidth, left)) + "px";
-  tooltip.style.top = Math.max(0, rect.top - container.top - tooltip.offsetHeight - 8) + "px";
+  const pointer = event && event.type.startsWith("pointer");
+  const cursorX = pointer ? event.clientX : rect.left + rect.width / 2;
+  const cursorY = pointer ? event.clientY : rect.top + rect.height / 2;
+  const modal = $("#modal").getBoundingClientRect();
+  const bounds = { left: Math.max(0, modal.left) + 8, right: Math.min(innerWidth, modal.right) - 8,
+    top: Math.max(0, modal.top) + 8, bottom: Math.min(innerHeight, modal.bottom) - 8 };
+  let left = cursorX + 14, top = cursorY + 14;
+  if (left + tooltip.offsetWidth > bounds.right) left = cursorX - tooltip.offsetWidth - 14;
+  if (top + tooltip.offsetHeight > bounds.bottom) top = cursorY - tooltip.offsetHeight - 14;
+  left = Math.max(bounds.left, Math.min(bounds.right - tooltip.offsetWidth, left));
+  top = Math.max(bounds.top, Math.min(bounds.bottom - tooltip.offsetHeight, top));
+  tooltip.style.left = left - container.left + "px";
+  tooltip.style.top = top - container.top + "px";
 }
 function hideProgressionPoint() {
   const tooltip = $("#progressionTooltip");
   if (tooltip) tooltip.hidden = true;
+  document.querySelectorAll(".progression-point.is-active").forEach(point => point.classList.remove("is-active"));
 }
-["pointerover", "focusin", "pointerdown"].forEach(type => document.addEventListener(type, event => {
+["pointerover", "pointermove", "focusin", "pointerdown"].forEach(type => document.addEventListener(type, event => {
   const point = event.target.closest("[data-progression-index]");
-  if (point) showProgressionPoint(point);
+  if (point) showProgressionPoint(point, event);
   else if (type === "pointerdown") hideProgressionPoint();
 }));
 ["pointerout", "focusout"].forEach(type => document.addEventListener(type, event => {
@@ -1588,6 +1628,7 @@ function hideProgressionPoint() {
 }));
 window.addEventListener("resize", hideProgressionPoint);
 window.addEventListener("blur", hideProgressionPoint);
+document.addEventListener("scroll", hideProgressionPoint, true);
 
 function renderHistoryProgressionChart() {
   const entries = history.map((result, index) => ({ result, index })).filter(({ result }) =>
@@ -1609,7 +1650,7 @@ function renderHistoryProgressionChart() {
     return `<line x1="45" y1="${py}" x2="580" y2="${py}" stroke="var(--muted)" opacity=".25"/><text x="38" y="${py + 4}" text-anchor="end">${Math.round(value)}</text>`;
   }).join("");
   const points = entries.map((entry, index) => `${x(index)},${y(entry.result.wpm)}`).join(" ");
-  const dots = entries.map((entry, index) => `<g class="progression-point" data-progression-index="${entry.index}" tabindex="0" aria-label="${escapeHtml(historyDescription(entry.result) + ' · ' + progressionFormatLabel(progressionFormat(entry.result)))}" aria-describedby="progressionTooltip"><circle cx="${x(index)}" cy="${y(entry.result.wpm)}" r="10" fill="transparent"/><circle class="progression-dot" cx="${x(index)}" cy="${y(entry.result.wpm)}" r="3" fill="var(--accent)"/></g>`).join("");
+  const dots = entries.map((entry, index) => `<g class="progression-point" data-progression-index="${entry.index}" tabindex="0" role="button" aria-label="Open saved result: ${escapeHtml(historyDescription(entry.result) + ' · ' + progressionFormatLabel(progressionFormat(entry.result)))}" aria-describedby="progressionTooltip"><circle cx="${x(index)}" cy="${y(entry.result.wpm)}" r="10" fill="transparent"/><circle class="progression-halo" cx="${x(index)}" cy="${y(entry.result.wpm)}" r="11"/><circle class="progression-dot" cx="${x(index)}" cy="${y(entry.result.wpm)}" r="3" fill="var(--accent)"/></g>`).join("");
   const tickIndices = [...new Set([0, Math.floor((entries.length - 1) / 2), entries.length - 1])];
   const ticks = tickIndices.map(index => {
     const date = historyResultDate(entries[index].result);
@@ -1646,22 +1687,31 @@ function openHistoryResult(index) {
   }
   content.insertAdjacentHTML(
     "beforeend",
-    chartLegend('historyChart') + '<canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
+    chartLegend('historyChart') + '<div class="chart-wrap"><canvas id="historyChart" aria-label="Saved typing speed and mistakes over time"></canvas><div id="historyChartMarker" class="chart-marker" aria-hidden="true" hidden></div></div><p id="historyChartPoint" aria-live="polite">Move over the chart to inspect typing speed.</p>',
   );
   const canvas = $("#historyChart");
   canvas._chartData = chartData;
   drawChart(canvas, chartData);
+  const marker = $("#historyChartMarker");
+  const hideMarker = () => { marker.hidden = true; };
+  canvas.addEventListener("pointerleave", hideMarker);
+  canvas.addEventListener("pointercancel", hideMarker);
   canvas.addEventListener("pointermove", (event) => {
     const times = chartData.sampleTimes;
-    if (!times.length) return;
-    const rect = canvas.getBoundingClientRect(), range = chartTimeRange(times),
+    if (!times.length) { hideMarker(); return; }
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 40) { hideMarker(); return; }
+    const range = chartTimeRange(times),
       time = range.start + Math.max(0, Math.min(1, (event.clientX - rect.left - 35) / (rect.width - 40))) * range.span;
     if (time < times[0]) {
+      hideMarker();
       $("#historyChartPoint").textContent = "Chart readings begin after one second and at least two characters.";
       return;
     }
     let closest = 0;
     for (let i = 1; i < times.length; i++) if (Math.abs(times[i] - time) < Math.abs(times[closest] - time)) closest = i;
+    marker.style.left = 35 + (times[closest] - range.start) / range.span * (rect.width - 40) + "px";
+    marker.hidden = false;
     $("#historyChartPoint").textContent =
       `${times[closest].toFixed(3)}s · average ${chartData.samples[closest]} wpm · instant ${chartData.instantSamples[closest]} wpm · raw ${chartData.rawSamples[closest]} wpm`;
   });
