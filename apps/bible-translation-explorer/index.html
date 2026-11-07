@@ -89,7 +89,7 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Axis-integrated controls: horizontal control tracks the x axis, vertical tracks y. */
-.plot-with-axis-controls{display:grid;grid-template-columns:112px minmax(0,1fr) 56px;align-items:stretch;gap:0 8px;max-width:calc(var(--chart-size,640px) + 184px);margin-inline:auto}
+.plot-with-axis-controls{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:stretch;gap:0 8px;max-width:calc(var(--chart-size,640px) + 120px);margin-inline:auto}
 .plot-main{min-width:0;position:relative}
 .plot-main #plot{width:100%}
 .axis-control{font-size:12px;color:#475569;min-width:0}
@@ -108,7 +108,7 @@ footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width
 .axis-control-y{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;margin:12px 5px 12px 0;padding:12px 7px;background:#f3f7fb;border:1px solid #d9eafb;border-radius:8px;border-color:#dce5ef}
 .axis-y-heading{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
 .axis-control-y output{background:#e5f3ff;color:#1269b3}
-.axis-control-y input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;height:clamp(180px,31vw,340px);width:23px;min-height:160px;background:transparent;accent-color:#1c84d8}
+.axis-control-y input[type=range]{--slider-fill-angle:0deg;appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;height:clamp(180px,31vw,340px);width:23px;min-height:160px;background:transparent;accent-color:#1c84d8}
 .axis-y-label{text-align:center;font-size:11px;font-weight:750}
 .axis-y-values{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#475569}
 .controls-overall{grid-template-columns:minmax(0,1fr);max-width:100%;margin-top:16px}
@@ -127,7 +127,7 @@ tbody tr:hover td{background:#f1f5f9}
   .axis-control-x{grid-column:1/-1;grid-row:3;margin-left:82px}
   .axis-control-y{margin:12px 0;padding:12px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px}
   .axis-y-heading{grid-column:1/-1;flex-direction:row;justify-content:space-between}
-  .axis-control-y input[type=range]{appearance:none;writing-mode:horizontal-tb;direction:rtl;width:100%;height:7px;min-height:0;grid-column:1/-1;grid-row:3}
+  .axis-control-y input[type=range]{--slider-fill-angle:270deg;appearance:none;writing-mode:horizontal-tb;direction:rtl;width:100%;height:7px;min-height:0;grid-column:1/-1;grid-row:3}
   .axis-control-y > .axis-y-label:nth-child(2){grid-column:1;grid-row:4;text-align:left}
   .axis-y-label{grid-column:3;grid-row:4;text-align:right}
   .axis-y-values{grid-column:2;grid-row:4;flex-direction:row;flex-wrap:wrap;justify-content:center}
@@ -157,15 +157,17 @@ main,.chart-card,.table-card{min-width:0}
  .table-wrap{max-width:100%;overscroll-behavior-x:contain}
 }
 
-.chart-size-control{grid-column:3;grid-row:1;align-self:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 4px;color:#475569;font-size:11px;text-align:center}
+.chart-stage{position:relative;padding-right:72px;min-height:340px}
+.chart-size-control{position:absolute;top:0;right:0;width:56px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 4px;color:#475569;font-size:11px;text-align:center}
 .chart-size-control label{font-size:12px;font-weight:800}
 .chart-size-control input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:24px;height:180px;margin:0;background:transparent;accent-color:#7658f2}
 .chart-size-control output{font-variant-numeric:tabular-nums}
 .chart-size-reset{font-size:11px;padding:8px 4px;width:100%;min-height:40px}
 @media(max-width:700px){
- .plot-with-axis-controls{grid-template-columns:minmax(0,1fr) 48px;max-width:calc(var(--chart-size,640px) + 56px)}
+ .chart-stage{padding-right:56px;min-height:290px}
+ .plot-with-axis-controls{grid-template-columns:minmax(0,1fr);max-width:var(--chart-size,640px)}
  .plot-main{grid-column:1;grid-row:2}
- .chart-size-control{grid-column:2;grid-row:2;gap:8px;padding:8px 0}
+ .chart-size-control{width:48px;gap:8px;padding:8px 0}
  .chart-size-control input[type=range]{height:130px}
  .axis-reset{grid-column:1;justify-self:start}
 }
@@ -205,6 +207,7 @@ main,.chart-card,.table-card{min-width:0}
 <section class="chart-card" aria-labelledby="scatterTitle">
   <div class="chart-title-row"><span class="chart-title" id="scatterTitle">Literalness × Readability</span><span class="pill" id="topOverall">Top overall: —</span></div>
   <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">9 of 11 shown</span></div>
+  <div class="chart-stage">
   <div class="plot-with-axis-controls" id="chartLayout">
 <div class="axis-control axis-control-y" aria-label="Readability axis weighting"><div class="axis-y-heading"><strong>Readability axis</strong><output id="readRatio" for="readSlider">1 : 1</output></div><div class="axis-y-label">2:1 · Fluency</div><input id="readSlider" aria-label="Syntactic fluency weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"><div class="axis-y-label">1:2 · Vocabulary</div><div class="axis-y-values"><span id="readLeft">50.0%</span><span id="readRight">50.0%</span></div></div>
     <div class="plot-main">
@@ -220,6 +223,7 @@ main,.chart-card,.table-card{min-width:0}
     </div>
     <button type="button" class="btn axis-reset" id="equalWeightsBtn" title="Set Literalness, Readability, and Overall to 1:1">Reset 1:1</button>
 <div class="axis-control axis-control-x" aria-label="Literalness axis weighting"><div class="axis-control-head"><strong>Literalness axis · Transfer / Lexical</strong><output id="litRatio" for="litSlider">1 : 1</output></div><div class="axis-slider-row"><input id="litSlider" aria-label="Syntactic transfer weighting, percent" type="range" min="33.3333333333" max="66.6666666667" step="any" value="50"></div><div class="axis-endpoints"><span>1:2 · Lexical</span><span id="litLeft">50.0%</span><span id="litRight">50.0%</span><span>2:1 · Transfer</span></div></div>
+  </div>
   </div>
 </section>
 
@@ -305,9 +309,8 @@ let selected=null, latest=[];
 let legendPosition=null, legendDrag=null, legendWeightDrag=null, legendCollapsed=false;
 function legendHeight(){return legendCollapsed?40:148;}
 function toggleLegend(){
- const oldWidth=legendWidth();
  legendCollapsed=!legendCollapsed;
- if(legendPosition)legendPosition.x+=oldWidth-legendWidth();
+ legendPosition=null;
  render();
  const handle=plot.querySelector('.legend-drag-handle');if(handle)handle.focus({preventScroll:true});
 }
@@ -320,7 +323,7 @@ const MIN_WEIGHT=1/3, MAX_WEIGHT=2/3;
 function clampWeight(p){return Math.max(MIN_WEIGHT,Math.min(MAX_WEIGHT,p));}
 function weight(){return {lit:clampWeight(Number(litSlider.value)/100),read:clampWeight(Number(readSlider.value)/100),overall:overallWeight};}
 function ratio(p){if(Math.abs(p-2/3)<.001)return '2 : 1';if(Math.abs(p-.5)<.001)return '1 : 1';if(Math.abs(p-1/3)<.001)return '1 : 2';if(p<=.0001)return '0 : 1';if(p>=.9999)return '1 : 0';let k=p/(1-p);return k>=1?`${k.toFixed(2)} : 1`:`1 : ${(1/k).toFixed(2)}`;}
-function updateSliderVisual(slider,p,color){const progress=((clampWeight(p)-MIN_WEIGHT)/(MAX_WEIGHT-MIN_WEIGHT)*100).toFixed(2);slider.style.background=`linear-gradient(90deg,${color} 0%,${color} ${progress}%,#e5eaf4 ${progress}%,#e5eaf4 100%)`;}
+function updateSliderVisual(slider,p,color){const progress=((clampWeight(p)-MIN_WEIGHT)/(MAX_WEIGHT-MIN_WEIGHT)*100).toFixed(2);slider.style.background=`linear-gradient(var(--slider-fill-angle,90deg),${color} 0%,${color} ${progress}%,#e5eaf4 ${progress}%,#e5eaf4 100%)`;}
 function dataScores(){const {lit,read,overall}=weight();return sourceRows().map(row=>{const x=lit*row.t+(1-lit)*row.l;const y=read*row.f+(1-read)*row.v;return {...row,x,y,overall:overall*x+(1-overall)*y};});}
 function tickFormat(n){return (Math.abs(n-Math.round(n))<.06?n.toFixed(0):n.toFixed(1))+'%';}
 function makeTicks(lo,hi,n=6){const s=(hi-lo)/n;return Array.from({length:n+1},(_,i)=>lo+i*s);}
