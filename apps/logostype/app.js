@@ -572,9 +572,7 @@ function parseTyping(value, capped = false) {
     if (target[text.length] === " " && character !== " ") {
       spaceTypos[text.length] = (spaceTypos[text.length] || "") + character;
       extraCount++;
-      // The passage position advances past the slot as if the space had
-      // been typed correctly; the cursor moves on to the next word.
-      text += " ";
+      // Extra characters stay at this space until an actual space is typed.
       continue;
     }
     text += character;
@@ -588,12 +586,10 @@ function render(smooth = true) {
   $("#words").innerHTML = target
     .split(" ")
     .map((w) => {
-      // The space slot after this word. Its gap lives in the word's
-      // margin-right: 0.6em for a real space, 0 when typo characters
-      // typed in place of the space hang after the word instead.
+      // Show extra characters before the word gap without consuming the space.
       const slot = pos + w.length;
       const typo = spaceTypos[slot] || "";
-      let html = `<span class="word${typo ? " no-space" : ""}">`;
+      let html = '<span class="word">';
       for (const c of w) {
         const isTyped = pos < typed.length;
         const wrong = isTyped && typed[pos] !== c;
@@ -612,12 +608,11 @@ function render(smooth = true) {
         html += `<span class="letter ${state}${cursor}">${escapeHtml(content)}</span>`;
         pos++;
       }
-      // Characters typed where the space belongs: red, hanging after the
-      // word with the word's gap removed. The cursor itself is on the next
-      // word's letter, having moved on as if the space were typed.
+      // Keep the cursor after the extras, at the untyped space.
       if (typo) {
         html += `<span class="letter incorrect">${escapeHtml(typo)}</span>`;
-      } else if (pos === typed.length) {
+      }
+      if (pos === typed.length) {
         html += `<span class="letter cursor"></span>`;
       }
       pos++;
