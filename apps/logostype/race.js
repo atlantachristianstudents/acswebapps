@@ -17,7 +17,7 @@
   const status = message => { $('#raceStatus').textContent=message; };
   function send(connection, data) { if(connection?.open) connection.send(data); }
   function broadcast(data) { for(const connection of links.values()) send(connection,data); }
-  function snapshot() { return {type:'roster', players, phase, round, unlisted, clock:{untilStartMs:Math.max(0,roundStartsAt-Date.now()),elapsedMs:Math.max(0,Date.now()-roundStartsAt),duration}, preview:{text:preparedText, custom:passageMode==='custom', duration:0, formatting:raceFormatting}}; }
+  function snapshot() { return {type:'roster', players, phase, round, unlisted, clock:{untilStartMs:Math.max(0,roundStartsAt-Date.now()),elapsedMs:Math.max(0,Date.now()-roundStartsAt),duration}, preview:{text:preparedText, custom:passageMode==='custom', duration:defaultRaceDuration(preparedText), formatting:raceFormatting}}; }
   function publish() {
     paint();
     if(host){
@@ -25,6 +25,9 @@
       if(!ghost&&api.active)window.raceRooms?.setRoom(unlisted?null:{code:room,name:players[self]?.name||'typist',
         count:Object.values(players).filter(player=>player.connected!==false&&isRacer(player)).length,phase});
     }
+  }
+  function defaultRaceDuration(text) {
+    return Math.max(10, Math.ceil((Array.from(text).length / 5 / 30 * 60) / 5) * 5);
   }
   function showPreparedPassage(text, customMode) {
     punctuation=capitalization=raceFormatting;
@@ -220,6 +223,7 @@
     $('#raceFormatting').disabled=locked;
     $('#raceFormatting').classList.toggle('active',raceFormatting);
     $('#raceFormatting').setAttribute('aria-pressed',String(raceFormatting));
+    $('#raceTimeLimit').textContent=defaultRaceDuration(preparedText)+'s time limit · set automatically';
     $('#startRace').disabled=connected.length<2||phase==='countdown'||phase==='racing';
     $('#startRace').textContent=phase==='finished'?'race again →':'start race →';
     if(phase==='lobby')status(host?'Share the invite link. Start when everyone has joined.':'You’re in! Waiting for the host to start.');
@@ -409,7 +413,7 @@
     function tick(){
       const remaining=watchStartsAt-Date.now();
       if(remaining>0)showCountdown(Math.ceil(remaining/1000));
-      else{hideCountdown();$('#counter').textContent='watching · '+Math.max(0,Math.floor(-remaining/1000))+'s';}
+      else{hideCountdown();$('#counter').textContent='watching · '+Math.max(0,Math.ceil(duration+remaining/1000))+'s';}
     }
     tick();clock=setInterval(tick,100);
   }
@@ -443,7 +447,7 @@
     publish();clearInterval(clock);
     clock=setInterval(()=>{
       const remaining=startsAt-Date.now();
-      if(remaining>0){showCountdown(Math.ceil(remaining/1000));status(`Starting in ${Math.ceil(remaining/1000)}… · ${passageLabel}`);return;}
+      if(remaining>0){showCountdown(Math.ceil(remaining/1000));status(`Starting in ${Math.ceil(remaining/1000)}… · ${passageLabel} · ${duration}s limit`);return;}
       if(phase==='countdown'){
         phase='racing';api.running=true;start=startsAt;
         showCountdown('GO!');countdownTimeout=setTimeout(hideCountdown,700);
@@ -453,14 +457,14 @@
         const elapsed=(Date.now()-start)/1000;
         if(ghost)updateGhost(elapsed*1000);
         if(!done){
-          $('#counter').textContent=`${Math.max(0,Math.floor(elapsed))}s`;
-          sampleWpm();
+          $('#counter').textContent=`${Math.max(0,Math.ceil(duration-elapsed))}s`;
+          sampleWpm();if(elapsed>=duration)finish();
         }
         // Repeat the terminal report until the host acknowledges the round as finished.
         report(false);
       }
     },100);
-    status(`Starting in 3… · ${passageLabel}`);
+    status(`Starting in 3… · ${passageLabel} · ${duration}s limit`);
   }
   function saveRaceReplay(data){
     try{roundReplay=validateRaceReplay(data);}catch{return;}
@@ -514,7 +518,9 @@
     if(!ghost)return;
     if($('#restartReplayDialog').open)$('#restartReplayDialog').close();
     const result=ghost.result;
-    begin({round:round+1,text:result.replay.target,duration:0,custom:result.mode==='custom',
+    const seconds=ghost.durationSeconds??(result.mode==='time'?result.limit:
+      Math.max(defaultRaceDuration(result.replay.target),Math.ceil(result.replay.durationMs/1000)*2,10));
+    begin({round:round+1,text:result.replay.target,duration:seconds,custom:result.mode==='custom',
       formatting:result.mode==='book'||result.punctuation===true||result.capitalization===true});
   }
   function updateGhost(elapsedMs){
@@ -557,7 +563,7 @@
       attemptReplays.set(self,replay);
       if(!host)send(links.get('host'),{type:'attemptReplay',round,replay});
     }
-    if(completed&&finishMs===null)finishMs=Math.max(0,elapsedMs??Date.now()-start);
+    if(completed&&finishMs===null)finishMs=Math.min(duration*1000,Math.max(0,elapsedMs??Date.now()-start));
     const savedResult=localResultId?history.find(result=>result.id===localResultId):null;
     const data={type:'progress',round,position:typed.length,progress:Math.min(typed.length/target.length*100,100),wpm:completed&&savedResult?savedResult.wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp,finishMs,passageComplete:completed&&!gaveUp&&typed===target&&!parseTyping(input.value).extraCount};
     if(completed)status(gaveUp?'You gave up · waiting for the final standings.':'You finished · waiting for the other racers.');
@@ -660,7 +666,7 @@
     if(!ghost||phase!=='finished'||!localResultId)return;
     const result=history.find(item=>item.id===localResultId);
     if(!result?.replay)return;
-    ghost={result,readings:buildReplayReadings(result.replay)};
+    ghost={result,readings:buildReplayReadings(result.replay),durationSeconds:duration};
     players['replay-ghost'].name='replay · '+result.date;
     startGhostRound();
   };
@@ -746,7 +752,7 @@
     }
     if(!text)return;
     promoteQueued();publish();
-    const data={type:'start',round:round+1,text,duration:0,custom:customMode,formatting:raceFormatting};broadcast(data);begin(data);
+    const data={type:'start',round:round+1,text,duration:defaultRaceDuration(text),custom:customMode,formatting:raceFormatting};broadcast(data);begin(data);
   };
   $('#modal').addEventListener('close',()=>{if(!api.active){syncNavigation();if(peer){clearTimeout(connectionTimeout);peer.destroy();peer=null;}}});
   const invitedRoom=new URL(location.href).searchParams.get('race');

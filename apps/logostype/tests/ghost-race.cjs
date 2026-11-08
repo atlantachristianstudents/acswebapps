@@ -102,11 +102,10 @@ assert.equal(elements.get('#raceLobby').hidden,false,'leaving returns to the rac
 api.raceReplay({ ...result, mode: 'time', limit: 2 });
 tick(9000);
 tick(11000);
-assert(!context.done, 'replay races continue beyond the original time limit');
-assert(api.running);
-context.typed=context.input.value='cat';context.finish();tick(11000);
+assert(context.done, 'timed replay races end at the original time limit');
+assert(!api.running);
 assert.equal(peerCalls, 0);
-console.log('Ghost race checks passed: offline auto-start, timed progress, finish order, winner, rematch, leave, and unlimited typing time.');
+console.log('Ghost race checks passed: offline auto-start, timed progress, finish order, winner, rematch, leave, and fixed time limits.');
 // Exercise the same collection path with a remote human participant.
 api.requestLeave();
 elements.get('#confirmLeaveRace').onclick();
@@ -259,13 +258,12 @@ assert.equal(elements.get('#raceCountdownValue').textContent,3);
 assert.equal(elements.get('#raceNewAttempt').hidden,true);
 assert(ghostRow().children[0].textContent.includes(newAttempt.date));
 tick(37500);
-assert(elements.get('#counter').textContent.startsWith('0s'),'show elapsed race time');
+assert(elements.get('#counter').textContent.startsWith('2s'),'show the fixed time remaining');
 tick(38000);
 assert(ghostRow().children[2].textContent.includes('finished'),'new ghost finishes at the latest attempt timing');
 tick(39500);
-assert(!context.done,'new-attempt race has no time limit');
-context.typed=context.input.value='cat';context.finish();tick(39500);
-console.log('New-attempt opponent checks passed: saved attempt selection, automatic countdown, new timing, unlimited time, give-up exclusion.');
+assert(context.done,'new-attempt race retains the previous time limit');
+console.log('New-attempt opponent checks passed: saved attempt selection, automatic countdown, new timing, fixed time limit, give-up exclusion.');
 // Joining a running room can watch or queue without entering its active race.
 api.requestLeave();elements.get('#confirmLeaveRace').onclick();
 context.Peer=function(){hostPeer=this;this.handlers={};this.on=(type,callback)=>{this.handlers[type]=callback;};this.destroy=()=>{};};

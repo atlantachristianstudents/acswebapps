@@ -32,7 +32,7 @@ Typing Test results show speed, accuracy, and the chart, with passage references
 
 Timed, word, and verse test references are hidden during typing and appear only on the completed results screen. Verse tests show the selected verse; word tests list every verse contributing words, including a partially used final verse. Timed tests list only verses reached while typing, including a partially typed final verse, and omit generated text that was never reached. Custom text and races omit this reference line.
 
-Friend and replay races have no time limit and finish only when the entire passage matches with no remaining typos or extra characters. Correct earlier mistakes with Backspace before finishing. Input stops at the passage length. Progress bars measure passage position; finish order uses completion time, while accuracy and average WPM still reflect mistakes. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
+Friend and replay races finish the passage only when the entire passage matches with no remaining typos or extra characters. Correct earlier mistakes with Backspace before finishing. The automatic time limit ends unfinished attempts without awarding a finish place. Input stops at the passage length. Progress bars measure passage position; finish order uses completion time, while accuracy and average WPM still reflect mistakes. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. Giving up does not save a typing-history result, WPM record, or progression point for that racer; other participants keep their results. The room stays open for a rematch.
 
@@ -99,7 +99,7 @@ The custom text editor has **default** to restore the built-in passage in the ed
 
 Switching between Journey, Reading, and Typing Test preserves each view for the current page session: passages, entered text, test settings, completed results, and the reading book/chapter. Typing timers pause while away, so menu time does not lower WPM. Active races still require leaving the room before switching. Custom text shows **save & go** above **default**.
 
-Race hosts use **verse** and **custom** buttons to choose one random Scripture verse or their own text with no time limit. Custom passages accept up to 10,000 characters, preserve punctuation and capitalization, and collapse whitespace into single spaces. Everyone receives the same passage. Host controls lock during countdowns and races and become editable for rematches. Menu character shortcuts are disabled for custom races so numbers and backslashes can be typed.
+Race hosts use **verse** and **custom** buttons to choose one random Scripture verse or their own text. The time limit is automatic and cannot be edited: 30 WPM (five characters per word), rounded up to five seconds, with a ten-second minimum. Custom passages accept up to 10,000 characters, preserve punctuation and capitalization, and collapse whitespace into single spaces. Everyone receives the same passage. Host controls lock during countdowns and races and become editable for rematches. Menu character shortcuts are disabled for custom races so numbers and backslashes can be typed.
 
 Race lobbies preview the prepared passage for all racers. Starting or rematching uses the exact prepared passage without shuffling it.
 
@@ -117,7 +117,7 @@ Under settings → **change theme** → **custom colors**, choose a primary back
 
 Race Friends opens an inline room browser, with create-room and join-by-code controls at the top. **Join by code** opens a popup with the room-code field; the field is not shown in the room browser. Invite links prefill this popup. The shared room list below shows host names, room codes, racer counts, and open/full/racing status. Select **join** on an open room or enter a code directly. Rooms you create appear publicly in this list.
 
-Result times use seconds with two decimal places (hundredths), as do chart tooltips and journey time totals. During races, the live clock shows elapsed whole seconds.
+Result times use seconds with two decimal places (hundredths), as do chart tooltips and journey time totals. During races, the live clock shows whole seconds remaining.
 
 Race standings include each finished racer’s elapsed time to hundredths of a second; racers who give up retain the “gave up” label. Press Enter in the room-code popup to join; the confirmation changes to **queue** for a race already in progress.
 
@@ -141,7 +141,7 @@ Race progress bars show finish places (1st, 2nd, and so on), with the winner hig
 
 Run race ranking and celebration checks with `node tests/race.cjs`.
 
-Choose **race against** beside replay and retry on results or expanded history to enter race mode against the saved attempt. A three-second countdown starts automatically; no room, invite, or internet connection is needed for the ghost race. The replay opponent follows the original timed edits, including corrections, and stops at the recorded duration. Your race has no time limit, including races against timed attempts. A recording that ends with uncorrected mistakes is unranked. Progress bars, finish places, winner confetti, give up, and **race again** work as in friend races. Leaving returns to the race room browser. Choosing another menu destination while leaving still opens that destination. Older results without replay data cannot be used as opponents. The replay itself remains unchanged.
+Choose **race against** beside replay and retry on results or expanded history to enter race mode against the saved attempt. A three-second countdown starts automatically; no room, invite, or internet connection is needed for the ghost race. The replay opponent follows the original timed edits, including corrections, and stops at the recorded duration. Timed replay races keep the original time limit; other replay races allow at least twice the recording duration or the automatic passage limit, whichever is longer. A recording that ends with uncorrected mistakes is unranked. Progress bars, finish places, winner confetti, give up, and **race again** work as in friend races. Leaving returns to the race room browser. Choosing another menu destination while leaving still opens that destination. Older results without replay data cannot be used as opponents. The replay itself remains unchanged.
 
 Run automatic replay-opponent race checks with `node tests/ghost-race.cjs`.
 

@@ -28,6 +28,10 @@ const context = vm.createContext({
     gaveUp: { name: 'Gave up', finished: true, gaveUp: true, progress: 10, wpm: 120 },
   },
 });
+context.preparedText='cat';
+vm.runInContext(source.slice(source.indexOf('  function defaultRaceDuration('), source.indexOf('  function showPreparedPassage(')), context);
+assert.equal(vm.runInContext("defaultRaceDuration('cat')",context),10);
+assert.equal(vm.runInContext("defaultRaceDuration('a'.repeat(101))",context),45);
 vm.runInContext(source.slice(source.indexOf('  function completedPassage('), source.indexOf('  function showError(')), context);
 const run = code => vm.runInContext(code, context);
 assert.equal(run('raceStandings(players).map(([id])=>id).join(",")'), 'winner,second,timeout,gaveUp');
