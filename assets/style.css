@@ -365,6 +365,14 @@ button {
   color: white;
 }
 
+.chip.modifier {
+  border-style: dashed;
+}
+
+.chip.modifier.active {
+  border-style: solid;
+}
+
 .search-container {
   position: relative;
   flex: 0 1 280px;

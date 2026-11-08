@@ -12,7 +12,7 @@
   const search = document.getElementById("search");
   const empty = document.getElementById("empty");
   const themeToggle = document.getElementById("theme-toggle");
-  let activeTag = "All";
+  let activeTags = [];
 
   /* ---------- footer year ---------- */
   const year = document.getElementById("year");
@@ -75,17 +75,28 @@
       if (allTags.indexOf(tag) === -1) allTags.push(tag);
     });
   });
+  allTags.push("Hide Beta");
 
   function renderTags() {
     tagsEl.innerHTML = "";
     allTags.forEach((tag) => {
+      const on = tag === "All" ? activeTags.length === 0 : activeTags.includes(tag);
       const chip = document.createElement("button");
       chip.type = "button";
-      chip.className = "chip" + (tag === activeTag ? " active" : "");
+      chip.className = "chip" + (tag === "Hide Beta" ? " modifier" : "") + (on ? " active" : "");
       chip.textContent = tag;
-      chip.setAttribute("aria-pressed", tag === activeTag ? "true" : "false");
+      chip.setAttribute("aria-pressed", on ? "true" : "false");
       chip.addEventListener("click", () => {
-        activeTag = tag;
+        if (tag === "All") {
+          activeTags = [];
+        } else {
+          const i = activeTags.indexOf(tag);
+          if (i === -1) {
+            activeTags.push(tag);
+          } else {
+            activeTags.splice(i, 1);
+          }
+        }
         renderTags();
         renderApps();
       });
@@ -154,12 +165,16 @@
 
   function renderApps() {
     const query = search.value.trim().toLowerCase();
+    const hideBetaTag = activeTags.indexOf("Hide Beta") !== -1;
     grid.innerHTML = "";
     let shown = 0;
     sortedApps.forEach((app) => {
-      const inTag = activeTag === "All" || (app.tags || []).indexOf(activeTag) !== -1;
+      const categoryTags = activeTags.filter((t) => t !== "Hide Beta");
+      const inTag =
+        categoryTags.length === 0 || (app.tags || []).some((t) => categoryTags.indexOf(t) !== -1);
+      const isBeta = (app.status || "live") === "beta";
       const haystack = (app.name + " " + (app.description || "") + " " + (app.tags || []).join(" ")).toLowerCase();
-      if (inTag && (!query || haystack.indexOf(query) !== -1)) {
+      if (inTag && (!hideBetaTag || !isBeta) && (!query || haystack.indexOf(query) !== -1)) {
         grid.appendChild(card(app));
         shown++;
       }
