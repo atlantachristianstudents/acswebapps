@@ -102,10 +102,11 @@ assert.equal(elements.get('#raceLobby').hidden,false,'leaving returns to the rac
 api.raceReplay({ ...result, mode: 'time', limit: 2 });
 tick(9000);
 tick(11000);
-assert(context.done, 'timed replay races stop at the original time limit');
-assert(!api.running);
+assert(!context.done, 'replay races continue beyond the original time limit');
+assert(api.running);
+context.typed=context.input.value='cat';context.finish();tick(11000);
 assert.equal(peerCalls, 0);
-console.log('Ghost race checks passed: offline auto-start, timed progress, finish order, winner, rematch, leave, and original time limit.');
+console.log('Ghost race checks passed: offline auto-start, timed progress, finish order, winner, rematch, leave, and unlimited typing time.');
 // Exercise the same collection path with a remote human participant.
 api.requestLeave();
 elements.get('#confirmLeaveRace').onclick();
@@ -153,7 +154,6 @@ const connection = { peer: 'remote-player', open: true, metadata: { name: 'Frien
   on: (type, callback) => { callbacks[type] = callback; }, send: message => messages.push(message) };
 hostPeer.handlers.connection(connection);
 callbacks.open();
-elements.get('#raceDuration').reportValidity = () => true;
 elements.get('#startRace').onclick();
 const raceStart = messages.find(message => message.type === 'start');
 assert(raceStart, 'host starts and broadcasts a normal friend race');
@@ -259,12 +259,13 @@ assert.equal(elements.get('#raceCountdownValue').textContent,3);
 assert.equal(elements.get('#raceNewAttempt').hidden,true);
 assert(ghostRow().children[0].textContent.includes(newAttempt.date));
 tick(37500);
-assert(elements.get('#counter').textContent.startsWith('2s'),'keep the same race time limit');
+assert(elements.get('#counter').textContent.startsWith('0s'),'show elapsed race time');
 tick(38000);
 assert(ghostRow().children[2].textContent.includes('finished'),'new ghost finishes at the latest attempt timing');
 tick(39500);
-assert(context.done,'new-attempt race retains the previous timed-race limit');
-console.log('New-attempt opponent checks passed: saved attempt selection, automatic countdown, new timing, preserved limit, give-up exclusion.');
+assert(!context.done,'new-attempt race has no time limit');
+context.typed=context.input.value='cat';context.finish();tick(39500);
+console.log('New-attempt opponent checks passed: saved attempt selection, automatic countdown, new timing, unlimited time, give-up exclusion.');
 // Joining a running room can watch or queue without entering its active race.
 api.requestLeave();elements.get('#confirmLeaveRace').onclick();
 context.Peer=function(){hostPeer=this;this.handlers={};this.on=(type,callback)=>{this.handlers[type]=callback;};this.destroy=()=>{};};

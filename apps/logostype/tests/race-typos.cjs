@@ -16,12 +16,26 @@ vm.runInContext(app.slice(app.indexOf('function parseTyping('),app.indexOf('func
 const start=app.indexOf('input.addEventListener("input", () => {');
 vm.runInContext(app.slice(start,app.indexOf('\n$(".test").onclick',start)),context);
 onInput();
-assert.equal(finishes,1,'race finishes at the end despite letter and space typos');
+assert.equal(finishes,0,'race waits for letter and space typos to be corrected');
 assert.equal(context.typed,'cxt dog');
 assert(context.errors>0,'mistakes still count toward accuracy');
+context.input.value='cat dog';onInput();
+assert.equal(finishes,1,'corrected passage finishes the race');
+assert(context.errors>0,'corrections preserve historical mistakes');
+context.input.value='cxtx dog';
 context.window.friendRace.active=false;
 context.mode='book';context.lastInput='';context.typed='';
 onInput();
 assert.equal(verses,0,'Journey still requires correcting all mistakes');
 assert.equal(finishes,1);
-console.log('Race typo checks passed: typo completion, accuracy retained, Journey correction requirement preserved.');
+console.log('Race typo checks passed: correction required, accuracy retained, Journey correction requirement preserved.');
+
+for(const mode of ['words','quote','custom']){
+  context.mode=mode;context.lastInput='';context.typed='';
+  context.input.value='cxtx dog';
+  const before=finishes;onInput();
+  assert.equal(finishes,before,mode+' waits for corrections');
+  context.input.value='cat dog';onInput();
+  assert.equal(finishes,before+1,mode+' finishes after corrections');
+}
+console.log('Words, verse, and custom tests require corrected passages.');

@@ -63,6 +63,10 @@
     event.preventDefault();
     event.stopPropagation();
     if (!event.repeat) {
+      if (menuOpen && control.dataset.dialog === modal.dataset.view) {
+        modal.close();
+        return;
+      }
       if (menuOpen && !control.dataset.dialog) modal.close();
       control.click();
     }

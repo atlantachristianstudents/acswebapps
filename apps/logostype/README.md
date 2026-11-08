@@ -14,7 +14,7 @@ After the selected book or entire Scriptures journey is completed, Scripture Jou
 
 Names, typing history, journey progress, and past completion dates are saved in this browser. Browser support for storage at `file://` URLs varies; use settings to export a backup before moving the folder or switching browsers.
 
-When a space is expected, wrong keystrokes show the actual typed characters in red after the word. Repeated wrong keystrokes accumulate at that same space; they do not advance into the next word. The cursor stays after these extra characters, before the word gap, until you press **Space**. **Backspace** removes the extra characters. They still count as mistakes even if you continue by typing a space. Typing tests and races allow completion with these extras; Scripture Journey requires correcting them before completion.
+When a space is expected, wrong keystrokes show the actual typed characters in red after the word. Repeated wrong keystrokes accumulate at that same space; they do not advance into the next word. The cursor stays after these extra characters, before the word gap, until you press **Space**. **Backspace** removes the extra characters. They still count as mistakes even if you continue by typing a space. Words, verse, custom tests, races, and Scripture Journey require correcting these extras and all letter mistakes before completion. Timed tests still end when their timer expires.
 
 At letter positions, mistakes keep the expected letter visible in red, including when a space is typed instead of a letter.
 
@@ -26,13 +26,13 @@ Typing tests and friend races default to capitalization and punctuation off. Use
 
 Outside the typing field, use Tab / Shift+Tab or the arrow keys to move between visible controls. Left/right follow the Tab order; up/down move between visual rows, including the book picker. Open dialogs keep arrow navigation inside the dialog. Form fields and the reading region retain their normal arrow-key behavior. Arrow keys are disabled in the typing field to prevent cursor movement during tests. Backspace still corrects mistakes.
 
-Use **1 / 2 / 3 / 4 / 5 / 6** to open **Scripture Journey / Reading / Typing Test / Race Friends / Records / Typing history**, and **`\`** to open settings, in typing or reading mode. No modifier key is needed. These shortcuts work on the results screen, including custom test results. They also work while records, history, or settings dialogs are open, closing the dialog when switching to a main view. They are disabled in editable fields, confirmation dialogs, and other editors so you can enter those characters normally; custom typing tests keep the shortcut guard while typing.
+Use **1 / 2 / 3 / 4 / 5 / 6** to open **Scripture Journey / Reading / Typing Test / Race Friends / Records / Typing history**, and **`\`** to open settings, in typing or reading mode. Press **5**, **6**, or **`\`** again while its respective menu is open to close it. No modifier key is needed. These shortcuts work on the results screen, including custom test results. They also work while records, history, or settings dialogs are open, closing the dialog when switching to a main view. They are disabled in editable fields, confirmation dialogs, and other editors so you can enter those characters normally; custom typing tests keep the shortcut guard while typing.
 
 Typing Test results show speed, accuracy, and the chart, with passage references below the chart for timed, word, and verse tests. Scripture Journey keeps verse references in its context and saved history.
 
 Timed, word, and verse test references are hidden during typing and appear only on the completed results screen. Verse tests show the selected verse; word tests list every verse contributing words, including a partially used final verse. Timed tests list only verses reached while typing, including a partially typed final verse, and omit generated text that was never reached. Custom text and races omit this reference line.
 
-Friend and replay races finish when your typing reaches the end of the passage, even with typos, or when the time limit expires. Input stops at the passage length. Progress bars measure passage position; finish order uses completion time, while accuracy and average WPM still reflect mistakes. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
+Friend and replay races have no time limit and finish only when the entire passage matches with no remaining typos or extra characters. Correct earlier mistakes with Backspace before finishing. Input stops at the passage length. Progress bars measure passage position; finish order uses completion time, while accuracy and average WPM still reflect mistakes. Once you finish, the room waits for the other racers; completion updates repeat until the host confirms the round is over.
 
 When every other connected racer has finished, the last unfinished racer can choose **give up** to end the round. The standings label that racer “gave up” and place them after finishers. Giving up does not save a typing-history result, WPM record, or progression point for that racer; other participants keep their results. The room stays open for a rematch.
 
@@ -99,11 +99,11 @@ The custom text editor has **default** to restore the built-in passage in the ed
 
 Switching between Journey, Reading, and Typing Test preserves each view for the current page session: passages, entered text, test settings, completed results, and the reading book/chapter. Typing timers pause while away, so menu time does not lower WPM. Active races still require leaving the room before switching. Custom text shows **save & go** above **default**.
 
-Race hosts use **verse** and **custom** buttons to choose one random Scripture verse or their own text and type a time limit of 1–4000 seconds directly into the number field. Custom passages accept up to 10,000 characters, preserve punctuation and capitalization, and collapse whitespace into single spaces. Everyone receives the same passage and time limit. Host controls lock during countdowns and races and become editable for rematches. Menu character shortcuts are disabled for custom races so numbers and backslashes can be typed.
+Race hosts use **verse** and **custom** buttons to choose one random Scripture verse or their own text with no time limit. Custom passages accept up to 10,000 characters, preserve punctuation and capitalization, and collapse whitespace into single spaces. Everyone receives the same passage. Host controls lock during countdowns and races and become editable for rematches. Menu character shortcuts are disabled for custom races so numbers and backslashes can be typed.
 
-Race lobbies preview the prepared passage for all racers. The default time limit uses 30 WPM (five characters per word), rounded up to the next 5 seconds, with a 10-second minimum. Changing the passage recalculates the default; hosts can override it. Starting or rematching uses the exact prepared passage without shuffling it.
+Race lobbies preview the prepared passage for all racers. Starting or rematching uses the exact prepared passage without shuffling it.
 
-In verse races, the host can use **shuffle** before starting or rematching to choose another verse. It updates everyone's preview and recalculates the default time limit. Shuffle is hidden for custom text and disabled during countdowns and races.
+In verse races, the host can use **shuffle** before starting or rematching to choose another verse. It updates everyone's preview. Shuffle is hidden for custom text and disabled during countdowns and races.
 
 Personal records include **default custom text**, tracking the fastest completed typing test using the built-in custom passage. Choose **default**, then **save & go** in the custom editor to use it. Other custom passages and races do not count toward this record. New qualifying results retain their preset marker in history and backups; older custom results cannot be identified retroactively.
 
@@ -117,9 +117,9 @@ Under settings → **change theme** → **custom colors**, choose a primary back
 
 Race Friends opens an inline room browser, with create-room and join-by-code controls at the top. **Join by code** opens a popup with the room-code field; the field is not shown in the room browser. Invite links prefill this popup. The shared room list below shows host names, room codes, racer counts, and open/full/racing status. Select **join** on an open room or enter a code directly. Rooms you create appear publicly in this list.
 
-Result times use seconds with two decimal places (hundredths), as do chart tooltips and journey time totals. During typing and racing, live countdowns show whole seconds. Suggested race durations still round up to 5-second increments.
+Result times use seconds with two decimal places (hundredths), as do chart tooltips and journey time totals. During races, the live clock shows elapsed whole seconds.
 
-Race standings include each finished racer’s elapsed time to hundredths of a second; time-limit finishes show the time limit, and racers who give up retain the “gave up” label. Press Enter in the room-code popup to join; the confirmation changes to **queue** for a race already in progress.
+Race standings include each finished racer’s elapsed time to hundredths of a second; racers who give up retain the “gave up” label. Press Enter in the room-code popup to join; the confirmation changes to **queue** for a race already in progress.
 
 Result and saved-history charts label elapsed seconds along the bottom. Select average, instant, or raw WPM in the legend to hide or show that line, without smoothing or changing the underlying readings. New personal records are highlighted on the results page for the overall category or the current capitalization/punctuation setting; ties do not count as new records. Each new personal record triggers a single-color confetti burst, including completed Journey verses, respecting reduced-motion preferences. On mobile, record headings shorten to “all,” “caps off,” and “caps on”; accessible labels retain their full meanings.
 
@@ -137,11 +137,11 @@ Results and expanded typing history offer **replay** to watch the original attem
 
 Run replay and retry checks with `node tests/replay.cjs`.
 
-Race progress bars show finish places (1st, 2nd, and so on), with the winner highlighted. Completed passages rank by elapsed finish time, using WPM and a stable player identifier to break exact ties. Time-limit results that do not reach the end and racers who give up remain unranked. They retain their speed and accuracy summaries. Only a racer who reaches the end can receive a finish place or winner confetti. If nobody finishes the passage, no winner is declared. The winner receives one brief confetti celebration on their own screen when the round is complete, respecting reduced-motion preferences. Places and celebration reset for each rematch.
+Race progress bars show finish places (1st, 2nd, and so on), with the winner highlighted. Completed passages rank by elapsed finish time, using WPM and a stable player identifier to break exact ties. Older incomplete results and racers who give up remain unranked. They retain their speed and accuracy summaries. Only a racer who reaches the end can receive a finish place or winner confetti. If nobody finishes the passage, no winner is declared. The winner receives one brief confetti celebration on their own screen when the round is complete, respecting reduced-motion preferences. Places and celebration reset for each rematch.
 
 Run race ranking and celebration checks with `node tests/race.cjs`.
 
-Choose **race against** beside replay and retry on results or expanded history to enter race mode against the saved attempt. A three-second countdown starts automatically; no room, invite, or internet connection is needed for the ghost race. The replay opponent follows the original timed edits, including corrections, and stops at the recorded duration. Timed tests keep their original time limit; other passages use at least twice the replay duration or the usual passage-based limit, whichever is longer. Progress bars, finish places, winner confetti, give up, and **race again** work as in friend races. Leaving returns to the race room browser. Choosing another menu destination while leaving still opens that destination. Older results without replay data cannot be used as opponents. The replay itself remains unchanged.
+Choose **race against** beside replay and retry on results or expanded history to enter race mode against the saved attempt. A three-second countdown starts automatically; no room, invite, or internet connection is needed for the ghost race. The replay opponent follows the original timed edits, including corrections, and stops at the recorded duration. Your race has no time limit, including races against timed attempts. A recording that ends with uncorrected mistakes is unranked. Progress bars, finish places, winner confetti, give up, and **race again** work as in friend races. Leaving returns to the race room browser. Choosing another menu destination while leaving still opens that destination. Older results without replay data cannot be used as opponents. The replay itself remains unchanged.
 
 Run automatic replay-opponent race checks with `node tests/ghost-race.cjs`.
 
@@ -153,7 +153,7 @@ During **race against replay**, use the restart button or the restart command to
 
 Run give-up history checks with `node tests/give-up.cjs`.
 
-After completing a **race against replay**, choose **race against new attempt** to use the attempt you just saved as the next ghost opponent. It starts a fresh countdown with the same passage and race time limit. **Race again** continues against the currently selected replay. The new-attempt option is unavailable after giving up because that attempt is not saved.
+After completing a **race against replay**, choose **race against new attempt** to use the attempt you just saved as the next ghost opponent. It starts a fresh countdown with the same passage. **Race again** continues against the currently selected replay. The new-attempt option is unavailable after giving up because that attempt is not saved.
 
 Journey completion records show **started** and **completed** dates and times for Entire Scriptures and individual book journeys. The start is recorded on the first non-space keystroke of a new journey and stays fixed through pauses, verse retries, and switching views. Restarting a completed journey begins a new start record on its first keystroke while preserving past completion records. Start metadata is saved locally, merged in backups, and cleared by clear saved data. Older completions and journeys already in progress without a recorded start show **not recorded**, rather than estimating a start date.
 
@@ -171,11 +171,17 @@ Pasting is disabled in the typing field for all tests, Scripture Journey, and ra
 
 The race lobby has no name field. Creating, joining, watching, queueing, or starting a replay race uses your saved profile name. If none is saved, a dialog asks for a player name. Continuing with an empty field or pressing Escape generates a name automatically. The chosen name is saved for future races and can be changed in settings. If browser storage is unavailable, it is retained for the current page session.
 
+Rooms show **copy room code** and **copy full link** buttons to the right of the room code in the header, wrapping on narrow screens. Share the code for manual entry or the full link for direct joining. If copying is unavailable, the room status displays the code or link for manual copying.
+
+Creating or joining a room places the cursor in the room chat text box when chat is available. Starting the race moves focus to the typing passage.
+
+Opening a copied race invite link automatically joins that room using your saved profile name, asking for a name first when needed. If the race has started, you queue for the next round. Invalid or unavailable rooms show an error in the race lobby so you can retry or choose another room.
+
 History progression offers **all**, **top**, **middle**, and **bottom** WPM ranges with a configurable whole percentage from 1–100 (default 25%). The percentage selects that share of results ranked by WPM after applying format, capitalization/punctuation, and date/time filters. Middle selects a centered block around the median. Counts round up, with at least one result when matches exist; ties use chronological order. Selected points stay chronological, and the history list remains unchanged. Range and percentage selections stay in place while browsing results.
 
 Settings → **history and replay storage** has a synchronized range slider and number field to choose how many newest replay recordings to keep, from 1 to 1,000,000. Set 0 to keep all recordings. Applying a limit asks for confirmation, removes older recording data immediately, and applies to new results and imports; scores, personal records, and charts remain. Expanded history has **delete this result**; storage settings also offer **delete all typing history**, both with confirmation. Deleting results changes personal records derived from history, while Journey progress and completion records are preserved. Retention preferences are included in backups.
 
-Choose **create public room** or **create private room** in the lobby, or use the host’s public/private toggle inside the room. Private rooms are unlisted but remain accessible through their code or invite. Hosts can **remove** racers, queued users, and watchers using the button immediately beside each name, with confirmation. Removed users return to the room list; unfinished removed racers receive no place. Removal ends that connection rather than creating a permanent ban.
+Choose **create public room** or **create private room** in the lobby, or use the host’s public/private toggle beside the room’s visibility status. Private rooms are unlisted but remain accessible through their code or invite. Hosts can **remove** racers, queued users, and watchers using the button immediately beside each name, with confirmation. Removed users return to the room list; unfinished removed racers receive no place. Removal ends that connection rather than creating a permanent ban.
 
 Storage cleanup checks: `node tests/history-store.cjs`. Restoring a backup can recover missing replay data on an existing result; the selected retention policy is applied after merging.
 

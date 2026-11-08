@@ -1011,7 +1011,8 @@
       }
       .race-top {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
         align-items: center;
       }
       .race-top strong {
@@ -1023,12 +1024,20 @@
         line-height: 1.6;
         color: var(--text);
       }
+      .room-privacy {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+      #roomPrivacyStatus {
+        color: var(--accent);
+      }
       #raceInvite {
         display: flex;
         gap: 12px;
-        margin: 15px 0;
+        align-items: center;
       }
-      #inviteLink,
       .race-field {
         background: var(--bg);
         color: var(--text);
@@ -1036,10 +1045,6 @@
         border-radius: 5px;
         padding: 10px;
         min-width: 0;
-      }
-      #inviteLink {
-        flex: 1;
-        font-size: 12px;
       }
       .race-field {
         display: block;
@@ -1181,9 +1186,6 @@
         }
         #raceInvite {
           flex-wrap: wrap;
-        }
-        #inviteLink {
-          flex-basis: 100%;
         }
         .racer {
           gap: 8px;
@@ -1603,10 +1605,15 @@
           <div class="group" id="limits"></div>
         </div>
         <section id="racePanel" hidden aria-label="Friends race">
-          <div class="race-top"><strong id="raceTitle">race friends</strong></div>
-          <p id="raceStatus" role="status" aria-live="polite"></p><p id="roomPrivacyStatus"></p><button type="button" id="roomVisibility" hidden>make private</button>
-          <div id="raceInvite">
-            <input id="inviteLink" readonly aria-label="Invite link" /><button id="copyInvite">copy invite</button>
+          <div class="race-top">
+            <strong id="raceTitle">race friends</strong>
+            <div id="raceInvite">
+              <button type="button" id="copyRoomCode">copy room code</button><button type="button" id="copyInvite">copy full link</button>
+            </div>
+          </div>
+          <p id="raceStatus" role="status" aria-live="polite"></p>
+          <div class="room-privacy">
+            <p id="roomPrivacyStatus"></p><button type="button" id="roomVisibility" hidden>make private</button>
           </div>
           <div id="racers"></div><div id="raceAudience" aria-live="polite"></div>
           <form id="raceDurationForm">
@@ -1620,19 +1627,6 @@
               <label for="raceCustomText">custom race text</label>
               <textarea id="raceCustomText" class="race-field" rows="4" maxlength="10000" placeholder="Enter the passage everyone will type"></textarea>
             </div>
-            <label for="raceDuration">race time limit (seconds)</label
-            ><input
-              id="raceDuration"
-              class="race-field"
-              type="number"
-              inputmode="numeric"
-              min="1"
-              max="4000"
-              step="1"
-              value="30"
-              required
-              aria-describedby="raceDurationHint" />
-            <p id="raceDurationHint">Defaults to 30 WPM for this passage, rounded up to 5 seconds. Type a time limit from 1–4000 seconds.</p>
           </form>
           <div class="race-actions">
             <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button><button id="startRace" class="race-primary">start race →</button

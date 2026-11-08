@@ -20,9 +20,17 @@ function key(value,repeat=false){shortcut({key:value,repeat,preventDefault(){},s
 key('6');assert.equal(modal.dataset.view,'history');assert.deepEqual(actions,['#history']);
 key('\\');assert.equal(modal.dataset.view,'settings');
 key('3');assert.deepEqual(actions.slice(-2),['close','#home']);assert(!modal.open);
-for(const view of ['records','history','settings','journeyCompletions','themes']){
+for(const view of ['history','settings','journeyCompletions','themes']){
  modal.open=true;modal.dataset.view=view;const count=actions.length;key('5');
  assert.equal(actions.length,count+1,view);assert.equal(modal.dataset.view,'records');
+}
+for(const [shortcutKey,view] of [['5','records'],['6','history'],['\\','settings']]){
+ modal.open=true;modal.dataset.view=view;
+ let count=actions.length;key(shortcutKey,true);
+ assert(modal.open,'holding a shortcut does not close the menu');assert.equal(actions.length,count);
+ key(shortcutKey);assert(!modal.open,view+' toggles closed');assert.equal(actions.at(-1),'close');
+ context.done=true;key(shortcutKey);assert(modal.open,view+' toggles open');assert.equal(modal.dataset.view,view);
+ context.done=false;
 }
 document.activeElement={id:'profileName',closest:()=>({})};
 let count=actions.length;key('6');assert.equal(actions.length,count,'text entry is protected');

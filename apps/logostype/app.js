@@ -1101,7 +1101,7 @@ input.addEventListener("input", () => {
   if (
     mode !== "time" &&
     typed.length >= target.length &&
-    (window.friendRace?.active || mode !== "book" || (typed === target && !parsed.extraCount))
+    typed === target && !parsed.extraCount
   ) {
     if (mode === "book") {
       completeBookVerse();

@@ -34,3 +34,23 @@ assert.equal(chosen,'Session player');
 chosen=undefined;run('withRacerName(choose)');
 assert.equal(chosen,'Session player');assert(!context.$('#raceNameDialog').open);
 console.log('Race name checks passed: saved names, prompt, trimmed names, random fallback, Escape, settings reset, and storage-unavailable session fallback.');
+
+// Invite startup uses the same validated join and profile-name flow as manual entry.
+const startup=source.slice(source.indexOf('  const invitedRoom='),source.lastIndexOf('})();'));
+const join=source.slice(source.indexOf('  function joinCode('),source.indexOf('  function updateJoinAction('));
+for(const [query,expected] of [['?race=A1B2C3D4','a1b2c3d4'],['?race=invalid',null],['?race=',null],['',null]]){
+  let opened=0,connection=null,error='';
+  const inviteContext=vm.createContext({
+    URL,location:{href:'https://example.com/logostype/'+query},
+    $:context.$,open(){opened++;},showError(message){error=message;},
+    withRacerName(action){action('Saved racer');},
+    connect(...args){connection=args;},
+  });
+  context.$('#joinRoom').disabled=false;
+  vm.runInContext(join+startup,inviteContext);
+  assert.equal(opened,query?1:0);
+  if(expected)assert.deepEqual(connection,[false,expected,'Saved racer','join']);
+  else assert.equal(connection,null);
+  if(query&&!expected)assert.equal(error,'Enter the 8-character room code.');
+}
+console.log('Race invite checks passed: automatic join, normalized code, invalid/empty invite errors, and ordinary startup.');
