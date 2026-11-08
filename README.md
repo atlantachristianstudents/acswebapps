@@ -2,7 +2,9 @@
 
 **Free, ad-free web apps by Atlanta Christian Students.** Everything runs in the browser — no accounts, no tracking, no ads. The site is a static app directory, and every app is a self-contained PWA that keeps working offline after the first visit.
 
-[Live site](https://atlantachristianstudents.github.io/adless/) · [Discord](https://discord.gg/77euBtgZjU) · [Issues](https://github.com/atlantachristianstudents/adless/issues)
+[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://atlantachristianstudents.github.io/adless/)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/77euBtgZjU)
+[![Issues](https://img.shields.io/badge/GitHub-Issues-5865F2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/atlantachristianstudents/adless/issues)
 
 ## Table of contents
 
