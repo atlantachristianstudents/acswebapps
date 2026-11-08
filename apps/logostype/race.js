@@ -435,6 +435,8 @@
     api.preparing=true;mode=data.custom===true?'custom':'quote';limit=25;reset();api.preparing=false;
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     target=data.text;rawTarget=data.text;input.disabled=false;render();input.blur();done=false;
+    $('#words').scrollTop=0;
+    $('.test').scrollIntoView({block:'center',behavior:'instant'});
     if(ghost){
       capitalization=ghost.result.mode==='book'||ghost.result.capitalization===true;
       punctuation=ghost.result.mode==='book'||ghost.result.punctuation===true;
@@ -448,10 +450,12 @@
     clock=setInterval(()=>{
       const remaining=startsAt-Date.now();
       if(remaining>0){showCountdown(Math.ceil(remaining/1000));status(`Starting in ${Math.ceil(remaining/1000)}… · ${passageLabel} · ${duration}s limit`);return;}
-      if(phase==='countdown'){
+      // A host roster can advance phase before this racer's countdown ends.
+      // Initialize the local clock independently of that shared phase.
+      if(!api.running&&(phase==='countdown'||phase==='racing')){
         phase='racing';api.running=true;start=startsAt;
         showCountdown('GO!');countdownTimeout=setTimeout(hideCountdown,700);
-        document.body.classList.add('running');status('Go! Type the same words as your friends.');input.focus();
+        document.body.classList.add('running');status('Go! Type the same words as your friends.');input.focus({preventScroll:true});
       }
       if(phase==='racing'){
         const elapsed=(Date.now()-start)/1000;

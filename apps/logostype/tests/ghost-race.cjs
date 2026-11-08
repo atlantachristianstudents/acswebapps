@@ -11,6 +11,7 @@ function element() {
     remove(){if(this.parentElement?.children)this.parentElement.children=this.parentElement.children.filter(child=>child!==this);},
     replaceChildren() { this.children = []; }, setAttribute() {},
     querySelectorAll: () => [], addEventListener() {}, focus() {}, blur() {},
+    scrollIntoView(options) { this.scrollOptions = options; },
     close() { this.open = false; }, showModal() { this.open = true; } };
 }
 let now = 1000, nextTimer = 0, celebrations = 0, peerCalls = 0;
@@ -71,6 +72,8 @@ assert.equal(elements.get('#raceInvite').hidden, true);
 assert.equal(elements.get('#raceDurationForm').hidden, true);
 assert.equal(elements.get('#raceCountdownValue').textContent, 3);
 assert.equal(context.target, 'cat');
+assert.equal(elements.get('.test').scrollOptions.block,'center','center the countdown and passage when a race starts');
+assert.equal(elements.get('#words').scrollTop,0,'show the beginning of the passage');
 function tick(time) { now = time; for (const callback of [...timers.values()]) callback(); }
 function ghostRow() { return elements.get('#racers').children.find(row => row.children[0].textContent.startsWith('replay ·')); }
 tick(4000);
@@ -187,7 +190,19 @@ guestCallbacks.data({type:'roster',round:0,phase:'lobby',players:{
   'other-player':{name:'Other',connected:true,finished:false,wpm:0,progress:0}
 },preview:{text:'cat',custom:false,duration:10,formatting:false}});
 guestCallbacks.data({type:'start',round:1,text:'cat',duration:10,custom:false,formatting:false});
+// The host's countdown ends before this guest's due to network delay.
+tick(18900);
+guestCallbacks.data({type:'roster',round:1,phase:'racing',players:{
+ 'guest-player':{name:'Guest',connected:true,finished:false,wpm:0,progress:0},
+ 'other-player':{name:'Other',connected:true,finished:false,wpm:0,progress:0}
+}});
+assert.equal(elements.get('.test').scrollOptions.block,'center','remote racers also center the countdown and passage');
+assert(!api.running,'host updates must not enable typing before the local countdown ends');
 tick(19000);
+assert(api.running,'guest starts even when the host already reports racing');
+assert.equal(context.start,19000,'guest initializes its start time at the end of its countdown');
+assert.equal(context.done,false,'an early racing roster must not immediately time out the guest');
+assert(!guestMessages.some(message=>message.type==='progress'&&message.finished),'no premature finish is sent');
 now=21000;context.typed=context.input.value='cat';context.finish();
 const sentReplayIndex=guestMessages.findIndex(message=>message.type==='attemptReplay');
 const sentFinishIndex=guestMessages.findIndex(message=>message.type==='progress'&&message.finished);
