@@ -86,6 +86,37 @@
         color: var(--text);
         font: 17px/1.6 var(--ff, Georgia, "Times New Roman", serif);
       }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .6rem 1rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1rem;
+        background: var(--bg);
+      }
+      .topbar .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .4rem .8rem;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: .85rem;
+        font-weight: 600;
+        transition: background .15s, transform .05s;
+        white-space: nowrap;
+      }
+      .topbar .back-btn:hover {
+        background: color-mix(in srgb, var(--accent) 90%, var(--bg));
+        transform: translateY(-1px);
+      }
+      .topbar .back-btn:active {
+        transform: translateY(0);
+      }
+      .topbar span { color: var(--muted); }
       main {
         max-width: 720px;
         margin: 0 auto;
@@ -1321,6 +1352,10 @@
     </script>
   </head>
   <body>
+    <div class="topbar">
+      <a href="../../" aria-label="Back to all apps" style="display:inline-block;padding:.4rem .8rem;border-radius:6px;background:var(--accent);color:var(--bg);text-decoration:none;font-size:.85rem;font-weight:600;transition:background .15s;">← Adless</a>
+      <span style="color:var(--muted);">Verse Lookup</span>
+    </div>
     <main>
       <form id="form">
         <button

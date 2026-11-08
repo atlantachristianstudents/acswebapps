@@ -18,7 +18,7 @@
         --panel: #2c2e31;
         --text: #d1d0c5;
         --muted: #646669;
-        --accent: #e2b714;
+        --accent: #bf9b13;
         --error: #ca4754;
       }
       * {
@@ -70,6 +70,20 @@
         align-items: center;
         gap: 30px;
       }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--panel);
+        border: 1px solid var(--muted);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+      .topbar a {
+        color: var(--muted);
+        text-decoration: none;
+      }
       .brand {
         display: flex;
         align-items: center;
@@ -100,7 +114,9 @@
         align-items: center;
       }
       nav button,
-      .account, #records, #history {
+      .account,
+      #records,
+      #history {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -515,7 +531,9 @@
         text-overflow: ellipsis;
       }
       @media (prefers-reduced-motion: reduce) {
-        .race-text-marker { transition: none; }
+        .race-text-marker {
+          transition: none;
+        }
       }
       .typing-caret {
         position: absolute;
@@ -705,15 +723,36 @@
         margin-bottom: 12px;
         color: var(--text);
       }
-      .chart-legend button { padding: 4px 0; color: inherit; }
-      .chart-legend button[aria-pressed="false"] { opacity: 0.45; text-decoration: line-through; }
-      .chart-legend button.average-key, .new-record { color: var(--accent); }
-      .new-record { display: inline-block; margin-top: 8px; }
-      .record-short-label { display: none; }
+      .chart-legend button {
+        padding: 4px 0;
+        color: inherit;
+      }
+      .chart-legend button[aria-pressed="false"] {
+        opacity: 0.45;
+        text-decoration: line-through;
+      }
+      .chart-legend button.average-key,
+      .new-record {
+        color: var(--accent);
+      }
+      .new-record {
+        display: inline-block;
+        margin-top: 8px;
+      }
+      .record-short-label {
+        display: none;
+      }
       @media (max-width: 600px) {
-        .record-full-label { display: none; }
-        .record-short-label { display: inline; }
-        .personal-records th, .personal-records td { padding: 9px 3px; }
+        .record-full-label {
+          display: none;
+        }
+        .record-short-label {
+          display: inline;
+        }
+        .personal-records th,
+        .personal-records td {
+          padding: 9px 3px;
+        }
       }
       .mistake-key {
         color: var(--error);
@@ -740,7 +779,10 @@
         padding: 30px;
         box-shadow: 0 20px 100px #0006;
       }
-      #leaveRaceDialog, #restartReplayDialog, #raceNameDialog, #joinCodeDialog {
+      #leaveRaceDialog,
+      #restartReplayDialog,
+      #raceNameDialog,
+      #joinCodeDialog {
         position: fixed;
         inset: 0;
         margin: auto;
@@ -779,11 +821,15 @@
         text-align: left;
         color: var(--text);
       }
-      .font-size-controls, .records-controls, .data-controls {
+      .font-size-controls,
+      .records-controls,
+      .data-controls {
         display: flex;
         gap: 8px;
       }
-      .font-size-controls button.option, .records-controls button.option, .data-controls button.option {
+      .font-size-controls button.option,
+      .records-controls button.option,
+      .data-controls button.option {
         flex: 1;
         width: auto;
         text-align: center;
@@ -982,10 +1028,20 @@
       .race-lobby-controls > div {
         flex: 1 1 150px;
       }
-      .race-lobby-controls label { display: block; font-size: 13px; }
-      .race-lobby-controls .race-field { margin-bottom: 0; }
-      .race-lobby-controls .race-primary { margin-top: 0; }
-      #raceLobby p { font-size: 13px; line-height: 1.6; }
+      .race-lobby-controls label {
+        display: block;
+        font-size: 13px;
+      }
+      .race-lobby-controls .race-field {
+        margin-bottom: 0;
+      }
+      .race-lobby-controls .race-primary {
+        margin-top: 0;
+      }
+      #raceLobby p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
       .available-room {
         display: flex;
         align-items: center;
@@ -994,10 +1050,24 @@
         padding: 14px 0;
         border-bottom: 1px solid var(--panel);
       }
-      .available-room small { display: block; margin-top: 5px; color: var(--muted); }
-      .room-actions { display: flex; gap: 8px; }
-      body.race-spectator #typingCaret, body.race-spectator .hint { display: none; }
-      .available-room button { padding: 10px 14px; border: 1px solid var(--accent); border-radius: 5px; }
+      .available-room small {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+      }
+      .room-actions {
+        display: flex;
+        gap: 8px;
+      }
+      body.race-spectator #typingCaret,
+      body.race-spectator .hint {
+        display: none;
+      }
+      .available-room button {
+        padding: 10px 14px;
+        border: 1px solid var(--accent);
+        border-radius: 5px;
+      }
       body.race-lobby-open #testSection,
       body.race-lobby-open #results,
       body.race-lobby-open .config,
@@ -1005,7 +1075,9 @@
       body.race-lobby-open #journeyProgress,
       body.race-lobby-open #journeyLocalProgress,
       body.race-lobby-open #bookProgress,
-      body.race-lobby-open .shortcuts { display: none !important; }
+      body.race-lobby-open .shortcuts {
+        display: none !important;
+      }
       #racePanel {
         background: var(--panel);
         border-radius: 8px;
@@ -1055,9 +1127,20 @@
         width: 100%;
         margin: 8px 0 20px;
       }
-      .race-passage-options { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0 20px; }
-      .race-passage-options button { padding: 8px 12px; border: 1px solid var(--muted); border-radius: 5px; }
-      .race-passage-options button.active { border-color: var(--accent); }
+      .race-passage-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 8px 0 20px;
+      }
+      .race-passage-options button {
+        padding: 8px 12px;
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+      }
+      .race-passage-options button.active {
+        border-color: var(--accent);
+      }
       .race-actions {
         display: flex;
         align-items: center;
@@ -1134,20 +1217,87 @@
         background: var(--accent);
         transition: width 0.2s;
       }
-      .race-remove { flex-shrink: 0; font-size: 12px; padding: 6px; color: var(--error); }
-      .race-audience-member { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 10px; font-size: 12px; }
-      #replayRetentionRange { display: block; width: 100%; margin: 14px 0; }
-      #replayRetentionPreview { display: block; font-size: 13px; color: var(--muted); margin: 10px 0; }
-      .race-chat { margin-top: 24px; width: 100%; }
-      .race-chat-log { max-height: 220px; overflow-y: auto; border: 1px solid var(--muted); border-radius: 6px; padding: 10px; min-height: 65px; }
-      .race-chat-log:empty::before { content: "No messages yet."; color: var(--muted); font-size: 13px; }
-      .race-chat-message { margin: 0 0 9px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
-      .race-chat-message strong { color: var(--accent); }
-      .race-chat-message time { color: var(--muted); font-size: 11px; margin-left: 8px; }
-      .race-chat-form { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-      .race-chat-form .race-field { flex: 1; min-width: 0; margin: 0; }
-      .race-chat-form .race-primary { margin: 0; }
-      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      .race-remove {
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 6px;
+        color: var(--error);
+      }
+      .race-audience-member {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+      }
+      #replayRetentionRange {
+        display: block;
+        width: 100%;
+        margin: 14px 0;
+      }
+      #replayRetentionPreview {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin: 10px 0;
+      }
+      .race-chat {
+        margin-top: 24px;
+        width: 100%;
+      }
+      .race-chat-log {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid var(--muted);
+        border-radius: 6px;
+        padding: 10px;
+        min-height: 65px;
+      }
+      .race-chat-log:empty::before {
+        content: "No messages yet.";
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .race-chat-message {
+        margin: 0 0 9px;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        color: var(--text);
+      }
+      .race-chat-message strong {
+        color: var(--accent);
+      }
+      .race-chat-message time {
+        color: var(--muted);
+        font-size: 11px;
+        margin-left: 8px;
+      }
+      .race-chat-form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .race-chat-form .race-field {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+      }
+      .race-chat-form .race-primary {
+        margin: 0;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
       .race-label {
         display: flex;
         align-items: center;
@@ -1463,22 +1613,127 @@
         border-radius: 5px;
         padding: 10px 12px;
       }
-      [hidden] { display: none !important; }
-      body.reading-mode #readingContent { display: block; flex: 1; padding-top: 30px; color: var(--text); }
-      #readingContent { outline: none; }
-      #readingContent h1 { font-size: 24px; font-weight: 400; }
-      #readingContent p { font-size: 13px; line-height: 1.8; }
-      #readingContent .option { color: var(--accent); }
-      #readingContent .journey-grid button:disabled { opacity: .4; cursor: default; }
-      #readingContent .journey-grid small { display: block; margin-top: 6px; font-size: 10px; }
-      body.reading-mode > .shell > .shortcuts { display: none; }
-      .reading-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:16px 0;border-bottom:1px solid var(--muted)}.reading-controls button{color:var(--accent);background:var(--panel);border:0;border-radius:5px;padding:12px}.reading-controls button:disabled{opacity:.35;cursor:default}.reading-controls select{background:var(--panel);color:var(--text);border:1px solid var(--muted);border-radius:5px;padding:10px;max-width:100%}.reading-verses{max-width:760px;margin:28px auto}.reading-verses p{font-family:Georgia,serif;font-size:21px;line-height:1.9;margin:0 0 14px}.reading-verses sup{font-family:ui-monospace,monospace;color:var(--accent);font-size:11px;margin-right:8px}@media(max-width:700px){#readingContent .reading-controls{gap:10px}#readingContent .reading-controls label{order:-1;width:100%}#readingContent .reading-verses p{font-size:19px}}
-      #readingContent .reading-verses p { font-size: 21px; }
-      @media (max-width: 700px) { #readingContent .reading-verses p { font-size: 19px; } }
+      [hidden] {
+        display: none !important;
+      }
+      body.reading-mode #readingContent {
+        display: block;
+        flex: 1;
+        padding-top: 30px;
+        color: var(--text);
+      }
+      #readingContent {
+        outline: none;
+      }
+      #readingContent h1 {
+        font-size: 24px;
+        font-weight: 400;
+      }
+      #readingContent p {
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      #readingContent .option {
+        color: var(--accent);
+      }
+      #readingContent .journey-grid button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      #readingContent .journey-grid small {
+        display: block;
+        margin-top: 6px;
+        font-size: 10px;
+      }
+      body.reading-mode > .shell > .shortcuts {
+        display: none;
+      }
+      .reading-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--muted);
+      }
+      .reading-controls button {
+        color: var(--accent);
+        background: var(--panel);
+        border: 0;
+        border-radius: 5px;
+        padding: 12px;
+      }
+      .reading-controls button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .reading-controls select {
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        padding: 10px;
+        max-width: 100%;
+      }
+      .reading-verses {
+        max-width: 760px;
+        margin: 28px auto;
+      }
+      .reading-verses p {
+        font-family: Georgia, serif;
+        font-size: 21px;
+        line-height: 1.9;
+        margin: 0 0 14px;
+      }
+      .reading-verses sup {
+        font-family: ui-monospace, monospace;
+        color: var(--accent);
+        font-size: 11px;
+        margin-right: 8px;
+      }
+      @media (max-width: 700px) {
+        #readingContent .reading-controls {
+          gap: 10px;
+        }
+        #readingContent .reading-controls label {
+          order: -1;
+          width: 100%;
+        }
+        #readingContent .reading-verses p {
+          font-size: 19px;
+        }
+      }
+      #readingContent .reading-verses p {
+        font-size: 21px;
+      }
+      @media (max-width: 700px) {
+        #readingContent .reading-verses p {
+          font-size: 19px;
+        }
+      }
     </style>
-  <link rel="stylesheet" href="themes.css">
-</head>
+    <link rel="stylesheet" href="themes.css" />
+  </head>
   <body>
+    <div class="topbar">
+      <a
+        href="../../"
+        style="
+          display: inline-block;
+          padding: 0.4rem 0.8rem;
+          border-radius: 6px;
+          background: var(--accent);
+          color: #1a1a1a;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          transition: background 0.15s;
+        "
+        >← Adless</a
+      >
+      <span style="color: var(--muted)">Logostype</span>
+    </div>
     <div class="shell">
       <header>
         <button class="brand" aria-label="Logostype home">
@@ -1547,52 +1802,78 @@
         </nav>
         <div class="header-actions">
           <button id="records" title="Records" aria-label="Records" data-dialog="records">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 3h8v5a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 12v6m-4 3h8m-6-3h4v3h-4z" />
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path
+                d="M8 3h8v5a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 12v6m-4 3h8m-6-3h4v3h-4z" />
             </svg>
           </button>
           <button id="history" title="Typing history" aria-label="Typing history" data-dialog="history">
-            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
               <path d="M3 11a9 9 0 1 1 2.7 7M3 4v7h7M12 7v5l3 2" />
             </svg>
           </button>
-        <button
-          class="account"
-          title="Settings and profile"
-          data-dialog="settings"
-          aria-label="Settings and profile">
-          <svg
-            class="menu-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true">
-            <path
-              d="m10 3-.5 2a8 8 0 0 0-2 1.2L5.5 6l-2 3.5L5 11v2l-1.5 1.5 2 3.5 2-.2a8 8 0 0 0 2 1.2l.5 2h4l.5-2a8 8 0 0 0 2-1.2l2 .2 2-3.5L19 13v-2l1.5-1.5-2-3.5-2 .2a8 8 0 0 0-2-1.2L14 3Z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </button>
+          <button class="account" title="Settings and profile" data-dialog="settings" aria-label="Settings and profile">
+            <svg
+              class="menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path
+                d="m10 3-.5 2a8 8 0 0 0-2 1.2L5.5 6l-2 3.5L5 11v2l-1.5 1.5 2 3.5 2-.2a8 8 0 0 0 2 1.2l.5 2h4l.5-2a8 8 0 0 0 2-1.2l2 .2 2-3.5L19 13v-2l1.5-1.5-2-3.5-2 .2a8 8 0 0 0-2-1.2L14 3Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
         </div>
       </header>
       <main id="typingContent">
         <section id="raceLobby" hidden aria-labelledby="raceLobbyTitle">
           <h2 id="raceLobbyTitle">race friends</h2>
           <div class="race-lobby-controls">
-            <button type="button" id="createRoom" class="race-primary">create public room →</button><button type="button" id="createPrivateRoom" class="race-primary">create private room →</button>
+            <button type="button" id="createRoom" class="race-primary">create public room →</button
+            ><button type="button" id="createPrivateRoom" class="race-primary">create private room →</button>
             <button type="button" id="joinRoom" class="race-primary">join by code →</button>
           </div>
           <p id="raceError" role="status" aria-live="polite"></p>
-          <p>Public rooms appear in the shared list. Private rooms use a code or invite link. Keep the host’s tab open while racing.</p>
+          <p>
+            Public rooms appear in the shared list. Private rooms use a code or invite link. Keep the host’s tab open
+            while racing.
+          </p>
           <h3>available rooms</h3>
           <p id="roomDirectoryStatus" role="status" aria-live="polite">Looking for rooms…</p>
           <div id="availableRooms"></div>
           <section class="race-chat" aria-labelledby="lobbyChatTitle">
-            <h3 id="lobbyChatTitle">lobby chat</h3><p>Messages here are visible to everyone browsing race rooms.</p>
+            <h3 id="lobbyChatTitle">lobby chat</h3>
+            <p>Messages here are visible to everyone browsing race rooms.</p>
             <div id="lobbyChatLog" class="race-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
-            <form id="lobbyChatForm" class="race-chat-form"><label class="sr-only" for="lobbyChatInput">Message the race lobby</label><input id="lobbyChatInput" class="race-field" maxlength="500" autocomplete="off" placeholder="message the lobby…"><button type="submit" class="race-primary">send</button></form>
+            <form id="lobbyChatForm" class="race-chat-form">
+              <label class="sr-only" for="lobbyChatInput">Message the race lobby</label
+              ><input
+                id="lobbyChatInput"
+                class="race-field"
+                maxlength="500"
+                autocomplete="off"
+                placeholder="message the lobby…" /><button type="submit" class="race-primary">send</button>
+            </form>
             <p id="lobbyChatStatus" role="status" aria-live="polite"></p>
           </section>
         </section>
@@ -1602,8 +1883,51 @@
           </div>
           <i class="divider"></i>
           <div class="group" id="modes">
-            <button class="active" data-mode="time"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 5v7l5 3"/></svg>time</button><button data-mode="words">A words</button
-            ><button data-mode="quote"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H2v10h7c0 5-3 7-7 8M22 3h-8v10h7c0 5-3 7-7 8"/></svg>verse</button><button data-mode="custom"><svg class="mode-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7V4a3 3 0 1 0-3 3h16a3 3 0 1 0-3-3v16a3 3 0 1 0 3-3H4a3 3 0 1 0 3 3Z"/></svg>custom</button>
+            <button class="active" data-mode="time">
+              <svg
+                class="mode-icon"
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 5v7l5 3" /></svg
+              >time</button
+            ><button data-mode="words">A words</button
+            ><button data-mode="quote">
+              <svg
+                class="mode-icon"
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M10 3H2v10h7c0 5-3 7-7 8M22 3h-8v10h7c0 5-3 7-7 8" /></svg
+              >verse</button
+            ><button data-mode="custom">
+              <svg
+                class="mode-icon"
+                aria-hidden="true"
+                focusable="false"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M7 7V4a3 3 0 1 0-3 3h16a3 3 0 1 0-3-3v16a3 3 0 1 0 3-3H4a3 3 0 1 0 3 3Z" /></svg
+              >custom
+            </button>
           </div>
           <i class="divider"></i>
           <div class="group" id="limits"></div>
@@ -1612,14 +1936,17 @@
           <div class="race-top">
             <strong id="raceTitle">race friends</strong>
             <div id="raceInvite">
-              <button type="button" id="copyRoomCode">copy room code</button><button type="button" id="copyInvite">copy full link</button>
+              <button type="button" id="copyRoomCode">copy room code</button
+              ><button type="button" id="copyInvite">copy full link</button>
             </div>
           </div>
           <p id="raceStatus" role="status" aria-live="polite"></p>
           <div class="room-privacy">
-            <p id="roomPrivacyStatus"></p><button type="button" id="roomVisibility" hidden>make private</button>
+            <p id="roomPrivacyStatus"></p>
+            <button type="button" id="roomVisibility" hidden>make private</button>
           </div>
-          <div id="racers"></div><div id="raceAudience" aria-live="polite"></div>
+          <div id="racers"></div>
+          <div id="raceAudience" aria-live="polite"></div>
           <form id="raceDurationForm">
             <p id="raceTimeLimit"></p>
             <div class="race-passage-options" role="group" aria-label="Race passage">
@@ -1630,18 +1957,35 @@
             </div>
             <div id="raceCustomTextGroup" hidden>
               <label for="raceCustomText">custom race text</label>
-              <textarea id="raceCustomText" class="race-field" rows="4" maxlength="10000" placeholder="Enter the passage everyone will type"></textarea>
+              <textarea
+                id="raceCustomText"
+                class="race-field"
+                rows="4"
+                maxlength="10000"
+                placeholder="Enter the passage everyone will type"></textarea>
             </div>
           </form>
           <div class="race-actions">
-            <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button><button id="startRace" class="race-primary">start race →</button
+            <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button
+            ><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button
+            ><button id="startRace" class="race-primary">start race →</button
             ><button id="giveUpRace" class="race-leave" hidden>give up</button
             ><button id="leaveRace" class="race-leave">leave room</button>
           </div>
           <section class="race-chat" aria-labelledby="roomChatTitle">
             <h3 id="roomChatTitle">room chat</h3>
             <div id="roomChatLog" class="race-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
-            <form id="roomChatForm" class="race-chat-form"><label class="sr-only" for="roomChatInput">Message this race room</label><input id="roomChatInput" class="race-field" maxlength="500" autocomplete="off" placeholder="message this room…"><button type="submit" id="roomChatSend" class="race-primary">send</button></form>
+            <form id="roomChatForm" class="race-chat-form">
+              <label class="sr-only" for="roomChatInput">Message this race room</label
+              ><input
+                id="roomChatInput"
+                class="race-field"
+                maxlength="500"
+                autocomplete="off"
+                placeholder="message this room…" /><button type="submit" id="roomChatSend" class="race-primary">
+                send
+              </button>
+            </form>
             <p id="roomChatStatus" role="status" aria-live="polite"></p>
           </section>
         </section>
@@ -1655,18 +1999,22 @@
           <p>Each book and the entire Scriptures keep separate progress.</p>
         </div>
         <aside id="journeyProgress" class="journey-progress" aria-label="Entire Scriptures progress" hidden>
-        <div id="journeyLocalProgress" class="journey-local-progress" hidden>
-          <div>
-            <label for="currentChapterProgress" id="currentChapterLabel">current chapter</label
-            ><span id="currentChapterCount"></span
-            ><progress id="currentChapterProgress" value="0" max="1" aria-describedby="currentChapterCount"></progress>
+          <div id="journeyLocalProgress" class="journey-local-progress" hidden>
+            <div>
+              <label for="currentChapterProgress" id="currentChapterLabel">current chapter</label
+              ><span id="currentChapterCount"></span
+              ><progress
+                id="currentChapterProgress"
+                value="0"
+                max="1"
+                aria-describedby="currentChapterCount"></progress>
+            </div>
+            <div>
+              <label for="currentBookProgress" id="currentBookLabel">current book</label
+              ><span id="currentBookCount"></span
+              ><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress>
+            </div>
           </div>
-          <div>
-            <label for="currentBookProgress" id="currentBookLabel">current book</label
-            ><span id="currentBookCount"></span
-            ><progress id="currentBookProgress" value="0" max="1" aria-describedby="currentBookCount"></progress>
-          </div>
-        </div>
           <span id="journeyLabel">scriptures</span><strong id="journeyProgressValue">0.00%</strong>
           <div
             id="journeyProgressTrack"
@@ -1696,7 +2044,8 @@
               <span class="verse-context-reference"></span>
               <p></p>
             </div>
-            <div class="words" id="words"></div><div id="raceTextMarkers" class="race-text-markers" aria-hidden="true" hidden></div>
+            <div class="words" id="words"></div>
+            <div id="raceTextMarkers" class="race-text-markers" aria-hidden="true" hidden></div>
             <div id="followingVerse" class="verse-context" hidden>
               <span class="verse-context-reference"></span>
               <p></p>
@@ -1732,8 +2081,12 @@
             <div class="detail">test type<br /><b id="testType"></b><br /><span id="resultDetails"></span></div>
           </div>
           <div id="chartLegend" class="chart-legend" data-chart-target="chart">
-            <button type="button" class="average-key" data-chart-series="samples" aria-pressed="true">━ average wpm</button><button type="button" data-chart-series="instantSamples" aria-pressed="true">┄ instant wpm (last 3s)</button
-            ><button type="button" class="raw-key" data-chart-series="rawSamples" aria-pressed="true">┈ raw wpm</button><span class="mistake-key">× mistakes</span>
+            <button type="button" class="average-key" data-chart-series="samples" aria-pressed="true">
+              ━ average wpm</button
+            ><button type="button" data-chart-series="instantSamples" aria-pressed="true">
+              ┄ instant wpm (last 3s)</button
+            ><button type="button" class="raw-key" data-chart-series="rawSamples" aria-pressed="true">┈ raw wpm</button
+            ><span class="mistake-key">× mistakes</span>
           </div>
           <div class="chart-wrap">
             <canvas
@@ -1750,7 +2103,11 @@
 
           <button type="button" id="replayAllResult" hidden>▶ replay all racers</button>
           <p id="testReferences" aria-label="Passage references" hidden></p>
-          <div class="result-attempt-actions"><button type="button" id="replayResult">▶ replay</button><button type="button" id="retryResult">↻ retry</button><button type="button" id="raceAgainstResult">⚑ race against</button></div>
+          <div class="result-attempt-actions">
+            <button type="button" id="replayResult">▶ replay</button
+            ><button type="button" id="retryResult">↻ retry</button
+            ><button type="button" id="raceAgainstResult">⚑ race against</button>
+          </div>
           <button class="restart" id="again" title="Next test" aria-label="Next test">↦</button>
         </section>
       </main>
@@ -1777,17 +2134,32 @@
       </div>
     </dialog>
     <dialog id="removeRacerDialog" aria-labelledby="removeRacerTitle">
-      <h2 id="removeRacerTitle">remove from room?</h2><p id="removeRacerMessage"></p>
-      <div class="confirm-actions"><button type="button" id="cancelRemoveRacer">cancel</button><button type="button" id="confirmRemoveRacer" class="race-leave">remove</button></div>
+      <h2 id="removeRacerTitle">remove from room?</h2>
+      <p id="removeRacerMessage"></p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelRemoveRacer">cancel</button
+        ><button type="button" id="confirmRemoveRacer" class="race-leave">remove</button>
+      </div>
     </dialog>
     <dialog id="historyCleanupDialog" aria-labelledby="historyCleanupTitle">
-      <h2 id="historyCleanupTitle"></h2><p id="historyCleanupMessage"></p>
-      <div class="confirm-actions"><button type="button" id="cancelHistoryCleanup">cancel</button><button type="button" id="confirmHistoryCleanup" class="race-leave">confirm</button></div>
+      <h2 id="historyCleanupTitle"></h2>
+      <p id="historyCleanupMessage"></p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelHistoryCleanup">cancel</button
+        ><button type="button" id="confirmHistoryCleanup" class="race-leave">confirm</button>
+      </div>
     </dialog>
     <dialog id="joinCodeDialog" aria-labelledby="joinCodeTitle">
       <h2 id="joinCodeTitle">join by code</h2>
       <label for="roomCode">room code</label>
-      <input class="race-field" id="roomCode" maxlength="8" placeholder="a1b2c3d4" autocapitalize="off" spellcheck="false" aria-describedby="roomCodeError">
+      <input
+        class="race-field"
+        id="roomCode"
+        maxlength="8"
+        placeholder="a1b2c3d4"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="roomCodeError" />
       <p id="roomCodeError" role="status" aria-live="polite"></p>
       <div class="confirm-actions">
         <button type="button" id="cancelJoinCode">cancel</button>
@@ -1798,14 +2170,22 @@
       <h2 id="raceNameTitle">choose your race name</h2>
       <p id="raceNameMessage">Enter a name, or continue with a randomly generated name.</p>
       <label for="raceName">player name</label>
-      <input class="race-field" id="raceName" maxlength="24" autocomplete="nickname" placeholder="leave blank for a random name">
+      <input
+        class="race-field"
+        id="raceName"
+        maxlength="24"
+        autocomplete="nickname"
+        placeholder="leave blank for a random name" />
       <div class="confirm-actions">
         <button type="button" id="confirmRaceName" class="race-primary">continue →</button>
       </div>
     </dialog>
     <dialog id="restartReplayDialog" aria-labelledby="restartReplayTitle" aria-describedby="restartReplayMessage">
       <h2 id="restartReplayTitle">restart replay race?</h2>
-      <p id="restartReplayMessage">Restart both racers from the beginning? The unfinished attempt will not be saved. The race keeps running until you confirm.</p>
+      <p id="restartReplayMessage">
+        Restart both racers from the beginning? The unfinished attempt will not be saved. The race keeps running until
+        you confirm.
+      </p>
       <div class="confirm-actions">
         <button type="button" id="cancelRestartReplay" autofocus>keep racing</button>
         <button type="button" id="confirmRestartReplay" class="race-leave">restart race</button>
