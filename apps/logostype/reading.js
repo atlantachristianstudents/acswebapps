@@ -2,10 +2,11 @@
 let readingChapters=[],readingChapter=0,readingJourneyName=null;
 function readingJourney(name){
   const book=journeyBooks.find(book=>book.name===name);
-  const scriptureProgress=journeyCompletions.length?scriptureLines.length:bookProgress;
-  if(!book)return {name:'Entire Scriptures',start:0,end:scriptureLines.length,progress:scriptureProgress};
-  const state=bookJourneys[name],size=book.end-book.start;
-  return {...book,progress:Math.max(state?.completions.length?size:state?.progress||0,Math.max(0,Math.min(size,scriptureProgress-book.start)))};
+  const own=book?{...book,...(bookJourneys[name]||{progress:0,completions:[]})}:{name:'Entire Scriptures',start:0,end:scriptureLines.length,progress:bookProgress,completions:journeyCompletions};
+  const all={name:'Entire Scriptures',start:0,end:scriptureLines.length,progress:bookProgress,completions:journeyCompletions};
+  const indices=[];
+  for(let index=own.start;index<own.end;index++) if(own.completions.length||journeyVerseCompleted(own,index)||(book&&(all.completions.length||journeyVerseCompleted(all,index)))) indices.push(index);
+  return {...own,indices,progress:indices.length};
 }
 function openJourneyReader(){
   readingJourneyName=null;
@@ -21,17 +22,17 @@ function openJourneyReader(){
 function openReadingJourney(name){
   const journey=readingJourney(name);if(!journey.progress)return;
   readingJourneyName=name;
-  const end=Math.min(journey.start+journey.progress,journey.end);
+  const end=journey.end;
   readingChapters=[];
-  for(let index=journey.start;index<end;index++){
+  for(const index of journey.indices){
     const name=scriptureReferences[index].split(':')[0];
     let chapter=readingChapters.at(-1);
-    if(!chapter||chapter.name!==name){chapter={name,start:index,end:index};readingChapters.push(chapter)}
-    chapter.end=index+1;
+    if(!chapter||chapter.name!==name){chapter={name,start:index,end:index,indices:[]};readingChapters.push(chapter)}
+    chapter.end=index+1;chapter.indices.push(index);
   }
   const content=$('#readingContent');
   content.innerHTML='<button class="option" type="button" data-reading-choices>← reading choices</button><h1>Read the scriptures you typed</h1><p id="readingSummary"></p>';
-  $('#readingSummary').textContent=`${journey.name} · ${Math.max(0,end-journey.start).toLocaleString()} completed verses`;
+  $('#readingSummary').textContent=`${journey.name} · ${journey.progress.toLocaleString()} completed verses`;
   if(!readingChapters.length)content.insertAdjacentHTML('beforeend','<p>Complete your first verse in this journey to start reading here.</p>');
   else{
     content.insertAdjacentHTML('beforeend','<div class="reading-controls"><button type="button" data-reader-step="-1" aria-label="Previous chapter" aria-keyshortcuts="p">← previous</button><label>chapter <select id="readingChapterChoice" aria-label="Choose a completed chapter"></select></label><button type="button" data-reader-step="1" aria-label="Next chapter" aria-keyshortcuts="n">next →</button></div><p class="reading-shortcuts">N / P: next / previous chapter · Shift+N / Shift+P: next / previous book</p><div id="readingVerses" class="reading-verses" tabindex="0" role="region" aria-label="Completed verses"></div>');
@@ -51,7 +52,7 @@ function showReadingChapter(index){
   $('[data-reader-step="-1"]').disabled=readingChapter===0;
   $('[data-reader-step="1"]').disabled=readingChapter===readingChapters.length-1;
   const verses=$('#readingVerses');
-  verses.innerHTML=scriptureLines.slice(chapter.start,chapter.end).map((text,offset)=>'<p><sup>'+escapeHtml(scriptureReferences[chapter.start+offset].split(':')[1])+'</sup>'+escapeHtml(text)+'</p>').join('');
+  verses.innerHTML=chapter.indices.map(index=>'<p><sup>'+escapeHtml(scriptureReferences[index].split(':')[1])+'</sup>'+escapeHtml(scriptureLines[index])+'</p>').join('');
   verses.setAttribute('aria-label',chapter.name+' completed verses');verses.scrollTop=0;
 }
 

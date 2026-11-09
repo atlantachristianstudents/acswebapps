@@ -1,0 +1,30 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const app = fs.readFileSync(require('node:path').join(__dirname, '../app.js'), 'utf8');
+const storage = new Map();
+let journey = {name:'John',start:3,end:8,progress:1,completions:[]};
+const context = vm.createContext({currentJourney:()=>journey,scriptureReferences:Array(10),journeyBooks:[{name:'John',start:3,end:8}],localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}});
+vm.runInContext(app.slice(app.indexOf('// Out-of-order completions'), app.indexOf('function saveBookJourneys()')),context);
+const run = code=>vm.runInContext(code,context);
+run('journeyShuffle=true');
+for(let count=0;count<4;count++) {
+  const index=run('journeyPosition()');
+  assert(index>=4&&index<8);
+  assert.equal(run('journeyPosition()'),index,'selection stays stable while typing');
+  assert.equal(run(`journeyVerseCompleted(currentJourney(),${index})`),false);
+  journey.progress=run(`recordJourneyVerse(${index})`);
+}
+assert.equal(journey.progress,5);
+assert.equal(run('journeyPosition()'),8,'complete journey has no candidate');
+journey={name:'John',start:3,end:8,progress:1,completions:[]};
+run('journeyShuffled={};shuffledPosition=null;recordJourneyVerse(6);journeyShuffle=false');
+assert.equal(run('journeyPosition()'),4);
+journey.progress=run('recordJourneyVerse(4)');
+journey.progress=run('recordJourneyVerse(5)');
+assert.equal(run('journeyPosition()'),7,'ordered mode skips a previously shuffled completion');
+assert(storage.get('logostype-journey-shuffled').includes('John'));
+journey.completions=['2026-11-08T10:00:00Z'];journey.progress=0;
+assert.equal(run('shuffledVerses(currentJourney()).length'),0,'restart ignores previous cycle');
+assert.throws(()=>run('validateJourneyShuffled({John:{cycle:null,verses:[2]}})'));
+console.log('Journey shuffle checks passed: bounds, no repeats, stable selection, persistence, ordered resume, restart, validation.');

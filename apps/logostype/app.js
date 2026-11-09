@@ -88,9 +88,53 @@ function currentJourney() {
   const state = bookJourneys[book.name] || { progress: 0, completions: [] };
   return { ...book, ...state };
 }
+// Out-of-order completions supplement the existing contiguous progress counters.
+let journeyShuffled = {}, journeyShuffle = false, shuffledPosition = null;
+function validateJourneyShuffled(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid shuffled progress.");
+  const result = {};
+  for (const [name, state] of Object.entries(value)) {
+    const book = journeyBooks.find(book => book.name === name);
+    if ((name !== "Entire Scriptures" && !book) || !state || !Array.isArray(state.verses) ||
+        state.verses.some(index => !Number.isInteger(index) || index < (book?.start || 0) || index >= (book?.end || scriptureReferences.length)) ||
+        (state.cycle !== null && (typeof state.cycle !== "string" || !Number.isFinite(Date.parse(state.cycle))))) throw new Error("Invalid shuffled progress.");
+    result[name] = { cycle: state.cycle, verses: [...new Set(state.verses)] };
+  }
+  return result;
+}
+try {
+  journeyShuffled = validateJourneyShuffled(JSON.parse(localStorage.getItem("logostype-journey-shuffled") || "{}"));
+  journeyShuffle = localStorage.getItem("logostype-journey-shuffle") === "true";
+} catch {}
+function shuffledVerses(journey) {
+  const state = journeyShuffled[journey.name];
+  return state?.cycle === (journey.completions.at(-1) || null) ? state.verses : [];
+}
+function journeyVerseCompleted(journey, index) {
+  return index < journey.start + journey.progress || shuffledVerses(journey).includes(index);
+}
+function journeyRangeCompleted(journey, start, end) {
+  for (let index = start; index < end; index++) if (!journeyVerseCompleted(journey, index)) return false;
+  return true;
+}
 function journeyPosition() {
   const journey = currentJourney();
-  return journey.start + journey.progress;
+  if (!journeyShuffle) return journey.start + journey.progress;
+  if (shuffledPosition !== null && shuffledPosition >= journey.start && shuffledPosition < journey.end && !journeyVerseCompleted(journey, shuffledPosition)) return shuffledPosition;
+  const remaining = [];
+  for (let index = journey.start + journey.progress; index < journey.end; index++) if (!journeyVerseCompleted(journey, index)) remaining.push(index);
+  shuffledPosition = remaining.length ? remaining[Math.floor(Math.random() * remaining.length)] : journey.end;
+  return shuffledPosition;
+}
+function recordJourneyVerse(index) {
+  const journey = currentJourney();
+  const verses = new Set(shuffledVerses(journey));
+  verses.add(index);
+  let progress = journey.progress;
+  while (progress < journey.end - journey.start && verses.has(journey.start + progress)) verses.delete(journey.start + progress++);
+  journeyShuffled[journey.name] = { cycle: journey.completions.at(-1) || null, verses: [...verses] };
+  try { localStorage.setItem("logostype-journey-shuffled", JSON.stringify(journeyShuffled)); } catch {}
+  return progress;
 }
 function saveBookJourneys() {
   try {
@@ -312,8 +356,8 @@ function updateBookProgress(message = "") {
   const journey = currentJourney(),
     size = journey.end - journey.start;
   const completed = Math.min(journey.progress, size),
-    position = journey.start + completed;
-  const completedWords = (scriptureWordTotals[position] || 0) - (scriptureWordTotals[journey.start] || 0);
+    position = Math.min(journeyPosition(), journey.end);
+  const completedWords = (scriptureWordTotals[journey.start + completed] || 0) - (scriptureWordTotals[journey.start] || 0) + shuffledVerses(journey).filter(index => index >= journey.start + completed).reduce((sum, index) => sum + scriptureWordTotals[index + 1] - scriptureWordTotals[index], 0);
   const totalWords = (scriptureWordTotals[journey.end] || 0) - (scriptureWordTotals[journey.start] || 0);
   const percent = totalWords ? (completedWords / totalWords) * 100 : 0;
   if (size > 0) {
@@ -330,8 +374,8 @@ function updateBookProgress(message = "") {
       const chapters =
         scope === "Book" ? scriptureChapterEnds.filter((end) => end > rangeStart && end <= rangeEnd) : null;
       const count = chapters
-        ? chapters.filter((end) => end <= position).length
-        : Math.max(0, Math.min(position, rangeEnd) - rangeStart);
+        ? chapters.filter((end) => journeyRangeCompleted(journey, Math.max(rangeStart, scriptureChapterEnds[scriptureChapterEnds.indexOf(end) - 1] || 0), end)).length
+        : Array.from({length: rangeEnd - rangeStart}, (_, offset) => rangeStart + offset).filter(index => journeyVerseCompleted(journey, index)).length;
       const total = chapters ? chapters.length : rangeEnd - rangeStart,
         unit = chapters ? "chapters" : "verses";
       $("#current" + scope + "Label").textContent = `current ${scope.toLowerCase()} · ${name}`;
@@ -351,7 +395,7 @@ function updateBookProgress(message = "") {
   $("#journeyProgressCount").textContent = `${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
   $("#journeyBookCount").textContent = selectedJourneyBook
     ? `${completed === size ? 1 : 0} / 1 books`
-    : `${scriptureBookEnds.filter((end) => end <= position).length} / ${scriptureBookEnds.length} books`;
+    : `${journeyBooks.filter(book => journeyRangeCompleted(journey, book.start, book.end)).length} / ${scriptureBookEnds.length} books`;
   $("#journeyWordCount").textContent = `${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
   $("#journeyWordPercent").textContent =
     `${(totalWords ? (completedWords / totalWords) * 100 : 0).toFixed(2)}% of ${journey.name} words completed`;
@@ -414,6 +458,7 @@ function renderBookContext() {
       !scriptureLines[index] ||
       index < journey.start ||
       index >= journey.end;
+    element.classList.toggle("completed", id === "previousVerse" && !element.hidden && journeyVerseCompleted(journey, index));
     if (element.hidden) continue;
     element.querySelector(".verse-context-reference").textContent = scriptureReferences[index];
     element.querySelector("p").textContent = scriptureLines[index];
@@ -526,7 +571,7 @@ function completeBookVerse() {
     const journey = currentJourney(),
       size = journey.end - journey.start;
     if (journey.progress < size) {
-      const state = { progress: journey.progress + 1, completions: [...journey.completions] };
+      const state = { progress: recordJourneyVerse(previousPosition), completions: [...journey.completions] };
       if (state.progress === size) {
         const completedAt = new Date().toISOString();
         trackJourneyCompletion(selectedJourneyBook, completedAt, journey.completions);
@@ -536,7 +581,7 @@ function completeBookVerse() {
       saveBookJourneys();
     }
   } else if (passed && bookProgress < scriptureLines.length) {
-    bookProgress = Math.min(bookProgress + 1, scriptureLines.length);
+    bookProgress = recordJourneyVerse(previousPosition);
     try {
       localStorage.setItem("logostype-book-progress", String(bookProgress));
     } catch {}
@@ -550,7 +595,7 @@ function completeBookVerse() {
       } catch {}
     }
   }
-  const position = journeyPosition();
+  const position = currentJourney().start + currentJourney().progress;
   if (passed && position > previousPosition) {
     if (!selectedJourneyBook && position === scriptureLines.length) celebrateJourney(7);
     else if (scriptureBookEnds.includes(position)) celebrateJourney(3);
@@ -1258,9 +1303,8 @@ function openModal(type) {
   if (type === "records") content.innerHTML = '<h2>records</h2><p>Press J for Journey completion records.</p>' + renderPersonalRecords() + '<button class="option" data-open="journeyCompletions">↗ journey completion records</button>';
   if (type === "settings")
     content.innerHTML =
-      '<h2>settings</h2><h3>your profile</h3><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="themes">◐ change theme</button><h3 id="fontSizeLabel">font size</h3><div class="font-size-controls" role="group" aria-labelledby="fontSizeLabel"><button class="option" id="fontSmaller" type="button">smaller</button><button class="option" id="fontDefault" type="button">default</button><button class="option" id="fontBigger" type="button">bigger</button></div><h3>your data</h3><div class="data-controls" role="group" aria-label="Progress and typing history backups"><button class="option" id="exportData">export data</button><button class="option" id="importData">import data</button></div><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, theme and custom colors, Scripture Journey progress, and all saved typing history. Import restores theme settings, merges history, and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
-  if (type === "settings") content.innerHTML += '<button class="option" data-open="historyStorage">history and replay storage</button>' + renderKeyboardShortcuts();
-  if (type === "historyStorage") content.innerHTML = renderHistoryStorage();
+      '<h2>settings</h2><h3>your profile</h3><p id="profileJoined">' + escapeHtml(profileJoinedLabel()) + '</p><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="themes">◐ change theme</button><h3 id="fontSizeLabel">font size</h3><div class="font-size-controls" role="group" aria-labelledby="fontSizeLabel"><button class="option" id="fontSmaller" type="button">smaller</button><button class="option" id="fontDefault" type="button">default</button><button class="option" id="fontBigger" type="button">bigger</button></div><h3>your data</h3><div class="data-controls" role="group" aria-label="Progress and typing history backups"><button class="option" id="exportData">export data</button><button class="option" id="importData">import data</button></div><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, theme and custom colors, Scripture Journey progress, and all saved typing history. Import restores theme settings, merges history, and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';
+  if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
       "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Speed is measured in words per minute, using five characters per word. Average WPM excludes each word with an uncorrected mistake, including its following space. Correcting the word restores its credit. Accuracy includes all keystrokes, even corrected mistakes.</p>";
@@ -1500,6 +1544,7 @@ window.addEventListener("resize", () => positionCaret(false));
 document.fonts?.ready.then(() => positionCaret(false));
 
 function chooseJourney(name) {
+  shuffledPosition = null;
   selectedJourneyBook = name;
   try {
     localStorage.setItem("logostype-selected-book", name);
@@ -1507,6 +1552,15 @@ function chooseJourney(name) {
   reset();
   input.focus();
 }
+$("#shuffleJourney").setAttribute("aria-pressed", String(journeyShuffle));
+$("#shuffleJourney").onclick = () => {
+  journeyShuffle = !journeyShuffle;
+  shuffledPosition = null;
+  try { localStorage.setItem("logostype-journey-shuffle", String(journeyShuffle)); } catch {}
+  $("#shuffleJourney").setAttribute("aria-pressed", String(journeyShuffle));
+  reset();
+  input.focus();
+};
 $("#chooseJourney").onclick = () => {
   const content = $("#modalContent");
   content.innerHTML =
@@ -1584,6 +1638,18 @@ let historyDateTo = "";
 function historyResultDate(result) {
   // Date-only legacy results have no recorded time; interpret them at local midnight.
   return new Date(/^\d{4}-\d{2}-\d{2}$/.test(result.date) ? result.date + "T00:00:00" : result.date);
+}
+function historyJoinedDate() {
+  let earliest = null;
+  for (const result of history) {
+    const date = historyResultDate(result);
+    if (Number.isFinite(date.getTime()) && (!earliest || date < earliest)) earliest = date;
+  }
+  return earliest;
+}
+function profileJoinedLabel() {
+  const date = historyJoinedDate();
+  return date ? "date joined: " + date.toLocaleDateString() : "date joined: complete your first typing test";
 }
 function historyWithinDateRange(result) {
   if (!historyDateFrom && !historyDateTo) return true;
@@ -1716,7 +1782,7 @@ function renderHistoryProgression() {
     '</tr></tbody></table></div><div class="progression-table-wrap"><table class="records-table progression-options"><caption>WPM range</caption><tbody><tr>' +
     ["all", "top", "middle", "bottom"].map(value => '<td><button type="button" data-progression-band="' + value + '" aria-pressed="' + (value === historyProgressionBand) + '">' + value + '</button></td>').join("") +
     '</tr></tbody></table></div><label for="historyProgressionPercent">percentage of matching results</label><input class="race-field" id="historyProgressionPercent" type="number" min="1" max="100" step="1" value="' + historyProgressionPercent + '"><p id="historyPercentStatus" role="status" aria-live="polite"></p><div id="historyProgressionChart" aria-live="polite">' + renderHistoryProgressionChart() + '</div>' +
-    '<div class="history-date-range"><div><label for="historyDateFrom">from date and time</label><input class="race-field" id="historyDateFrom" type="datetime-local" step="1"></div><div><label for="historyDateTo">through date and time</label><input class="race-field" id="historyDateTo" type="datetime-local" step="1"></div></div><button class="option" id="historyDateClear" type="button">clear date range</button><p id="historyDateStatus" role="status" aria-live="polite"></p>';
+    '<div class="history-date-range"><div><label for="historyDateFrom">from date and time</label><input class="race-field" id="historyDateFrom" type="datetime-local" step="1"></div><div><label for="historyDateTo">through date and time</label><input class="race-field" id="historyDateTo" type="datetime-local" step="1"></div></div><button class="option" id="historyDateClear" type="button">reset date filter</button><p id="historyDateStatus" role="status" aria-live="polite"></p>';
 
 }
 function expandProgressionPoint(point) {
@@ -1831,7 +1897,7 @@ function openHistoryResult(index) {
   if (!result) return;
   const content = $("#modalContent");
   content.innerHTML =
-    '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p><button type="button" class="option" data-delete-history-index="' + index + '">delete this result</button>';
+    '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p>';
   $("#historyResultSummary").textContent =
     `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
   const attemptActions = (result.raceReplay ? '<button class="option" data-race-replay-index="' + index + '">▶ replay all racers</button>' : "") + (result.replay

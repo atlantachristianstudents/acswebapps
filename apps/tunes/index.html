@@ -1299,6 +1299,9 @@
         spec,
         stream,
         running = false,
+        starting = false,
+        captureGeneration = 0,
+        audioFrame = 0,
         frame = 0,
         recent = [],
         lastF = -1,
@@ -1613,7 +1616,7 @@
       /* ---------- audio loop ---------- */
       function loop() {
         if (!running) return;
-        requestAnimationFrame(loop);
+        audioFrame = requestAnimationFrame(loop);
         if (cur === 2 && !gPaused) draw();
         if (++frame % 2) return;
         analyser.getFloatTimeDomainData(buf);
@@ -1635,45 +1638,80 @@
         }
       }
 
+      function releaseCapture() {
+        ++captureGeneration; // Discard permission requests that finish after backgrounding.
+        starting = false;
+        running = false;
+        cancelAnimationFrame(audioFrame);
+        stream && stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+        if (ctx) ctx.close().catch(() => {});
+        ctx = null;
+        recent = [];
+        lastF = -1;
+      }
+
+      function wakeCapture() {
+        if (!ctx || ctx.state === "closed" || ctx.state === "running") return;
+        const activeContext = ctx;
+        // iOS can report "interrupted" as well as "suspended".
+        activeContext.resume().catch(() => {
+          if (ctx === activeContext) $("btn").hidden = false;
+        });
+      }
+      ["pointerdown", "keydown", "touchend"].forEach((ev) => addEventListener(ev, wakeCapture));
+
       async function start() {
+        if (starting || running || document.visibilityState === "hidden") return;
+        starting = true;
+        const generation = ++captureGeneration;
         $("msg").textContent = "";
         try {
-          stream = await navigator.mediaDevices.getUserMedia({
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          ctx.onstatechange = () => {
+            if (!ctx || !running) return;
+            const listening = ctx.state === "running";
+            $("btn").hidden = listening;
+            if (!listening) $("btn").textContent = "Resume listening";
+          };
+          wakeCapture();
+          const acquired = await navigator.mediaDevices.getUserMedia({
             audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
           });
+          if (generation !== captureGeneration) {
+            acquired.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          stream = acquired;
+          analyser = ctx.createAnalyser();
+          analyser.fftSize = 4096;
+          analyser.smoothingTimeConstant = 0.6;
+          buf = new Float32Array(analyser.fftSize);
+          spec = new Float32Array(analyser.frequencyBinCount);
+          const micSrc = ctx.createMediaStreamSource(stream);
+          const inGain = ctx.createGain();
+          inGain.gain.value = 4; // +12 dB so quiet instruments register
+          micSrc.connect(inGain);
+          inGain.connect(analyser);
+          window.chordHook && window.chordHook(ctx, inGain);
+          running = true;
+          starting = false;
+          $("btn").hidden = ctx.state === "running";
+          $("btn").textContent = "Resume listening";
+          $("hz").textContent = "Listening…";
+          wakeCapture();
+          loop();
         } catch (e) {
+          if (generation !== captureGeneration) return;
+          releaseCapture();
           $("msg").textContent =
             "The tuners need microphone access. Allow it in your browser, then tap Enable microphone.";
+          $("btn").textContent = "Enable microphone";
           $("btn").hidden = false;
-          return;
         }
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const wake = () => {
-          if (ctx && ctx.state === "suspended") ctx.resume();
-        };
-        wake();
-        ["pointerdown", "keydown", "touchend"].forEach((ev) => addEventListener(ev, wake));
-        analyser = ctx.createAnalyser();
-        analyser.fftSize = 4096;
-        analyser.smoothingTimeConstant = 0.6;
-        buf = new Float32Array(analyser.fftSize);
-        spec = new Float32Array(analyser.frequencyBinCount);
-        const micSrc = ctx.createMediaStreamSource(stream);
-        const inGain = ctx.createGain();
-        inGain.gain.value = 4; // +12 dB so quiet instruments register
-        micSrc.connect(inGain);
-        inGain.connect(analyser);
-        window.chordHook && window.chordHook(ctx, inGain);
-        running = true;
-        $("btn").hidden = true;
-        $("hz").textContent = "Listening…";
-        loop();
       }
       function stop() {
-        running = false;
-        lastF = -1;
-        stream && stream.getTracks().forEach((t) => t.stop());
-        ctx && ctx.close();
+        releaseCapture();
         $("btn").textContent = "Start listening";
         $("note").textContent = "–";
         $("note").style.color = "";
@@ -1684,44 +1722,21 @@
         drawIdle();
       }
       $("btn").addEventListener("click", () => {
-        if (!running) start();
+        if (running) wakeCapture();
+        else start();
       });
 
-      /* ---------- reconnect quietly when the app returns to the foreground ---------- */
-      async function micState() {
-        try {
-          return (await navigator.permissions.query({ name: "microphone" })).state;
-        } catch (e) {
-          return "unknown";
-        }
-      }
-      async function reconnect() {
-        if (document.visibilityState !== "visible") return;
-        const live = stream && stream.getAudioTracks().some((t) => t.readyState === "live");
-        if (running && live) {
-          if (ctx && ctx.state === "suspended") ctx.resume();
+      /* ---------- rebuild capture after mobile background interruptions ---------- */
+      function reconnect() {
+        if (document.visibilityState === "hidden") {
+          releaseCapture();
           return;
-        }
-        if ((await micState()) === "prompt") return; // never nag; the button stays available
-        if (running) {
-          running = false;
-          try {
-            ctx && ctx.close();
-          } catch (e) {}
         }
         start();
       }
       document.addEventListener("visibilitychange", reconnect);
+      addEventListener("pagehide", releaseCapture);
       addEventListener("pageshow", reconnect);
-      micState().then((st) => {
-        try {
-          navigator.permissions.query({ name: "microphone" }).then((p) =>
-            p.addEventListener("change", () => {
-              if (p.state === "granted" && !running) start();
-            }),
-          );
-        } catch (e) {}
-      });
 
       /* ---------- tone generator ---------- */
       (function () {

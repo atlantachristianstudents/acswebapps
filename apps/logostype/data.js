@@ -43,6 +43,7 @@ function getProfileName(){
   try{return (localStorage.getItem('logostype-racer')||'').trim().slice(0,24)}catch{return ''}
 }
 function updateProfileLabel(){
+  if($('#profileJoined'))$('#profileJoined').textContent=profileJoinedLabel();
   const name=getProfileName();
   $('.account').title=name?`${name} · settings and profile`:'Settings and profile';
   $('.account').setAttribute('aria-label',$('.account').title);
@@ -110,7 +111,7 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
@@ -134,7 +135,7 @@ function importBackup(data){
   if(window.friendRace?.active)throw new Error('Leave the race room before importing a backup.');
   checkpointJourneyAttempt();
   const backup=validateBackup(data);
-  const retainedLimit=backup.replayRetentionLimit??replayRetentionLimit;
+  const retainedLimit=0;
   const merged=applyReplayRetention(mergeTypingHistory(history,backup.history),retainedLimit);
   const mergedJourneyDates=mergeJourneyDates(journeyDates,backup.journeyDates);
   const attemptsById=new Map(journeyAttempts.map(item=>[item.id,item]));
@@ -162,7 +163,12 @@ function importBackup(data){
     const progress=incoming.completions.length>local.completions.length?incoming.progress:local.completions.length>incoming.completions.length?local.progress:same&&local.completions.length&&(local.progress===size.end-size.start||incoming.progress===size.end-size.start)?Math.min(local.progress,incoming.progress):Math.max(local.progress,incoming.progress);
     mergedBooks[name]={progress,completions:[...new Set([...local.completions,...incoming.completions])].sort()};
   }
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit'];
+  const mergedShuffled={...journeyShuffled};
+  for(const [name,state] of Object.entries(backup.journeyShuffled)) {
+    const local=mergedShuffled[name];
+    mergedShuffled[name]=local?.cycle===state.cycle?{cycle:state.cycle,verses:[...new Set([...local.verses,...state.verses])]}:!local||(state.cycle||'')>(local.cycle||'')?state:local;
+  }
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit','logostype-journey-shuffled'];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -176,11 +182,13 @@ function importBackup(data){
     if(backup.customThemeColors!==undefined)localStorage.setItem(keys[8],JSON.stringify(backup.customThemeColors));
     localStorage.setItem(keys[9],JSON.stringify(mergedJourneyDates));
     localStorage.setItem(keys[10],String(retainedLimit));
+    localStorage.setItem(keys[11],JSON.stringify(mergedShuffled));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
   const added=merged.length-history.length;
+  journeyShuffled=mergedShuffled;shuffledPosition=null;
   journeyAttempts=mergedAttempts;journeyDates=mergedJourneyDates;replayRetentionLimit=retainedLimit;
   bookJourneys=mergedBooks;history=merged;bookProgress=progress;journeyCompletedAt=completedAt;journeyCompletions=completions;
   if(backup.customThemeColors!==undefined)customThemeColors=backup.customThemeColors;
@@ -220,7 +228,7 @@ document.addEventListener('click',event=>{
         keys.forEach((key,index)=>{try{localStorage.setItem(key,previous[index])}catch{}});throw error;
       }
       clearInterval(timer);timer=null;activeJourneyAttempt=null;
-      menuStates.clear();currentMenu="journey";setReadingView(false);custom=defaultCustomText;selectedTestVerse=null;history=[];bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];journeyDates={};replayRetentionLimit=0;historyStorageMessage='';selectedJourneyBook='';
+      menuStates.clear();currentMenu="journey";setReadingView(false);custom=defaultCustomText;selectedTestVerse=null;history=[];journeyShuffled={};journeyShuffle=false;shuffledPosition=null;$("#shuffleJourney").setAttribute("aria-pressed","false");bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];journeyDates={};replayRetentionLimit=0;historyStorageMessage='';selectedJourneyBook='';
       customThemeColors={...defaultThemeColors};theme('serika dark');localStorage.removeItem('logostype-theme');
       updateProfileLabel();reset();openModal('settings');
       dataStatus('Saved data cleared.');
@@ -232,7 +240,7 @@ document.addEventListener('click',event=>{
   }
   if(button.id==='exportData'){
     checkpointJourneyAttempt();
-    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,journeyShuffled,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);

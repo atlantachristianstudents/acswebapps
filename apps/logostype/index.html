@@ -339,6 +339,10 @@
         color: var(--muted);
         padding: 16px 0;
       }
+      #previousVerse.completed,
+      #previousVerse.completed .verse-context-reference {
+        color: #fff;
+      }
       .verse-context-reference {
         font-size: 12px;
         color: var(--muted);
@@ -1231,17 +1235,6 @@
         gap: 10px;
         font-size: 12px;
       }
-      #replayRetentionRange {
-        display: block;
-        width: 100%;
-        margin: 14px 0;
-      }
-      #replayRetentionPreview {
-        display: block;
-        font-size: 13px;
-        color: var(--muted);
-        margin: 10px 0;
-      }
       .race-chat {
         margin-top: 24px;
         width: 100%;
@@ -1353,6 +1346,7 @@
         margin: 0 0 24px;
         font-size: 14px;
       }
+      #shuffleJourney[aria-pressed="true"] { color: var(--bg); background: var(--accent); }
       .journey-selectors {
         display: flex;
         align-items: center;
@@ -1995,6 +1989,7 @@
             ><button type="button" id="chooseJourney" class="journey-choice" aria-haspopup="dialog">
               entire Scriptures ▦
             </button>
+            <button type="button" id="shuffleJourney" class="journey-choice" aria-pressed="false" title="Shuffle unfinished verses in this journey">shuffle</button>
           </div>
           <p>Each book and the entire Scriptures keep separate progress.</p>
         </div>
@@ -2139,14 +2134,6 @@
       <div class="confirm-actions">
         <button type="button" id="cancelRemoveRacer">cancel</button
         ><button type="button" id="confirmRemoveRacer" class="race-leave">remove</button>
-      </div>
-    </dialog>
-    <dialog id="historyCleanupDialog" aria-labelledby="historyCleanupTitle">
-      <h2 id="historyCleanupTitle"></h2>
-      <p id="historyCleanupMessage"></p>
-      <div class="confirm-actions">
-        <button type="button" id="cancelHistoryCleanup">cancel</button
-        ><button type="button" id="confirmHistoryCleanup" class="race-leave">confirm</button>
       </div>
     </dialog>
     <dialog id="joinCodeDialog" aria-labelledby="joinCodeTitle">

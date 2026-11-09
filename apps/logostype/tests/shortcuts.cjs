@@ -79,3 +79,12 @@ console.log('History focus checks passed: latest visible date, filtered results,
 
 modal.open=true;modal.dataset.view='history';document.activeElement={id:'close',closest:()=>null};
 count=actions.length;key('j');assert.equal(actions.length,count,'J does not open Journey records from history');
+
+for (const modifier of ['ctrlKey', 'metaKey']) {
+ const before = actions.length;
+ let prevented = false;
+ shortcut({key:'6',[modifier]:true,preventDefault(){prevented=true;},stopPropagation(){}});
+ assert.equal(actions.length,before,'Cmd/Ctrl+6 does not open typing history');
+ assert.equal(prevented,false,'Cmd/Ctrl+6 remains available to the browser');
+}
+console.log('Removed shortcut checks passed: Cmd/Ctrl+6 is not intercepted.');

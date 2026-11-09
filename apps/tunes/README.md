@@ -15,3 +15,5 @@ Or just open index.html directly; it is fully self-contained, though some browse
 
 ## Microphone permission
 Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tunes also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
+
+When you switch apps, lock the screen, or leave the page, Tunes releases microphone capture and reconnects when you return. If your browser requires a tap to resume audio, tap **Resume listening**. If microphone access fails, use **Enable microphone** to retry. This also applies when launched from the home screen.
