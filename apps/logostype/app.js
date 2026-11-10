@@ -1100,7 +1100,9 @@ function tickTest() {
       }
       sampleWpm();
       $("#counter").textContent =
-        mode === "time" ? Math.max(0, Math.ceil(limit - elapsed)) : `${typed.length}/${target.length}`;
+        mode === "time" ? Math.max(0, Math.ceil(limit - elapsed)) :
+        mode === "words" ? `${typed.split(" ").length - 1 + Number(typed.length === target.length)}/${target.split(" ").length}` :
+        `${typed.length}/${target.length}`;
       if (mode === "time" && elapsed >= limit) finish();
 }
 input.addEventListener("input", () => {
@@ -1146,7 +1148,7 @@ input.addEventListener("input", () => {
   if (
     mode !== "time" &&
     typed.length >= target.length &&
-    typed === target && !parsed.extraCount
+    v === target && !parsed.extraCount
   ) {
     if (mode === "book") {
       completeBookVerse();

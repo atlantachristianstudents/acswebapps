@@ -16,6 +16,10 @@ Names, typing history, journey progress, and past completion dates are saved in 
 
 When a space is expected, wrong keystrokes show the actual typed characters in red after the word. Repeated wrong keystrokes accumulate at that same space; they do not advance into the next word. The cursor stays after these extra characters, before the word gap, until you press **Space**. **Backspace** removes the extra characters. They still count as mistakes even if you continue by typing a space. Words, verse, custom tests, races, and Scripture Journey require correcting these extras and all letter mistakes before completion. Timed tests still end when their timer expires.
 
+Extra characters after the passage also prevent words, verse, and custom tests from completing; backspace removes them before completion.
+
+Words mode shows the number of words typed out of the passage's total word count. A word counts after its following space is typed, or when the final word reaches the end of the passage.
+
 At letter positions, mistakes keep the expected letter visible in red, including when a space is typed instead of a letter.
 
 The typing passage disables font ligatures so adjacent letters remain fully visible when colored individually.

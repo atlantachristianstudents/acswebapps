@@ -35,6 +35,10 @@ for(const mode of ['words','quote','custom']){
   context.input.value='cxtx dog';
   const before=finishes;onInput();
   assert.equal(finishes,before,mode+' waits for corrections');
+  context.input.value='cat dogx';onInput();
+  assert.equal(finishes,before,mode+' waits for trailing extras to be removed');
+  context.input.value='cat dog ';onInput();
+  assert.equal(finishes,before,mode+' waits for trailing spaces to be removed');
   context.input.value='cat dog';onInput();
   assert.equal(finishes,before+1,mode+' finishes after corrections');
 }
