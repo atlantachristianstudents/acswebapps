@@ -1,5 +1,7 @@
 # Enjoyer hymn-number comparison
 
+**Historical snapshot:** Burmese numbering has since been replaced with `burmese.pdf` in every app view, correcting English 353 to Burmese 208. Enjoyer Burmese entries remain in the source snapshot but are excluded from display. Other-language behavior described below is unchanged.
+
 Compared on 2026-11-10 against https://songs.enjoyer.life/. The CSVs below record the original comparison. The app now includes Enjoyer links alongside the original mappings in All Languages mode and uses Enjoyer Burmese numbers in E/K mode.
 
 Read all 1,491 English Hymns records and tune variants covering English numbers 1–1348. The comparison uses canonical `H<number>` records, combining links from duplicate canonical records. There are 1,347 distinct canonical English numbers; H172 is absent from the catalog. Alternate tune records are not treated as extra translations. Only explicit `related_songs` links are compared; titles and shared tunes are not used to infer translations.
