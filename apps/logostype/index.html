@@ -70,20 +70,6 @@
         align-items: center;
         gap: 30px;
       }
-      .topbar {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        background: var(--panel);
-        border: 1px solid var(--muted);
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem;
-      }
-      .topbar a {
-        color: var(--muted);
-        text-decoration: none;
-      }
       .brand {
         display: flex;
         align-items: center;
@@ -1046,7 +1032,7 @@
       }
       #raceLobby {
         width: 100%;
-        max-width: 850px;
+        max-width: 1184px;
         margin: 0 auto;
       }
       .race-lobby-controls {
@@ -1110,6 +1096,8 @@
         pointer-events: none;
       }
       .relay-teammate { color: var(--text-color, #a3be8c); background: color-mix(in srgb, #a3be8c 25%, transparent); }
+      .relay-teammate.incorrect { color: var(--error); background: color-mix(in srgb, var(--error) 15%, transparent); }
+      body.race-ready-preview #typingCaret { visibility: hidden; }
       body.relay-waiting #typingCaret { visibility: hidden; }
       body.race-spectator #typingCaret,
       body.race-spectator .hint {
@@ -1195,6 +1183,7 @@
       }
       .race-actions {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
@@ -1203,7 +1192,11 @@
       .race-actions .race-primary {
         margin-top: 0;
       }
+      #readyRace { min-inline-size: 96px; color: var(--text); border: 1px solid var(--text); border-radius: 5px; padding: 10px 16px; }
+      #readyRace[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+      #startRace { min-inline-size: 136px; }
       #relayMode {
+        min-inline-size: 180px;
         border: 1px solid var(--muted);
         border-radius: 5px;
         padding: 10px 16px;
@@ -1246,6 +1239,25 @@
         border-radius: 5px;
         padding: 8px;
       }
+      .relay-lane-row .race-label { position: relative; }
+      .relay-members {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 6;
+        min-width: 180px;
+        max-width: min(360px, 70vw);
+        padding: 10px;
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        background: var(--panel);
+        color: var(--text);
+        box-shadow: 0 4px 14px #0003;
+      }
+      .relay-members > span { display: block; }
+      .relay-lane-row:hover .relay-members,
+      .relay-lane-row:focus-within .relay-members { display: block; }
       .relay-lane-row[aria-disabled="false"] { cursor: pointer; }
       .relay-lane-row[aria-pressed="true"] { border-color: var(--accent); }
       .relay-lane-row[aria-disabled="false"]:hover,
@@ -1263,9 +1275,12 @@
         align-items: center;
         margin: 15px 0;
       }
-      .racer span:last-child {
+      .racer > span:last-child {
         text-align: right;
         font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.4;
+        min-height: 2.8em;
       }
       .race-track {
         position: relative;
@@ -1295,6 +1310,7 @@
         background: var(--accent);
         transition: width 0.2s;
       }
+      .race-ready-badge { color: #e5c34b; white-space: nowrap; }
       .race-remove {
         flex-shrink: 0;
         font-size: 12px;
@@ -1313,7 +1329,21 @@
         margin-top: 24px;
         width: 100%;
       }
+      .race-main-column { min-width: 0; }
+      @media (min-width: 1000px) {
+        .race-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start; }
+        .race-layout > .race-chat {
+          margin-top: 0;
+          min-width: 0;
+          position: sticky;
+          top: 20px;
+          padding-left: 20px;
+          border-left: 1px solid var(--muted);
+        }
+        .race-layout .race-chat-log { height: clamp(220px, 45vh, 420px); min-height: 220px; max-height: 45vh; }
+      }
       .race-chat-log {
+        height: 220px;
         max-height: 220px;
         overflow-y: auto;
         border: 1px solid var(--muted);
@@ -1342,6 +1372,7 @@
         font-size: 11px;
         margin-left: 8px;
       }
+      #roomChatStatus, #lobbyChatStatus, #raceReadyStatus { min-height: 3.2em; }
       .race-chat-form {
         display: flex;
         align-items: center;
@@ -1389,6 +1420,7 @@
       body.in-room.replay-race #restart {
         display: inline-block;
       }
+      body.race-lobby-open main,
       body.in-room main {
         justify-content: flex-start;
         padding-top: 40px;
@@ -1784,24 +1816,6 @@
     <link rel="stylesheet" href="themes.css" />
   </head>
   <body>
-    <div class="topbar">
-      <a
-        href="../../"
-        style="
-          display: inline-block;
-          padding: 0.4rem 0.8rem;
-          border-radius: 6px;
-          background: var(--accent);
-          color: #1a1a1a;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 600;
-          transition: background 0.15s;
-        "
-        >← Adless</a
-      >
-      <span style="color: var(--muted)">Logostype</span>
-    </div>
     <div class="shell">
       <header>
         <button class="brand" aria-label="Logostype home">
@@ -1914,7 +1928,8 @@
         </div>
       </header>
       <main id="typingContent">
-        <section id="raceLobby" hidden aria-labelledby="raceLobbyTitle">
+        <section id="raceLobby" class="race-layout" hidden aria-labelledby="raceLobbyTitle">
+          <div class="race-main-column">
           <h2 id="raceLobbyTitle">race friends</h2>
           <div class="race-lobby-controls">
             <button type="button" id="createRoom" class="race-primary">create public room →</button
@@ -1929,6 +1944,7 @@
           <h3>available rooms</h3>
           <p id="roomDirectoryStatus" role="status" aria-live="polite">Looking for rooms…</p>
           <div id="availableRooms"></div>
+          </div>
           <section class="race-chat" aria-labelledby="lobbyChatTitle">
             <h3 id="lobbyChatTitle">lobby chat</h3>
             <p>Messages here are visible to everyone browsing race rooms.</p>
@@ -2000,7 +2016,8 @@
           <i class="divider"></i>
           <div class="group" id="limits"></div>
         </div>
-        <section id="racePanel" hidden aria-label="Friends race">
+        <section id="racePanel" class="race-layout" hidden aria-label="Friends race">
+          <div class="race-main-column">
           <div class="race-top">
             <strong id="raceTitle">race friends</strong>
             <div id="raceInvite">
@@ -2044,13 +2061,17 @@
             <p>add a bot · choose speed (WPM)</p>
             <div id="raceBotChoices" class="race-passage-options" role="group" aria-label="Add a racing bot by speed"></div>
           </div>
+          <p id="raceChangeNotice" role="status" aria-live="polite"></p>
+          <p id="raceReadyStatus" role="status" aria-live="polite"></p>
           <div class="race-actions">
+            <button type="button" id="readyRace" aria-pressed="false">ready</button>
             <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button
             ><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button
             ><button id="startRace" class="race-primary">start race →</button
             ><button type="button" id="relayMode" aria-pressed="false" hidden>relay racing: off</button
             ><button id="giveUpRace" class="race-leave" hidden>give up</button
             ><button id="leaveRace" class="race-leave">leave room</button>
+          </div>
           </div>
           <section class="race-chat" aria-labelledby="roomChatTitle">
             <h3 id="roomChatTitle">room chat</h3>
@@ -2286,6 +2307,7 @@
     <script src="data.js"></script>
     <script src="history-store.js"></script>
     <script src="replay.js"></script>
+    <script src="friends-records.js"></script>
     <script src="rooms.js"></script>
     <script src="race.js"></script>
     <script src="reading.js"></script>

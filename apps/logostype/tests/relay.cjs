@@ -52,7 +52,7 @@ vm.runInContext(app.slice(app.indexOf('function averageCorrectCharacters('), app
 const replay = fs.readFileSync(path.join(root, 'replay.js'), 'utf8');
 vm.runInContext(replay.slice(replay.indexOf('function buildReplayReadings('), replay.indexOf('function openAttemptReplay(')), context);
 let raceSource=fs.readFileSync(path.join(root,'race.js'),'utf8');
-raceSource=raceSource.replace('  const invitedRoom=', `  window.relayTest={buildRelayLegs,relayTurn,selectLane,begin,paintRelay,relayReplay,relayLanePositions,addRelayLane,normalizeRelayLanes,relayRaceParticipants,paint,addBot,updateBots,normal(){relay=false;},getRecordings:()=>attemptReplays,setPassage(text){preparedText=text;passageMode='verse';},
+raceSource=raceSource.replace('  const invitedRoom=', `  window.relayTest={previewRelayLegs,promoteQueued,buildRelayLegs,relayTurn,selectLane,begin,paintRelay,relayReplay,relayLanePositions,addRelayLane,normalizeRelayLanes,relayRaceParticipants,paint,preparePassage,snapshot,chooseMode(value){passageMode=value;},setReady,allRacersReady,nextRoundPlayers,addBot,updateBots,normal(){relay=false;},getRecordings:()=>attemptReplays,setPassage(text){preparedText=text;passageMode='verse';},
   recordings(entries){attemptReplays=new Map(entries);phase='finished';},
   setup(roster,id,legs){players=roster;self=id;relay=true;relayLegs=legs;if(legs[id])preparedText=legs[id].members.map(member=>legs[member].text).join(' ');host=true;phase='lobby';api.active=true;normalizeRelayLanes();},
   phase:()=>phase,players:()=>players};
@@ -92,7 +92,7 @@ assert(!context.input.disabled,'baton enables next teammate');
 assert.equal(context.start,5000,'typing statistics exclude waiting time');
 assert.equal(context.target,'four five six seven');
 context.typed='fo';
-roster.a.position=legs.a.text.length;
+roster.a.position=legs.a.text.length;roster.a.relayInput=legs.a.text;
 roster.c.position=3;
 const fullMarkup=context.window.friendRace.relayPassageMarkup({});
 assert(fullMarkup.includes('data-typing-position="32"'),'full passage extends beyond the local leg');
@@ -168,13 +168,13 @@ relay.recordings([['a',recording('cat',600,[])]]);
 assert.equal(relay.relayRaceParticipants()[0].replay,null,'missing teammate recording is unavailable instead of fabricated');
 console.log('Lane replay checks passed: merged full text, edits, baton delays, team ranking, overall WPM, missing recordings, and backup validation.');
 
-const oneTeam={a:{name:'A',lane:1},b:{name:'B',lane:1}};
-relay.setup(oneTeam,'a',{});relay.setPassage('cat dog');relay.paint();
+const oneTeam={a:{name:'A',lane:1,ready:true},b:{name:'B',lane:1,ready:true}};
+relay.setup(oneTeam,'a',{});relay.setPassage('cat dog');relay.paint();now+=1000;relay.paint();
 assert(!elements.get('#startRace').disabled,'one occupied lane can start');
 elements.get('#startRace').onclick();
 assert.equal(relay.phase(),'countdown','single team starts a relay countdown');
 assert.equal(context.target,'cat','single team passage still splits into legs');
-relay.setup({a:{name:'Solo',lane:1}},'a',{});relay.setPassage('cat dog');relay.paint();
+relay.setup({a:{name:'Solo',lane:1,ready:true}},'a',{});relay.setPassage('cat dog');relay.paint();now+=1000;relay.paint();
 assert(!elements.get('#startRace').disabled,'solo relay player can start');
 elements.get('#startRace').onclick();
 assert.equal(relay.phase(),'countdown');assert.equal(context.target,'cat dog');
@@ -201,3 +201,23 @@ relay.setPassage('one two three four five six');relay.selectLane('b',previewPlay
 preview=context.window.friendRace.relayPassageMarkup({});
 assert(preview.includes('data-typing-position="25"'),'passage changes recompute full preview');
 console.log('Relay preview checks passed: pre-race split labels, assigned range, no stale typing, and live team/passage changes.');
+
+// Relay typing snapshots show teammate errors and clear after correction.
+const typoTeam={a:{name:'Teammate',lane:1},b:{name:'You',lane:1},c:{name:'Other lane',lane:2}};
+const typoText='cat dog owl fox',typoLegs=relay.buildRelayLegs(typoText,typoTeam);
+relay.setup(typoTeam,'b',typoLegs);
+relay.begin({round:10,text:typoText,duration:30,custom:true,formatting:false});
+typoTeam.a.relayInput='cxt';typoTeam.a.position=3;
+let typoMarkup=context.window.friendRace.relayPassageMarkup({});
+assert(typoMarkup.includes('relay-teammate incorrect" data-typing-position="1"'),'teammate wrong letters turn red');
+typoTeam.a.relayInput='cat<img';
+typoMarkup=context.window.friendRace.relayPassageMarkup({});
+assert(typoMarkup.includes('&lt;img'),'word-gap extras are visible and HTML escaped');
+assert(!typoMarkup.includes('<img'));
+typoTeam.a.relayInput='cat dog';
+typoMarkup=context.window.friendRace.relayPassageMarkup({});
+assert(!typoMarkup.includes('relay-teammate incorrect'),'correction clears red letters');
+assert(!typoMarkup.includes('&lt;img'),'correction removes gap extras');
+typoTeam.c.relayInput='wrong';typoTeam.c.position=5;
+assert.equal(context.window.friendRace.relayPassageMarkup({}),typoMarkup,'other lane errors remain separate');
+console.log('Teammate typo checks passed: wrong letters, extra gap characters, escaping, corrections, and lane isolation.');

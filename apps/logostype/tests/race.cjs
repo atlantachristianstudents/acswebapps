@@ -16,10 +16,10 @@ const context = vm.createContext({
     return elements.get(selector);
   },
   document: { createElement: element, querySelectorAll: () => [], body:{classList:{toggle(){}}} },
-  relay:false, relayLaneCount:4, relayLegs:{}, relayStarted:false, unlisted:false, isRacer:player=>player.role!=='watcher'&&player.role!=='queued',
+  readyGate:{since:null,key:'',timer:null},relay:false, relayLaneCount:4, relayLegs:{}, relayStarted:false, unlisted:false, isRacer:player=>player.role!=='watcher'&&player.role!=='queued',
   self: 'winner', round: 1, celebratedRound: null, phase: 'finished',
   textMarkers:new Map(),markerLayout:'',api: {active:false}, target: "", roundReplay: null, ghost: null, host: true, done: true, passageMode: 'verse', raceFormatting: false,
-  lastRacer: () => false, drawChart() {}, status() {},
+  shareRoomRecords() {}, paintReadyPreview() {}, lastRacer: () => false, drawChart() {}, status() {},
   celebrateJourney: () => { celebrations++; },
   players: {
     winner: { name: 'Winner', finished: true, progress: 100, wpm: 80, finishMs: 8000 },

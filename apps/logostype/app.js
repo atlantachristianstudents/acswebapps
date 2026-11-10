@@ -710,11 +710,13 @@ function parseTyping(value, capped = false, passage = target) {
   }
   return { text, raw, expected, spaceTypos, extraCount };
 }
-function render(smooth = true) {
+function render(smooth = true, followCaret = true) {
   renderBookContext();
   const { spaceTypos } = parseTyping(input.value);
-  $("#words").innerHTML = window.friendRace?.relayPassageMarkup?.(spaceTypos) ?? typingPassageMarkup(target, typed, spaceTypos);
-  positionCaret(smooth);
+  const words = $("#words");
+  const markup = window.friendRace?.relayPassageMarkup?.(spaceTypos) ?? typingPassageMarkup(target, typed, spaceTypos);
+  if (words._passageMarkup !== markup) { words.innerHTML = markup; words._passageMarkup = markup; }
+  positionCaret(smooth, followCaret);
 }
 function typingPassageMarkup(passage, entered, spaceTypos) {
   let pos = 0;
@@ -753,14 +755,14 @@ function typingPassageMarkup(passage, entered, spaceTypos) {
     })
     .join("");
 }
-function positionCaret(smooth = true) {
+function positionCaret(smooth = true, followCaret = true) {
   const letter = $(".cursor"),
     caret = $("#typingCaret");
   caret.hidden = !letter;
   if (!letter) return;
   const box = $("#words");
   const lineHeight = parseFloat(getComputedStyle(box).lineHeight);
-  box.scrollTop = document.body.classList.contains("book-mode") || document.body.classList.contains("race-spectator") || document.body.classList.contains("relay-race")
+  if (followCaret) box.scrollTop = document.body.classList.contains("book-mode") || document.body.classList.contains("race-spectator") || document.body.classList.contains("relay-race")
     ? 0
     : Math.max(0, letter.offsetTop - lineHeight);
   const r = letter.getBoundingClientRect(),
@@ -1303,7 +1305,7 @@ function openModal(type) {
     [["primary", "primary — background"], ["secondary", "secondary — accents"], ["tertiary", "tertiary — panel tint and supporting accents"]].map(([key, label]) =>
       '<label class="theme-color-field" for="theme-' + key + '"><span>' + label + '</span><input type="color" id="theme-' + key + '" name="' + key + '" value="' + customThemeColors[key] + '"></label>'
     ).join("") + '<button class="option" type="submit">save colors →</button></form>';
-  if (type === "records") content.innerHTML = '<h2>records</h2><p>Press J for Journey completion records.</p>' + renderPersonalRecords() + '<button class="option" data-open="journeyCompletions">↗ journey completion records</button>';
+  if (type === "records") content.innerHTML = '<h2>records</h2><p>Press J for Journey completion records.</p>' + renderPersonalRecords() + (window.friendRecords?.render() || '') + '<button class="option" data-open="journeyCompletions">↗ journey completion records</button>';
   if (type === "settings")
     content.innerHTML =
       '<h2>settings</h2><h3>your profile</h3><p id="profileJoined">' + escapeHtml(profileJoinedLabel()) + '</p><form id="profileForm"><label for="profileName">your name</label><input class="race-field" id="profileName" maxlength="24" placeholder="typist" autocomplete="nickname"><button class="option" type="submit">save name</button><p id="profileStatus" role="status" aria-live="polite"></p></form><button class="option" data-open="themes">◐ change theme</button><h3 id="fontSizeLabel">font size</h3><div class="font-size-controls" role="group" aria-labelledby="fontSizeLabel"><button class="option" id="fontSmaller" type="button">smaller</button><button class="option" id="fontDefault" type="button">default</button><button class="option" id="fontBigger" type="button">bigger</button></div><h3>your data</h3><div class="data-controls" role="group" aria-label="Progress and typing history backups"><button class="option" id="exportData">export data</button><button class="option" id="importData">import data</button></div><button class="option" id="clearData">clear saved data</button><p>Export a JSON backup of your name, theme and custom colors, Scripture Journey progress, and all saved typing history. Import restores theme settings, merges history, and keeps your furthest progress.</p><p id="dataStatus" role="status" aria-live="polite"></p><p>Tests begin on your first keystroke. Backspace corrects mistakes. Your name, theme, progress, and typing history are saved on this device.</p>';

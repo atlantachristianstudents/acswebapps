@@ -6,7 +6,8 @@
   let chatMessages=[], chatSequence=0, localChatAt=-Infinity;
   const chatTimes=new Map();
   let listing = null, rooms = [], state = 'connecting', stopped = false;
-  const entries = new Map(), clients = new Map();
+  const entries = new Map(), clients = new Map(), profiles = new Map();
+  let lastProfile='';
   function cleanListing(value) {
     if (!value || !/^[a-f0-9]{8}$/.test(value.code) || typeof value.name !== 'string' ||
         !Number.isInteger(value.count) || value.count < 1 || value.count > 8 ||
@@ -43,7 +44,16 @@
     state = 'ready'; emit();
     for (const client of clients.values()) send(client, { type: 'rooms', rooms });
   }
+  function shareRecords(){
+    const summary=window.friendRecords?.summary();if(!summary||!peer)return;
+    const value=JSON.stringify(summary);if(value===lastProfile)return;lastProfile=value;
+    if(leader?.open){
+      profiles.set(peer.id,summary);
+      for(const client of clients.values())send(client,{type:'personal-records',id:peer.id,summary});
+    }else send(connection,{type:'personal-records',summary});
+  }
   function announce() {
+    shareRecords();
     if (leader?.open) {
       if (listing) entries.set(peer.id, { listing, seen: Date.now() });
       else entries.delete(peer.id);
@@ -64,13 +74,22 @@
       if (candidate !== attempt) return;
       candidate = null; leader = attempt;
       connection?.close(); connection = null;
-      entries.clear(); clients.clear();chatTimes.clear(); announce();
+      entries.clear(); clients.clear();profiles.clear();lastProfile='';chatTimes.clear(); announce();
     });
     attempt.on('connection', client => {
       if (client.metadata?.directory !== directoryId || clients.size >= 256) { client.close(); return; }
-      client.on('open', () => { clients.set(client.peer, client); flush();send(client,{type:'chatHistory',messages:chatMessages}); });
+      client.on('open', () => { clients.set(client.peer, client);for(const [id,summary] of profiles)send(client,{type:'personal-records',id,summary});flush();send(client,{type:'chatHistory',messages:chatMessages}); });
       client.on('data', data => {
         if (!clients.has(client.peer)) return;
+        if(data?.type==='personal-records'){
+          const summary=window.friendRecords?.cleanSummary(data.summary);if(!summary)return;
+          window.friendRecords.accept(summary);
+          if(JSON.stringify(profiles.get(client.peer))!==JSON.stringify(summary)){
+            profiles.set(client.peer,summary);
+            for(const other of clients.values())if(other!==client)send(other,{type:'personal-records',id:client.peer,summary});
+          }
+          return;
+        }
         if(data?.type==='chat'){acceptChat(client.peer,data.name,data.text);return;}
         if(data?.type!=='listing')return;
         if (data.listing === null) entries.delete(client.peer);
@@ -84,7 +103,7 @@
       function remove() {
         // A replacement connection with the same peer ID owns its own listing.
         if (clients.get(client.peer) !== client) return;
-        clients.delete(client.peer); entries.delete(client.peer);chatTimes.delete(client.peer); flush();
+        clients.delete(client.peer);profiles.delete(client.peer); entries.delete(client.peer);chatTimes.delete(client.peer); flush();
       }
       client.on('close', remove); client.on('error', remove);
     });
@@ -110,10 +129,11 @@
     }, 5000);
     link.on('open', () => {
       clearTimeout(timeout);
-      if (connection === link) announce();
+      if (connection === link){lastProfile='';announce();}
     });
     link.on('data', data => {
       if(connection!==link)return;
+      if(data?.type==='personal-records'){if(data.id!==peer.id)window.friendRecords?.accept(data.summary);return;}
       if(data?.type==='chat'){receiveChat(data.message);return;}
       if(data?.type==='chatHistory'&&Array.isArray(data.messages)&&data.messages.length<=50){chatMessages=data.messages.map(cleanChat).filter(Boolean);if(chatListener)chatListener(chatMessages,state);return;}
       if (data?.type !== 'rooms' || !Array.isArray(data.rooms) || data.rooms.length > 256) return;

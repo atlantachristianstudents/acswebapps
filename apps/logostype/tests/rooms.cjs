@@ -38,7 +38,7 @@ class Link extends Events {
     if(this.other&&!this.other.closed)this.other.close();
   }
 }
-function browser(name) {
+function browser(name, history=[]) {
   const lifecycle = {};
   class Peer extends Events {
     constructor(id) {
@@ -72,16 +72,20 @@ function browser(name) {
   }
   const updates=[],chatUpdates=[];
   const context=vm.createContext({
-    Peer,Date:{now:()=>now},Math:{random:()=>0},
+    Peer,Date:{now:()=>now},Math:Object.assign(Object.create(Math),{random:()=>0}),history,getProfileName:()=>name,escapeHtml:value=>String(value),
+    document:{getElementById:()=>null},localStorage:{getItem:()=>null,setItem(){}},
     setTimeout:(fn,delay)=>schedule(name,fn,delay),clearTimeout:id=>tasks.delete(id),
     setInterval:(fn,delay)=>schedule(name,fn,delay,delay),clearInterval:id=>tasks.delete(id),
     window:{addEventListener:(type,fn)=>{lifecycle[type]=fn;}},
   });
+  const app=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
+  vm.runInContext(app.slice(app.indexOf('function personalRecordCategories('),app.indexOf('function renderPersonalRecords(')),context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'..','friends-records.js'),'utf8'),context);
   vm.runInContext(source,context);
   const api=context.window.raceRooms;
   api.start((rooms,state)=>updates.push({rooms:JSON.parse(JSON.stringify(rooms)),state}));
   api.startChat((messages)=>chatUpdates.push(JSON.parse(JSON.stringify(messages))));
-  return {api,lifecycle,updates,last:()=>updates.at(-1),chat:()=>chatUpdates.at(-1)||[],name};
+  return {api,records:context.window.friendRecords,history,lifecycle,updates,last:()=>updates.at(-1),chat:()=>chatUpdates.at(-1)||[],name};
 }
 const first=browser('first'), second=browser('second');
 advance(2000);
@@ -129,3 +133,14 @@ assert(!second.api.sendChat('Guest','x'.repeat(501)));
 const late=browser('late');advance(now+2000);
 assert.equal(late.chat().length,50,'late arrivals receive bounded recent chat');
 console.log('Lobby chat checks passed: shared delivery, literal text, rate limits, recent history, coordinator failover, message cap, late arrival.');
+
+const record=(wpm)=>({mode:'time',limit:60,wpm,accuracy:100,date:'2026-11-10',capitalization:false,punctuation:false});
+const fast=browser('Fast friend',[record(130)]),steady=browser('Steady friend',[record(90)]);
+advance(now+3000);
+assert.equal(steady.records.export().find(entry=>entry.category===4&&entry.setting===0).wpm,130,'online lobby peers exchange actual personal bests');
+assert.equal(fast.records.export().find(entry=>entry.category===4&&entry.setting===0).wpm,90,'local best is not imported as a friend record');
+const observer=browser('Observer');advance(now+2000);
+assert.equal(observer.records.export().find(entry=>entry.category===4&&entry.setting===0).name,'Fast friend','late arrivals see connected players records');
+steady.history.unshift(record(150));advance(now+6000);
+assert.equal(observer.records.export().find(entry=>entry.category===4&&entry.setting===0).wpm,150,'heartbeat shares newly improved personal records');
+console.log('Online friends record checks passed: mutual discovery, own-score exclusion, late arrival, and live best updates.');

@@ -10,7 +10,7 @@ class Clock extends Date {
 const storage = new Map();
 let journey = {name:'Entire Scriptures',progress:0,completions:[]};
 const context = vm.createContext({
-  Date:Clock,journeyBooks:[{name:'John'},{name:'Genesis'}],
+  window:{},Date:Clock,journeyBooks:[{name:'John'},{name:'Genesis'}],
   scriptureReferences:['John 1:1','Genesis 1:1'],
   currentJourney:()=>journey,escapeHtml:String,
   localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},

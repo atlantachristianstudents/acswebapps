@@ -111,7 +111,7 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {friendRecords:window.friendRecords?.validate(data.friendRecords??[])||[],journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
@@ -168,7 +168,8 @@ function importBackup(data){
     const local=mergedShuffled[name];
     mergedShuffled[name]=local?.cycle===state.cycle?{cycle:state.cycle,verses:[...new Set([...local.verses,...state.verses])]}:!local||(state.cycle||'')>(local.cycle||'')?state:local;
   }
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit','logostype-journey-shuffled'];
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit','logostype-journey-shuffled','logostype-friends-records'];
+  const mergedFriends=window.friendRecords?.merge(window.friendRecords.export(),backup.friendRecords)||[];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -183,10 +184,12 @@ function importBackup(data){
     localStorage.setItem(keys[9],JSON.stringify(mergedJourneyDates));
     localStorage.setItem(keys[10],String(retainedLimit));
     localStorage.setItem(keys[11],JSON.stringify(mergedShuffled));
+    localStorage.setItem(keys[12],JSON.stringify(mergedFriends));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
+  window.friendRecords?.replace(mergedFriends);
   const added=merged.length-history.length;
   journeyShuffled=mergedShuffled;shuffledPosition=null;
   journeyAttempts=mergedAttempts;journeyDates=mergedJourneyDates;replayRetentionLimit=retainedLimit;
@@ -227,6 +230,7 @@ document.addEventListener('click',event=>{
       try{keys.forEach(key=>localStorage.removeItem(key))}catch(error){
         keys.forEach((key,index)=>{try{localStorage.setItem(key,previous[index])}catch{}});throw error;
       }
+      window.friendRecords?.replace([]);
       clearInterval(timer);timer=null;activeJourneyAttempt=null;
       menuStates.clear();currentMenu="journey";setReadingView(false);custom=defaultCustomText;selectedTestVerse=null;history=[];journeyShuffled={};journeyShuffle=false;shuffledPosition=null;$("#shuffleJourney").setAttribute("aria-pressed","false");bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];journeyDates={};replayRetentionLimit=0;historyStorageMessage='';selectedJourneyBook='';
       customThemeColors={...defaultThemeColors};theme('serika dark');localStorage.removeItem('logostype-theme');
@@ -240,7 +244,7 @@ document.addEventListener('click',event=>{
   }
   if(button.id==='exportData'){
     checkpointJourneyAttempt();
-    const backup={format:'logostype-backup',version:1,exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,journeyShuffled,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,friendRecords:window.friendRecords?.export()||[],exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,journeyShuffled,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);

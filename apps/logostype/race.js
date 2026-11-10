@@ -3,24 +3,33 @@
   const api = window.friendRace = {active:false, running:false, preparing:false, spectating:false, report, raceReplay, relayPassageMarkup, paintTextPositions, restartReplay, getReplay:()=>roundReplay};
   let peer, host=false, self='', room='', players={}, links=new Map(), phase='lobby', round=0;
   let countdownTimeout, clock, connectionTimeout, lastReport=0, saved, duration=0, gaveUp=false, celebratedRound=null;
-  let unlisted=false, pendingRemove=null;
+  let unlisted=false, pendingRemove=null, remoteHostReady=false;
   let relay=false, relayLegs={}, relayStarted=false, relayLaneCount=0;
   let roomMessages=[], roomChatSequence=0, localRoomChatAt=-Infinity;
-  const roomChatTimes=new Map();
+  const roomChatTimes=new Map(), roomProfiles=new Map();
+  let lastSharedRecords='';
   const removedPeers=new Set();
   let ghost=null, attemptReplays=new Map(), roundReplay=null, submittedReplay=false, localResultId=null;
   let roundStartsAt=0, watchStartsAt=0, queueSequence=0, directoryRooms=[], raceNameSession='', pendingNameAction=null;
   const botSpeeds=[['turtle','🐢',30],['rabbit','🐇',60],['deer','🦌',90],['cheetah','🐆',120],['eagle','🦅',150],['rocket','🚀',180]];
   let botSequence=0, botRuns=new Map();
+  const readyGate={since:null,key:'',timer:null};
   const textMarkers=new Map();
   let markerLayout='';
   const isRacer=player=>player.role!=='watcher'&&player.role!=='queued';
-  let passageMode='verse', preparedText='', preparedVerseIndex=-1, raceFormatting=false, finishMs=null;
+  let passageMode='verse', preparedText='', roundText='', preparedVerseIndex=-1, raceFormatting=false, finishMs=null;
   const cleanName = value => String(value || 'typist').trim().slice(0,24) || 'typist';
   const status = message => { $('#raceStatus').textContent=message; };
   function send(connection, data) { if(connection?.open) connection.send(data); }
   function broadcast(data) { for(const connection of links.values()) send(connection,data); }
-  function snapshot() { return {type:'roster', players, phase, round, unlisted, relay, relayLegs, relayLaneCount, clock:{untilStartMs:Math.max(0,roundStartsAt-Date.now()),elapsedMs:Math.max(0,Date.now()-roundStartsAt),duration}, preview:{text:preparedText, custom:passageMode==='custom', duration:defaultRaceDuration(preparedText), formatting:raceFormatting}}; }
+  function shareRoomRecords(){
+    if(!api.active||ghost||!players[self])return;
+    const summary=window.friendRecords?.summary(players[self].name);if(!summary)return;
+    const value=JSON.stringify(summary);if(value===lastSharedRecords)return;lastSharedRecords=value;
+    if(host){roomProfiles.set(self,summary);broadcast({type:'personal-records',id:self,summary});}
+    else send(links.get('host'),{type:'personal-records',summary});
+  }
+  function snapshot() { return {type:'roster', players, phase, round, unlisted, hostReady:hostIsReady(), relay, relayLegs, relayLaneCount, clock:{untilStartMs:Math.max(0,roundStartsAt-Date.now()),elapsedMs:Math.max(0,Date.now()-roundStartsAt),duration}, preview:{text:preparedText, custom:passageMode==='custom', duration:defaultRaceDuration(preparedText), formatting:raceFormatting}}; }
   function publish() {
     if(host&&relay&&phase!=='countdown'&&phase!=='racing')normalizeRelayLanes();
     if(host&&relay&&phase==='lobby')relayLegs=buildRelayLegs(preparedText,players);
@@ -44,11 +53,16 @@
     return legs;
   }
   function relayPassageMarkup(spaceTypos) {
-    if(!api.active||!relay||!relayLegs[self])return null;
-    const leg=relayLegs[self], full=preparedText;
+    const preview=phase==='lobby'||(phase==='finished'&&!!players[self]?.ready);
+    if(api.active&&!relay&&phase==='finished'&&players[self]?.ready)return typingPassageMarkup(preparedText,'',{});
+    const viewLegs=preview?previewRelayLegs():relayLegs;
+    if(!api.active||!relay||!viewLegs[self])return null;
+    const leg=viewLegs[self], full=preview?preparedText:roundText;
     if(!full)return null;
     const markup=typingPassageMarkup(full,'',{});
-    const localOffset=leg.offset||0, preview=phase==='lobby';
+    const localOffset=leg.offset||0;
+    const teammates=Object.entries(viewLegs).filter(([id,other])=>id!==self&&other.lane===leg.lane)
+      .map(([id,other])=>({id,other,parsed:!preview&&typeof players[id]?.relayInput==='string'?parseTyping(players[id].relayInput,false,other.text):null}));
     return markup.replace(/class="letter([^" ]*(?: [^"]*)?)" data-typing-position="(\d+)"/g,(match,classes,value)=>{
       const position=Number(value), local=position-localOffset;
       let state='';
@@ -57,18 +71,24 @@
         if(!preview&&local<typed.length)state+=typed[local]===target[local]?' correct':' incorrect';
         if(!preview&&local===typed.length&&!done)state+=' cursor';
       }
-      for(const [id,other] of Object.entries(relayLegs)){
-        if(other.lane!==leg.lane)continue;
-        if(preview&&position>=other.offset&&position<other.offset+other.text.length)state+=' relay-preview-section relay-section-'+(other.index%2);
-        if(id===self||preview)continue;
-        const progress=players[id]?.position||0;
-        if(position>=other.offset&&position<other.offset+Math.min(progress,other.text.length))state+=' relay-teammate';
+      if(preview){
+        for(const other of Object.values(viewLegs))if(other.lane===leg.lane&&position>=other.offset&&position<other.offset+other.text.length)state+=' relay-preview-section relay-section-'+(other.index%2);
+      }else for(const {id,other,parsed} of teammates){
+        const at=position-other.offset, progress=parsed?parsed.text.length:players[id]?.position||0;
+        if(at>=0&&at<Math.min(progress,other.text.length)){
+          state+=' relay-teammate';
+          if(parsed&&parsed.text[at]!==other.text[at])state+=' incorrect';
+        }
       }
       return 'class="letter'+state+'" data-typing-position="'+position+'"';
     }).replace(/(<span class="letter[^"]*" data-typing-position="(\d+)"[^>]*>)/g,(match,open,value)=>{
-      const boundary=preview?Object.entries(relayLegs).find(([,other])=>other.lane===leg.lane&&other.offset===Number(value)&&other.text.length):null;
+      const boundary=preview?Object.entries(viewLegs).find(([,other])=>other.lane===leg.lane&&other.offset===Number(value)&&other.text.length):null;
       const label=boundary?'<span class="relay-leg-label">'+escapeHtml(players[boundary[0]]?.name||'typist')+(boundary[0]===self?' (you)':'')+'</span>':'';
-      const extras=preview?'':spaceTypos[Number(value)-localOffset];
+      let extras=preview?'':spaceTypos[Number(value)-localOffset];
+      if(!preview)for(const {other,parsed} of teammates){
+        const at=Number(value)-other.offset;
+        if(parsed&&at>=0&&at<=other.text.length&&parsed.spaceTypos[at])extras=parsed.spaceTypos[at];
+      }
       return extras?'<span class="letter incorrect">'+escapeHtml(extras)+'</span>'+open:open+label;
     });
   }
@@ -86,12 +106,26 @@
     const leg=relayLegs[id];
     return !!leg&&leg.members.slice(0,leg.index).every(member=>players[member]?.finished||players[member]?.connected===false);
   }
-  function normalizeRelayLanes() {
-    const racers=Object.values(players).filter(p=>p.connected!==false&&isRacer(p));
+  function normalizeRelayRoster(roster) {
+    const racers=Object.values(roster).filter(p=>p.connected!==false&&isRacer(p));
     const occupied=[...new Set(racers.map(p=>p.lane).filter(lane=>Number.isInteger(lane)&&lane>0))].sort((a,b)=>a-b);
     const mapping=new Map(occupied.map((lane,index)=>[lane,index+1]));
-    relayLaneCount=occupied.length;
-    for(const player of racers)player.lane=mapping.get(player.lane)||++relayLaneCount;
+    let count=occupied.length;
+    for(const player of racers)player.lane=mapping.get(player.lane)||++count;
+    return count;
+  }
+  function normalizeRelayLanes(){relayLaneCount=normalizeRelayRoster(players);}
+  function previewRelayLegs(){
+    const next=new Set(nextRoundPlayers());
+    const roster=Object.fromEntries(Object.entries(players).filter(([,player])=>next.has(player)).map(([id,player])=>[id,{...player,role:'racer'}]));
+    normalizeRelayRoster(roster);
+    return buildRelayLegs(preparedText,roster);
+  }
+  function releaseDeferredQueue(){
+    const before=nextRoundPlayers();
+    for(const player of Object.values(players))if(player.connected!==false&&player.role==='queued'&&(player.eligibleRound||0)>round+1)player.eligibleRound=round+1;
+    const after=nextRoundPlayers();
+    return after.length!==before.length||after.some(player=>!before.includes(player));
   }
   function editRelayTeams() {
     if(phase!=='finished')return;
@@ -100,27 +134,28 @@
     showPreparedPassage(preparedText,passageMode==='custom');
   }
   function selectLane(id,lane) {
-    if(!relay||phase==='countdown'||phase==='racing'||!isRacer(players[id]||{role:'watcher'})||!Number.isInteger(lane)||lane<1||lane>relayLaneCount)return;
-    editRelayTeams();players[id].lane=lane;publish();
+    if(!relay||raceSettingsLocked()||players[id]?.ready||!isRacer(players[id]||{role:'watcher'})||!Number.isInteger(lane)||lane<1||lane>relayLaneCount)return;
+    if(players[id].lane===lane)return;
+    editRelayTeams();settingsChanged();players[id].lane=lane;publish();
   }
   function paintRelay() {
-    const locked=phase==='countdown'||phase==='racing';
+    const locked=raceSettingsLocked();
     $('#relayMode').hidden=!host||!!ghost;$('#relayMode').disabled=locked;
     $('#relayMode').setAttribute('aria-pressed',String(relay));
     $('#relayMode').textContent=relay?'relay racing: on':'relay racing: off';
     $('#relayControls').hidden=!relay||!!ghost;
     document.body.classList.toggle('relay-race',api.active&&relay);
     document.body.classList.toggle('relay-waiting',api.active&&relay&&(phase==='lobby'||done||!relayStarted));
-    document.body.classList.toggle('relay-preview',api.active&&relay&&phase==='lobby');
+    document.body.classList.toggle('relay-preview',api.active&&relay&&(phase==='lobby'||phase==='finished'&&!!players[self]?.ready));
     $('#relayLaneActions').hidden=!relay||!!ghost;
-    $('#addRelayLane').disabled=locked||api.spectating||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)&&p.lane===players[self]?.lane).length<2;
+    $('#addRelayLane').disabled=locked||api.spectating||!!players[self]?.ready||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)&&p.lane===players[self]?.lane).length<2;
     if(!relay)return;
-    const leg=relayLegs[self];
+    const leg=(phase==='finished'&&players[self]?.ready?previewRelayLegs():relayLegs)[self];
     $('#relayPassageHint').textContent=leg
       ? (phase==='lobby'?'Preview · ':'')+'Lane '+leg.lane+' · your section: leg '+(leg.index+1)+' of '+leg.members.length+'. Underlined letters are yours; green highlights show teammates’ progress. Labeled markers show each lane.'
       : 'Underlined letters mark your assigned section during the race. Green highlights show teammates’ progress; markers show each lane.';
     if(leg&&phase!=='lobby')$('#testSection').style.display='block';
-    $('#racers').replaceChildren();
+    const list=$('#racers'),rows=[];
     const lanes=[];
     for(let lane=1;lane<=8;lane++){
       const members=Object.entries(players).filter(([id,p])=>isRacer(p)&&(locked||phase==='finished'?relayLegs[id]?.lane===lane:p.connected!==false&&p.lane===lane));
@@ -131,15 +166,16 @@
       const progress=members.reduce((sum,[id,p])=>sum+(p.progress||0)*weight(id),0)/members.reduce((sum,[id])=>sum+weight(id),0);
       lanes.push({lane,members,complete,time,progress});
     }
-    lanes.sort((a,b)=>Number(b.complete)-Number(a.complete)||a.time-b.time||b.progress-a.progress||a.lane-b.lane);
-    lanes.forEach((lane,index)=>{
-      const row=document.createElement('div');row.className='racer relay-lane-row';
-      row.setAttribute('role','button');row.setAttribute('aria-label','Join lane '+lane.lane);
+    const ranked=[...lanes].sort((a,b)=>Number(b.complete)-Number(a.complete)||a.time-b.time||b.progress-a.progress||a.lane-b.lane);
+    lanes.forEach(lane=>{
+      const index=ranked.indexOf(lane);
+      const row=raceRow(list,'lane-'+lane.lane);row.className='racer relay-lane-row';
+      row.setAttribute('role','button');row.setAttribute('aria-label','Lane '+lane.lane+' · '+lane.members.map(([id,p])=>p.name+(id===self?' (you)':'')).join(', '));
       row.setAttribute('aria-pressed',String(players[self]?.lane===lane.lane));
-      row.setAttribute('aria-disabled',String(locked||api.spectating));
-      row.tabIndex=locked||api.spectating?-1:0;
+      row.setAttribute('aria-disabled',String(locked||api.spectating||!!players[self]?.ready));
+      row.tabIndex=0;
       const join=event=>{
-        if(locked||api.spectating||event?.target?.closest('button'))return;
+        if(locked||api.spectating||!!players[self]?.ready||event?.target?.closest('button'))return;
         requestLane(lane.lane);
       };
       row.onclick=join;
@@ -147,36 +183,40 @@
         if(event.target?.closest('button'))return;
         if(event.key==='Enter'||event.key===' '){event.preventDefault();join(event);}
       };
-      const names=document.createElement('span');names.className='race-label';
-      const label=document.createElement('strong');label.textContent='Lane '+lane.lane+' · ';names.append(label);
-      lane.members.forEach(([id,player],memberIndex)=>{
-        const name=document.createElement('span');name.textContent=(memberIndex?' → ':'')+player.name+(id===self?' (you)':'')+(player.connected===false?' · left':'');
-        if(host&&id!==self&&player.connected!==false)name.append(removeButton(id,player));
-        names.append(name);
-      });
-      const track=document.createElement('div');track.className='race-track';
-      const bar=document.createElement('i');bar.style.width=Math.max(0,Math.min(100,lane.progress))+'%';track.append(bar);
-      track.setAttribute('aria-label','Lane '+lane.lane+' · '+Math.round(lane.progress)+'%');
-      if(lane.complete){
-        const place=document.createElement('span');place.className='race-place';place.textContent=finishPlace(index);track.append(place);
-        if(index===0)row.classList.add('race-winner');
+      const {name:names,track,bar,score}=row._parts;
+      const nameState=JSON.stringify([locked,host,hostIsReady(),phase==='lobby'||phase==='finished',self,lane.members.map(([id,p])=>[id,p.name,p.connected,p.ready,p.botWpm])]);
+      if(row._nameState!==nameState){
+        row._nameState=nameState;names.replaceChildren();
+        const label=document.createElement('strong');label.textContent='Lane '+lane.lane;names.append(label);
+        const members=document.createElement('span');members.className='relay-members';
+        lane.members.forEach(([id,player],memberIndex)=>{
+          const name=document.createElement('span');name.textContent=(memberIndex?' → ':'')+player.name+(id===self?' (you)':'')+(player.connected===false?' · left':'')+(!locked&&!player.botWpm&&!player.ready?' · not ready':'');
+          appendReadyBadge(name,player);
+          if(host&&id!==self&&player.connected!==false)name.append(removeButton(id,player));
+          members.append(name);
+        });
+        names.append(members);
       }
+      bar.style.width=Math.max(0,Math.min(100,lane.progress))+'%';
+      track.setAttribute('aria-label','Lane '+lane.lane+' · '+Math.round(lane.progress)+'%');
+      racePlace(row,lane.complete,index);
       const characters=lane.members.reduce((sum,[id,p])=>sum+(relayLegs[id]?.text.length||0)*Math.max(0,Math.min(100,p.progress||0))/100+(relayLegs[id]?.index>0&&p.progress>0?1:0),0);
       const elapsedMs=lane.complete?lane.time:phase==='finished'?Math.max(...lane.members.map(([,p])=>p.finishMs||0)):Math.max(0,Date.now()-roundStartsAt);
       const average=elapsedMs>0?Math.round(characters/5/(elapsedMs/60000)):0;
-      const score=document.createElement('span');score.textContent=phase==='lobby'?'ready':Math.round(lane.progress)+'% · '+average+' wpm'+(lane.complete?' · '+(lane.time/1000).toFixed(2)+'s':'');
-      row.append(names,track,score);$('#racers').append(row);
+      score.textContent=phase==='lobby'?lane.members.filter(([,p])=>p.botWpm||p.ready).length+'/'+lane.members.length+' ready':Math.round(lane.progress)+'% · '+average+' wpm'+(lane.complete?' · '+(lane.time/1000).toFixed(2)+'s':'');
+      rows.push(row);
     });
+    reconcileRaceRows(list,rows);
     if(phase==='finished'){
-      const winner=lanes.find(lane=>lane.complete);
+      const winner=ranked.find(lane=>lane.complete);
       status(winner?'Relay complete · Lane '+winner.lane+' wins.':'Relay complete · no lane finished the passage.');
       if(winner?.members.some(([id])=>id===self)&&celebratedRound!==round){celebratedRound=round;celebrateJourney(7,4500);}
     }
   }
   function addBot(speed) {
     const choice=botSpeeds.find(item=>item[2]===speed);
-    if(!host||ghost||!api.active||!choice||phase==='countdown'||phase==='racing'||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).length>=8)return;
-    editRelayTeams();
+    if(!host||ghost||!api.active||!choice||raceSettingsLocked()||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).length>=8)return;
+    editRelayTeams();settingsChanged();
     players['bot-'+(++botSequence)]={name:choice[1]+' '+choice[0],botWpm:speed,role:'racer',connected:true,finished:false,progress:0,wpm:0};
     publish();
   }
@@ -199,6 +239,7 @@
       const position=Math.min(text.length,Math.floor((active+0.00001)/interval));
       const finished=position===text.length||elapsed>=duration*1000;
       if(player.position!==position||finished)changed=true;
+      if(relay)player.relayInput=text.slice(0,position);
       Object.assign(player,{position,progress:position/text.length*100,wpm:position?player.botWpm:0,accuracy:100,finished,passageComplete:position===text.length,gaveUp:false});
       if(finished){
         const activeMs=position===text.length?text.length*interval:active;
@@ -218,11 +259,12 @@
     target=text;rawTarget=text;render(false);input.disabled=true;
     $('#counter').textContent='';
   }
-  function preparePassage(shuffle=true) {
-    if(ghost||!host||!api.active||phase==='countdown'||phase==='racing')return;
+  function preparePassage(shuffle=true,display=true) {
+    if(ghost||!host||!api.active||raceSettingsLocked())return;
     const customMode=passageMode==='custom';
     if(customMode)preparedText=$('#raceCustomText').value.trim().replace(/\s+/g,' ');
     else {
+      if(!scriptureLines.length)return;
       if(shuffle||preparedVerseIndex<0){
         const exclude=preparedVerseIndex>=0&&scriptureLines.length>1;
         let index=Math.floor(Math.random()*(scriptureLines.length-(exclude?1:0)));
@@ -233,7 +275,7 @@
     }
     if(!raceFormatting)preparedText=preparedText.replace(/\p{P}/gu,'').toLowerCase();
     preparedText=preparedText.replace(/\s+/g,' ').trim();
-    showPreparedPassage(preparedText,customMode);
+    if(display){settingsChanged();showPreparedPassage(preparedText,customMode);}
     publish();
   }
   function lastRacer(id){
@@ -242,6 +284,70 @@
   }
   function completedPassage(player) {
     return !!(player.finished && !player.gaveUp && player.progress >= 100 && player.passageComplete !== false);
+  }
+  function hostIsReady(){return !ghost&&!!(host?players[self]?.ready:remoteHostReady);}
+  function raceSettingsLocked(){return hostIsReady()||phase==='countdown'||phase==='racing';}
+  function settingsChanged(){
+    if(!host||ghost)return;
+    for(const [id,player] of Object.entries(players)){
+      if(id===self||!player.ready||player.botWpm||player.connected===false)continue;
+      player.ready=false;
+      send(links.get(id),{type:'settings-changed'});
+    }
+  }
+  function raceRow(list,key){
+    let row=Array.from(list.children).find(node=>node._raceKey===key);
+    if(row)return row;
+    row=document.createElement('div');row._raceKey=key;row.className='racer';
+    const name=document.createElement('span');name.className='race-label';
+    const track=document.createElement('div');track.className='race-track';
+    const bar=document.createElement('i');track.append(bar);
+    const score=document.createElement('span');score.className='race-score';
+    row.append(name,track,score);row._parts={name,track,bar,score};return row;
+  }
+  function reconcileRaceRows(list,rows){
+    const current=Array.from(list.children);
+    if(current.length===rows.length&&current.every((row,index)=>row===rows[index]))return;
+    list.replaceChildren();for(const row of rows)list.append(row);
+  }
+  function racePlace(row,completed,index){
+    const {track,bar}=row._parts, label=completed?finishPlace(index):'';
+    if(row._place!==label){
+      track.replaceChildren();track.append(bar);
+      if(label){const badge=document.createElement('span');badge.className='race-place';badge.textContent=label;track.append(badge);}
+      row._place=label;
+    }
+    row.classList.toggle('race-winner',completed&&index===0);
+  }
+  function nextRoundPlayers() {
+    const racers=Object.values(players).filter(p=>p.connected!==false&&isRacer(p));
+    const queued=Object.values(players).filter(p=>p.connected!==false&&p.role==='queued'&&(p.eligibleRound||0)<=round+1).sort((a,b)=>(a.queueOrder||0)-(b.queueOrder||0));
+    return [...racers,...queued.slice(0,Math.max(0,8-racers.length))];
+  }
+  function allRacersReady() {
+    return nextRoundPlayers().every(player=>player.botWpm||player.ready===true);
+  }
+  function readyStartAllowed(){
+    const racers=nextRoundPlayers();
+    const valid=host&&!ghost&&(phase==='lobby'||phase==='finished')&&racers.length>=(relay?1:2)&&allRacersReady();
+    const key=valid?racers.map(player=>Object.keys(players).find(id=>players[id]===player)).sort().join('|'):'';
+    if(!valid||key!==readyGate.key){
+      if(readyGate.timer!==null)clearTimeout(readyGate.timer);
+      readyGate.since=null;readyGate.key=key;readyGate.timer=null;
+    }
+    if(!valid)return !!ghost;
+    if(readyGate.since===null){
+      readyGate.since=Date.now();
+      readyGate.timer=setTimeout(()=>{readyGate.timer=null;paint();},1000);
+    }
+    return Date.now()-readyGate.since>=1000;
+  }
+  function setReady(id,ready) {
+    const player=players[id];
+    if(!player||player.connected===false||player.role==='watcher'||player.botWpm||ghost||phase==='countdown'||phase==='racing'||typeof ready!=='boolean')return;
+    player.ready=ready;
+    if(host&&id===self&&!ready&&releaseDeferredQueue())settingsChanged();
+    publish();
   }
   function raceStandings(roster) {
     return Object.entries(roster).filter(([,player])=>isRacer(player)).sort(([firstId,a],[secondId,b]) => {
@@ -280,7 +386,16 @@
     if(!message||roomMessages.some(item=>item.id===message.id))return;
     roomMessages=[...roomMessages,message].slice(-50);renderChat('roomChatLog',roomMessages);
   }
-  function racerChatLocked(id){return !!players[id]&&isRacer(players[id])&&(phase==='countdown'||phase==='racing');}
+  function racerChatLocked(id){
+    const player=players[id];
+    return !!player&&player.connected!==false&&isRacer(player)&&phase==='racing'&&!player.finished&&!(id===self&&done)&&(!relay||relayTurn(id));
+  }
+  function paintChatAvailability(){
+    const locked=racerChatLocked(self),wasLocked=$('#roomChatInput').disabled;
+    $('#roomChatInput').disabled=locked;$('#roomChatSend').disabled=locked;
+    if(locked)$('#roomChatStatus').textContent='Chat is disabled while you type your part of the race.';
+    else if(wasLocked)$('#roomChatStatus').textContent='';
+  }
   function acceptRoomChat(id,text){
     if(!players[id]||players[id].connected===false||removedPeers.has(id)||racerChatLocked(id)||typeof text!=='string'||!text.trim()||text.length>500)return false;
     const now=Date.now();if(now-(roomChatTimes.get(id)??-Infinity)<750)return false;roomChatTimes.set(id,now);
@@ -298,7 +413,7 @@
   }
   function paintTextPositions(snap=false){
     const layer=$('#raceTextMarkers'), words=$('#words');
-    layer.hidden=!api.active||phase==='lobby';
+    layer.hidden=!api.active||phase==='lobby'||phase==='finished'&&!!players[self]?.ready;
     if(layer.hidden||!words.clientWidth){clearTextPositions();return;}
     const layout=words.clientWidth+':'+words.clientHeight+':'+words.scrollTop;
     snap=!!snap||layout!==markerLayout;markerLayout=layout;
@@ -310,7 +425,7 @@
     const labels=[];
     const opponents=relay?relayLanePositions():Object.entries(players).filter(([id,player])=>id!==self&&player.connected!==false&&isRacer(player)).sort(([a],[b])=>a.localeCompare(b));
     for(const [index,[id,player]] of opponents.entries()){
-      const position=Number.isInteger(player.position)?Math.max(0,Math.min(relay?preparedText.length:target.length,player.position)):
+      const position=Number.isInteger(player.position)?Math.max(0,Math.min(relay?roundText.length:target.length,player.position)):
         Math.round(Math.max(0,Math.min(100,player.progress||0))/100*target.length);
       const anchor=words.querySelector('[data-typing-position="'+position+'"]');
       if(!anchor)continue;
@@ -344,12 +459,18 @@
       if(!visible.has(id)){entry.marker.remove();textMarkers.delete(id);}
     }
   }
+  function appendReadyBadge(name,player){
+    if(ghost||player.connected===false||(phase!=='lobby'&&phase!=='finished')||(!player.botWpm&&!player.ready))return;
+    const badge=document.createElement('span');badge.className='race-ready-badge';badge.textContent=' ✓ ready';
+    name.append(badge);
+  }
   function removeButton(id,player){
     const button=document.createElement('button');button.type='button';button.className='race-remove';button.textContent='remove';
     button.setAttribute('aria-label','Remove '+player.name+' from room');
+    button.disabled=hostIsReady();
     button.onclick=event=>{
       event?.stopPropagation?.();
-      if(!host||ghost||!api.active)return;
+      if(!host||ghost||!api.active||hostIsReady())return;
       pendingRemove=id;$('#removeRacerMessage').textContent='Remove '+player.name+' from this room?';
       if(!$('#removeRacerDialog').open)$('#removeRacerDialog').showModal();
       $('#cancelRemoveRacer').focus();
@@ -357,53 +478,58 @@
     return button;
   }
   function paint() {
+    shareRoomRecords();
     api.spectating=!!players[self]&&!isRacer(players[self]);
     document.body.classList.toggle('race-spectator',api.spectating);
     if(api.spectating){api.running=false;input.disabled=true;$('#typingCaret').hidden=true;}
-    const chatLocked=racerChatLocked(self), wasChatLocked=$('#roomChatInput').disabled;
-    $('#roomChatInput').disabled=chatLocked;$('#roomChatSend').disabled=chatLocked;
-    if(chatLocked)$('#roomChatStatus').textContent='Chat is disabled for racers until this round ends.';
-    else if(wasChatLocked)$('#roomChatStatus').textContent='';
-    const list=$('#racers'); list.replaceChildren();
-    if(relay&&relayLegs[self]&&$('#words').clientWidth)render(false);
+    paintChatAvailability();
+    const list=$('#racers'),rows=[];
+    if(relay&&relayLegs[self]&&$('#words').clientWidth)render(false,false);
     paintTextPositions();
     const ordered=raceStandings(players);
-    for(const [index,[id,p]] of (relay?[]:ordered).entries()){
-      const row=document.createElement('div');row.className='racer';
-      const name=document.createElement('span');name.className='race-label';name.textContent=(relay?'Lane '+(p.lane||'?')+' · ':'')+p.name+(id===self?' (you)':'')+(p.connected===false?' · left':'');
-      const track=document.createElement('div');track.className='race-track';const bar=document.createElement('i');bar.style.width=`${Math.max(0,Math.min(100,p.progress||0))}%`;track.append(bar);
-      if(completedPassage(p)){
-        const place=document.createElement('span');place.className='race-place';place.textContent=finishPlace(index);track.append(place);
-        if(index===0)row.classList.add('race-winner');
-        track.setAttribute('aria-label',p.name+' · '+finishPlace(index)+' place');
+    const visible=relay?[]:phase==='finished'?ordered:Object.entries(players).filter(([,p])=>isRacer(p));
+    for(const [id,p] of visible){
+      const index=ordered.findIndex(([other])=>other===id),row=raceRow(list,id);
+      const {name,track,bar,score}=row._parts;
+      const nameState=JSON.stringify([p.name,id===self,p.connected,p.ready,p.botWpm,host,hostIsReady(),!!ghost,phase==='lobby'||phase==='finished']);
+      if(row._nameState!==nameState){
+        row._nameState=nameState;name.replaceChildren();name.textContent=p.name+(id===self?' (you)':'')+(p.connected===false?' · left':'');
+        appendReadyBadge(name,p);
+        if(host&&!ghost&&id!==self&&p.connected!==false)name.append(removeButton(id,p));
       }
-      const score=document.createElement('span');score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy??100}%`:phase==='lobby'?'ready':`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
+      bar.style.width=Math.max(0,Math.min(100,p.progress||0))+'%';
+      racePlace(row,completedPassage(p),index);
+      if(completedPassage(p))track.setAttribute('aria-label',p.name+' · '+finishPlace(index)+' place');
+      score.textContent=p.gaveUp?'gave up':phase==='finished'?`${p.wpm||0} wpm · ${p.accuracy??100}%`:phase==='lobby'?(p.botWpm||p.ready?'ready':'not ready'):`${Math.round(p.progress||0)}%${p.finished?' · finished':''}`;
       if(p.finished&&!p.gaveUp&&Number.isFinite(p.finishMs))score.textContent+=` · ${(p.finishMs/1000).toFixed(2)}s`;
-      if(host&&!ghost&&id!==self&&p.connected!==false)name.append(removeButton(id,p));
-      row.append(name,track,score);
-      list.append(row);
+      rows.push(row);
     }
-    const connected=Object.values(players).filter(p=>p.connected!==false&&p.role!=='watcher');
+    if(!relay)reconcileRaceRows(list,rows);
     $('#giveUpRace').hidden=api.spectating||done||!lastRacer(self);
     $('#queueRace').hidden=!api.spectating||players[self]?.role==='queued';
-    $('#raceAudience').replaceChildren();
-    for(const [id,player] of Object.entries(players).filter(([,player])=>player.connected!==false&&!isRacer(player))){
-      const row=document.createElement('div');row.className='race-audience-member';
-      const label=document.createElement('span');label.textContent=player.name+(id===self?' (you)':'');row.append(label);
-      if(host&&!ghost&&id!==self)row.append(removeButton(id,player));
-      const state=document.createElement('span');state.textContent=player.role==='queued'?'queued for next race':'watching';row.append(state);
-      $('#raceAudience').append(row);
+    const audience=$('#raceAudience');
+    const audienceState=JSON.stringify([host,!!ghost,self,hostIsReady(),phase==='lobby'||phase==='finished',Object.entries(players).filter(([,p])=>p.connected!==false&&!isRacer(p)).map(([id,p])=>[id,p.name,p.role,p.ready])]);
+    if(audience._rosterState!==audienceState){
+      audience._rosterState=audienceState;audience.replaceChildren();
+      for(const [id,player] of Object.entries(players).filter(([,player])=>player.connected!==false&&!isRacer(player))){
+        const row=document.createElement('div');row.className='race-audience-member';
+        const label=document.createElement('span');label.textContent=player.name+(id===self?' (you)':'');if(player.role==='queued')appendReadyBadge(label,player);row.append(label);
+        if(host&&!ghost&&id!==self)row.append(removeButton(id,player));
+        const state=document.createElement('span');state.textContent=player.role==='queued'?'queued for next race':'watching';row.append(state);
+        $('#raceAudience').append(row);
+      }
     }
     $('#raceBots').hidden=!host||!!ghost;
-    Array.from($('#raceBotChoices').children).forEach(button=>button.disabled=phase==='countdown'||phase==='racing'||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).length>=8);
+    Array.from($('#raceBotChoices').children).forEach(button=>button.disabled=raceSettingsLocked()||Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).length>=8);
     $('#roomVisibility').hidden=!host||!!ghost;
+    $('#roomVisibility').disabled=hostIsReady();
     $('#roomVisibility').textContent=unlisted?'make public':'make private';
     $('#roomPrivacyStatus').textContent=ghost?'':unlisted?'private room · code or invite only':'public room · listed for everyone';
     $('#replayAllResult').textContent=relay?'▶ replay all lanes':'▶ replay all racers';
     $('#replayAllResult').hidden=phase!=='finished'||!roundReplay||!done;
     $('#raceNewAttempt').hidden=!ghost||phase!=='finished'||!localResultId||!history.find(result=>result.id===localResultId)?.replay;
     $('#startRace').hidden=!host;$('#raceDurationForm').hidden=!host||!!ghost;$('#raceInvite').hidden=!!ghost;
-    const locked=phase==='countdown'||phase==='racing';
+    const locked=raceSettingsLocked();
     $('#raceCustomText').disabled=locked;
     document.querySelectorAll('[data-race-passage]').forEach(button=>button.disabled=locked);
     $('#shuffleRacePassage').hidden=passageMode!=='verse';
@@ -412,7 +538,19 @@
     $('#raceFormatting').classList.toggle('active',raceFormatting);
     $('#raceFormatting').setAttribute('aria-pressed',String(raceFormatting));
     $('#raceTimeLimit').textContent=defaultRaceDuration(preparedText)+'s time limit · set automatically';
-    $('#startRace').disabled=connected.length<(relay?1:2)||phase==='countdown'||phase==='racing';
+    const nextPlayers=nextRoundPlayers(), humans=nextPlayers.filter(p=>!p.botWpm);
+    const idle=phase==='lobby'||phase==='finished';
+    $('#leaveRace').disabled=!!players[self]?.ready;
+    $('#leaveRace').title=players[self]?.ready?'Unready before leaving the room.':'';
+    $('#readyRace').hidden=!!ghost||players[self]?.role==='watcher';
+    $('#readyRace').disabled=!idle;
+    $('#readyRace').textContent=players[self]?.ready?'✓ ready':'ready';
+    $('#readyRace').setAttribute('aria-pressed',String(!!players[self]?.ready));
+    $('#raceReadyStatus').hidden=!!ghost;
+    $('#raceReadyStatus').textContent=idle?humans.filter(p=>p.ready).length+'/'+humans.length+' players ready · everyone must ready up for the next race.':'';
+    const startAllowed=readyStartAllowed();
+    $('#startRace').disabled=nextPlayers.length<(relay?1:2)||!idle||!startAllowed;
+    if(host&&!ghost&&idle&&allRacersReady()&&$('#startRace').disabled&&nextPlayers.length>=(relay?1:2))$('#raceReadyStatus').textContent='Everyone is ready · enabling start in one second…';
     $('#startRace').textContent=phase==='finished'?'race again →':'start race →';
     if(phase==='lobby')status(host?'Share the invite link. Start when everyone has joined.':'You’re in! Waiting for the host to start.');
     if(phase==='finished'){$('#wpm').parentElement.hidden=false;$('#rawWpm').parentElement.hidden=false;$('#chart').hidden=false;$('#chartLegend').hidden=false;if(done)drawChart();}
@@ -423,6 +561,17 @@
     }
     paintRelay();
     if(api.spectating)status(players[self]?.role==='queued'?'Queued for the next race · watching this round.':'Watching this race · queue to participate in the next round.');
+    paintReadyPreview();
+  }
+  function paintReadyPreview(){
+    const preview=!ghost&&phase==='finished'&&!!players[self]?.ready;
+    document.body.classList.toggle('race-ready-preview',preview);
+    if(preview){
+      $('#results').style.display='none';$('#testSection').style.display='block';input.disabled=true;
+      render(false,false);
+    }else if(phase==='finished'&&done&&!api.spectating){
+      $('#results').style.display='block';$('#testSection').style.display=relay?'block':'none';
+    }
   }
   function showError(message) { const el=$('#raceError');if(el)el.textContent=message;else status(message); }
   function showRoom() {
@@ -451,6 +600,7 @@
   function requestLeave(next){
     afterLeave=typeof next==='function'?next:null;
     if(!api.active)return;
+    if(players[self]?.ready){status('Unready before leaving the room.');afterLeave=null;return;}
     $('#leaveRaceTitle').textContent=ghost?'leave replay race?':host?'close room?':'leave room?';
     $('#leaveRaceMessage').textContent=api.spectating?(players[self]?.role==='queued'?'Leave this room and its queue?':'Stop watching this room?'):ghost?'Your current replay race will end.':host
       ?'All racers will be disconnected when you close this room.'
@@ -465,6 +615,7 @@
   $('#confirmLeaveRace').onclick=()=>{
     $('#leaveRaceDialog').close();
     const next=afterLeave;afterLeave=null;
+    if(api.active&&players[self]?.ready){status('Unready before leaving the room.');return;}
     if(api.active)leave(undefined,!next);
     if(next)next();
   };
@@ -474,13 +625,14 @@
     if($('#restartReplayDialog').open)$('#restartReplayDialog').close();
     if($('#leaveRaceDialog').open)$('#leaveRaceDialog').close();
     clearInterval(clock);clearTimeout(connectionTimeout);clearInterval(timer);
-    api.active=false;api.running=false;api.spectating=false;
-    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;renderChat('roomChatLog',[]);$('#roomChatInput').value='';$('#roomChatStatus').textContent='';
+    if(readyGate.timer!==null)clearTimeout(readyGate.timer);readyGate.since=null;readyGate.key='';readyGate.timer=null;
+    api.active=false;api.running=false;api.spectating=false;$('#raceChangeNotice').textContent='';remoteHostReady=false;
+    roomProfiles.clear();lastSharedRecords='';roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;renderChat('roomChatLog',[]);$('#roomChatInput').value='';$('#roomChatStatus').textContent='';
     window.raceRooms?.setRoom(null);
     $('#raceTextMarkers').hidden=true;clearTextPositions();
     syncNavigation();
     peer?.destroy();peer=null;ghost=null;attemptReplays.clear();roundReplay=null;links.clear();players={};phase='lobby';round=0;celebratedRound=null;
-    $('#racePanel').hidden=true;document.body.classList.remove('in-room','replay-race','race-spectator','relay-race','relay-waiting','relay-preview');$('.config').inert=false;
+    $('#racePanel').hidden=true;document.body.classList.remove('in-room','replay-race','race-spectator','relay-race','relay-waiting','relay-preview','race-ready-preview');$('.config').inert=false;
     if(saved){({mode,limit}=saved);saved=null;}
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     const url=new URL(location.href);url.searchParams.delete('race');window.history.replaceState(null,'',url);
@@ -488,8 +640,8 @@
   }
   function connect(isHost, code, name, intent='join', privateRoom=false) {
     if(peer)peer.destroy();clearTimeout(connectionTimeout);
-    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;roomChatSequence=0;
-    relay=false;relayLegs={};relayStarted=false;relayLaneCount=0;ghost=null;removedPeers.clear();unlisted=!!isHost&&privateRoom;host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;queueSequence=0;celebratedRound=null;preparedText='';
+    roomProfiles.clear();lastSharedRecords='';roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;roomChatSequence=0;
+    remoteHostReady=false;relay=false;relayLegs={};relayStarted=false;relayLaneCount=0;ghost=null;removedPeers.clear();unlisted=!!isHost&&privateRoom;host=isHost;room=code;players={};links=new Map();phase='lobby';round=0;queueSequence=0;celebratedRound=null;preparedText='';
     showError('Connecting…');$('#createRoom').disabled=$('#createPrivateRoom').disabled=$('#joinRoom').disabled=true;
     if(typeof Peer==='undefined'){failure('Could not load racing. Refresh and try again.');return;}
     peer=new Peer(isHost?`logostype-${code}`:undefined);
@@ -508,13 +660,14 @@
     peer.on('connection',connection=>{
       if(!host)return connection.close();
       connection.on('open',()=>{
-        const locked=phase==='racing'||phase==='countdown';
+        const locked=phase==='racing'||phase==='countdown'||hostIsReady();
         if(links.size>=31){send(connection,{type:'reject',message:'This room is full of racers and viewers. Try again later.'});setTimeout(()=>connection.close(),300);return;}
         const requested=connection.metadata?.intent;
         const reserved=Object.values(players).filter(p=>p.connected!==false&&p.role!=='watcher').length;
         const role=requested==='watch'?'watcher':locked||reserved>=8?'queued':'racer';
-        players[connection.peer]={name:cleanName(connection.metadata?.name),role,queueOrder:role==='queued'?++queueSequence:0,connected:true,finished:false,wpm:0,progress:0};
-        links.set(connection.peer,connection);wire(connection);send(connection,{type:'roomChatHistory',messages:roomMessages});publish();
+        if(role==='racer')settingsChanged();
+        players[connection.peer]={name:cleanName(connection.metadata?.name),role,eligibleRound:hostIsReady()?round+2:round+1,queueOrder:role==='queued'?++queueSequence:0,connected:true,finished:false,wpm:0,progress:0};
+        links.set(connection.peer,connection);wire(connection);shareRoomRecords();for(const [id,summary] of roomProfiles)if(id!==connection.peer)send(connection,{type:'personal-records',id,summary});send(connection,{type:'roomChatHistory',messages:roomMessages});publish();
       });
     });
     function wire(connection){
@@ -523,18 +676,25 @@
         if(!data||typeof data!=='object')return;
         if(host){
           if(!players[connection.peer]||removedPeers.has(connection.peer))return;
+          if(data.type==='personal-records'){
+            const summary=window.friendRecords?.cleanSummary({...data.summary,name:players[connection.peer].name});if(!summary)return;
+            window.friendRecords.accept(summary);roomProfiles.set(connection.peer,summary);
+            for(const link of links.values())if(link!==connection)send(link,{type:'personal-records',id:connection.peer,summary});
+            return;
+          }
           if(data.type==='hello'){send(connection,snapshot());send(connection,{type:'roomChatHistory',messages:roomMessages});}
+          if(data.type==='ready'){setReady(connection.peer,data.ready);return;}
           if(data.type==='lane'){selectLane(connection.peer,data.lane);return;}
           if(data.type==='add-lane'){addRelayLane(connection.peer);return;}
           if(data.type==='chat-message'){acceptRoomChat(connection.peer,data.text);return;}
           if(data.type==='queue'&&!isRacer(players[connection.peer])){
-            players[connection.peer].role='queued';players[connection.peer].queueOrder||=++queueSequence;publish();
+            players[connection.peer].eligibleRound=hostIsReady()?round+2:round+1;players[connection.peer].role='queued';players[connection.peer].queueOrder||=++queueSequence;publish();
           }
           if(!isRacer(players[connection.peer]))return;
           if(data.type==='attemptReplay'&&data.round===round&&!attemptReplays.has(connection.peer)){
             try{
               const replay=validateAttemptReplay(data.replay);
-              if(replay.target!==(relay?relayLegs[connection.peer]?.text:target))return;
+              if(replay.target!==(relay?relayLegs[connection.peer]?.text:roundText))return;
               attemptReplays.set(connection.peer,replay);
               if(phase==='finished')publishRaceReplay();
             }catch{return;}
@@ -546,6 +706,7 @@
             if(!p.finished){
               p.progress=Math.max(0,Math.min(100,Number(data.progress)||0));p.wpm=Math.max(0,Math.min(500,Number(data.wpm)||0));p.accuracy=Math.max(0,Math.min(100,Number(data.accuracy)||0));p.finished=!!data.finished;
               p.position=Number.isInteger(data.position)?Math.max(0,Math.min(relay?relayLegs[connection.peer]?.text.length||0:target.length,data.position)):Math.round(p.progress/100*target.length);
+              if(relay){if(typeof data.relayInput==='string'&&data.relayInput.length<=20000)p.relayInput=data.relayInput;else delete p.relayInput;}
               p.gaveUp=!!data.gaveUp;
               p.passageComplete=p.finished&&!p.gaveUp&&p.progress===100&&data.passageComplete!==false;
               p.finishMs=p.finished&&Number.isSafeInteger(data.finishMs)&&data.finishMs>=0?data.finishMs:null;
@@ -553,6 +714,8 @@
             checkFinished();publish();
           }
         } else {
+          if(data.type==='personal-records'){if(data.id!==self)window.friendRecords?.accept(data.summary);return;}
+          if(data.type==='settings-changed'){$('#raceChangeNotice').textContent='The race format or settings changed. Your ready status was cleared — please ready up again.';return;}
           if(data.type==='roomChat'){receiveRoomChat(data.message);return;}
           if(data.type==='roomChatHistory'&&Array.isArray(data.messages)&&data.messages.length<=50){roomMessages=data.messages.map(cleanRoomChat).filter(Boolean);renderChat('roomChatLog',roomMessages);return;}
           if(data.type==='removed'){leave('The host removed you from this room.');return;}
@@ -560,12 +723,12 @@
           if(data.type==='roundReplay'&&data.round===round){saveRaceReplay(data.replay);paint();}
           if(data.type==='roster'){
             if(!data.players||!data.players[self])return;
-            relay=!!data.relay;relayLaneCount=Math.max(0,Math.min(8,Number(data.relayLaneCount)||0));relayLegs=data.relayLegs||{};players=data.players;phase=data.phase;round=data.round;unlisted=!!data.unlisted;api.spectating=!isRacer(players[self]);if(phase==='finished'){clearInterval(clock);api.running=false;}
+            remoteHostReady=!!data.hostReady;relay=!!data.relay;relayLaneCount=Math.max(0,Math.min(8,Number(data.relayLaneCount)||0));relayLegs=data.relayLegs||{};players=data.players;if(players[self]?.ready)$('#raceChangeNotice').textContent='';phase=data.phase;round=data.round;unlisted=!!data.unlisted;api.spectating=!isRacer(players[self]);if(phase==='finished'){clearInterval(clock);api.running=false;}
             if(!api.active){clearTimeout(connectionTimeout);showRoom();}
             const preview=data.preview;
             if((api.spectating||phase==='lobby'||phase==='finished')&&preview&&typeof preview.text==='string'&&preview.text.length<=10000&&Number.isInteger(preview.duration)&&preview.duration>=0&&preview.duration<=4000){
               raceFormatting=preview.formatting!==false;
-              if(preparedText!==preview.text&&(!relay||api.spectating||phase==='lobby')){preparedText=preview.text;showPreparedPassage(preparedText,preview.custom===true);}
+              if(preparedText!==preview.text){preparedText=preview.text;if(api.spectating||phase==='lobby')showPreparedPassage(preparedText,preview.custom===true);}
             }
             if(api.spectating)syncWatchClock(data.clock);
             paint();
@@ -577,22 +740,25 @@
       connection.on('close',()=>{
         if(!api.active)return;
         if(!host){leave('The host left the room. Create a new room or join another.');return;}
-        if(players[connection.peer])players[connection.peer].connected=false;
-        links.delete(connection.peer);checkFinished();publish();
+        if(players[connection.peer]){
+          if(isRacer(players[connection.peer])&&(phase==='lobby'||phase==='finished')){if(players[self])players[self].ready=false;releaseDeferredQueue();settingsChanged();}
+          players[connection.peer].connected=false;
+        }
+        roomProfiles.delete(connection.peer);links.delete(connection.peer);checkFinished();publish();
       });
       connection.on('error',()=>status('A friend lost connection. They can leave and rejoin after the race.'));
     }
   }
   function promoteQueued(){
     let slots=8-Object.values(players).filter(player=>player.connected!==false&&isRacer(player)).length;
-    const queued=Object.values(players).filter(player=>player.connected!==false&&player.role==='queued').sort((a,b)=>(a.queueOrder||0)-(b.queueOrder||0));
+    const queued=Object.values(players).filter(player=>player.connected!==false&&player.role==='queued'&&(player.eligibleRound||0)<=round+1).sort((a,b)=>(a.queueOrder||0)-(b.queueOrder||0));
     for(const player of queued){if(slots--<=0)break;player.role='racer';}
   }
   function beginWatching(data){
     clearTextPositions();
     raceFormatting=data.formatting!==false;
     round=data.round;phase='countdown';roundReplay=null;localResultId=null;
-    preparedText=data.text;showPreparedPassage(data.text,data.custom===true);
+    roundText=preparedText=data.text;showPreparedPassage(data.text,data.custom===true);
     syncWatchClock({untilStartMs:3000,elapsedMs:0,duration:data.duration});paint();
   }
   function syncWatchClock(info){
@@ -611,9 +777,11 @@
     tick();clock=setInterval(tick,100);
   }
   function checkFinished(){
-    if(phase==='racing'&&Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).every(p=>p.finished)){phase='finished';clearInterval(clock);api.running=false;if(host)publishRaceReplay();}
+    if(phase==='racing'&&Object.values(players).filter(p=>p.connected!==false&&isRacer(p)).every(p=>p.finished)){phase='finished';clearInterval(clock);api.running=false;if(host){publishRaceReplay();if(!ghost&&passageMode==='verse')preparePassage(true,false);}}
   }
   function begin(data){
+    if(readyGate.timer!==null)clearTimeout(readyGate.timer);readyGate.since=null;readyGate.key='';readyGate.timer=null;
+    $('#raceChangeNotice').textContent='';
     clearTextPositions();
     attemptReplays=new Map();roundReplay=null;submittedReplay=false;localResultId=null;
     botRuns=new Map();
@@ -624,12 +792,12 @@
     duration=data.duration;round=data.round;celebratedRound=null;phase='countdown';api.running=false;lastReport=0;gaveUp=false;finishMs=null;
     for(const [id,p] of Object.entries(players)){
       if(p.connected===false){delete players[id];continue;}
-      p.progress=0;p.position=0;p.wpm=0;p.finished=false;p.gaveUp=false;p.finishMs=null;p.passageComplete=false;
+      p.relayInput='';p.ready=false;p.progress=0;p.position=0;p.wpm=0;p.finished=false;p.gaveUp=false;p.finishMs=null;p.passageComplete=false;
     }
     api.preparing=true;mode=data.custom===true?'custom':'quote';limit=25;reset();api.preparing=false;
     $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     relayStarted=false;
-    preparedText=data.text;
+    roundText=preparedText=data.text;
     target=relay?relayLegs[self].text:data.text;rawTarget=target;input.disabled=relay;render();input.blur();done=false;
     $('#words').scrollTop=0;
     $('.test').scrollIntoView({block:'center',behavior:'instant'});
@@ -668,6 +836,7 @@
         }
         // Repeat the terminal report until the host acknowledges the round as finished.
         report(false);
+        paintChatAvailability();
         if(relay)paintRelay();
       }
     },100);
@@ -751,7 +920,7 @@
       [self]:{name,connected:true,finished:false,wpm:0,progress:0},
       'replay-ghost':{name:'replay · '+result.date,connected:true,finished:false,wpm:0,progress:0}
     };
-    roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;
+    roomProfiles.clear();lastSharedRecords='';roomMessages=[];roomChatTimes.clear();localRoomChatAt=-Infinity;
     showRoom();
     startGhostRound();
   }
@@ -817,7 +986,8 @@
     }
     if(completed&&finishMs===null)finishMs=Math.min(duration*1000,Math.max(0,relay?Date.now()-roundStartsAt:(elapsedMs??Date.now()-start)));
     const savedResult=localResultId?history.find(result=>result.id===localResultId):null;
-    const data={type:'progress',round,position:typed.length,progress:Math.min(typed.length/target.length*100,100),wpm:completed&&savedResult?savedResult.wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp,finishMs,passageComplete:completed&&!gaveUp&&typed===target&&!parseTyping(input.value).extraCount};
+    const data={type:'progress',round,...(relay?{relayInput:input.value.slice(0,20000)}:{}),position:typed.length,progress:Math.min(typed.length/target.length*100,100),wpm:completed&&savedResult?savedResult.wpm:speed(),accuracy:total?Math.round((total-errors)/total*100):100,finished:completed,gaveUp,finishMs,passageComplete:completed&&!gaveUp&&typed===target&&!parseTyping(input.value).extraCount};
+    if(completed)paintChatAvailability();
     if(completed)status(gaveUp?'You gave up · waiting for the final standings.':'You finished · waiting for the other racers.');
     if(host){Object.assign(players[self],data);checkFinished();publish();}else send(links.get('host'),data);
   }
@@ -878,9 +1048,12 @@
   $('#roomCode').oninput=()=>{$('#roomCodeError').textContent='';updateJoinAction();};
   function renderAvailableRooms(rooms, state){
     directoryRooms=rooms;updateJoinAction();
-    const list=$('#availableRooms');list.replaceChildren();
+    const list=$('#availableRooms');
+    const listingState=JSON.stringify([rooms,$('#joinRoom').disabled]);
     $('#roomDirectoryStatus').textContent=state==='ready'?(rooms.length?'Choose a room to join, queue, or watch.':'No rooms are open yet. Create one to get started.'):
       state==='unavailable'?'Room discovery is unavailable. You can still create a room or join by code.':'Looking for rooms…';
+    if(list._listingState===listingState)return;
+    list._listingState=listingState;list.replaceChildren();
     for(const listing of rooms){
       const row=document.createElement('div');row.className='available-room';
       const details=document.createElement('div');details.textContent=listing.name+' · '+listing.code;
@@ -927,24 +1100,25 @@
     button.title=name+' · '+speed+' WPM';button.setAttribute('aria-label','Add '+name+' bot at '+speed+' WPM');
     button.onclick=()=>addBot(speed);$('#raceBotChoices').append(button);
   }
-  $('#relayMode').onclick=()=>{if(!host||ghost||phase==='countdown'||phase==='racing')return;editRelayTeams();relay=!relay;if(relay){let lane=0;for(const player of Object.values(players))if(player.connected!==false&&isRacer(player))player.lane=++lane;}publish();};
+  $('#relayMode').onclick=()=>{if(!host||ghost||raceSettingsLocked())return;editRelayTeams();settingsChanged();relay=!relay;if(relay){let lane=0;for(const player of Object.values(players))if(player.connected!==false&&isRacer(player))player.lane=++lane;}publish();};
   function requestLane(lane){
     if(host)selectLane(self,lane);else send(links.get('host'),{type:'lane',lane});
   }
   function addRelayLane(id){
-    if(!relay||phase==='countdown'||phase==='racing'||relayLaneCount>=8||!players[id]||players[id].connected===false||!isRacer(players[id]))return;
+    if(!relay||raceSettingsLocked()||players[id]?.ready||relayLaneCount>=8||!players[id]||players[id].connected===false||!isRacer(players[id]))return;
     if(Object.values(players).filter(p=>p.connected!==false&&isRacer(p)&&p.lane===players[id].lane).length<2)return;
-    editRelayTeams();players[id].lane=relayLaneCount+1;publish();
+    editRelayTeams();settingsChanged();players[id].lane=relayLaneCount+1;publish();
   }
   $('#addRelayLane').onclick=()=>{if(host)addRelayLane(self);else send(links.get('host'),{type:'add-lane'});};
   $('#raceDurationForm').onsubmit=e=>e.preventDefault();
   $('#shuffleRacePassage').onclick=()=>{if(passageMode==='verse')preparePassage();};
   $('#raceFormatting').onclick=()=>{
-    if(!host||!api.active||phase==='countdown'||phase==='racing')return;
+    if(!host||!api.active||raceSettingsLocked())return;
     raceFormatting=!raceFormatting;
     preparePassage(false);
   };
   document.querySelectorAll('[data-race-passage]').forEach(button=>button.onclick=()=>{
+    if(!host||!api.active||raceSettingsLocked())return;
     passageMode=button.dataset.racePassage;
     document.querySelectorAll('[data-race-passage]').forEach(option=>{
       const active=option.dataset.racePassage===passageMode;
@@ -955,7 +1129,7 @@
     $('#raceCustomText').required=passageMode==='custom';
     preparePassage();
   });
-  $('#raceCustomText').oninput=()=>{$('#raceCustomText').setCustomValidity('');preparePassage();};
+  $('#raceCustomText').oninput=()=>{if(!host||raceSettingsLocked())return;$('#raceCustomText').setCustomValidity('');preparePassage();};
   $('#giveUpRace').onclick=()=>{
     if(done||!lastRacer(self))return;
     gaveUp=true;$('#giveUpRace').hidden=true;finish(false);
@@ -990,21 +1164,23 @@
   };
   $('#roomChatForm').onsubmit=event=>{
     event.preventDefault();const field=$('#roomChatInput'),text=field.value.trim();if(!text)return;
-    if(racerChatLocked(self)){$('#roomChatStatus').textContent='Chat is disabled for racers until this round ends.';return;}
+    if(racerChatLocked(self)){$('#roomChatStatus').textContent='Chat is disabled while you type your part of the race.';return;}
     if(sendRoomChat(text)){$('#roomChatStatus').textContent='';field.value='';}
     else $('#roomChatStatus').textContent='Please wait a moment and retry. Chat may be reconnecting.';
   };
-  $('#roomVisibility').onclick=()=>{if(host&&!ghost&&api.active){unlisted=!unlisted;publish();}};
+  $('#roomVisibility').onclick=()=>{if(host&&!ghost&&api.active&&!hostIsReady()){settingsChanged();unlisted=!unlisted;publish();}};
   $('#cancelRemoveRacer').onclick=()=>{pendingRemove=null;$('#removeRacerDialog').close();};
   $('#removeRacerDialog').addEventListener('cancel',()=>{pendingRemove=null;});
   $('#confirmRemoveRacer').onclick=()=>{
     const id=pendingRemove;pendingRemove=null;$('#removeRacerDialog').close();
-    if(!host||!api.active||!id||id===self||!players[id])return;
+    if(!host||!api.active||hostIsReady()||!id||id===self||!players[id])return;
+    settingsChanged();
     const link=links.get(id);removedPeers.add(id);players[id].connected=false;
     if(!players[id].finished){players[id].finished=true;players[id].passageComplete=false;}
-    send(link,{type:'removed'});links.delete(id);checkFinished();publish();
+    send(link,{type:'removed'});roomProfiles.delete(id);links.delete(id);checkFinished();publish();
     setTimeout(()=>link?.close(),200);
   };
+  $('#readyRace').onclick=()=>{if(host)setReady(self,!players[self]?.ready);else send(links.get('host'),{type:'ready',ready:!players[self]?.ready});};
   $('#queueRace').onclick=()=>{if(api.spectating)send(links.get('host'),{type:'queue'});};
   $('#startRace').onclick=()=>{
     if(!host||$('#startRace').disabled)return;
@@ -1018,6 +1194,7 @@
       if(!passage.reportValidity())return;
     }
     if(!text)return;
+    if(!allRacersReady()||!readyStartAllowed()){status('Wait one second after everyone is ready.');return;}
     promoteQueued();
     if(relay){
       normalizeRelayLanes();

@@ -2,7 +2,7 @@
 
 Type the Scriptures and read what you typed. Practice on your own or race against friends.
 
-The About dialog uses the same description as the Adless home-page listing.
+The About dialog uses the same description as the Adless home-page listing. The app opens directly with its main navigation header; the former Adless / Logostype top strip is removed.
 
 Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 
@@ -189,13 +189,13 @@ Choose **create public room** or **create private room** in the lobby, or use th
 
 Storage cleanup checks: `node tests/history-store.cjs`. Restoring a backup can recover missing replay data on an existing result; the selected retention policy is applied after merging.
 
-The race room browser includes a shared **lobby chat** visible to everyone connected to the shared directory. Each race room has its own **room chat**, relayed only to that room’s racers, queued users, and watchers. Messages use player names, render as plain text, allow up to 500 characters, and are limited to about one per second per sender. New arrivals see up to 50 recent messages. Room chat timestamps include hours, minutes, and seconds. Racers cannot send messages during the countdown or active round; watchers and queued users can still chat, and racers regain chat when the round ends. The host enforces this restriction for incoming messages too. Room chat continues through rematches and clears when leaving; chats are not saved in history, local storage, or backups. Lobby chat stays in connected browsers’ memory and can be lost if all directory participants disconnect. Existing room-removal controls also stop removed users from sending to that room.
+The race room browser includes a shared **lobby chat** visible to everyone connected to the shared directory. Each race room has its own **room chat**, relayed only to that room’s racers, queued users, and watchers. Messages use player names, render as plain text, allow up to 500 characters, and are limited to about one per second per sender. New arrivals see up to 50 recent messages. Room chat timestamps include hours, minutes, and seconds. Chat is disabled only during a racer’s active typing turn. Everyone can chat during the countdown; finished racers and relay teammates waiting for their turn can chat while the race continues. Watchers and queued users can always chat. The host enforces this restriction for incoming messages too. Room chat continues through rematches and clears when leaving; chats are not saved in history, local storage, or backups. Lobby chat stays in connected browsers’ memory and can be lost if all directory participants disconnect. Existing room-removal controls also stop removed users from sending to that room.
 
 In Scripture Journey, both the previous-verse and following-verse previews use the theme’s highlighted text color when that verse is completed in the current journey, including verses completed with shuffle enabled. Restarting a journey clears these highlights for the new attempt.
 
 Settings → **your profile** shows **date joined**, based on the earliest readable date in saved typing history. It updates when older history is imported and is preserved through backups via that history. Before the first result, it prompts you to complete a typing test. Clearing all saved data resets it.
 
-Hosts can enable the boxed **relay racing** option to the right of **start race** before starting or between rounds. Enabling relay automatically puts each racer in a separate lane. Click a lane’s row (names and progress bar), or focus it and press Enter/Space, to join that lane; empty lanes disappear and the remaining lanes renumber. Players in a shared lane can press **+** below the lane rows to split into a new solo lane. New racers also receive their own lanes. Each occupied lane shows its teammates beside one shared progress bar. Relay races can start with a single occupied lane, including a solo player. Lanes may have different numbers of players. Each lane covers the same passage, split into consecutive word-balanced legs (differing by at most one word), in room join order. Use a passage with at least as many words as the largest team has players. Lane choices and relay settings lock during countdown and racing. Each player types only their assigned leg and waits for earlier teammates before typing. Individual results record that player's leg; lane standings rank fully completed teams by the last teammate's finish time from the shared race start. The automatic time limit applies to the whole relay. If a teammate disconnects or is removed, the baton advances but that lane remains unfinished. Queued racers must choose a lane before the next relay starts.
+Hosts can enable the boxed **relay racing** option to the right of **start race** before starting or between rounds. Enabling relay automatically puts each racer in a separate lane. Click a lane’s row (names and progress bar), or focus it and press Enter/Space, to join that lane; empty lanes disappear and the remaining lanes renumber. Players in a shared lane can press **+** below the lane rows to split into a new solo lane. New racers also receive their own lanes. Each occupied lane shows its number beside one shared progress bar. Hover or focus the row to see its teammates and host removal controls. Relay races can start with a single occupied lane, including a solo player. Lanes may have different numbers of players. Each lane covers the same passage, split into consecutive word-balanced legs (differing by at most one word), in room join order. Use a passage with at least as many words as the largest team has players. Lane choices and relay settings lock during countdown and racing. Each player types only their assigned leg and waits for earlier teammates before typing. Individual results record that player's leg; lane standings rank fully completed teams by the last teammate's finish time from the shared race start. The automatic time limit applies to the whole relay. If a teammate disconnects or is removed, the baton advances but that lane remains unfinished. Queued racers must choose a lane before the next relay starts.
 
 Run relay assignment and handoff checks with `node tests/relay.cjs`.
 
@@ -210,3 +210,35 @@ Run bot pace, replay, capacity, and relay handoff checks with `node tests/bots.c
 Race and relay replays offer **overlap replay** to show all available racers or lanes on one shared passage, with colored name markers at their current positions. Toggle it off to return to separate passages; each entry keeps its progress and WPM in either view. Overlap is available when recordings share the same passage. The **replay position** slider, play/pause, and **replay from start** controls stay fixed at the bottom of the popup while the entries scroll independently. The toolbar matches the popup background for a seamless appearance. Both views share playback, pause, and scrubbing.
 
 Before a relay starts, the passage previews the current lane’s split with alternating section backgrounds, teammate names at section boundaries, and your assigned letters underlined. The preview updates when players join, switch lanes, split into new lanes, or the host changes the passage.
+
+Friend races require **ready** from every participating human, including the host, before **start race** or **race again** is enabled. Ready players show a yellow **✓ ready** beside their names, including in relay lane hover lists. Press ready again to withdraw readiness. Bots are automatically ready; watchers do not need to be ready. Queued players who fit into the next round's eight racer seats must ready up between rounds too; overflow queue members do not block starting. Readiness resets when each round starts, so everyone must ready up again for a rematch. Ready controls lock during countdown and racing. Replay-opponent races start as before.
+
+Run ready-state and next-round queue checks with `node tests/ready.cjs`.
+
+During relay races, teammates’ current mistakes appear in red within their sections of the shared passage. Extra characters typed at a word gap appear in red before that space, matching the local typing display. Corrections update live through the existing room connection; other lanes’ mistakes are not displayed in your passage.
+
+After each friend race, the host automatically selects a new verse for the next round, avoiding the previous verse when another is available. Custom passages remain unchanged. Completed results and replays retain the passage just raced; replay-opponent races keep their selected recording.
+
+Run automatic post-race verse checks with `node tests/race-shuffle.cjs`.
+
+While the host is ready, race setup locks: passage, formatting, bots, lanes, room visibility, and removals cannot change. Unready to edit setup. New arrivals queue for a later round while the host is ready. When setup changes while a non-host is ready, their readiness clears and a notice asks them to ready up again because the race format/settings changed. Ready players cannot switch lanes, create a lane, or use room leave/navigation controls until they unready. Chat and other players’ ready toggles remain available.
+
+On wider screens, lobby chat and room chat appear in a side column next to the room list or race controls. On narrow screens they stack below the main controls.
+
+Records includes **friends records**, which keeps the highest shared personal best in each test category and capitalization/punctuation setting, with the holder’s name. Players exchange only compact score summaries while connected to the same lobby or room; full histories and replays are not shared for this feature. Friends records persist on this device, merge by highest WPM during backup import, and are included in exports and clear saved data. Scores are self-reported, and older app versions do not share them.
+
+After everyone is ready, **start race** becomes available after one second. Readiness or next-round roster changes restart that delay.
+
+After a race, pressing **ready** hides the chart and shows the next passage, including the next team split in relay mode. Unready restores the completed results. Saved results and replays keep the original passage.
+
+Run friends-record summary checks with `node tests/friends-records.cjs`; `node tests/rooms.cjs` also verifies online score exchange.
+
+Run active-turn chat checks with `node tests/race-chat.cjs`.
+
+Live racer and lane rows stay in a stable order during the race; finish-place badges still use completion time. Progress updates reuse rows and hover details rather than replacing them. Chat logs keep a fixed height and scroll internally. Remote typing updates preserve the passage scroll position, and unchanged room listings keep their existing controls.
+
+Run stable-row, hover, and passage-scroll checks with `node tests/race-layout.cjs`.
+
+Queued relay players with a seat in the upcoming round see their projected section when they ready up, using the same lane assignment and word split as the actual start. Overflow and deferred queue members are excluded from that preview. If the host unreadies after someone joined the frozen queue, those deferred players become eligible for the upcoming round again; any newly changed lineup clears non-host readiness and restarts the ready check.
+
+Run queued relay projection checks with `node tests/queue-relay.cjs`; `node tests/ready.cjs` covers deferred queue release and re-readiness.

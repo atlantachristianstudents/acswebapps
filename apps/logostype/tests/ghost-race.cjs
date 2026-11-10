@@ -27,7 +27,7 @@ const context = vm.createContext({
   Date: class extends Date { constructor(...args){super(...(args.length?args:[now]));} static now(){return now;} },
   Peer: function() { peerCalls++; throw new Error('Ghost races must not connect to a server'); },
   setInterval: callback => { timers.set(++nextTimer, callback); return nextTimer; },
-  clearInterval: id => timers.delete(id), setTimeout: () => 0, clearTimeout() {},
+  clearInterval: id => timers.delete(id), setTimeout: (callback,delay) => { if(delay===1000)context.readyDelay=callback;return 0; }, clearTimeout() {},
   getProfileName: () => 'Player', setReadingView() {}, syncNavigation() {}, updateBookProgress() {}, renderBookContext() {},
   pauseMenu() {}, currentMenu: 'typing', mode: 'words', limit: 25, punctuation: false, capitalization: false,
   target: '', rawTarget: '', typed: '', done: true, start: 0, timer: null,
@@ -151,15 +151,25 @@ assert.equal(elements.get('#joinRoom').disabled,false);
 assert(elements.get('#roomDirectoryStatus').textContent.includes('join by code'));
 elements.get('#createRoom').onclick();
 hostPeer.handlers.open('host-player');
+vm.runInContext(app.slice(app.indexOf('function personalRecordCategories('),app.indexOf('function renderPersonalRecords(')),context);
+vm.runInContext(fs.readFileSync(path.join(root,'friends-records.js'),'utf8'),context);
 const messages = [], callbacks = {};
 const connection = { peer: 'remote-player', open: true, metadata: { name: 'Friend' },
   on: (type, callback) => { callbacks[type] = callback; }, send: message => messages.push(message) };
 hostPeer.handlers.connection(connection);
 callbacks.open();
+callbacks.data({type:'personal-records',summary:{name:'spoofed',records:[{category:4,setting:0,wpm:200,accuracy:99,date:'2026-11-10'}]}});
+assert.equal(context.window.friendRecords.export().find(record=>record.category===4).name,'Friend','room records use the connected player name');
+assert(messages.some(message=>message.type==='personal-records'),'host shares personal best summary with new room arrivals');
+assert(elements.get('#startRace').disabled,'human racers start unready');
+callbacks.data({type:'ready',ready:true});
+assert(elements.get('#startRace').disabled,'host must also ready up');
+elements.get('#readyRace').onclick();now+=1000;context.readyDelay();
+assert(!elements.get('#startRace').disabled);
 elements.get('#startRace').onclick();
 const raceStart = messages.find(message => message.type === 'start');
 assert(raceStart, 'host starts and broadcasts a normal friend race');
-tick(14000);
+tick(now+3000);
 callbacks.data({ type: 'attemptReplay', round: raceStart.round, replay: result.replay });
 callbacks.data({ type: 'progress', round: raceStart.round, progress: 100, finished: true,
   finishMs: 2000, wpm: 18, accuracy: 100, passageComplete: true });
@@ -289,7 +299,8 @@ function addGuest(id,intent){
  hostPeer.handlers.connection(link);handlers.open();return {handlers,messages};
 }
 const activeRacer=addGuest('active-racer','join');
-elements.get('#startRace').onclick();tick(42500);
+activeRacer.handlers.data({type:'ready',ready:true});elements.get('#readyRace').onclick();now+=1000;context.readyDelay();
+elements.get('#startRace').onclick();tick(now+3000);
 const waiting=addGuest('waiting-racer','queue');
 const viewer=addGuest('view-only','watch');
 let roster=waiting.messages.filter(message=>message.type==='roster').at(-1);
@@ -301,6 +312,8 @@ assert.equal(elements.get('#racers').children.length,2,'spectator progress canno
 activeRacer.handlers.data({type:'progress',round:roster.round,progress:100,position:3,finished:true,finishMs:2000,wpm:18,accuracy:100,passageComplete:true});
 now=44500;context.typed=context.input.value='cat';context.finish();
 assert(!api.running,'viewers and queued racers do not delay round completion');
+assert(elements.get('#startRace').disabled,'rematch resets readiness');
+activeRacer.handlers.data({type:'ready',ready:true});waiting.handlers.data({type:'ready',ready:true});elements.get('#readyRace').onclick();now+=1000;context.readyDelay();
 elements.get('#startRace').onclick();
 roster=waiting.messages.filter(message=>message.type==='roster').at(-1);
 assert.equal(roster.players['waiting-racer'].role,'racer','queued racer is promoted before rematch');
@@ -394,25 +407,30 @@ assert.equal(elements.get('#roomChatLog').children.length,0,'room messages clear
 console.log('Room chat cleanup passed: leaving clears the room transcript.');
 elements.get('#createRoom').onclick();hostPeer.handlers.open('chat-lock-host');
 const typingGuest=addGuest('typing-guest','join'),chatViewer=addGuest('chat-viewer','watch');
+typingGuest.handlers.data({type:'ready',ready:true});elements.get('#readyRace').onclick();now+=1000;context.readyDelay();
 elements.get('#startRace').onclick();
-assert.equal(elements.get('#roomChatInput').disabled,true);
-assert.equal(elements.get('#roomChatSend').disabled,true);
-elements.get('#roomChatInput').value='blocked during race';elements.get('#roomChatForm').onsubmit({preventDefault(){}});
-assert.equal(elements.get('#roomChatLog').children.length,0);
-typingGuest.handlers.data({type:'chat-message',text:'bypass attempt'});
-assert.equal(elements.get('#roomChatLog').children.length,0,'host rejects racer chat during countdown');
-chatViewer.handlers.data({type:'chat-message',text:'watchers can chat'});
+assert.equal(elements.get('#roomChatInput').disabled,false);
+assert.equal(elements.get('#roomChatSend').disabled,false);
+elements.get('#roomChatInput').value='countdown chat';elements.get('#roomChatForm').onsubmit({preventDefault(){}});
 assert.equal(elements.get('#roomChatLog').children.length,1);
+typingGuest.handlers.data({type:'chat-message',text:'guest countdown chat'});
+assert.equal(elements.get('#roomChatLog').children.length,2,'host permits chat before active typing');
+chatViewer.handlers.data({type:'chat-message',text:'watchers can chat'});
+assert.equal(elements.get('#roomChatLog').children.length,3);
 assert(/\d+:\d{2}:\d{2}/.test(elements.get('#roomChatLog').children[0].children[1].textContent),'timestamps include seconds');
 const chatRound=typingGuest.messages.filter(message=>message.type==='start').at(-1).round;
 const chatStart=now+3000;tick(chatStart);
+assert.equal(elements.get('#roomChatInput').disabled,true);
+elements.get('#roomChatInput').value='send after finishing';elements.get('#roomChatForm').onsubmit({preventDefault(){}});
 typingGuest.handlers.data({type:'chat-message',text:'still blocked'});
-assert.equal(elements.get('#roomChatLog').children.length,1);
+assert.equal(elements.get('#roomChatLog').children.length,3);
 typingGuest.handlers.data({type:'progress',round:chatRound,progress:100,position:3,finished:true,finishMs:1000,wpm:36,accuracy:100,passageComplete:true});
+typingGuest.handlers.data({type:'chat-message',text:'finished guest can chat'});
+assert.equal(elements.get('#roomChatLog').children.length,4,'finished guest can chat while host is still racing');
 now=chatStart+1000;context.typed=context.input.value='cat';context.finish();
 assert.equal(elements.get('#roomChatInput').disabled,false);
 assert.equal(elements.get('#roomChatSend').disabled,false);
 elements.get('#roomChatForm').onsubmit({preventDefault(){}});
 assert.equal(elements.get('#roomChatInput').value,'');
-assert.equal(elements.get('#roomChatLog').children.length,2,'racers can send after the round ends');
-console.log('Racer chat restriction checks passed: disabled UI, host enforcement, spectator access, seconds, and post-round recovery.');
+assert.equal(elements.get('#roomChatLog').children.length,5);
+console.log('Racer chat checks passed: countdown access, active typing lock, host enforcement, finished racers, and post-round recovery.');
