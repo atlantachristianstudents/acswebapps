@@ -22,22 +22,22 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `↑` / `↓` | Hymn number -37 / +37 |
 | `Backspace` | Delete (number mode) / clear (text mode via Enter) |
 | `Enter` | Clear (number mode) / new line (text mode) |
-| `u` / `Ctrl+Z` | Undo the last clear (the swap-back trick keeps the previous value, so a second press switches back) |
+| `u` / `Ctrl/Cmd+Z` | Undo the last clear (the swap-back trick keeps the previous value, so a second press switches back) |
 | `-` / `+` | Smaller / bigger (with other languages showing, resizes them the opposite way) |
 | `f` | Fill the window again |
 | `Shift+F` | Full screen |
 | `w` / `Alt+W` | Toggle line wrapping |
 | `h` | Cycle theme (system, black on white, white on black) — remembered |
 | `m` | Show / hide the on-screen buttons (remembered) |
-| `t` | Text mode (any characters); `Esc` or `Ctrl+\` back to numbers |
+| `t` | Text mode (any characters); `Esc` or `Ctrl/Cmd+\` back to numbers |
 | `l` | All other languages for the number; always includes Chinese and both Spanish editions (`-` for missing matches) |
 | `c` `k` `s` `b` | Chinese / Korean / both Spanish editions / Burmese numbers (or `-` if that hymnal has no match) |
 | `e` / `a` | Label the main number English + Korean; below, show Burmese and Chinese on the first row, Spanish 1st and Spanish 2nd on the second, and Enjoyer Russian numbers on a third row (`-` if missing) |
 | `E` (`Shift+e`) | Toggle alternate E/K view with Enjoyer Korean numbers on an additional row below; the main E/K number stays separate. Press `E` again to turn off; lowercase `e` switches to the regular view. Missing Korean links show `-`. |
-| `Ctrl+Delete` | Clear |
-| `Ctrl+C` | Copy the current value |
-| `?` / `/` | This shortcut list (in text mode, `Ctrl+/`) |
-| `Ctrl+\` | Switch number / text mode |
+| `Ctrl/Cmd+Delete` | Clear |
+| `Ctrl/Cmd+C` | Copy the current value |
+| `?` / `/` | This shortcut list (in text mode, `Ctrl/Cmd+/`) |
+| `Ctrl/Cmd+\` | Switch number / text mode |
 
 Touch screens get the on-screen buttons automatically; they are the same actions.
 
