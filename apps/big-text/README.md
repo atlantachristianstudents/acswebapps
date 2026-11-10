@@ -22,21 +22,21 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `↑` / `↓` | Hymn number -37 / +37 |
 | `Backspace` | Delete (number mode) / clear (text mode via Enter) |
 | `Enter` | Clear (number mode) / new line (text mode) |
-| `u` / `Ctrl+Z` | Undo the last clear (the swap-back trick keeps the previous value, so a second press switches back) |
+| `u` / `Ctrl/Cmd+Z` | Undo the last clear (the swap-back trick keeps the previous value, so a second press switches back) |
 | `-` / `+` | Smaller / bigger (with other languages showing, resizes them the opposite way) |
 | `f` | Fill the window again |
 | `Shift+F` | Full screen |
 | `w` / `Alt+W` | Toggle line wrapping |
 | `h` | Cycle theme (system, black on white, white on black) — remembered |
 | `m` | Show / hide the on-screen buttons (remembered) |
-| `t` | Text mode (any characters); `Esc` or `Ctrl+\` back to numbers |
+| `t` | Text mode (any characters); `Esc` or `Ctrl/Cmd+\` back to numbers |
 | `l` | All other languages for the number |
 | `c` `k` `s` `b` | Chinese / Korean / Spanish / Burmese number (or `-` if that hymnal has no match) |
 | `e` | Label the main number English + Korean, show Chinese, Spanish, Burmese below |
-| `Ctrl+Delete` | Clear |
-| `Ctrl+C` | Copy the current value |
-| `?` / `/` | This shortcut list (in text mode, `Ctrl+/`) |
-| `Ctrl+\` | Switch number / text mode |
+| `Ctrl/Cmd+Delete` | Clear |
+| `Ctrl/Cmd+C` | Copy the current value |
+| `?` / `/` | This shortcut list (in text mode, `Ctrl/Cmd+/`) |
+| `Ctrl/Cmd+\` | Switch number / text mode |
 
 Touch screens get the on-screen buttons automatically; they are the same actions.
 
