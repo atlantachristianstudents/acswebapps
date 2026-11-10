@@ -37,7 +37,7 @@ function validateRaceReplay(data){
     completed=completed&&!player.gaveUp;
     return {id:player.id,name:player.name,wpm:player.wpm,accuracy:player.accuracy,place:completed?player.place:null,completed,gaveUp:player.gaveUp,finishMs:player.finishMs,replay};
   });
-  return {participants};
+  return {participants,...(data.relay===true?{relay:true}:{})};
 }
 function getProfileName(){
   try{return (localStorage.getItem('logostype-racer')||'').trim().slice(0,24)}catch{return ''}

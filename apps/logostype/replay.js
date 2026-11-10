@@ -58,18 +58,36 @@ function replaySpeedsAt(readings, time) {
 function openRaceReplay(result, index) {
   if (result?.raceReplay) openAttemptReplay(result, index, validateRaceReplay(result.raceReplay).participants);
 }
+function overlapReplayMarkup(sessions, position) {
+  const available=sessions.filter(player=>player.replay);
+  const passage=available[0]?.replay.target;
+  if(!passage)return '';
+  const colors=['#d08770','#5e81ac','#b48ead','#a3be8c','#d9a441','#bf616a','#48a0a0','#88c0d0'];
+  const markers=new Map();
+  available.forEach((player,index)=>{
+    const data=player.replay,time=Math.min(position,data.durationMs);
+    const parsed=parseTyping(replayValueAt(data.events,time),false,data.target);
+    const at=Math.min(passage.length,parsed.text.length);
+    const marker='<span class="race-text-marker replay-overlap-marker" style="--racer-color:'+colors[index%colors.length]+'" aria-hidden="true"><span style="left:9px;top:-'+(14*(index+1))+'px">'+escapeHtml(player.name)+(position>=data.durationMs&&player.completed?' ✓':'')+'</span></span>';
+    markers.set(at,(markers.get(at)||'')+marker);
+  });
+  return typingPassageMarkup(passage,'',{}).replace(/(<span class="letter[^"]*" data-typing-position="(\d+)"[^>]*>)/g,(match,open,at)=>open+(markers.get(Number(at))||''));
+}
 function openAttemptReplay(result, index, racers = null) {
   if (!result?.replay && !racers) return;
   const participants = racers || [{ name: '', replay: result.replay }];
   const sessions = participants.map((player, index) => ({ ...player, index,
     readings: player.replay ? buildReplayReadings(player.replay) : [] }));
   const durationMs = sessions.reduce((max, player) => Math.max(max, player.replay?.durationMs || 0), 0);
+  const available=sessions.filter(player=>player.replay);
+  const canOverlap=!!racers&&available.length>0&&available.every(player=>player.replay.target===available[0].replay.target);
   const suffix = index => index ? String(index) : '';
   const content = $('#modalContent');
-  content.innerHTML = (Number.isInteger(index)
+  content.innerHTML = '<div class="replay-layout"><div class="replay-entries">' + (Number.isInteger(index)
     ? '<button class="option" data-history-index="' + index + '">← typing result</button>'
     : '<button class="option" id="closeAttemptReplay">← results</button>') +
-    '<h2>' + (racers ? 'race replay · all participants' : 'attempt replay') + '</h2>' +
+    '<h2>' + (racers ? (result.raceReplay?.relay ? 'relay replay · all lanes' : 'race replay · all participants') : 'attempt replay') + '</h2>' +
+    (canOverlap ? '<section id="attemptReplayShared" hidden><h3>shared race passage</h3><div id="attemptReplayOverlapWords" class="words attempt-replay-words replay-overlap-words" style="--replay-marker-rows:'+available.length+'" aria-label="Shared replay passage with racer positions"></div></section>' : '') +
     sessions.map(player => {
       const key = suffix(player.index);
       const heading = racers ? '<h3>' + escapeHtml(player.name) + (player.gaveUp ? ' · gave up' : player.completed && player.place ? ' · #' + player.place : ' · unfinished') + '</h3>' : '';
@@ -78,19 +96,22 @@ function openAttemptReplay(result, index, racers = null) {
         '<div class="replay-live-stats" aria-live="off"><div>average WPM <strong id="attemptReplayAverage' + key + '">0</strong></div><div>instant WPM (last 3s) <strong id="attemptReplayInstant' + key + '">0</strong></div></div>' +
         (racers ? '<div class="race-track"><i id="attemptReplayProgress' + key + '"></i></div>' : '') +
         '<div class="words attempt-replay-words" id="attemptReplayWords' + key + '" aria-label="Recorded typing attempt' + (racers ? ': ' + escapeHtml(player.name) : '') + '"></div></section>';
-    }).join('') +
-    '<label for="attemptReplaySeek">replay position</label><input id="attemptReplaySeek" type="range" min="0" step="any" max="' + durationMs + '" value="0">' +
+    }).join('') + '</div>' +
+    '<div class="replay-toolbar"><label for="attemptReplaySeek">replay position</label><input id="attemptReplaySeek" type="range" min="0" step="any" max="' + durationMs + '" value="0">' +
     '<p id="attemptReplayTime" aria-live="off"></p><div class="records-controls"><button class="option" id="attemptReplayPlay">pause</button>' +
-    '<button class="option" id="attemptReplayRestart">replay from start</button></div>';
+    '<button class="option" id="attemptReplayRestart">replay from start</button>' +
+    (canOverlap ? '<button class="option" id="attemptReplayOverlap" aria-pressed="false">overlap replay</button>' : '') + '</div></div>' +
+    '</div>';
   if (!$('#modal').open) $('#modal').showModal();
   const seek = $('#attemptReplaySeek'), play = $('#attemptReplayPlay');
-  let position = 0, playing = true, previous = performance.now();
+  let position = 0, playing = true, overlap = false, previous = performance.now();
   function paint() {
     for (const player of sessions) {
       if (!player.replay) continue;
       const data = player.replay, key = suffix(player.index), words = $('#attemptReplayWords' + key);
       const time = Math.min(position, data.durationMs);
       const parsed = parseTyping(replayValueAt(data.events, time), false, data.target);
+      words.hidden=overlap;
       words.innerHTML = typingPassageMarkup(data.target, parsed.text, parsed.spaceTypos);
       const cursor = words.querySelector('.cursor');
       if (cursor) words.scrollTop = Math.max(0, cursor.offsetTop - words.clientHeight / 2);
@@ -101,10 +122,15 @@ function openAttemptReplay(result, index, racers = null) {
         $('#attemptReplayProgress' + key).style.width = Math.min(parsed.text.length / data.target.length * 100, 100) + '%';
       }
     }
+    if(canOverlap){
+      $('#attemptReplayShared').hidden=!overlap;
+      if(overlap)$('#attemptReplayOverlapWords').innerHTML=overlapReplayMarkup(sessions,position);
+    }
     seek.value = position;
     $('#attemptReplayTime').textContent = (position / 1000).toFixed(2) + 's / ' + (durationMs / 1000).toFixed(2) + 's';
     play.textContent = playing ? 'pause' : 'play';
   }
+  if(canOverlap)$('#attemptReplayOverlap').onclick=()=>{overlap=!overlap;$('#attemptReplayOverlap').setAttribute('aria-pressed',String(overlap));paint();};
   play.onclick = () => {
     if (position >= durationMs) position = 0;
     playing = !playing;

@@ -16,7 +16,7 @@ const context = vm.createContext({
     return elements.get(selector);
   },
   document: { createElement: element, querySelectorAll: () => [], body:{classList:{toggle(){}}} },
-  unlisted:false, isRacer:player=>player.role!=='watcher'&&player.role!=='queued',
+  relay:false, relayLaneCount:4, relayLegs:{}, relayStarted:false, unlisted:false, isRacer:player=>player.role!=='watcher'&&player.role!=='queued',
   self: 'winner', round: 1, celebratedRound: null, phase: 'finished',
   textMarkers:new Map(),markerLayout:'',api: {active:false}, target: "", roundReplay: null, ghost: null, host: true, done: true, passageMode: 'verse', raceFormatting: false,
   lastRacer: () => false, drawChart() {}, status() {},
@@ -29,6 +29,7 @@ const context = vm.createContext({
   },
 });
 context.preparedText='cat';
+vm.runInContext(source.slice(source.indexOf('  function buildRelayLegs('), source.indexOf('  function defaultRaceDuration(')), context);
 vm.runInContext(source.slice(source.indexOf('  function defaultRaceDuration('), source.indexOf('  function showPreparedPassage(')), context);
 assert.equal(vm.runInContext("defaultRaceDuration('cat')",context),10);
 assert.equal(vm.runInContext("defaultRaceDuration('a'.repeat(101))",context),45);

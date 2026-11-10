@@ -515,6 +515,7 @@ function switchTypingMenu(destination) {
     $("#rawWpm").parentElement.hidden = false;
     updateBookProgress(); limits(); render(false); syncNavigation();
     $("#replayAllResult").hidden = !history.find(result => result.id === lastResultId)?.raceReplay;
+    $("#replayAllResult").textContent = history.find(result => result.id === lastResultId)?.raceReplay?.relay ? "▶ replay all lanes" : "▶ replay all racers";
     if (done) drawChart();
   } else {
     mode = destination === "journey" ? "book" : lastTypingMode;
@@ -712,7 +713,7 @@ function parseTyping(value, capped = false, passage = target) {
 function render(smooth = true) {
   renderBookContext();
   const { spaceTypos } = parseTyping(input.value);
-  $("#words").innerHTML = typingPassageMarkup(target, typed, spaceTypos);
+  $("#words").innerHTML = window.friendRace?.relayPassageMarkup?.(spaceTypos) ?? typingPassageMarkup(target, typed, spaceTypos);
   positionCaret(smooth);
 }
 function typingPassageMarkup(passage, entered, spaceTypos) {
@@ -759,7 +760,7 @@ function positionCaret(smooth = true) {
   if (!letter) return;
   const box = $("#words");
   const lineHeight = parseFloat(getComputedStyle(box).lineHeight);
-  box.scrollTop = document.body.classList.contains("book-mode") || document.body.classList.contains("race-spectator")
+  box.scrollTop = document.body.classList.contains("book-mode") || document.body.classList.contains("race-spectator") || document.body.classList.contains("relay-race")
     ? 0
     : Math.max(0, letter.offsetTop - lineHeight);
   const r = letter.getBoundingClientRect(),
@@ -1110,7 +1111,7 @@ input.addEventListener("input", () => {
     input.value = lastInput;
     return;
   }
-  if (window.friendRace?.active && !window.friendRace.running) {
+  if (window.friendRace?.active && (!window.friendRace.running || input.disabled)) {
     input.value = lastInput;
     return;
   }
@@ -1902,7 +1903,7 @@ function openHistoryResult(index) {
     '<button id="historyBack" class="option">← typing history</button><h2>typing result</h2><p id="historyResultSummary"></p>';
   $("#historyResultSummary").textContent =
     `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
-  const attemptActions = (result.raceReplay ? '<button class="option" data-race-replay-index="' + index + '">▶ replay all racers</button>' : "") + (result.replay
+  const attemptActions = (result.raceReplay ? '<button class="option" data-race-replay-index="' + index + '">▶ replay all ' + (result.raceReplay.relay ? 'lanes' : 'racers') + '</button>' : "") + (result.replay
     ? '<div class="records-controls"><button class="option" data-replay-index="' + index + '">▶ replay</button><button class="option" data-retry-index="' + index + '">↻ retry</button><button class="option" data-race-against-index="' + index + '">⚑ race against</button></div>'
     : '<p>Replay, retry, and race against are unavailable because this older result has no saved passage or keystroke timing.</p>');
   if (!result.chart) {

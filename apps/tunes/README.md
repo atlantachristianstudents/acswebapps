@@ -13,6 +13,9 @@ Tuner, instrument tuner, audio graph, metronome, tone generator and key/chord de
 Run `python3 -m http.server 8000` in this folder and open http://localhost:8000 (localhost counts as secure, so install and offline work there too).
 Or just open index.html directly; it is fully self-contained, though some browsers re-ask for microphone access each time and cannot install it.
 
+## Keyboard shortcuts
+Press **1–6** to switch tabs: **1** Tuner, **2** Instruments, **3** Graph, **4** Metronome, **5** Tones, **6** Key and chords. These shortcuts are ignored while editing fields or holding modifier keys. Left and right arrow keys also switch tabs; the space bar starts or stops the metronome when its tab is open.
+
 ## Microphone permission
 Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tunes also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
 

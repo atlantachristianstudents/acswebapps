@@ -125,6 +125,29 @@ context.$('#attemptReplayRestart').onclick();
 assert.equal(context.$('#attemptReplayAverage1').textContent, 0);
 assert.throws(() => run('validateRaceReplay({participants:[group.participants[0],group.participants[0]]})'));
 console.log('Group replay checks passed: synchronized scrubbing, individual progress and WPM, restart, unavailable participants, escaped names, and backup validation.');
+// The same controls drive separate and overlapping race views.
+assert(context.$('#modalContent').innerHTML.indexOf('class="replay-toolbar"') > context.$('#modalContent').innerHTML.indexOf('class="race-replay-participant"'));
+context.$('#attemptReplaySeek').value=500;
+context.$('#attemptReplaySeek').oninput();
+const beforeOverlap=context.$('#attemptReplayTime').textContent;
+context.$('#attemptReplayOverlap').onclick();
+assert.equal(context.$('#attemptReplayShared').hidden,false);
+assert.equal(context.$('#attemptReplayWords').hidden,true);
+assert.equal(context.$('#attemptReplayWords1').hidden,true);
+const overlapMarkup=context.$('#attemptReplayOverlapWords').innerHTML;
+assert.equal((overlapMarkup.match(/class="race-text-marker replay-overlap-marker"/g)||[]).length,2,'one marker per available recording');
+assert(overlapMarkup.includes('First &lt;racer>'),'marker names escape HTML');
+assert(overlapMarkup.includes('Second ✓'),'finished racer remains marked at passage end');
+assert.equal(context.$('#attemptReplayTime').textContent,beforeOverlap,'toggle preserves playback position');
+context.$('#attemptReplaySeek').value=0;context.$('#attemptReplaySeek').oninput();
+assert(!context.$('#attemptReplayOverlapWords').innerHTML.includes('Second ✓'),'scrubbing rewinds shared markers');
+context.$('#attemptReplayOverlap').onclick();
+assert.equal(context.$('#attemptReplayShared').hidden,true);
+assert.equal(context.$('#attemptReplayWords').hidden,false);
+const replayHtml=fs.readFileSync(path.join(root,'index.html'),'utf8');
+assert(/\.replay-entries\s*\{[^}]*overflow-y:\s*auto;/s.test(replayHtml),'entries scroll independently of controls');
+assert(/\.replay-toolbar\s*\{[^}]*flex-shrink:\s*0;[^}]*background:\s*var\(--panel\);/s.test(replayHtml),'bottom controls stay fixed and match popup background');
+console.log('Overlap replay checks passed: shared markers, finished positions, escaping, synchronized seeking, view toggle, and fixed bottom controls matching popup background.');
 run(`var incompleteRace=validateRaceReplay({participants:[{
  id:'timeout',name:'Timed out',place:1,wpm:150,accuracy:100,finishMs:1000,gaveUp:false,
  replay:{...saved,events:[{time:0,at:0,remove:0,text:'ca'}]}

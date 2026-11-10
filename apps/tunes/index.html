@@ -1244,14 +1244,14 @@
     <div id="mFlash" style="position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 5"></div>
     <footer>
       <div id="dots">
-        <button aria-label="Tuner" title="Tuner" data-i="0">
+        <button aria-label="Tuner" title="Tuner (1)" aria-keyshortcuts="1" data-i="0">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 17a8 8 0 0 1 16 0" />
             <path d="M12 17l4-6" />
             <path d="M12 6v2" />
           </svg>
         </button>
-        <button aria-label="Instruments" title="Instruments" data-i="1">
+        <button aria-label="Instruments" title="Instruments (2)" aria-keyshortcuts="2" data-i="1">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="9" cy="15" r="5" />
             <path d="M12.5 11.5L20 4" />
@@ -1259,7 +1259,7 @@
             <circle cx="9" cy="15" r="1.2" />
           </svg>
         </button>
-        <button aria-label="Graph" title="Graph" data-i="2">
+        <button aria-label="Graph" title="Graph (3)" aria-keyshortcuts="3" data-i="2">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 20v-7" />
             <path d="M9 20V6" />
@@ -1267,16 +1267,16 @@
             <path d="M19 20v-5" />
           </svg>
         </button>
-        <button aria-label="Metronome" title="Metronome" data-i="3">
+        <button aria-label="Metronome" title="Metronome (4)" aria-keyshortcuts="4" data-i="3">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 21l2-17h4l2 17z" />
             <path d="M12 17l4-9" />
           </svg>
         </button>
-        <button aria-label="Tones" title="Tones" data-i="4">
+        <button aria-label="Tones" title="Tones (5)" aria-keyshortcuts="5" data-i="4">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2.5-8 5-8 7.5 0s5 8 7.5 0 3-4 5-4" /></svg>
         </button>
-        <button aria-label="Key and chords" title="Key and chords" data-i="5">
+        <button aria-label="Key and chords" title="Key and chords (6)" aria-keyshortcuts="6" data-i="5">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 18V5l11-2v13" />
             <circle cx="6.5" cy="18" r="2.5" />
@@ -1323,7 +1323,12 @@
       }
       document.querySelectorAll("#dots button").forEach((b) => b.addEventListener("click", () => go(+b.dataset.i)));
       addEventListener("keydown", (e) => {
-        if (e.target.closest && e.target.closest("input,select,textarea")) return;
+        if (e.target.closest && e.target.closest("input,select,textarea,[contenteditable]:not([contenteditable='false'])")) return;
+        if (!e.defaultPrevented && !e.isComposing && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && /^[1-6]$/.test(e.key)) {
+          e.preventDefault();
+          go(Number(e.key) - 1);
+          return;
+        }
         if (e.key === "ArrowRight") go(cur + 1);
         if (e.key === "ArrowLeft") go(cur - 1);
       });

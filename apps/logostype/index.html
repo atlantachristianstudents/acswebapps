@@ -482,6 +482,7 @@
         height: calc(5.04em + 30px);
         overflow: hidden;
       }
+      body.in-room.relay-race #words,
       body.in-room.race-spectator #words {
         height: auto;
         max-height: none;
@@ -673,6 +674,31 @@
         color: var(--muted);
         scroll-behavior: auto;
       }
+      .replay-layout {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100dvh - 120px);
+        overflow: hidden;
+      }
+      .replay-entries {
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 6px;
+      }
+      .replay-toolbar {
+        flex-shrink: 0;
+        background: var(--panel);
+        padding: 12px 0 0;
+      }
+      .replay-toolbar p { margin: 4px 0; }
+      .replay-overlap-words .letter { position: relative; }
+      .replay-overlap-words .cursor { border-left: 0; }
+      .words.attempt-replay-words.replay-overlap-words,
+      body.book-mode .words.attempt-replay-words.replay-overlap-words {
+        padding-top: calc(var(--replay-marker-rows) * 14px + 4px);
+        line-height: calc(1.6em + var(--replay-marker-rows) * 14px);
+      }
+      .replay-overlap-marker { top: 0; }
       .race-replay-participant {
         margin-bottom: 20px;
       }
@@ -1063,6 +1089,28 @@
         display: flex;
         gap: 8px;
       }
+      .relay-assigned { background: color-mix(in srgb, var(--main-color, #d9a441) 12%, transparent); border-bottom: 2px solid currentColor; }
+      body.relay-preview #words {
+        line-height: 2.7;
+        padding-top: 22px;
+      }
+      .relay-preview-section.relay-section-0 { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+      .relay-preview-section.relay-section-1 { background: color-mix(in srgb, #a3be8c 18%, transparent); }
+      .relay-leg-label {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        font-size: 11px;
+        line-height: 16px;
+        color: var(--text);
+        background: var(--bg);
+        border-left: 2px solid var(--accent);
+        padding: 0 4px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .relay-teammate { color: var(--text-color, #a3be8c); background: color-mix(in srgb, #a3be8c 25%, transparent); }
+      body.relay-waiting #typingCaret { visibility: hidden; }
       body.race-spectator #typingCaret,
       body.race-spectator .hint {
         display: none;
@@ -1155,6 +1203,17 @@
       .race-actions .race-primary {
         margin-top: 0;
       }
+      #relayMode {
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        padding: 10px 16px;
+        white-space: nowrap;
+      }
+      #relayMode[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+      }
       .race-leave {
         margin-left: auto;
         color: var(--error);
@@ -1181,6 +1240,21 @@
       button:disabled {
         opacity: 0.4;
         cursor: default;
+      }
+      .relay-lane-row {
+        border: 1px solid transparent;
+        border-radius: 5px;
+        padding: 8px;
+      }
+      .relay-lane-row[aria-disabled="false"] { cursor: pointer; }
+      .relay-lane-row[aria-pressed="true"] { border-color: var(--accent); }
+      .relay-lane-row[aria-disabled="false"]:hover,
+      .relay-lane-row:focus-visible { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+      #addRelayLane {
+        margin-top: 8px;
+        border: 1px solid var(--muted);
+        border-radius: 5px;
+        padding: 8px 16px;
       }
       .racer {
         display: grid;
@@ -1939,7 +2013,14 @@
             <p id="roomPrivacyStatus"></p>
             <button type="button" id="roomVisibility" hidden>make private</button>
           </div>
+          <div id="relayControls" hidden>
+            <p>Teammates type in join order. Each lane splits the passage evenly by words; team sizes may differ.</p>
+            <p id="relayPassageHint"></p>
+          </div>
           <div id="racers"></div>
+          <div id="relayLaneActions" hidden>
+            <button type="button" id="addRelayLane" aria-label="Create and join a new lane">+</button>
+          </div>
           <div id="raceAudience" aria-live="polite"></div>
           <form id="raceDurationForm">
             <p id="raceTimeLimit"></p>
@@ -1959,10 +2040,15 @@
                 placeholder="Enter the passage everyone will type"></textarea>
             </div>
           </form>
+          <div id="raceBots" hidden>
+            <p>add a bot · choose speed (WPM)</p>
+            <div id="raceBotChoices" class="race-passage-options" role="group" aria-label="Add a racing bot by speed"></div>
+          </div>
           <div class="race-actions">
             <button type="button" id="queueRace" class="race-primary" hidden>queue for next race →</button
             ><button type="button" id="raceNewAttempt" class="race-primary" hidden>⚑ race against new attempt</button
             ><button id="startRace" class="race-primary">start race →</button
+            ><button type="button" id="relayMode" aria-pressed="false" hidden>relay racing: off</button
             ><button id="giveUpRace" class="race-leave" hidden>give up</button
             ><button id="leaveRace" class="race-leave">leave room</button>
           </div>
