@@ -30,16 +30,20 @@ assert.equal(verses,0,'Journey still requires correcting all mistakes');
 assert.equal(finishes,1);
 console.log('Race typo checks passed: correction required, accuracy retained, Journey correction requirement preserved.');
 
-for(const mode of ['words','quote','custom']){
-  context.mode=mode;context.lastInput='';context.typed='';
-  context.input.value='cxtx dog';
+for(const mode of ['words','quote','custom','race']){
+  context.window.friendRace.active=mode==='race';
+  context.mode=mode==='race'?'quote':mode;
+  context.lastInput='';context.typed='';
+  context.input.value='cxtx dogEXTRA';
   const before=finishes;onInput();
   assert.equal(finishes,before,mode+' waits for corrections');
-  context.input.value='cat dogx';onInput();
-  assert.equal(finishes,before,mode+' waits for trailing extras to be removed');
-  context.input.value='cat dog ';onInput();
-  assert.equal(finishes,before,mode+' waits for trailing spaces to be removed');
-  context.input.value='cat dog';onInput();
-  assert.equal(finishes,before+1,mode+' finishes after corrections');
+  assert.equal(context.input.value,'cxtx dog',mode+' discards trailing extras even with unresolved typos');
+  const errorsBefore=context.errors, totalBefore=context.total;
+  context.input.value='cxtx dog MORE';onInput();
+  assert.equal(context.errors,errorsBefore,mode+' ignores extras in accuracy');
+  assert.equal(context.total,totalBefore,mode+' ignores extras in keystroke counts');
+  context.input.value='cat dogEXTRA ';onInput();
+  assert.equal(context.input.value,'cat dog',mode+' discards trailing characters and spaces');
+  assert.equal(finishes,before+1,mode+' finishes after passage corrections');
 }
-console.log('Words, verse, and custom tests require corrected passages.');
+console.log('Words, verse, custom, and race tests ignore trailing characters and require corrected passages.');

@@ -458,7 +458,7 @@ function renderBookContext() {
       !scriptureLines[index] ||
       index < journey.start ||
       index >= journey.end;
-    element.classList.toggle("completed", id === "previousVerse" && !element.hidden && journeyVerseCompleted(journey, index));
+    element.classList.toggle("completed", !element.hidden && journeyVerseCompleted(journey, index));
     if (element.hidden) continue;
     element.querySelector(".verse-context-reference").textContent = scriptureReferences[index];
     element.querySelector("p").textContent = scriptureLines[index];
@@ -1085,7 +1085,7 @@ input.addEventListener("keydown", (event) => {
 });
 input.addEventListener("beforeinput", (event) => {
   if (
-    (mode === "book" || window.friendRace?.active) &&
+    (mode !== "time" || window.friendRace?.active) &&
     event.inputType.startsWith("insert") &&
     parseTyping(input.value).text.length >= target.length &&
     input.selectionStart === input.selectionEnd
@@ -1116,7 +1116,7 @@ input.addEventListener("input", () => {
   }
   if (mode === "book" && !window.friendRace?.active && !start && !lastInput.length)
     input.value = input.value.replace(/^ +/, "");
-  const capped = mode === "book" || window.friendRace?.active;
+  const capped = mode !== "time" || window.friendRace?.active;
   const parsed = parseTyping(input.value, capped),
     v = parsed.text;
   if (input.value !== parsed.raw) input.value = parsed.raw;

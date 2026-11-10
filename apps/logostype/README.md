@@ -16,7 +16,7 @@ Names, typing history, journey progress, and past completion dates are saved in 
 
 When a space is expected, wrong keystrokes show the actual typed characters in red after the word. Repeated wrong keystrokes accumulate at that same space; they do not advance into the next word. The cursor stays after these extra characters, before the word gap, until you press **Space**. **Backspace** removes the extra characters. They still count as mistakes even if you continue by typing a space. Words, verse, custom tests, races, and Scripture Journey require correcting these extras and all letter mistakes before completion. Timed tests still end when their timer expires.
 
-Extra characters after the passage also prevent words, verse, and custom tests from completing; backspace removes them before completion.
+Words, verse, custom, races, and Scripture Journey ignore additional characters typed after the end of the passage. Remaining mistakes within the passage must still be corrected before completion.
 
 Words mode shows the number of words typed out of the passage's total word count. A word counts after its following space is typed, or when the final word reaches the end of the passage.
 
@@ -191,6 +191,6 @@ Storage cleanup checks: `node tests/history-store.cjs`. Restoring a backup can r
 
 The race room browser includes a shared **lobby chat** visible to everyone connected to the shared directory. Each race room has its own **room chat**, relayed only to that room’s racers, queued users, and watchers. Messages use player names, render as plain text, allow up to 500 characters, and are limited to about one per second per sender. New arrivals see up to 50 recent messages. Room chat timestamps include hours, minutes, and seconds. Racers cannot send messages during the countdown or active round; watchers and queued users can still chat, and racers regain chat when the round ends. The host enforces this restriction for incoming messages too. Room chat continues through rematches and clears when leaving; chats are not saved in history, local storage, or backups. Lobby chat stays in connected browsers’ memory and can be lost if all directory participants disconnect. Existing room-removal controls also stop removed users from sending to that room.
 
-In Scripture Journey, the previous-verse preview appears in white when that verse is completed in the selected journey, including verses completed with shuffle enabled.
+In Scripture Journey, both the previous-verse and following-verse previews use the theme’s highlighted text color when that verse is completed in the current journey, including verses completed with shuffle enabled. Restarting a journey clears these highlights for the new attempt.
 
 Settings → **your profile** shows **date joined**, based on the earliest readable date in saved typing history. It updates when older history is imported and is preserved through backups via that history. Before the first result, it prompts you to complete a typing test. Clearing all saved data resets it.
