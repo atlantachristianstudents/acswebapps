@@ -234,6 +234,11 @@
         overflow-wrap: anywhere;
       }
 
+      #ready-text {
+        white-space: pre-wrap;
+        line-height: 1.8;
+      }
+
       .comparison del {
         background: var(--bad);
         color: var(--bad-text);
@@ -245,6 +250,177 @@
         background: var(--good);
         text-decoration: underline;
         padding: 2px 3px;
+      }
+
+      /* ==========================================================
+         BIBLE SEARCH, LIBRARY, WORD HIDER
+         ========================================================== */
+
+      #bible,
+      #library {
+        margin-top: 44px;
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+      }
+
+      .inline-search {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        max-width: 520px;
+      }
+
+      .inline-search input {
+        flex: 1 1 220px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+      }
+
+      #bible-status:empty,
+      #library-status:empty,
+      #hider-progress:empty {
+        display: none;
+      }
+
+      .result,
+      .lib-item {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .result h3,
+      .lib-head strong {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .result .verse-text {
+        margin: 6px 0 12px;
+      }
+
+      .verse-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .verse-actions button {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+      }
+
+      .lib-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+
+      .pill {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: var(--bad);
+        color: var(--bad-text);
+      }
+
+      .pill.learned {
+        background: var(--good);
+        color: var(--text);
+      }
+
+      .lib-text {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .lib-meta {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .group-input {
+        padding: 6px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+        width: 150px;
+      }
+
+      .lib-filters {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+      }
+
+      .lib-filters button {
+        padding: 7px 14px;
+        font-size: 0.85rem;
+      }
+
+      .lib-filters button[aria-pressed="true"] {
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+
+      .lib-filters button:not([aria-pressed="true"]) {
+        background: transparent;
+        color: var(--accent);
+      }
+
+      .green {
+        background: var(--good);
+        color: var(--text);
+      }
+
+      .mark {
+        background: var(--bad);
+        color: var(--bad-text);
+      }
+
+      .mark:hover,
+      .green:hover,
+      .lib-filters button:hover,
+      button:hover {
+        filter: brightness(0.92);
+      }
+
+      .hider-words {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        font-size: 1.15rem;
+        line-height: 2.1;
+        overflow-wrap: anywhere;
+      }
+
+      .hider-words .w {
+        padding: 2px 3px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .hider-words .w.hid {
+        background: var(--line);
+        color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
       }
 
       [hidden] {
@@ -384,6 +560,23 @@
           Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.
         </p>
 
+        <section id="bible" aria-label="Bible verse search">
+          <p class="eyebrow">Search · Recovery Version</p>
+          <h2>Find a Bible verse</h2>
+          <div class="inline-search">
+            <input
+              type="text"
+              id="bible-q"
+              placeholder="John 3:16 · Rom. 8:28–30 · “God is love”"
+              aria-label="Search by reference or words"
+              spellcheck="false"
+              autocomplete="off" />
+            <button type="button" class="secondary" id="bible-go">Search</button>
+          </div>
+          <p class="note" id="bible-status" role="status">Loading the Recovery Version…</p>
+          <div id="bible-results"></div>
+        </section>
+
         <form id="setup-form">
           <label for="import-file">Import a text file or PDF (optional)</label>
           <input
@@ -463,6 +656,19 @@
         </form>
       </section>
 
+      <section id="library" aria-label="Saved verses">
+        <p class="eyebrow">Memorize / Collection</p>
+        <h2>Saved verses</h2>
+        <p class="muted">Your collection, saved on this device. Practice a verse, or hide its words to recall it in place.</p>
+        <div class="lib-filters" role="group" aria-label="Filter saved verses">
+          <button type="button" data-filter="" aria-pressed="true">All</button>
+          <button type="button" data-filter="learning" aria-pressed="false">Learning</button>
+          <button type="button" data-filter="learned" aria-pressed="false">Learned</button>
+        </div>
+        <p class="note" id="library-status" role="status"></p>
+        <div id="library-list"></div>
+      </section>
+
       <section id="practice" hidden>
         <p class="eyebrow">Memorize / 02 · Recall</p>
         <h1 id="practice-heading" tabindex="-1">Start with a blank page.</h1>
@@ -489,6 +695,16 @@
             <button type="button" class="secondary" id="edit">Edit reference</button>
           </div>
         </form>
+      </section>
+
+      <section id="ready" hidden>
+        <p class="eyebrow">Memorize / 02 · Look it over</p>
+        <h1 id="ready-heading" tabindex="-1">Read it once more.</h1>
+        <p class="muted">When you're ready, the text disappears and recall begins.</p>
+        <div id="ready-text" class="comparison"></div>
+        <div class="actions">
+          <button type="button" id="ready-go">I'm ready →</button>
+        </div>
       </section>
 
       <section id="results" hidden>
@@ -526,6 +742,21 @@
             <button type="submit" name="action" value="import" class="secondary">Return to import</button>
           </div>
         </form>
+      </section>
+
+      <section id="hider" hidden aria-label="Word hiding practice">
+        <p class="eyebrow">Memorize / Verse</p>
+        <h1 id="hider-heading" tabindex="-1"></h1>
+        <p class="muted" id="hider-note">Tap a word to hide or reveal it. See how few words you need.</p>
+        <div id="hider-words" class="hider-words"></div>
+        <p class="note" id="hider-progress" role="status"></p>
+        <div class="actions">
+          <button type="button" id="hide-one">Hide next word</button>
+          <button type="button" id="hide-five" class="secondary">Hide 5 more</button>
+          <button type="button" id="reveal-one" class="secondary">Reveal one</button>
+          <button type="button" id="hider-reset" class="secondary">Show all</button>
+          <button type="button" id="hider-back" class="secondary">← Back</button>
+        </div>
       </section>
     </main>
 
@@ -866,15 +1097,17 @@
         // ============================================================
 
         function show(id, focusId) {
-          if (test && id !== test.phase) return;
+          if (test && id !== test.phase && id !== "ready") return;
 
           phase = id;
 
           document.body.classList.toggle("recalling", id === "practice");
 
-          ["setup", "practice", "results"].forEach((name) => {
+          ["setup", "ready", "practice", "results"].forEach((name) => {
             $(name).hidden = name !== id;
           });
+
+          $("library").hidden = id !== "setup";
 
           document.querySelector("header a").hidden = !!test;
 
@@ -896,8 +1129,15 @@
           $("answer-error").textContent = "";
           $("comparison").replaceChildren();
 
-          show("practice", "answer");
+          $("ready-text").textContent = (test ? test.text : $("reference").value).trim();
+
+          show("ready", "ready-heading");
         }
+
+        $("ready-go").addEventListener("click", () => {
+          if (test) enterFullscreen();
+          show("practice", "answer");
+        });
 
         $("reference").addEventListener("input", save);
 
@@ -1186,6 +1426,7 @@
 
           starting = true;
           $("begin").disabled = true;
+          currentVerseId = null;
 
           try {
             if ($("test-mode").checked) {
@@ -1592,6 +1833,8 @@
             ($("ignore-punctuation").checked ? "Punctuation ignored. " : "Punctuation checked. ") +
             "Spacing and line breaks ignored.";
 
+          recordPractice(score);
+
           show("results", "results-heading");
         }
 
@@ -1631,6 +1874,668 @@
             }
           }
         } catch (_) {}
+
+        // ============================================================
+        // BIBLE — RECOVERY VERSION (same source as the Verses app)
+        // ============================================================
+
+        const RCV_URL = "https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV";
+        const RCV_ID = "rcv-text";
+        const libraryKey = "adless-memorize-verses-v1";
+
+        const BOOKS =
+          "Genesis|Gen.,Exodus|Exo.,Leviticus|Lev.,Numbers|Num.,Deuteronomy|Deut.,Joshua|Josh.,Judges|Judg.,Ruth|Ruth,1 Samuel|1 Sam.,2 Samuel|2 Sam.,1 Kings|1 Kings,2 Kings|2 Kings,1 Chronicles|1 Chron.,2 Chronicles|2 Chron.,Ezra|Ezra,Nehemiah|Neh.,Esther|Esth.,Job|Job,Psalms|Psa.,Proverbs|Prov.,Ecclesiastes|Eccl.,Song of Solomon|S.S.,Isaiah|Isa.,Jeremiah|Jer.,Lamentations|Lam.,Ezekiel|Ezek.,Daniel|Dan.,Hosea|Hosea,Joel|Joel,Amos|Amos,Obadiah|Oba.,Jonah|Jonah,Micah|Micah,Nahum|Nahum,Habakkuk|Hab.,Zephaniah|Zeph.,Haggai|Hag.,Zechariah|Zech.,Malachi|Mal.,Matthew|Matt.,Mark|Mark,Luke|Luke,John|John,Acts|Acts,Romans|Rom.,1 Corinthians|1 Cor.,2 Corinthians|2 Cor.,Galatians|Gal.,Ephesians|Eph.,Philippians|Phil.,Colossians|Col.,1 Thessalonians|1 Thes.,2 Thessalonians|2 Thes.,1 Timothy|1 Tim.,2 Timothy|2 Tim.,Titus|Titus,Philemon|Philem.,Hebrews|Heb.,James|James,1 Peter|1 Pet.,2 Peter|2 Pet.,1 John|1 John,2 John|2 John,3 John|3 John,Jude|Jude,Revelation|Rev.".split(",").map((s) => s.split("|"));
+        const SINGLE = { Obadiah: 1, Philemon: 1, "2 John": 1, "3 John": 1, Jude: 1 };
+        const ALIASES = {
+          jdg: "Judges",
+          jud: "Jude",
+          phm: "Philemon",
+          philm: "Philemon",
+          songofsongs: "Song of Solomon",
+          songofsolomons: "Song of Solomon",
+        };
+
+        const bookKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const fullKeys = BOOKS.map((b) => bookKey(b[0]));
+        const abbrKeys = BOOKS.map((b) => bookKey(b[1]));
+
+        function resolveBook(s) {
+          const k = bookKey(s);
+          if (!k) return null;
+          for (let i = 0; i < BOOKS.length; i++) if (fullKeys[i] === k || abbrKeys[i] === k) return i;
+          if (Object.prototype.hasOwnProperty.call(ALIASES, k)) return fullKeys.indexOf(bookKey(ALIASES[k]));
+          const c = [];
+          for (let i = 0; i < BOOKS.length; i++)
+            if (fullKeys[i].indexOf(k) === 0 || abbrKeys[i].indexOf(k) === 0) c.push(i);
+          Object.keys(ALIASES).forEach((a) => {
+            const bi = fullKeys.indexOf(bookKey(ALIASES[a]));
+            if (a.length > 3 && a.indexOf(k) === 0 && c.indexOf(bi) < 0) c.push(bi);
+          });
+          return c.length === 1 ? c[0] : null;
+        }
+
+        let rcv = null; // { data, flat, count } — parsed Recovery Version
+
+        // The Verses app's text format: one verse per line, "Book C:V text"
+        // (single-chapter books omit the chapter), continuation lines join the previous verse.
+        function parseRcv(text) {
+          const data = {};
+          const flat = [];
+          const re = /^(.+?)\s+(?:(\d+):)?(\d+)\s+(\S.*)$/;
+          let last = null;
+          let count = 0;
+
+          text.split(/\r?\n/).forEach((line) => {
+            const t = line.trim();
+            if (!t) return;
+            const m = re.exec(t);
+            if (m) {
+              const bi = resolveBook(m[1]);
+              if (bi !== null) {
+                const ch = m[2] ? +m[2] : 1;
+                const v = +m[3];
+                data[bi] = data[bi] || {};
+                data[bi][ch] = data[bi][ch] || {};
+                last = { bi, ch, v, text: m[4], lc: m[4].toLowerCase() };
+                data[bi][ch][v] = last;
+                flat.push(last);
+                count++;
+                return;
+              }
+            }
+            if (last) {
+              last.text += " " + t;
+              last.lc += " " + t.toLowerCase();
+            }
+          });
+
+          if (!count) return 0;
+          rcv = { data, flat, count };
+          return count;
+        }
+
+        function idb(mode, fn) {
+          return new Promise((resolve, reject) => {
+            let open;
+            try {
+              open = indexedDB.open("adless-memorize", 1);
+            } catch (error) {
+              reject(error);
+              return;
+            }
+            open.onupgradeneeded = () => open.result.createObjectStore("kv");
+            open.onerror = () => reject(open.error || new Error("IndexedDB unavailable"));
+            open.onsuccess = () => {
+              const db = open.result;
+              try {
+                const tx = db.transaction("kv", mode);
+                const request = fn(tx.objectStore("kv"));
+                tx.oncomplete = () => {
+                  db.close();
+                  resolve(request && request.result);
+                };
+                tx.onerror = () => {
+                  db.close();
+                  reject(tx.error);
+                };
+              } catch (error) {
+                db.close();
+                reject(error);
+              }
+            };
+          });
+        }
+
+        let rcvLoading = false;
+
+        async function loadRcvCached() {
+          if (rcv) return true;
+          try {
+            const text = await idb("readonly", (s) => s.get(RCV_ID)).catch(() => null);
+            if (typeof text === "string" && text.length) {
+              parseRcv(text);
+              $("bible-status").textContent =
+                "Recovery Version ready — try John 3:16, Rom. 8:28–30, or a few words of the verse.";
+              return true;
+            }
+          } catch (_) {}
+          return false;
+        }
+
+        async function loadRcv() {
+          if (rcv) return true;
+          if (rcvLoading) return false;
+          rcvLoading = true;
+
+          const status = $("bible-status");
+
+          try {
+            let text = await idb("readonly", (s) => s.get(RCV_ID)).catch(() => null);
+
+            if (typeof text !== "string" || !text.length) {
+              status.textContent = "Downloading the Recovery Version…";
+
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 30000);
+
+              try {
+                const response = await fetch(RCV_URL, { signal: controller.signal });
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                text = await response.text();
+              } finally {
+                clearTimeout(timeout);
+              }
+
+              if (!parseRcv(text)) throw new Error("unrecognized text");
+
+              idb("readwrite", (s) => s.put(text, RCV_ID)).catch(() => {});
+            } else {
+              parseRcv(text);
+            }
+          } catch (error) {
+            status.textContent =
+              error && error.name === "AbortError"
+                ? "The Recovery Version took too long to load. Check your connection and search again."
+                : "Could not load the Recovery Version. Check your connection and search again.";
+            rcvLoading = false;
+            return false;
+          }
+
+          rcvLoading = false;
+          status.textContent = "Recovery Version ready — try John 3:16, Rom. 8:28–30, or a few words of the verse.";
+          return true;
+        }
+
+        function formatRef(bi, c1, v1, c2, v2) {
+          const label = BOOKS[bi][1];
+          const single = !!SINGLE[BOOKS[bi][0]];
+          const start = label + " " + (single ? "" : c1 + ":") + v1;
+          if (v2 === undefined || (+c1 === +c2 && +v1 === +v2)) return start;
+          return start + "–" + (single || +c1 === +c2 ? "" : c2 + ":") + v2;
+        }
+
+        // "John 3:16", "jn 3:16-17", "Jude 4", "John 3:16-4:2" → list of verse entries
+        function parseReference(raw) {
+          const m = raw
+            .trim()
+            .match(/^([1-3]?\s*[a-zA-Z][a-zA-Z .]*?)\s*(\d+)\s*(?:[:.]\s*(\d+))?\s*(?:[-–]\s*(?:(\d+)\s*[:.]\s*)?(\d+))?$/);
+          if (!m) return null;
+
+          const bi = resolveBook(m[1]);
+          if (bi === null) return null;
+
+          const single = !!SINGLE[BOOKS[bi][0]];
+          const chapterOnly = !m[3] && !single;
+          let c1 = +m[2];
+          let v1 = m[3] ? +m[3] : null;
+
+          if (single) {
+            if (v1 === null) {
+              v1 = c1;
+              c1 = 1;
+            }
+          } else if (v1 === null) {
+            v1 = 1; // "John 3" → the whole chapter (capped below)
+          }
+
+          let c2 = c1;
+          let v2 = v1;
+
+          if (m[5] !== undefined) {
+            c2 = m[4] ? +m[4] : c1;
+            v2 = +m[5];
+            if (SINGLE[BOOKS[bi][0]]) c2 = 1;
+          }
+
+          if (!rcv.data[bi] || !rcv.data[bi][c1] || !rcv.data[bi][c1][v1]) return null;
+
+          const chapters = Object.keys(rcv.data[bi]).map(Number);
+          const lastChapter = Math.max.apply(null, chapters);
+          if (c2 > lastChapter) c2 = lastChapter;
+          if (c2 < c1) return null;
+
+          const out = [];
+          for (let c = c1; c <= c2; c++) {
+            if (!rcv.data[bi][c]) return null;
+            const verses = Object.keys(rcv.data[bi][c]).map(Number);
+            const lastVerse = Math.max.apply(null, verses);
+            const from = c === c1 ? v1 : Math.min.apply(null, verses);
+            const to = m[5] !== undefined
+              ? (c === c2 ? v2 : lastVerse)
+              : chapterOnly || c2 > c1 ? lastVerse : v1;
+            if (!rcv.data[bi][c][from] || !rcv.data[bi][c][to]) return null;
+            for (let v = from; v <= to; v++) {
+              if (!rcv.data[bi][c][v]) return null;
+              out.push(rcv.data[bi][c][v]);
+              if (out.length >= 20) return out;
+            }
+          }
+
+          return out;
+        }
+
+        function searchWords(raw) {
+          const terms = raw
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((t) => t.length > 1);
+          if (!terms.length) return [];
+          const pattern = new RegExp(
+            "(?:^|[^a-z])" + terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("(?:^|[^a-z])") + "(?:[^a-z]|$)",
+          );
+          return rcv.flat
+            .filter((e) => pattern.test(e.lc))
+            .slice(0, 30);
+        }
+
+        function lookup(q) {
+          if (!rcv) return [];
+          const byRef = parseReference(q);
+          return byRef || searchWords(q);
+        }
+
+        function startPractice(entryRef, entryText, verseId) {
+          if (test || phase !== "setup") return;
+
+          $("reference").value = entryText;
+          save();
+          currentVerseId = verseId || null;
+          expected = words(entryText);
+          $("setup-error").textContent = "";
+          begin();
+        }
+
+        function addToLibrary(ref, text, silentStatus) {
+          const library = loadLibrary();
+          const existing = library.verses.find((v) => v.ref === ref);
+
+          if (existing) {
+            if (!silentStatus) $("library-status").textContent = ref + " is already in your collection.";
+            return existing;
+          }
+
+          const entry = {
+            id: library.nextId++,
+            ref,
+            text,
+            group: "",
+            status: "learning",
+            best: 0,
+            attempts: 0,
+            last: 0,
+          };
+          library.verses.push(entry);
+          saveLibrary(library);
+          renderLibrary();
+          return entry;
+        }
+
+        function renderResult(entry) {
+          const ref = formatRef(entry.bi, entry.ch, entry.v, entry.ch, entry.v);
+          const article = document.createElement("article");
+          article.className = "result";
+
+          const h3 = document.createElement("h3");
+          h3.textContent = ref;
+
+          const p = document.createElement("p");
+          p.className = "verse-text";
+          p.textContent = entry.text;
+
+          const actions = document.createElement("div");
+          actions.className = "verse-actions";
+
+          const memorize = document.createElement("button");
+          memorize.type = "button";
+          memorize.textContent = "Memorize →";
+          memorize.addEventListener("click", () => {
+            const saved = addToLibrary(ref, entry.text, true);
+            $("library-status").textContent = ref + " added to your collection. Practice begins below.";
+            startPractice(ref, entry.text, saved.id);
+          });
+
+          const hide = document.createElement("button");
+          hide.type = "button";
+          hide.className = "secondary";
+          hide.textContent = "Hide words";
+          hide.addEventListener("click", () => openHider(ref, entry.text));
+
+          const saveButton = document.createElement("button");
+          saveButton.type = "button";
+          saveButton.className = "secondary";
+          saveButton.textContent = "Save";
+          saveButton.addEventListener("click", () => {
+            addToLibrary(ref, entry.text, false);
+          });
+
+          actions.append(memorize, hide, saveButton);
+          article.append(h3, p, actions);
+          return article;
+        }
+
+        async function runSearch() {
+          if (test || importing) return;
+
+          const q = $("bible-q").value.trim();
+          if (!q) return;
+
+          const results = $("bible-results");
+          results.replaceChildren();
+          $("bible-status").textContent = "Searching…";
+
+          if (!(await loadRcv())) return;
+
+          const found = lookup(q);
+          results.replaceChildren();
+
+          if (!found.length) {
+            $("bible-status").textContent =
+              "No verse found for “" + q + "”. Use a reference like John 3:16, or search a few words of the verse.";
+            return;
+          }
+
+          $("bible-status").textContent =
+            found.length === 1 ? "1 verse found." : found.length + (found.length >= 30 ? "+" : "") + " verses found.";
+          found.forEach((entry) => results.append(renderResult(entry)));
+        }
+
+        $("bible-go").addEventListener("click", runSearch);
+        $("bible-q").addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            runSearch();
+          }
+        });
+
+        // ============================================================
+        // SAVED VERSES LIBRARY
+        // ============================================================
+
+        let libFilter = "";
+        let currentVerseId = null;
+
+        function loadLibrary() {
+          try {
+            const saved = JSON.parse(localStorage.getItem(libraryKey) || "null");
+            if (saved && Array.isArray(saved.verses)) {
+              return { nextId: saved.nextId || saved.verses.length + 1, verses: saved.verses };
+            }
+          } catch (_) {}
+          return { nextId: 1, verses: [] };
+        }
+
+        function saveLibrary(library) {
+          try {
+            localStorage.setItem(libraryKey, JSON.stringify(library));
+          } catch (_) {
+            $("library-status").textContent = "Your collection could not be saved — browser storage is full.";
+          }
+        }
+
+        let libraryGroups;
+
+        function renderLibrary() {
+          const library = loadLibrary();
+          const list = $("library-list");
+          const status = $("library-status");
+          list.replaceChildren();
+
+          if (!libraryGroups) {
+            libraryGroups = document.createElement("datalist");
+            libraryGroups.id = "group-options";
+            document.body.append(libraryGroups);
+          }
+          libraryGroups.replaceChildren(
+            ...Array.from(new Set(library.verses.map((v) => v.group).filter(Boolean))).map((g) => {
+              const o = document.createElement("option");
+              o.value = g;
+              return o;
+            }),
+          );
+
+          const shown = library.verses
+            .filter((v) => !libFilter || v.status === libFilter)
+            .sort((a, b) => (a.status === "learned" ? 1 : 0) - (b.status === "learned" ? 1 : 0));
+
+          if (!library.verses.length) {
+            status.textContent = "Nothing saved yet. Search above, then choose Save.";
+            return;
+          }
+
+          status.textContent = shown.length
+            ? library.verses.length + " saved · " + library.verses.filter((v) => v.status === "learned").length + " learned"
+            : "No verses with this status yet.";
+
+          shown.forEach((entry) => {
+            const item = document.createElement("article");
+            item.className = "lib-item";
+
+            const head = document.createElement("div");
+            head.className = "lib-head";
+
+            const ref = document.createElement("strong");
+            ref.textContent = entry.ref;
+
+            const pill = document.createElement("span");
+            pill.className = "pill " + entry.status;
+            pill.textContent = entry.status;
+
+            head.append(ref, pill);
+
+            if (entry.best) {
+              const score = document.createElement("span");
+              score.className = "lib-meta";
+              score.style.margin = "0";
+              score.textContent = "Best " + entry.best + "%" + (entry.attempts ? " · " + entry.attempts + " attempts" : "");
+              head.append(score);
+            }
+
+            const preview = document.createElement("p");
+            preview.className = "lib-text";
+            preview.textContent = entry.text.length > 160 ? entry.text.slice(0, 160).trimEnd() + "…" : entry.text;
+
+            const actions = document.createElement("div");
+            actions.className = "verse-actions";
+
+            const practice = document.createElement("button");
+            practice.type = "button";
+            practice.textContent = "Practice";
+            practice.addEventListener("click", () => startPractice(entry.ref, entry.text, entry.id));
+
+            const hide = document.createElement("button");
+            hide.type = "button";
+            hide.className = "secondary";
+            hide.textContent = "Hide words";
+            hide.addEventListener("click", () => openHider(entry.ref, entry.text));
+
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "secondary";
+            toggle.classList.add(entry.status === "learned" ? "green" : "mark");
+            toggle.textContent = entry.status === "learned" ? "Keep practicing" : "Mark learned";
+            toggle.addEventListener("click", () => {
+              entry.status = entry.status === "learned" ? "learning" : "learned";
+              saveLibrary(loadLibraryRefresh(entry));
+              renderLibrary();
+            });
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "secondary";
+            remove.textContent = "Delete";
+            remove.addEventListener("click", () => {
+              const library2 = loadLibrary();
+              library2.verses = library2.verses.filter((v) => v.id !== entry.id);
+              saveLibrary(library2);
+              renderLibrary();
+            });
+
+            const group = document.createElement("input");
+            group.type = "text";
+            group.className = "group-input";
+            group.value = entry.group || "";
+            group.placeholder = "Group";
+            group.setAttribute("list", "group-options");
+            group.setAttribute("aria-label", "Group for " + entry.ref);
+            group.addEventListener("change", () => {
+              entry.group = group.value.trim();
+              saveLibrary(loadLibraryRefresh(entry));
+            });
+
+            actions.append(practice, hide, toggle, remove, group);
+            item.append(head, preview, actions);
+            list.append(item);
+          });
+        }
+
+        // re-read so concurrent edits aren't lost, then apply one entry's changes
+        function loadLibraryRefresh(entry) {
+          const library = loadLibrary();
+          const index = library.verses.findIndex((v) => v.id === entry.id);
+          if (index >= 0) library.verses[index] = entry;
+          return library;
+        }
+
+        function recordPractice(score) {
+          if (!currentVerseId) return;
+          const library = loadLibrary();
+          const entry = library.verses.find((v) => v.id === currentVerseId);
+          if (!entry) return;
+
+          entry.attempts = (entry.attempts || 0) + 1;
+          entry.best = Math.max(entry.best || 0, score);
+          entry.last = Date.now();
+          if (score === 100) entry.status = "learned";
+
+          saveLibrary(library);
+          renderLibrary();
+        }
+
+        $("library").querySelectorAll("[data-filter]").forEach((button) => {
+          button.addEventListener("click", () => {
+            libFilter = button.getAttribute("data-filter");
+            $("library")
+              .querySelectorAll("[data-filter]")
+              .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+            renderLibrary();
+          });
+        });
+
+        // ============================================================
+        // WORD HIDER — progressive recall in place
+        // ============================================================
+
+        let hiderWords = null; // { ref, words: [{ raw, node }], returnPhase }
+        let hiderReturn = "setup";
+
+        function openHider(ref, text) {
+          if (test || phase !== "setup") return;
+
+          hiderReturn = phase;
+          hiderWords = { ref, words: [] };
+
+          ["setup", "practice", "results", "library"].forEach((name) => {
+            $(name).hidden = true;
+          });
+
+          $("hider-heading").textContent = ref;
+          $("hider").hidden = false;
+
+          const host = $("hider-words");
+          host.replaceChildren();
+
+          (text.match(/\S+/gu) || []).forEach((raw) => {
+            const span = document.createElement("span");
+            span.className = "w";
+            span.textContent = raw;
+            span.addEventListener("click", () => {
+              span.classList.toggle("hid");
+              updateHiderProgress();
+            });
+            host.append(span, document.createTextNode(" "));
+            hiderWords.words.push({ raw, node: span });
+          });
+
+          updateHiderProgress();
+          $("hider-heading").focus();
+        }
+
+        function closeHider() {
+          if (!hiderWords) return;
+          hiderWords = null;
+          $("hider").hidden = true;
+          show(hiderReturn, "reference");
+          renderLibrary();
+        }
+
+        function hiderCounts() {
+          let hidden = 0;
+          hiderWords.words.forEach((w) => {
+            if (w.node.classList.contains("hid")) hidden++;
+          });
+          return { hidden, total: hiderWords.words.length };
+        }
+
+        function updateHiderProgress() {
+          if (!hiderWords) return;
+          const { hidden, total } = hiderCounts();
+          $("hider-progress").textContent = hidden
+            ? hidden + " of " + total + " words hidden."
+            : "";
+        }
+
+        function firstVisibleIndex() {
+          return hiderWords.words.findIndex((w) => !w.node.classList.contains("hid"));
+        }
+
+        function lastHiddenIndex() {
+          for (let i = hiderWords.words.length - 1; i >= 0; i--) {
+            if (hiderWords.words[i].node.classList.contains("hid")) return i;
+          }
+          return -1;
+        }
+
+        function hideWords(n) {
+          if (!hiderWords) return;
+          for (let k = 0; k < n; k++) {
+            const i = firstVisibleIndex();
+            if (i < 0) break;
+            hiderWords.words[i].node.classList.add("hid");
+          }
+          updateHiderProgress();
+        }
+
+        function revealWords(n) {
+          if (!hiderWords) return;
+          for (let k = 0; k < n; k++) {
+            const i = lastHiddenIndex();
+            if (i < 0) break;
+            hiderWords.words[i].node.classList.remove("hid");
+          }
+          updateHiderProgress();
+        }
+
+        $("hide-one").addEventListener("click", () => hideWords(1));
+        $("hide-five").addEventListener("click", () => hideWords(5));
+        $("reveal-one").addEventListener("click", () => revealWords(1));
+        $("hider-reset").addEventListener("click", () => {
+          if (!hiderWords) return;
+          hiderWords.words.forEach((w) => w.node.classList.remove("hid"));
+          updateHiderProgress();
+        });
+        $("hider-back").addEventListener("click", closeHider);
+
+        // ============================================================
+        // STARTUP — bible text and saved verses
+        // ============================================================
+
+        loadRcvCached().then((ready) => {
+          if (!ready) {
+            $("bible-status").textContent =
+              "Search to load the Recovery Version from the same source as the Verses app.";
+          }
+        });
+        renderLibrary();
 
         // ============================================================
         // SERVICE WORKER
