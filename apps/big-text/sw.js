@@ -2,7 +2,7 @@
 // - The page itself is network-first, so a new version shows up as soon as you are online.
 // - Icons, manifest and the Google Fonts files are served from cache and refreshed in the background.
 // Bump VERSION to drop old caches.
-var VERSION = 'big-text-v76';
+var VERSION = 'big-text-v79';
 var SHELL = [
   './',
   './index.html',
