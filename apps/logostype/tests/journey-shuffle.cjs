@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const app = fs.readFileSync(require('node:path').join(__dirname, '../app.js'), 'utf8');
 const storage = new Map();
 let journey = {name:'John',start:3,end:8,progress:1,completions:[]};
-const context = vm.createContext({currentJourney:()=>journey,scriptureReferences:Array(10),journeyBooks:[{name:'John',start:3,end:8}],localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}});
+const context = vm.createContext({currentMenu:'journey',currentJourney:()=>journey,scriptureReferences:Array(10),journeyBooks:[{name:'John',start:3,end:8}],localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)}});
 vm.runInContext(app.slice(app.indexOf('// Out-of-order completions'), app.indexOf('function saveBookJourneys()')),context);
 const run = code=>vm.runInContext(code,context);
 run('journeyShuffle=true');

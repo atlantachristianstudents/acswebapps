@@ -83,8 +83,12 @@ function validateBackup(data){
       if(item.mode!=='book'||!scriptureReferences.includes(item.reference))throw new Error('The backup contains an invalid verse reference.');
       result.reference=item.reference;
     }
+    if(item.collaborationId!==undefined){
+      if(item.mode!=='book'||typeof item.collaborationId!=='string'||!/^(?:[a-z]{8}|[a-f0-9]{24})$/.test(item.collaborationId)||typeof item.journey!=='string'||!item.journey.trim()||item.journey.length>80||typeof item.contributor!=='string'||!item.contributor.trim()||item.contributor.length>24)throw new Error('The backup contains an invalid collaboration result.');
+      result.collaborationId=item.collaborationId;result.contributor=item.contributor;
+    }
     if(item.journey!==undefined){
-      if(item.mode!=='book'||(item.journey!=='Entire Scriptures'&&!journeyBooks.some(book=>book.name===item.journey)))throw new Error('The backup contains an invalid journey name.');
+      if(item.mode!=='book'||(!result.collaborationId&&item.journey!=='Entire Scriptures'&&!journeyBooks.some(book=>book.name===item.journey)))throw new Error('The backup contains an invalid journey name.');
       result.journey=item.journey;
     }
     if(item.chart!==undefined)result.chart=validateHistoryChart(item.chart);
@@ -111,7 +115,7 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
-  return {friendRecords:window.friendRecords?.validate(data.friendRecords??[])||[],journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
+  return {collaborativeJourneys:window.collaborativeJourneys?.validate(data.collaborativeJourneys??[])||[],friendRecords:window.friendRecords?.validate(data.friendRecords??[])||[],journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
@@ -190,6 +194,7 @@ function importBackup(data){
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
   window.friendRecords?.replace(mergedFriends);
+  window.collaborativeJourneys?.import(backup.collaborativeJourneys||[]);
   const added=merged.length-history.length;
   journeyShuffled=mergedShuffled;shuffledPosition=null;
   journeyAttempts=mergedAttempts;journeyDates=mergedJourneyDates;replayRetentionLimit=retainedLimit;
@@ -231,6 +236,7 @@ document.addEventListener('click',event=>{
         keys.forEach((key,index)=>{try{localStorage.setItem(key,previous[index])}catch{}});throw error;
       }
       window.friendRecords?.replace([]);
+      window.collaborativeJourneys?.clear();
       clearInterval(timer);timer=null;activeJourneyAttempt=null;
       menuStates.clear();currentMenu="journey";setReadingView(false);custom=defaultCustomText;selectedTestVerse=null;history=[];journeyShuffled={};journeyShuffle=false;shuffledPosition=null;$("#shuffleJourney").setAttribute("aria-pressed","false");bookProgress=0;bookJourneys={};journeyAttempts=[];journeyCompletedAt=null;journeyCompletions=[];journeyDates={};replayRetentionLimit=0;historyStorageMessage='';selectedJourneyBook='';
       customThemeColors={...defaultThemeColors};theme('serika dark');localStorage.removeItem('logostype-theme');
@@ -244,7 +250,7 @@ document.addEventListener('click',event=>{
   }
   if(button.id==='exportData'){
     checkpointJourneyAttempt();
-    const backup={format:'logostype-backup',version:1,friendRecords:window.friendRecords?.export()||[],exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,journeyShuffled,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
+    const backup={format:'logostype-backup',version:1,collaborativeJourneys:window.collaborativeJourneys?.export()||[],friendRecords:window.friendRecords?.export()||[],exportedAt:new Date().toISOString(),name:getProfileName(),theme:document.documentElement.dataset.theme,customThemeColors:{...customThemeColors},replayRetentionLimit,journeyShuffled,bookProgress,bookJourneys,journeyAttempts,journeyDates,journeyCompletedAt,journeyCompletions,history};
     const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download=`logostype-backup-${new Date().toISOString().slice(0,10)}.json`;
     document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);

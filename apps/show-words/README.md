@@ -1,8 +1,6 @@
-# Show Words
+# Verse Lookup
 
 An installable, offline verse presenter for projectors, livestreams, and external displays.
-
-The app, home-page listing, and installed shortcut use a presentation-screen icon with text. The editable vector is `icons/icon.svg`, with matching 192px/512px, maskable, and Apple touch PNGs. The app is hosted at `apps/show-words/`. Saved data and settings keep their existing storage keys; open the new URL and reinstall the shortcut if you installed the app from its previous `apps/verses/` address.
 
 ## Install (needs the files served over HTTPS once, so the browser can cache them)
 
@@ -15,13 +13,9 @@ Open the address once while online; the app caches itself. After that it works w
 
 ## Notes
 
-- Your verse text file is chosen once and stored on that device, just like the single-file version.
-- The Recovery Version is bundled from `rcv/index.html` and loads automatically on first launch, including offline. Existing saved versions stay available; **Load Recovery Version** also loads the bundled Bible and saves it on the device. No `.txt` files from `rcv/` are used.
+- The American Standard Version (`asv.txt`) loads by default. ASV, KJV, and YLT text files are included; copyrighted modern translations are not bundled.
+- Additional verse text files can be imported and stored on that device.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
-
-## Verse references
-
-Displayed and copied references use consistent book abbreviations across imported versions (for example, `Gen. 1:1` and `1 Cor. 13:4–7`). Chapter and verse use a colon; ranges use an en dash, with the ending chapter included only when it changes (`John 3:36–4:2`). Single-chapter books omit the chapter (`Jude 5–7`), and a single verse never repeats its endpoint. Input book aliases remain supported.
 
 ## External display
 

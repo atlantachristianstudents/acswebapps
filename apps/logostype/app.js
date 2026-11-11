@@ -76,6 +76,7 @@ try {
   if (journeyBooks.some((book) => book.name === saved)) selectedJourneyBook = saved;
 } catch {}
 function currentJourney() {
+  if (currentMenu === "collaborative" && window.collaborativeJourneys?.journey()) return window.collaborativeJourneys.journey();
   const book = journeyBooks.find((book) => book.name === selectedJourneyBook);
   if (!book)
     return {
@@ -107,6 +108,7 @@ try {
   journeyShuffle = localStorage.getItem("logostype-journey-shuffle") === "true";
 } catch {}
 function shuffledVerses(journey) {
+  if (journey.collaborative) return journey.verses.filter(index => index >= journey.start + journey.progress);
   const state = journeyShuffled[journey.name];
   return state?.cycle === (journey.completions.at(-1) || null) ? state.verses : [];
 }
@@ -118,6 +120,7 @@ function journeyRangeCompleted(journey, start, end) {
   return true;
 }
 function journeyPosition() {
+  if (currentMenu === "collaborative" && window.collaborativeJourneys?.journey()) return window.collaborativeJourneys.position();
   const journey = currentJourney();
   if (!journeyShuffle) return journey.start + journey.progress;
   if (shuffledPosition !== null && shuffledPosition >= journey.start && shuffledPosition < journey.end && !journeyVerseCompleted(journey, shuffledPosition)) return shuffledPosition;
@@ -250,6 +253,7 @@ function saveJourneyAttempts() {
   } catch {}
 }
 function startJourneyAttempt() {
+  if (currentMenu === "collaborative") return;
   trackJourneyStart();
   activeJourneyAttempt = {
     id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
@@ -329,24 +333,30 @@ function celebrateJourney(colorCount = 1, durationMs = 4500 * colorCount) {
   requestAnimationFrame(frame);
 }
 function setReadingView(active) {
+  window.collaborativeJourneys?.unmount();
+  document.body.classList.remove("collaborative-mode");
+  if ($("#collaborativeContent")) $("#collaborativeContent").hidden = true;
   document.body.classList.toggle("reading-mode", active);
   $("#typingContent").hidden = active;
   $("#readingContent").hidden = !active;
 }
 function syncNavigation(racing = false) {
   const reading = document.body.classList.contains("reading-mode") && !racing;
+  const collaborative = currentMenu === "collaborationSetup" && !racing;
+  $("#collaborative").classList.toggle("active", collaborative);
   if (racing && window.friendRace?.active) setReadingView(false);
   $("#readJourney").classList.toggle("active", reading);
-  $("#home").classList.toggle("active", !racing && !reading && mode !== "book");
-  $("#book").classList.toggle("active", !racing && !reading && mode === "book");
+  $("#home").classList.toggle("active", !racing && !reading && !collaborative && mode !== "book");
+  $("#book").classList.toggle("active", !racing && !reading && !collaborative && mode === "book");
   $("#friends").classList.toggle("active", racing);
 }
 function updateBookProgress(message = "") {
-  const active = currentMenu === "journey" && mode === "book" && !window.friendRace?.active;
+  const active = ["journey", "collaborative"].includes(currentMenu) && mode === "book" && !window.friendRace?.active;
   document.body.classList.toggle("book-mode", active);
   $("#bookProgress").hidden = !active;
   $("#journeyProgress").hidden = !active;
   $("#journeyOptions").hidden = !active;
+  $("#shuffleJourney").setAttribute("aria-pressed", String(currentMenu === "collaborative" ? window.collaborativeJourneys.shuffle() : journeyShuffle));
   $("#journeyLocalProgress").hidden = !active;
   if (!active) {
     $("#restart").title = "Restart test";
@@ -388,12 +398,13 @@ function updateBookProgress(message = "") {
     }
   }
 
-  $("#journeyLabel").textContent = selectedJourneyBook || "scriptures";
-  $("#chooseJourney").textContent = (selectedJourneyBook || "entire Scriptures") + " ▦";
+  $("#journeyLabel").textContent = journey.collaborative ? journey.name : selectedJourneyBook || "scriptures";
+  $("#chooseJourney").textContent = journey.collaborative ? "personal journeys ▦" : (selectedJourneyBook || "entire Scriptures") + " ▦";
+  $("#chooseCollaborations").setAttribute("aria-pressed", String(!!journey.collaborative));
   $("#journeyProgressFill").style.height = percent + "%";
   $("#journeyProgressValue").textContent = percent.toFixed(2) + "%";
   $("#journeyProgressCount").textContent = `${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
-  $("#journeyBookCount").textContent = selectedJourneyBook
+  $("#journeyBookCount").textContent = (journey.collaborative ? journey.scope : selectedJourneyBook)
     ? `${completed === size ? 1 : 0} / 1 books`
     : `${journeyBooks.filter(book => journeyRangeCompleted(journey, book.start, book.end)).length} / ${scriptureBookEnds.length} books`;
   $("#journeyWordCount").textContent = `${completedWords.toLocaleString()} / ${totalWords.toLocaleString()} words`;
@@ -410,10 +421,10 @@ function updateBookProgress(message = "") {
   const progressLabel = $("#bookProgress");
   if (finished) progressLabel.textContent = `${journey.name} journey complete — every verse completed.`;
   else progressLabel.innerHTML = `<strong>${escapeHtml(scriptureReferences[position] || "Scripture journey")}</strong><span class="journey-instruction">${escapeHtml(message || "correct all typos to advance")}</span>`;
-  const completedAt = selectedJourneyBook ? journey.completions.at(-1) : journeyCompletedAt;
+  const completedAt = journey.collaborative ? null : selectedJourneyBook ? journey.completions.at(-1) : journeyCompletedAt;
   if (finished && completedAt)
     $("#bookProgress").textContent += ` Completed on ${new Date(completedAt).toLocaleString()}.`;
-  if (finished) $("#bookProgress").textContent += " " + journeyTypingStats();
+  if (finished && !journey.collaborative) $("#bookProgress").textContent += " " + journeyTypingStats();
   $("#restart").disabled = false;
   $("#restart").title = finished ? `Start a new ${journey.name} journey` : "Restart verse";
   $("#restart").setAttribute("aria-label", $("#restart").title);
@@ -422,6 +433,7 @@ function updateBookProgress(message = "") {
 function restartTest() {
   if (window.friendRace?.active) { window.friendRace.restartReplay(); return; }
   const journey = currentJourney();
+  if (currentMenu === "collaborative") { reset(); input.focus(); return; }
   if (mode === "book" && selectedJourneyBook && journey.progress === journey.end - journey.start) {
     resetJourneyStart(journey.name, journey.completions);
     bookJourneys[selectedJourneyBook] = { progress: 0, completions: journey.completions };
@@ -467,7 +479,7 @@ function renderBookContext() {
 let currentMenu = "journey";
 const menuStates = new Map();
 function pauseMenu() {
-  if (currentMenu === "reading" || currentMenu === "race" || currentMenu === "raceLobby") return;
+  if (currentMenu === "collaborationSetup" || currentMenu === "reading" || currentMenu === "race" || currentMenu === "raceLobby") return;
   checkpointJourneyAttempt();
   clearInterval(timer);
   timer = null;
@@ -518,7 +530,7 @@ function switchTypingMenu(destination) {
     $("#replayAllResult").textContent = history.find(result => result.id === lastResultId)?.raceReplay?.relay ? "▶ replay all lanes" : "▶ replay all racers";
     if (done) drawChart();
   } else {
-    mode = destination === "journey" ? "book" : lastTypingMode;
+    mode = ["journey", "collaborative"].includes(destination) ? "book" : lastTypingMode;
     limit = mode === "time" ? 15 : 25;
     punctuation = capitalization = false;
     reset();
@@ -529,6 +541,7 @@ function switchTypingMenu(destination) {
   if (done) $("#again").focus(); else input.focus();
 }
 function enterBook() {
+  if (window.collaborativeJourneys?.selected()) { window.collaborativeJourneys.openJourney(); return; }
   if (mode !== "book" && currentMenu === "typing") lastTypingMode = mode;
   switchTypingMenu("journey");
 }
@@ -560,12 +573,18 @@ function completeBookVerse() {
       date: new Date().toLocaleString(),
       reference: scriptureReferences[journeyPosition()],
       journey: selectedJourneyBook || "Entire Scriptures",
+      ...(currentMenu === "collaborative" ? window.collaborativeJourneys.historyInfo() : {}),
       chart: captureChart(),
       replay: captureAttemptReplay(),
     };
     if (newPersonalRecord(result)) celebrateJourney(1);
     history.unshift(result);
     saveTypingHistory();
+  }
+
+  if (currentMenu === "collaborative") {
+    if (passed) window.collaborativeJourneys.contribute(previousPosition);
+    return passed;
   }
 
   if (passed && selectedJourneyBook) {
@@ -1276,10 +1295,11 @@ function renderKeyboardShortcuts() {
     <table class="records-table"><thead><tr><th scope="col">key</th><th scope="col">action</th></tr></thead><tbody>
       <tr><td><kbd>1</kbd></td><td>Scripture Journey</td></tr>
       <tr><td><kbd>2</kbd></td><td>Reading</td></tr>
-      <tr><td><kbd>3</kbd></td><td>Typing Test</td></tr>
-      <tr><td><kbd>4</kbd></td><td>Race Friends</td></tr>
-      <tr><td><kbd>5</kbd></td><td>Records</td></tr>
-      <tr><td><kbd>6</kbd></td><td>Typing history</td></tr>
+      <tr><td><kbd>3</kbd></td><td>Create or join a collaboration</td></tr>
+      <tr><td><kbd>4</kbd></td><td>Typing Test</td></tr>
+      <tr><td><kbd>5</kbd></td><td>Race Friends</td></tr>
+      <tr><td><kbd>6</kbd></td><td>Records</td></tr>
+      <tr><td><kbd>7</kbd></td><td>Typing history</td></tr>
       <tr><td><kbd>J</kbd></td><td>Journey completion records (from records)</td></tr>
       <tr><td><kbd>H</kbd></td><td>Focus the latest visible history result (from history)</td></tr>
       <tr><td><kbd>&#92;</kbd></td><td>Settings</td></tr>
@@ -1290,7 +1310,7 @@ function renderKeyboardShortcuts() {
       <tr><td><kbd>N</kbd> / <kbd>P</kbd></td><td>Reading: next / previous chapter</td></tr>
       <tr><td><kbd>Shift+N</kbd> / <kbd>Shift+P</kbd></td><td>Reading: next / previous available book</td></tr>
     </tbody></table>
-    <p>Menu and settings shortcuts use no modifier keys. Press 5 to open records and 6 to open typing history. They work in records, history, and settings dialogs. They are disabled in text fields, confirmation dialogs, other editors, and while entering a custom typing test. They work on the results screen, including custom test results. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
+    <p>Menu and settings shortcuts use no modifier keys. Press 3 to create or join a collaboration, 6 to open records, and 7 to open typing history. They work in records, history, and settings dialogs. They are disabled in text fields, confirmation dialogs, other editors, and while entering a custom typing test. They work on the results screen, including custom test results. Reading chapter and book shortcuts apply while viewing a book, outside dialogs and form fields. Arrow keys are disabled in the typing field; Backspace corrects mistakes.</p>`;
 }
 function openModal(type) {
   $("#modal").dataset.view = type;
@@ -1489,7 +1509,7 @@ document.addEventListener("keydown", (e) => {
   }
   if (
     !$("#modal").open &&
-    !done && currentMenu !== "raceLobby" &&
+    !done && currentMenu !== "raceLobby" && currentMenu !== "collaborationSetup" &&
     !document.body.classList.contains("reading-mode") &&
     e.key.length === 1 &&
     !e.ctrlKey &&
@@ -1549,6 +1569,8 @@ window.addEventListener("resize", () => positionCaret(false));
 document.fonts?.ready.then(() => positionCaret(false));
 
 function chooseJourney(name) {
+  window.collaborativeJourneys?.personal();
+  if (currentMenu === "collaborative") switchTypingMenu("journey");
   shuffledPosition = null;
   selectedJourneyBook = name;
   try {
@@ -1559,6 +1581,7 @@ function chooseJourney(name) {
 }
 $("#shuffleJourney").setAttribute("aria-pressed", String(journeyShuffle));
 $("#shuffleJourney").onclick = () => {
+  if (currentMenu === "collaborative") { window.collaborativeJourneys.toggleShuffle(); reset(); input.focus(); return; }
   journeyShuffle = !journeyShuffle;
   shuffledPosition = null;
   try { localStorage.setItem("logostype-journey-shuffle", String(journeyShuffle)); } catch {}
@@ -1629,6 +1652,7 @@ loadScripture()
     menuStates.clear();
     reset();
     if (document.body.classList.contains("reading-mode")) window.readingView.open();
+    else if (currentMenu === "collaborative") window.collaborativeJourneys.refreshTyping();
     else input.focus();
   })
   .catch((error) => {
@@ -1733,7 +1757,7 @@ function progressionPercentileEntries(entries) {
 }
 
 function historyDescription(result) {
-  return `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit}${result.journey ? " · " + result.journey : ""} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
+  return `${result.date} · ${result.reference || (result.mode === "quote" ? "verse" : result.mode) + " " + result.limit}${result.journey ? " · " + (result.collaborationId ? "collaboration: " : "") + result.journey : ""} · ${result.wpm} wpm · ${result.accuracy}% accuracy`;
 }
 function renderHistorySearch() {
   const terms = historySearchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -1964,7 +1988,7 @@ function newPersonalRecord(result, previous = history) {
 }
 function personalRecordCategories() {
   return [
-    { label: "verse", matches: (result) => result.mode === "quote" || result.mode === "book" },
+    { label: "verse", matches: (result) => !result.collaborationId && (result.mode === "quote" || result.mode === "book") },
     { label: "default custom text", matches: (result) => result.mode === "custom" && result.customPreset === "default" },
     ...[15, 30, 60, 120].map((limit) => ({
       label: limit + " seconds",
@@ -2010,6 +2034,7 @@ function openReadingPage() {
 }
 
 function openMenuDestination() {
+  if (location.hash === "#collaborative") $("#collaborative").click();
   if (location.hash === "#reading") $("#readJourney").click();
   if (location.hash === "#journey") enterBook();
   if (location.hash === "#typing") enterTyping();

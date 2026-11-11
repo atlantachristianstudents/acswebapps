@@ -1,6 +1,6 @@
-// Show Words offline cache. Bump VERSION when you replace index.html.
-var VERSION = "verse-lookup-v24";
-var FILES = ["./", "./index.html", "./display.html", "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
+// Verse Lookup offline cache. Bump VERSION when you replace index.html.
+var VERSION = "verse-lookup-v28";
+var FILES = ["./", "./index.html", "./display.html", "./asv.txt", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });

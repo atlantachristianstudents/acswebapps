@@ -6,7 +6,7 @@ let shortcut,secondary=false;
 const actions=[];
 const modal={open:true,dataset:{view:'records'},close(){this.open=false;actions.push('close');}};
 const controls={};
-for(const [selector,dialog] of [['#book'],['#readJourney'],['#home'],['#friends'],['#records','records'],['#history','history'],['header .account','settings']]){
+for(const [selector,dialog] of [['#book'],['#readJourney'],['#home'],['#friends'],['#collaborative'],['#records','records'],['#history','history'],['header .account','settings']]){
  controls[selector]={title:'',dataset:dialog?{dialog}:{},click(){actions.push(selector);if(dialog){modal.open=true;modal.dataset.view=dialog;}}};
 }
 const document={
@@ -17,14 +17,14 @@ const document={
 const context=vm.createContext({focusLatestHistoryResult:()=>actions.push('focusLatest'),openModal:view=>{actions.push(view);modal.dataset.view=view;},document,mode:'custom',done:false});
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','navigation.js'),'utf8'),context);
 function key(value,repeat=false){shortcut({key:value,repeat,preventDefault(){},stopPropagation(){}});}
-key('6');assert.equal(modal.dataset.view,'history');assert.deepEqual(actions,['#history']);
+key('7');assert.equal(modal.dataset.view,'history');assert.deepEqual(actions,['#history']);
 key('\\');assert.equal(modal.dataset.view,'settings');
-key('3');assert.deepEqual(actions.slice(-2),['close','#home']);assert(!modal.open);
+key('4');assert.deepEqual(actions.slice(-2),['close','#home']);assert(!modal.open);
 for(const view of ['history','settings','journeyCompletions','themes']){
- modal.open=true;modal.dataset.view=view;const count=actions.length;key('5');
+ modal.open=true;modal.dataset.view=view;const count=actions.length;key('6');
  assert.equal(actions.length,count+1,view);assert.equal(modal.dataset.view,'records');
 }
-for(const [shortcutKey,view] of [['5','records'],['6','history'],['\\','settings']]){
+for(const [shortcutKey,view] of [['6','records'],['7','history'],['\\','settings']]){
  modal.open=true;modal.dataset.view=view;
  let count=actions.length;key(shortcutKey,true);
  assert(modal.open,'holding a shortcut does not close the menu');assert.equal(actions.length,count);
@@ -33,13 +33,14 @@ for(const [shortcutKey,view] of [['5','records'],['6','history'],['\\','settings
  context.done=false;
 }
 document.activeElement={id:'profileName',closest:()=>({})};
-let count=actions.length;key('6');assert.equal(actions.length,count,'text entry is protected');
+let count=actions.length;key('7');assert.equal(actions.length,count,'text entry is protected');
 document.activeElement={id:'close',closest:()=>null};secondary=true;
-key('6');assert.equal(actions.length,count,'confirmation dialogs block menu shortcuts');secondary=false;
-modal.dataset.view='custom';key('6');assert.equal(actions.length,count,'custom text editor remains protected');
-modal.open=false;key('6');assert.equal(actions.length,count,'unfinished custom typing remains protected');
-context.done=true;key('6');assert.equal(actions.at(-1),'#history');
-count=actions.length;key('5',true);assert.equal(actions.length,count,'key repeat does not retrigger menu actions');
+key('7');assert.equal(actions.length,count,'confirmation dialogs block menu shortcuts');secondary=false;
+modal.dataset.view='custom';key('7');assert.equal(actions.length,count,'custom text editor remains protected');
+modal.open=false;key('7');assert.equal(actions.length,count,'unfinished custom typing remains protected');
+context.done=true;key('7');assert.equal(actions.at(-1),'#history');
+modal.open=false;key('3');assert.equal(actions.at(-1),'#collaborative','collaborative journey has its own shortcut');
+count=actions.length;key('6',true);assert.equal(actions.length,count,'key repeat does not retrigger menu actions');
 console.log('Shortcut checks passed: records/history/settings navigation, main-view closing, custom-test guards, text fields, confirmations, repeat handling.');
 
 for(const view of ['records']){
@@ -83,8 +84,8 @@ count=actions.length;key('j');assert.equal(actions.length,count,'J does not open
 for (const modifier of ['ctrlKey', 'metaKey']) {
  const before = actions.length;
  let prevented = false;
- shortcut({key:'6',[modifier]:true,preventDefault(){prevented=true;},stopPropagation(){}});
- assert.equal(actions.length,before,'Cmd/Ctrl+6 does not open typing history');
- assert.equal(prevented,false,'Cmd/Ctrl+6 remains available to the browser');
+ shortcut({key:'7',[modifier]:true,preventDefault(){prevented=true;},stopPropagation(){}});
+ assert.equal(actions.length,before,'Cmd/Ctrl+7 does not open typing history');
+ assert.equal(prevented,false,'Cmd/Ctrl+7 remains available to the browser');
 }
-console.log('Removed shortcut checks passed: Cmd/Ctrl+6 is not intercepted.');
+console.log('Removed shortcut checks passed: Cmd/Ctrl+7 is not intercepted.');

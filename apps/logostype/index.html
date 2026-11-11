@@ -1448,11 +1448,57 @@
           gap: 8px;
         }
       }
+      #collaborativeContent { width: 100%; max-width: 780px; box-sizing: border-box; margin: 24px auto; padding: 0; }
+      body.collaborative-mode > .shell > .shortcuts { display: none; }
+      #collaborativeContent h1 { font-size: 24px; margin: 0 0 8px; }
+      #collaborativeContent .cj-intro { margin: 0 0 20px; font-size: 14px; line-height: 1.5; }
+      #collaborativeContent label { display: grid; gap: 7px; margin: 12px 0; font-size: 13px; }
+      #collaborativeContent input { display: block; box-sizing: border-box; width: 100%; min-width: 0; padding: 10px 12px; color: var(--text); background: var(--bg); border: 1px solid var(--text); border-radius: 6px; font: inherit; font-size: 15px; }
+      #collaborativeContent input::placeholder { color: var(--text); opacity: 0.65; }
+      #collaborativeContent input:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+      #collaborativeContent .cj-name-field { max-width: 350px; margin-bottom: 6px; }
+      #collaborativeContent .cj-help { margin: 0; font-size: 12px; line-height: 1.5; }
+      .cj-setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+      #collaborativeContent .cj-setup-card { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid var(--muted); border-radius: 8px; background: var(--panel); }
+      #collaborativeContent .cj-setup-card h2 { font-size: 17px; margin: 0 0 6px; }
+      #collaborativeContent .cj-action { align-self: flex-start; margin-top: auto; padding: 10px 14px; border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); font-size: 13px; }
+      #collaborativeContent .cj-action:hover, #collaborativeContent .cj-action:focus-visible { background: var(--accent); color: var(--bg); }
+      #collaborativeContent #cjCode { font-family: ui-monospace, monospace; letter-spacing: 0.12em; }
+      #collaborativeContent #cjCode::placeholder { letter-spacing: normal; }
+      #collaborativeContent .cj-setup-note { margin-top: 16px; }
+      #collaborativeContent #cjStatus:empty { display: none; }
+      #cjScopeDialog { width: min(960px, 94vw); }
+      #collaborativeContent .cj-portion { display: grid; gap: 7px; margin: 0 0 18px; font-size: 13px; }
+      #collaborativeContent #cjScope { text-align: left; padding: 10px 12px; border: 1px solid var(--text); border-radius: 6px; background: var(--bg); color: var(--text); }
+      @media (max-width: 600px) { .cj-setup-grid { grid-template-columns: 1fr; } }
+      #cjWorkspace { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--muted); border-radius: 6px; font-size: 13px; }
+      #cjWorkspace .cj-info-top, #cjWorkspace .cj-info-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin: 6px 0; }
+      #cjWorkspace h3, #cjWorkspace p, #cjWorkspace label { margin: 0; }
+      #cjWorkspace h3 { font-size: 14px; font-weight: 500; }
+      #cjWorkspace .cj-info-top { justify-content: space-between; margin-bottom: 12px; }
+      #cjWorkspace .cj-info-caption { font-size: 12px; color: var(--text); opacity: 0.75; line-height: 1.5; }
+      #cjWorkspace .cj-invite { padding: 10px 0; border-top: 1px solid var(--muted); border-bottom: 1px solid var(--muted); }
+      #cjWorkspace #cjSharedCode { font: 600 16px ui-monospace, monospace; letter-spacing: 0.12em; user-select: all; overflow-wrap: anywhere; }
+      #cjWorkspace #cjCopyCode { border: 1px solid var(--muted); border-radius: 4px; padding: 4px 8px; }
+      #cjWorkspace #cjConnection { margin-left: auto; }
+      #cjWorkspace #cjProgress { font-size: 12px; color: var(--text); }
+      #cjWorkspace summary { cursor: pointer; }
+      #cjWorkspace #cjContributors { margin-top: 8px; }
+      #cjWorkspace .cj-verse-picker label { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-width: 0; }
+      #cjWorkspace #cjConnection { border: 1px solid var(--muted); border-radius: 4px; padding: 4px 8px; }
+      #cjWorkspace select { max-width: 100%; padding: 4px 6px; color: var(--text); background: var(--panel); border: 1px solid var(--muted); border-radius: 4px; font: inherit; }
+      #cjWorkspace details { margin-top: 8px; }
+      #cjWorkspace #cjFeedback:empty { display: none; }
+      #cjWorkspace #cjConnectionStatus:not([hidden]) { margin: 8px 0; }
+      .collaboration-create-link { display: inline-block; padding: 12px 18px; border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); text-decoration: none; }
+      .collaboration-create-link:hover, .collaboration-create-link:focus-visible { background: var(--accent); color: var(--bg); }
+      .collaboration-choice { display: block; width: 100%; text-align: left; padding: 12px; border: 1px solid var(--muted); border-radius: 6px; margin: 8px 0; }
+      .collaboration-choice[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
       .journey-options {
         margin: 0 0 24px;
         font-size: 14px;
       }
-      #shuffleJourney[aria-pressed="true"] { color: var(--bg); background: var(--accent); }
+      #shuffleJourney[aria-pressed="true"], #chooseCollaborations[aria-pressed="true"] { color: var(--bg); background: var(--accent); }
       .journey-selectors {
         display: flex;
         align-items: center;
@@ -1855,6 +1901,10 @@
               <circle cx="18" cy="14" r="4" />
               <path d="M10 14c1-2 3-2 4 0M2 14l2-8h2m16 8-2-8h-2" />
             </svg></button
+          ><button id="collaborative" type="button" title="Create or join a collaboration" aria-label="Create or join a collaboration" aria-controls="collaborativeContent">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 0 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.03.28H21"/><path d="m21 3 1 11h-2M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3M3 4h5m0 11 3 3m-6-1 3 3"/>
+            </svg></button
           ><button title="Typing test" id="home" aria-label="Typing test">
             <svg
               class="menu-icon"
@@ -2097,6 +2147,8 @@
               entire Scriptures ▦
             </button>
             <button type="button" id="shuffleJourney" class="journey-choice" aria-pressed="false" title="Shuffle unfinished verses in this journey">shuffle</button>
+            <button type="button" id="chooseCollaborations" class="journey-choice" aria-pressed="false" aria-haspopup="dialog" aria-controls="collaborationsDialog">collaborations</button>
+            <button type="button" id="collaborationInfo" class="journey-choice" aria-expanded="false" aria-controls="cjWorkspace" hidden>collaboration info ▾</button>
           </div>
           <p>Each book and the entire Scriptures keep separate progress.</p>
         </div>
@@ -2304,6 +2356,7 @@
     <script src="scripture-references.js"></script>
     <script src="scripture-text.js"></script>
     <script src="app.js"></script>
+    <script src="collaborative.js"></script>
     <script src="data.js"></script>
     <script src="history-store.js"></script>
     <script src="replay.js"></script>

@@ -16,10 +16,11 @@
   const shortcuts = {
     '1': '#book',
     '2': '#readJourney',
-    '3': '#home',
-    '4': '#friends',
-    '5': '#records',
-    '6': '#history',
+    '3': '#collaborative',
+    '4': '#home',
+    '5': '#friends',
+    '6': '#records',
+    '7': '#history',
     '\\': 'header .account',
   };
   Object.entries(shortcuts).forEach(([key, selector]) => {
@@ -39,7 +40,8 @@
     if (document.querySelector('dialog[open]:not(#modal)') || (modal?.open && !menuOpen)) return;
     if (!menuOpen && typeof mode !== 'undefined' && mode === 'custom' &&
         (typeof done === 'undefined' || !done) && !document.body.classList.contains('race-lobby-open') &&
-        !document.body.classList.contains('reading-mode')) return;
+        !document.body.classList.contains('reading-mode') &&
+        !document.body.classList.contains('collaborative-mode')) return;
     const active = document.activeElement;
     if (active?.id !== 'typing' &&
         active?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
