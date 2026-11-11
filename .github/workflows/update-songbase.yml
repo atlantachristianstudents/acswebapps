@@ -1,0 +1,55 @@
+name: Update Songbase library
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-songbase-library
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Download and validate the complete Songbase library
+        run: python3 apps/big-text/songbasescraper.py --embed
+      - name: Commit changed songs and refresh the offline cache version
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git add apps/big-text/songbase_all.json apps/big-text/index.html apps/big-text/sw.js
+          if git diff --cached --quiet; then
+            echo "Songbase library is unchanged."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update Big Text Songbase library"
+            git pull --rebase origin "$DEFAULT_BRANCH"
+            git push origin "HEAD:$DEFAULT_BRANCH"
+          fi
+      # GITHUB_TOKEN pushes do not trigger the branch-based Pages build automatically.
+      # Also retry publication after a prior run committed successfully but its build failed.
+      - name: Publish the current revision on GitHub Pages when needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision=$(git rev-parse HEAD)
+          published=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.commit')
+          build_status=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.status')
+          if [ "$published" != "$revision" ] || [ "$build_status" = "errored" ]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
+          fi

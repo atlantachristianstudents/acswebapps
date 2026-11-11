@@ -2,10 +2,11 @@
 // - The page itself is network-first, so a new version shows up as soon as you are online.
 // - Icons, manifest and the Google Fonts files are served from cache and refreshed in the background.
 // Bump VERSION to drop old caches.
-var VERSION = 'big-text-v79';
+var VERSION = 'big-text-v80';
 var SHELL = [
   './',
   './index.html',
+  './songbase_all.json',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
@@ -37,7 +38,7 @@ function networkFirst(req) {
     if (cacheable(res)) { var copy = res.clone(); caches.open(VERSION).then(function (c) { c.put(req, copy); }); }
     return res;
   }).catch(function () {
-    return caches.match(req).then(function (hit) { return hit || caches.match('./index.html'); });
+    return caches.match(req).then(function (hit) { return hit || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()); });
   });
 }
 
@@ -57,7 +58,8 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   var fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (url.origin === self.location.origin) {
-    e.respondWith(req.mode === 'navigate' ? networkFirst(req) : staleWhileRevalidate(req));
+    var library = url.pathname === new URL('./songbase_all.json', self.location.href).pathname;
+    e.respondWith(req.mode === 'navigate' || library ? networkFirst(req) : staleWhileRevalidate(req));
   } else if (fonts) {
     e.respondWith(staleWhileRevalidate(req));
   }

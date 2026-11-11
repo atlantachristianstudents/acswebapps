@@ -49,7 +49,7 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 
 ## Technologies
 
-Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system, no npm dependency, and no CI.
+Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. The only scheduled automation refreshes Big Text’s Songbase data; apps are still served as-is.
 
 A few apps bundle or use specialized pieces:
 
@@ -102,6 +102,8 @@ manifest.json              Home page web-app manifest (standalone PWA)
 sw.js                      Home page service worker (skips apps/, which have their own)
 .nojekyll                  Tells GitHub Pages to serve files as-is (no Jekyll processing)
 AGENTS.md                  Conventions for AI coding agents working in this repo
+.github/workflows/
+  update-songbase.yml       Refresh Big Text’s Songbase data every six hours
 assets/
   apps.js                  App registry — edit this to add or list apps
   main.js                  Theme toggle, tag filters, search, keyboard shortcuts, cards
@@ -156,6 +158,8 @@ Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, 
 4. After a minute the site is live at <https://atlantachristianstudents.github.io/adless/>.
 
 `.nojekyll` must stay in the repo root so GitHub Pages serves files as-is (Jekyll would otherwise exclude folders such as `apps/_template/`).
+
+Big Text’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The workflow requests a [Pages rebuild](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) after bot commits, since those pushes do not trigger the branch-based build automatically. Keep Actions enabled and permit the workflow’s `contents: write` and `pages: write` permissions; protected branches must allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
 
 ## Troubleshooting
 

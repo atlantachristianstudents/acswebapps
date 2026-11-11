@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Project overview
 
-"Adless" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/adless/`. The repo root is the deployed site; there is **no build system, no bundler, no npm dependencies, and no CI**. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
+"Adless" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/adless/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Big Text’s Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
 
 The home page (`index.html`) renders an app directory from a registry; each app is an independent, self-contained PWA in its own folder under `apps/`.
 
@@ -22,6 +22,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | `404.html` | Not-found page. Links are absolute (`/adless/...`) because GitHub Pages serves it from arbitrary depths. |
 | `manifest.json` | Home-page web-app manifest (standalone PWA; icons in `assets/icons/`). |
 | `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `adless-home-vN`). Must not handle `apps/` requests. |
+| `.github/workflows/update-songbase.yml` | Six-hourly Songbase refresh for Big Text; uses Python standard library, commits changed snapshots, requests a Pages rebuild. |
 | `.nojekyll` | **Required.** Keeps GitHub Pages from running Jekyll (which would exclude `apps/_template/`). Never delete it. |
 | `assets/apps.js` | **App registry.** One object per app in `window.APPS`. Fields documented in the file's header comment. |
 | `assets/main.js` | All home-page behavior: theme, filters, search, cards, keyboard shortcuts. |
@@ -104,3 +105,7 @@ Update docs in the same change when the implementation changes:
 - The relevant `apps/<id>/README.md` — app-specific behavior and install instructions.
 - `assets/apps.js` header comment — registry field docs.
 - This file — conventions and pitfalls that change.
+
+## Big Text Songbase refresh
+
+`apps/big-text/songbasescraper.py --embed` is the approved source-data refresh for `songbase_all.json` and the embedded `songbase-data` script. It validates a complete library, ignores fetch-only timestamp changes, escapes HTML in embedded data, and bumps the app cache version. The scheduled workflow uses only Python’s standard library; preserve its explicit Pages rebuild step for bot commits. In the app, downloaded libraries are stored in the independent `bigtext-songbase` IndexedDB database, which must survive service-worker cache upgrades. Songbase blocks browser CORS requests, so the app fetches the published same-origin snapshot rather than scraping the upstream API directly.
