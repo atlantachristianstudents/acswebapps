@@ -24,3 +24,5 @@ A minimal, full-screen timer, clock, and stopwatch (countdown default: 90 second
 Open `index.html` directly or serve this folder on any static host. For installation, open over HTTPS or localhost, then use your browser's Install/Add to Home Screen action. After the first online visit, the service worker caches all required files for offline use. Fullscreen and installation availability vary by browser.
 
 Increment `timer-v23` in `sw.js` whenever a cached file changes. Only this app's caches are removed during upgrades; local history survives.
+
+The app icon uses the same presentation-screen shape as Show Words and Show Songs, with a clock face and Show Time’s green palette.

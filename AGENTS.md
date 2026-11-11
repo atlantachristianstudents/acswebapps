@@ -83,7 +83,7 @@ There is no test suite, formatter, or linter configured. Verification means: the
 - `404.html` uses absolute paths (`/adless/`) — they are correct for the GitHub Pages project site but break on other hosts; don't "fix" them to relative paths.
 - `assets/main.js`'s card icons fall back to the registry `icon` emoji, then `assets/favicon.svg`, if the icon image 404s — this is intentional.
 - The home page loads Inter from Google Fonts (a deliberate external dependency); everything else is local.
-- The big app files (`apps/verses/index.html` is ~405 KB) contain large amounts of embedded data and refined interaction code — treat them as production code.
+- The big app files (`apps/show-words/index.html` is ~405 KB) contain large amounts of embedded data and refined interaction code — treat them as production code.
 
 ## Rules for adding features
 

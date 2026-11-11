@@ -17,4 +17,4 @@ On HTTPS or localhost, visit once online to cache the app, then use your browser
 
 ## Files and updates
 
-`index.html` contains the interface, embedded scores, styles, and scripts. `manifest.webmanifest` and `icons/icon.svg` provide install metadata; `sw.js` caches all runtime files. Bump its `VERSION` whenever a cached file changes and update `FILES` when adding assets.
+`index.html` contains the interface, embedded scores, styles, and scripts. `manifest.webmanifest` and `icons/icon.svg` provide install metadata; the icon depicts separate scatter-plot points in a clockwise arc from the top of the y-axis toward the lower right, without connecting lines; `sw.js` caches all runtime files. Bump its `VERSION` whenever a cached file changes and update `FILES` when adding assets.

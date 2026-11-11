@@ -18,7 +18,7 @@ window.APPS = [
     description: "Explore Bible cross-references in an interactive map. Trace connections between chapters and verses, entirely offline.",
     icon: "🌈",
     iconUrl: "apps/bible-connections/icons/icon.svg",
-    tags: ["Study"],
+    tags: ["Study", "Tools"],
     status: "live"
   },
   {
@@ -27,8 +27,8 @@ window.APPS = [
     description: "A minimal full-screen timer, clock, and stopwatch. Use keyboard controls and keep a private session history.",
     icon: "◷",
     iconUrl: "apps/timer/icons/icon.svg",
-    tags: ["Tools", "Presentation"],
-    status: "beta"
+    tags: ["Presentation"],
+    status: "live"
   },
   {
     id: "bible-translation-explorer",
@@ -36,7 +36,7 @@ window.APPS = [
     description: "Compare 11 Bible translations with adjustable literalness and readability weights. Export scores and charts offline.",
     icon: "📊",
     iconUrl: "apps/bible-translation-explorer/icons/icon.svg",
-    tags: ["Study"],
+    tags: ["Study", "Tools"],
     status: "beta"
   },
   {
@@ -71,12 +71,13 @@ window.APPS = [
   },
   {
     id: "verses",
-    name: "Verse Lookup",
+    name: "Show Words",
     description: "Look up a Bible verse and display it full-screen for projectors and livestreams.",
-    icon: "📖",
+    icon: "▤",
+    iconUrl: "apps/show-words/icons/icon.svg",
     tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/verses"
+    url: "apps/show-words"
   },
   {
     id: "tunes",
