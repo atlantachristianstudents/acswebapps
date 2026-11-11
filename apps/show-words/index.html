@@ -538,7 +538,7 @@
     <tr><td><kbd>C</kbd></td><td>Copy the verse on screen as plain text; <kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd> copies it with formatting (reference in bold, in the page’s font); <kbd>Shift</kbd>+<kbd>C</kbd> copies in the reading-friendly format (all verses shown, as one passage under a single heading)</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the reference of every verse on screen (including those added with <kbd>N</kbd> / <kbd>B</kbd>)</td></tr>
     <tr><td><kbd>F</kbd></td><td>Fill the presentation area with the verse (largest size that fits)</td></tr>
-    <tr><td><kbd>Shift</kbd>+<kbd>F</kbd></td><td>Toggle true full screen (the browser’s <kbd>Esc</kbd> leaves it but stays in presentation mode)</td></tr>
+    <tr><td><kbd>Shift</kbd>+<kbd>F</kbd></td><td>Toggle true full screen from anywhere (in presentation, the browser’s <kbd>Esc</kbd> leaves full screen but stays in presentation mode)</td></tr>
     <tr><td><kbd>Enter</kbd> <kbd>Esc</kbd></td><td>Exit, returning to the results with the cursor on the verse you were last viewing (if that verse is not in the results, on the last one from the results you viewed). A selection of several verses is kept as it was</td></tr>
   </tbody></table>
 
@@ -3150,8 +3150,18 @@
   }
   function toggleFullscreen() {
     if (document.fullscreenElement) { if (document.exitFullscreen) document.exitFullscreen().catch(function () {}); }
-    else { var p = $("present"); if (p.requestFullscreen) p.requestFullscreen().catch(function () {}); }
+    else {
+      var target = presenting ? $("present") : document.documentElement;
+      if (target.requestFullscreen) target.requestFullscreen().catch(function () {});
+    }
   }
+  // Shift+F is a page-wide fullscreen shortcut; presentation mode only changes what gets fullscreened.
+  window.addEventListener("keydown", function (e) {
+    if (!e.shiftKey || e.key.toLowerCase() !== "f" || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (!e.repeat) toggleFullscreen();
+  }, true);
   function goPresent(n, fromEnd) {   // jump to a searched verse by position (or, in slide mode, to a slide)
     scrollChapter = null; scrollChapterLo = scrollChapterHi = null;
     if (slideMode) {

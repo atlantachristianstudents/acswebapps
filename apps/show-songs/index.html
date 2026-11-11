@@ -168,6 +168,7 @@
       }
       #presentation-title { flex: 1 0 100%; overflow-wrap: anywhere; }
       #presentation header { margin-bottom: 20px; }
+      #presentation-version-control { display: grid; gap: 4px; width: 100%; color: var(--hint); font: 11px/1.4 var(--font-utility); }
       #presentation select { max-width: 100%; }
       #presentation-position { flex: 1 0 100%; }
       #presentation select {
@@ -371,7 +372,9 @@
           <button type="button" id="presentation-exit">Exit (Space)</button>
           <header>
             <span id="presentation-title"></span>
-            <select id="presentation-version" aria-label="Hymn version" hidden></select>
+            <label id="presentation-version-control" hidden>Lyrics version
+              <select id="presentation-version" aria-label="Lyrics version"></select>
+            </label>
           </header>
           <p id="presentation-capo" aria-live="polite" hidden></p>
           <dl id="presentation-refs"></dl>
@@ -1018,6 +1021,13 @@
           renderPresentation();
         }
 
+        function cycleHymnVersion() {
+          if (presentationVersions.length < 2) return;
+          var current = Number(presentationVersion.value) || 0;
+          presentationVersion.value = String((current + 1) % presentationVersions.length);
+          selectHymnVersion();
+        }
+
         function togglePresentationSidebar() {
           var sidebar = document.getElementById("presentation-numbers");
           sidebar.hidden = !sidebar.hidden;
@@ -1078,7 +1088,7 @@
             option.value = String(i); option.textContent = song.title;
             presentationVersion.appendChild(option);
           });
-          presentationVersion.hidden = versions.length < 2;
+          document.getElementById("presentation-version-control").hidden = versions.length < 2;
           presenting = true;
           presentation.hidden = false;
           stage.inert = true;
@@ -4704,6 +4714,7 @@
                 "h / home first slide" + d + "shift+h / end last slide",
                 "- smaller" + d + "= / + bigger" + d + "0 / f fit lyrics to the screen" + d + "shift+f full screen",
                 "l available song languages" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
+                "t next lyrics version (when available)",
                 "n show / hide hymn and language numbers" + d + "b toggle bold lyrics",
                 "click a numbered slide or c in the sidebar to jump directly",
                 "enter toggles full song / current slide" + d + "tab show / hide entire left sidebar",
@@ -5064,6 +5075,7 @@
             else if ((e.key === "r" || e.key === "R") && !e.repeat) toggleRepeatedChorus();
             else if ((e.key === "g" || e.key === "G") && !e.repeat) togglePresentationGuitar();
             else if ((e.key === "l" || e.key === "L") && !e.repeat) { if (e.shiftKey) cycleSongLanguage(); else openSongLanguages(); }
+            else if ((e.key === "t" || e.key === "T") && !e.repeat) cycleHymnVersion();
             else if ((e.key === "n" || e.key === "N") && !e.repeat) togglePresentationNumbers();
             else if ((e.key === "b" || e.key === "B") && !e.repeat) togglePresentationBold();
             else if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === "j" || e.key === "J") movePresentation(1);
