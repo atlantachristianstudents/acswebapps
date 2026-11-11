@@ -94,6 +94,24 @@
         font-size: 31px;
         letter-spacing: -1px;
       }
+      .back {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 8px 16px;
+        border-radius: 100px;
+        background: var(--accent);
+        color: var(--bg, #101010);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: filter 0.15s;
+      }
+      .back:hover,
+      .back:focus-visible {
+        filter: brightness(1.15);
+      }
       nav {
         display: flex;
         gap: 22px;
@@ -1889,6 +1907,7 @@
   <body>
     <div class="shell">
       <header>
+        <a class="back" href="../../" title="Back to all apps" aria-label="Back to all apps">← Adless</a>
         <button class="brand" aria-label="Logostype home">
           <svg viewBox="0 0 48 36" fill="none" stroke="currentColor" stroke-width="2.8">
             <rect x="2" y="3" width="44" height="30" rx="7" />

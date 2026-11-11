@@ -2,7 +2,7 @@
 
 Type the Scriptures and read what you typed. Practice on your own or race against friends.
 
-The About dialog uses the same description as the Adless home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header; the former Adless / Logostype top strip is removed. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
+The About dialog uses the same description as the Adless home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header, which now includes a compact **← Adless** link on the left to return to the Adless home page. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
 
 Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 

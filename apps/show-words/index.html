@@ -202,12 +202,14 @@
          padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
   #bar .cnt { flex: 1; color: var(--muted); font-size: .9rem; min-width: 0; }
   button.ghost { background: none; color: var(--accent); border: 1px solid var(--border); }
+  a.ghost { display: inline-flex; align-items: center; background: none; color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-weight: 600; text-decoration: none; }
   /* presentation controls (touch screens) */
   #present .pctl { display: none; position: absolute; left: 0; right: 0; justify-content: center; gap: 8px; flex-wrap: wrap;
                    bottom: calc(8px + env(safe-area-inset-bottom)); }
   #present .pctl button { background: var(--surface); color: var(--text); border: 1px solid var(--border); min-width: 48px; font-size: 1.1rem; padding: 8px 12px; }
   @media (pointer: coarse) {
     button { min-height: 44px; min-width: 44px; }
+    a.ghost { min-height: 44px; min-width: 44px; }
     #bar.on { display: flex; }
     main { padding-bottom: 96px; }
     #present .pctl { display: flex; }
@@ -296,6 +298,7 @@
 <body>
 <main>
   <form id="form">
+    <a href="../../" class="ghost" title="Back to all apps" aria-label="Back to all apps">←</a>
     <button type="button" class="ghost" id="gotoBtn" title="Browse by book, chapter or verse" aria-label="Browse by book, chapter or verse" aria-expanded="false" aria-controls="goto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></button>
     <input type="text" id="q" placeholder="Reference or words (Gen. 1:1)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
     <button type="button" class="ghost" id="scopeBtn" title="Word-search scope: All books" aria-label="Word-search scope" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
