@@ -857,6 +857,7 @@
         function togglePresentationBold() {
           presentationBold = !presentationBold;
           presentationLyrics.style.fontWeight = presentationBold ? "700" : "400";
+          saveSettings();
           fitPresentation();
         }
 
@@ -981,6 +982,7 @@
           }
           presentationBody.scrollTop = 0;
           fitPresentation();
+          saveSettings();
         }
 
         function selectHymnVersion() {
@@ -994,7 +996,6 @@
           presentationSlides = hymnSlides(song.lyrics);
           if (!presentationSlides.length) presentationSlides = [{ text: "No lyrics available.", label: "Hymn " + presentationNumber }];
           presentationIndex = 0;
-          presentationFullSong = false;
           buildPresentationSlideNav();
           document.getElementById("presentation-title").textContent = (presentationLibrarySong ? presentationSong.lang : presentationNumber) + " · " + song.title;
           renderPresentation();
@@ -1003,6 +1004,7 @@
         function togglePresentationSidebar() {
           var sidebar = document.getElementById("presentation-numbers");
           sidebar.hidden = !sidebar.hidden;
+          saveSettings();
           if (sidebar.hidden) presentation.focus({ preventScroll: true });
           else document.getElementById("presentation-exit").focus({ preventScroll: true });
           fitPresentation();
@@ -1011,6 +1013,7 @@
         function togglePresentationNumbers() {
           var refs = document.getElementById("presentation-refs");
           refs.hidden = !refs.hidden;
+          saveSettings();
           fitPresentation();
         }
 
@@ -1243,6 +1246,47 @@
         var engRussian = true; // lowercase e includes Russian; a omits it.
         var engAlt = false; // uppercase E adds Enjoyer Korean numbers below the main E/K number.
         var ENG_SET = { c: 1, s: 1, b: 1 };
+
+        function saveSettings() {
+          try {
+            localStorage.setItem("bigtext-settings", JSON.stringify({
+              textMode: textMode, wrapOn: wrapOn, langOn: langOn,
+              picked: { c: !!picked.c, k: !!picked.k, s: !!picked.s, b: !!picked.b },
+              engOn: engOn, engAlt: engAlt, engRussian: engRussian,
+              presentationBold: presentationBold, presentationGuitar: presentationGuitar,
+              presentationRepeatChorus: presentationRepeatChorus, presentationFullSong: presentationFullSong,
+              sidebarHidden: document.getElementById("presentation-numbers").hidden,
+              numbersHidden: document.getElementById("presentation-refs").hidden,
+            }));
+          } catch (e) {}
+        }
+        function restoreSettings() {
+          var settings = {};
+          try {
+            var saved = JSON.parse(localStorage.getItem("bigtext-settings") || "{}");
+            if (saved && typeof saved === "object" && !Array.isArray(saved)) settings = saved;
+          } catch (e) {}
+          function flag(name, fallback) { return typeof settings[name] === "boolean" ? settings[name] : fallback; }
+          textMode = flag("textMode", false);
+          wrapOn = flag("wrapOn", false);
+          langOn = flag("langOn", false);
+          engOn = flag("engOn", false);
+          engAlt = engOn && flag("engAlt", false);
+          engRussian = flag("engRussian", true);
+          QUICK_ORDER.forEach(function (key) { picked[key] = !!(settings.picked && settings.picked[key] === true); });
+          presentationBold = flag("presentationBold", false);
+          presentationGuitar = flag("presentationGuitar", false);
+          presentationRepeatChorus = flag("presentationRepeatChorus", false);
+          presentationFullSong = flag("presentationFullSong", false);
+          document.getElementById("presentation-numbers").hidden = flag("sidebarHidden", false);
+          document.getElementById("presentation-refs").hidden = flag("numbersHidden", false);
+          presentationLyrics.style.fontWeight = presentationBold ? "700" : "400";
+          input.setAttribute("inputmode", textMode ? "text" : "numeric");
+          input.setAttribute("aria-label", textMode ? "Text to display" : "Number to display");
+          if (padOn) document.body.classList.add("mouse-mode");
+          updateHint();
+          syncPad();
+        }
 
         // Other-language hymn numbers for English hymns 1-1348. XREF[n] is a comma list
         // aligned with XREF_LABELS; an empty slot means that language has no match.
@@ -2748,6 +2792,7 @@
 
         function toggleWrap() {
           wrapOn = !wrapOn;
+          saveSettings();
           draw();
           flash(wrapOn ? "Wrap on" : "Wrap off");
         }
@@ -4190,6 +4235,7 @@
           engRussian = russian;
           engAlt = engOn && alternate;
           announce();
+          saveSettings();
           draw();
           flash(engOn ? "English + Korean main · Chinese, Spanish, Burmese" + (engAlt ? ", Enjoyer Korean" : engRussian ? ", Russian" : "") + " below" : "English view off");
         }
@@ -4201,6 +4247,7 @@
           }
           picked[key] = !picked[key];
           announce();
+          saveSettings();
           draw();
           flash(QUICK[key] + (picked[key] ? " on" : " off"));
         }
@@ -4352,6 +4399,7 @@
         function toggleLang() {
           langOn = !langOn;
           announce();
+          saveSettings();
           draw();
           var n = parseInt(value, 10);
           flash(
@@ -4662,6 +4710,7 @@
           hideHelp();
           if (!keep && (textMode !== on || value)) rememberEdit();
           textMode = on;
+          saveSettings();
           arrowFresh = false;
           hintCleared = false; // the hint is rebuilt for the new mode by updateHint()
           input.setAttribute("inputmode", on ? "text" : "numeric");
@@ -5174,6 +5223,8 @@
           document.fonts.ready.then(function () { scheduleDraw(); fitPresentation(); });
           document.fonts.addEventListener("loadingdone", fitPresentation);
         }
+
+        restoreSettings();
 
         var libraryStatus = document.getElementById("songbase-status");
         function showLibraryStatus(message) {
