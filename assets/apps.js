@@ -19,7 +19,7 @@ window.APPS = [
     icon: "🌈",
     iconUrl: "apps/bible-connections/icons/icon.svg",
     tags: ["Study"],
-    status: "beta"
+    status: "live"
   },
   {
     id: "timer",
@@ -63,7 +63,8 @@ window.APPS = [
     id: "big-text",
     name: "Show Songs",
     description: "Display hymn number or text in full-screen seemlessly.",
-    icon: "A",
+    icon: "🎵",
+    iconUrl: "apps/show-songs/icons/icon.svg",
     tags: ["Worship", "Presentation"],
     status: "live",
     url: "apps/show-songs"

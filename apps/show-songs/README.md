@@ -2,6 +2,8 @@
 
 Type a number (or a line of text) and it is drawn full-screen, scaled to fit the window. The display has no heading bar. Built for projecting hymn numbers: with the `l`/`c`/`k`/`s`/`b`/`e` keys it can show the same number in other languages' hymnals below the big one (English hymns 1-1348). No network needed once installed.
 
+The app, home-page listing, and installed shortcut use a music-and-presentation-screen icon. The editable vector is `icons/icon.svg`; matching PNG icons cover Apple touch, 192px/512px installs, and maskable installs.
+
 ## Install (needs the files served over HTTPS once, so the browser can cache them)
 - Host this folder on any static host (GitHub Pages, Netlify, Cloudflare Pages), open the URL, then:
   - Android / Chrome / Edge desktop: browser menu > Install app
