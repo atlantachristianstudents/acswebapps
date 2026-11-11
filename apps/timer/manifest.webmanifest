@@ -1,0 +1,18 @@
+{
+  "name": "Show Time \u2014 Adless",
+  "short_name": "Show Time",
+  "description": "A minimal full-screen timer, clock, and stopwatch with keyboard controls and private history.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ee",
+  "theme_color": "#f5f3ee",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

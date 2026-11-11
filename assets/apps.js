@@ -13,6 +13,24 @@
  */
 window.APPS = [
   {
+    id: "bible-connections",
+    name: "Bible Connections",
+    description: "Explore Bible cross-references in an interactive map. Trace connections between chapters and verses, entirely offline.",
+    icon: "🌈",
+    iconUrl: "apps/bible-connections/icons/icon.svg",
+    tags: ["Study"],
+    status: "beta"
+  },
+  {
+    id: "timer",
+    name: "Show Time",
+    description: "A minimal full-screen timer, clock, and stopwatch. Use keyboard controls and keep a private session history.",
+    icon: "◷",
+    iconUrl: "apps/timer/icons/icon.svg",
+    tags: ["Tools", "Presentation"],
+    status: "beta"
+  },
+  {
     id: "bible-translation-explorer",
     name: "Bible Translation Explorer",
     description: "Compare 11 Bible translations with adjustable literalness and readability weights. Export scores and charts offline.",

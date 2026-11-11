@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f3ee">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="A minimal full-screen timer, clock, and stopwatch with keyboard controls and local history.">
+<title>Show Time — Adless</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:light dark;--bg:#f5f3ee;--ink:#292b27;--muted:#74766d;--line:#d9dbd1;--accent:#68764e;--panel:#faf9f6}
+@media(prefers-color-scheme:dark){:root{--bg:#171a17;--ink:#eceee6;--muted:#a1a799;--line:#353b31;--accent:#bccd9c;--panel:#20241e}}
+:root[data-theme=light]{color-scheme:light;--bg:#f5f3ee;--ink:#292b27;--muted:#74766d;--line:#d9dbd1;--accent:#68764e;--panel:#faf9f6}
+:root[data-theme=dark]{color-scheme:dark;--bg:#171a17;--ink:#eceee6;--muted:#a1a799;--line:#353b31;--accent:#bccd9c;--panel:#20241e}
+:root[data-theme=white]{color-scheme:light;--bg:#fff;--ink:#000;--muted:#000;--line:#bfbfbf;--accent:#000;--panel:#fff}
+:root[data-theme=black]{color-scheme:dark;--bg:#000;--ink:#fff;--muted:#fff;--line:#444;--accent:#fff;--panel:#000}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,sans-serif}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:100px;padding:10px 19px}button:hover{background:var(--line)}:focus-visible{outline:2px solid var(--accent);outline-offset:6px}header{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:24px 32px;gap:12px}header{top:0}a{color:var(--muted);text-decoration:none}.brand{letter-spacing:.2em;font-size:12px}.tools{display:flex;gap:8px}.tools button{font-size:12px;padding:8px 13px}main{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 20px 140px}#time{width:100%;max-width:none;border:0;padding:0;outline-offset:8px;background:transparent;color:var(--ink);font:300 clamp(72px,20vw,250px)/1.15 ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.075em;border-radius:8px;caret-color:var(--accent)}#time:focus{outline:1px solid var(--line)}#status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.actions{margin-top:24px}[hidden]{display:none!important}.actions{display:flex;gap:10px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:122px}.primary:hover{background:var(--accent);border-color:var(--accent)}.primary.running{background:#b93824;border-color:#b93824;color:#fff}.primary.running:hover{background:#982d1c;border-color:#982d1c}.hint{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:40px;font-size:12px;color:var(--muted)}kbd{font:inherit;color:var(--ink)}#progress{position:fixed;bottom:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s linear}dialog{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(460px,calc(100% - 32px));max-height:80svh}dialog::backdrop{background:#0005;backdrop-filter:blur(5px)}.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}h2{font-size:18px;font-weight:500;margin:0}#history-list{list-style:none;padding:0;margin:22px 0}#history-list li{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);gap:12px}#history-list small{display:block;color:var(--muted);font-size:11px}.empty,.privacy{color:var(--muted);font-size:12px}.done #time{color:var(--accent)}@media(max-width:600px){header{padding:20px}.hint{max-width:300px;gap:8px 18px}.tools{gap:5px}.tools button{padding:7px 10px}}
+#help{position:fixed;right:20px;bottom:20px;width:40px;height:40px;padding:0;font-size:20px;background:var(--bg)}#help-dialog .hint{display:grid;grid-template-columns:1fr;justify-content:start;gap:12px;margin-top:24px;max-width:none}#help-dialog kbd{display:inline-block;min-width:90px}
+.icon-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.tools .icon-button{width:38px;height:38px;padding:8px;display:grid;place-items:center}.sound-off{display:none}#sound[data-muted=true] .sound-off{display:block}#sound[data-muted=true] .sound-on{display:none}#history{position:fixed;left:20px;bottom:20px;width:40px;height:40px;padding:9px;background:var(--bg)}#count{position:absolute;left:30px;bottom:27px;font-size:10px;background:var(--bg);border-radius:8px;padding:0 3px}
+</style>
+</head>
+<body>
+<header><button class="brand" id="mode" title="Cycle timer, clock, stopwatch · T">Timer</button><div class="tools"><button id="theme" aria-label="Cycle color theme (H)" title="Cycle theme · H">◐</button><button id="fullscreen" class="icon-button" aria-label="Enter full screen (Shift+F)" title="Full screen · Shift+F"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="fullscreen-path" d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button id="sound" class="icon-button" aria-label="Mute timer sound (M)" title="Mute sound · M"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+<main>
+<input id="time" value="01:30" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Timer duration in minutes and seconds. Type digits; last two digits are seconds.">
+<p id="status" role="status" aria-live="polite">Ready when you are.</p>
+<div class="actions" id="actions"><button id="toggle" class="primary">Start</button><button id="reset">Reset</button></div>
+
+</main>
+<button id="history" class="icon-button" aria-label="Timer history" aria-haspopup="dialog" title="History"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7m2-5v6l4 2"/></svg><span id="count" aria-hidden="true"></span></button>
+<button id="help" aria-label="Keyboard shortcuts" aria-haspopup="dialog" title="Keyboard shortcuts · / or ?">?</button>
+<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2><button id="close-help" aria-label="Close keyboard shortcuts">Close</button></div><div class="hint"><span><kbd>/ or ?</kbd> toggle shortcuts</span><span><kbd>T</kbd> timer / clock / stopwatch</span><span><kbd>0–9</kbd> type time</span><span><kbd>← →</kbd> minutes</span><span><kbd>↓ ↑</kbd> seconds</span><span><kbd>enter</kbd> start / stop</span><span><kbd>space</kbd> start / reset paused</span><span><kbd>R</kbd> restart running</span><span><kbd>H</kbd> theme</span><span><kbd>D</kbd> decimals</span><span><kbd>M</kbd> sound</span><span><kbd>− +</kbd> size</span><span><kbd>F</kbd> fill</span><span><kbd>shift F</kbd> full screen</span></div></dialog>
+<div id="progress" aria-hidden="true"></div>
+<dialog id="history-dialog" aria-labelledby="history-title"><div class="dialog-head"><h2 id="history-title">Your time, remembered.</h2><button id="close-history" aria-label="Close history">Close</button></div><p class="privacy">Saved on this device. Select a duration to use it again.</p><ul id="history-list"></ul><button id="clear-history">Clear history</button></dialog>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const MAX = 599999, KEY = 'adless-timer-v1';
+const themes = ['light', 'dark', 'white', 'black'];
+const themeNames = {light:'Light', dark:'Dark', white:'Black on white', black:'White on black'};
+function currentTheme() { return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+function cycleTheme() {
+ const theme = themes[(themes.indexOf(currentTheme()) + 1) % themes.length];
+ document.documentElement.dataset.theme = theme;
+ $('theme').setAttribute('aria-label', themeNames[theme] + ' theme. Cycle color theme (H)');
+ $('theme').title = themeNames[theme] + ' · Cycle theme · H';
+ try { localStorage.setItem('adless-timer-theme',theme); } catch (_) {}
+}
+let duration = 90000, remaining = duration, deadline = null, startedAt = null, history = [], digits = '', editing = false;
+let storageOK = true;
+let mode = 'timer', elapsed = 0, stopwatchStart = null;
+try {
+ const view = JSON.parse(localStorage.getItem('adless-timer-view'));
+ if (view) {
+ if (['timer','clock','stopwatch'].includes(view.mode)) mode = view.mode;
+ if (Number.isFinite(view.elapsed) && view.elapsed >= 0) elapsed = view.elapsed;
+ if (Number.isFinite(view.stopwatchStart)) stopwatchStart = view.stopwatchStart;
+ }
+} catch (_) {}
+function saveView() { try { localStorage.setItem('adless-timer-view', JSON.stringify({mode,elapsed,stopwatchStart})); } catch (_) { storageOK = false; } }
+function stopwatchElapsed() { return elapsed + (stopwatchStart === null ? 0 : Math.max(0, Date.now() - stopwatchStart)); }
+function cycleMode() { mode = ['timer','clock','stopwatch'][(['timer','clock','stopwatch'].indexOf(mode) + 1) % 3]; editing = false; saveView(); render(); }
+function toggleStopwatch() {
+ if (stopwatchStart === null) stopwatchStart = Date.now();
+ else { elapsed = stopwatchElapsed(); stopwatchStart = null; }
+ saveView(); render();
+}
+function resetStopwatch(restart = false) {
+ const total = stopwatchElapsed();
+ if (total > 0) { history.unshift({duration:total,endedAt:Date.now(),result:'Reset',mode:'stopwatch'}); history = history.slice(0,100); }
+ elapsed = 0; stopwatchStart = restart ? Date.now() : null;
+ save(); saveView(); render();
+}
+$('mode').onclick = cycleMode;
+let muted = false, audioContext = null;
+try { muted = localStorage.getItem('adless-timer-muted') === 'true'; } catch (_) {}
+function updateSoundButton() {
+ $('sound').dataset.muted = String(muted);
+ $('sound').title = (muted ? 'Unmute sound' : 'Mute sound') + ' · M';
+ $('sound').setAttribute('aria-label', (muted ? 'Unmute' : 'Mute') + ' timer sound (M)');
+ $('sound').setAttribute('aria-pressed', String(muted));
+}
+function prepareAudio() {
+ if (muted) return;
+ try {
+ const Audio = window.AudioContext || window.webkitAudioContext;
+ if (!Audio) return;
+ if (!audioContext) audioContext = new Audio();
+ if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+ } catch (_) {}
+}
+function toggleSound() {
+ muted = !muted;
+ try { localStorage.setItem('adless-timer-muted', String(muted)); } catch (_) {}
+ if (muted && audioContext && audioContext.state === 'running') audioContext.suspend().catch(() => {});
+ if (!muted) prepareAudio();
+ updateSoundButton();
+}
+function chime() {
+ if (muted || !audioContext || audioContext.state !== 'running') return;
+ try {
+ const start = audioContext.currentTime;
+ [0, .32, .64].forEach((offset, index) => {
+ const tone = audioContext.createOscillator(), volume = audioContext.createGain();
+ const at = start + offset;
+ tone.type = 'sine'; tone.frequency.value = index === 2 ? 880 : 660;
+ volume.gain.setValueAtTime(0, at);
+ volume.gain.linearRampToValueAtTime(.18, at + .015);
+ volume.gain.exponentialRampToValueAtTime(.001, at + .28);
+ tone.connect(volume); volume.connect(audioContext.destination);
+ tone.onended = () => { tone.disconnect(); volume.disconnect(); };
+ tone.start(at); tone.stop(at + .3);
+ });
+ } catch (_) {}
+}
+function toggleHelp() { if ($('help-dialog').open) $('help-dialog').close(); else $('help-dialog').showModal(); }
+$('help').onclick = toggleHelp;
+$('close-help').onclick = () => $('help-dialog').close();
+$('sound').onclick = toggleSound;
+updateSoundButton();
+const decimalsByMode = {timer:0, clock:0, stopwatch:0};
+try {
+ const saved = JSON.parse(localStorage.getItem('adless-timer-decimals'));
+ if (saved && typeof saved === 'object') {
+ for (const name of Object.keys(decimalsByMode)) if (Number.isInteger(saved[name]) && saved[name] >= 0 && saved[name] <= 2) decimalsByMode[name] = saved[name];
+ } else {
+ const legacy = saved === true ? 1 : Number.isInteger(saved) ? Math.max(0, Math.min(2, saved)) : 0;
+ for (const name of Object.keys(decimalsByMode)) decimalsByMode[name] = legacy;
+ }
+} catch (_) {}
+function toggleDecimals() {
+ decimalsByMode[mode] = (decimalsByMode[mode] + 1) % 3;
+ try { localStorage.setItem('adless-timer-decimals', JSON.stringify(decimalsByMode)); } catch (_) {}
+ render();
+}
+let displaySize = 'auto', previousSize = 'auto';
+try { const savedSize = localStorage.getItem('adless-timer-previous-size'); if (Number(savedSize) >= 32 && Number(savedSize) <= 1000) previousSize = Number(savedSize); } catch (_) {}
+try { const storedSize = localStorage.getItem('adless-timer-size'); if (storedSize === 'fill' || (Number(storedSize) >= 32 && Number(storedSize) <= 1000)) displaySize = storedSize === 'fill' ? 'fill' : Number(storedSize); } catch (_) {}
+function fitSize() {
+ const width = Math.max(100, window.innerWidth - 40);
+ const height = Math.max(60, window.innerHeight - 350);
+ return Math.max(24, Math.min(width / (viewTime().length * .6), height / 1.15));
+}
+function applySize() {
+ const cap = fitSize();
+ const size = displaySize === 'fill' ? cap : displaySize === 'auto' ? Math.min(250, window.innerWidth * .2, cap) : Math.min(displaySize, cap);
+ $('time').style.fontSize = size + 'px';
+}
+function changeSize(direction) {
+ const current = displaySize === 'auto' || displaySize === 'fill' ? parseFloat($('time').style.fontSize) : displaySize;
+ displaySize = Math.max(32, Math.min(1000, Math.round(current + direction * 16)));
+ editing = false; applySize(); saveSize();
+}
+function saveSize() { try { localStorage.setItem('adless-timer-size', String(displaySize)); } catch (_) {} }
+function fillScreen() {
+ if (displaySize === 'fill') displaySize = previousSize;
+ else {
+ previousSize = displaySize;
+ try { localStorage.setItem('adless-timer-previous-size', String(previousSize)); } catch (_) {}
+ displaySize = 'fill';
+ }
+ editing = false; applySize(); saveSize();
+}
+window.addEventListener('resize', applySize);
+const format = ms => { const seconds = Math.ceil(ms / 1000); return String(Math.floor(seconds / 60)).padStart(2,'0') + ':' + String(seconds % 60).padStart(2,'0'); };
+function fractionalPart(milliseconds) {
+ const decimalPlaces = decimalsByMode[mode];
+ return decimalPlaces ? '.' + String(Math.floor(milliseconds * 10 ** decimalPlaces / 1000)).padStart(decimalPlaces, '0') : '';
+}
+function displayTime(ms) {
+ const decimalPlaces = decimalsByMode.timer;
+ if (!decimalPlaces) return format(ms);
+ const factor = 10 ** decimalPlaces;
+ const units = Math.ceil(ms * factor / 1000);
+ const seconds = Math.floor(units / factor);
+ return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0') + '.' + String(units % factor).padStart(decimalPlaces, '0');
+}
+function viewTime() {
+ if (mode === 'clock') {
+ const date = new Date(Date.now());
+ const text = [date.getHours(), date.getMinutes(), date.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+ return text + fractionalPart(date.getMilliseconds());
+ }
+ if (mode === 'stopwatch') {
+ const ms = stopwatchElapsed();
+ const seconds = Math.floor(ms/1000);
+ return String(Math.floor(seconds/60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0') + fractionalPart(ms % 1000);
+ }
+ return displayTime(remaining);
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify({duration,remaining,deadline,startedAt,history})); } catch (_) { storageOK = false; } }
+try {
+ const saved = JSON.parse(localStorage.getItem(KEY));
+ if (saved && Number.isFinite(saved.duration) && saved.duration >= 0 && saved.duration <= MAX * 1000 && Number.isFinite(saved.remaining) && saved.remaining >= 0 && saved.remaining <= saved.duration) {
+ duration = saved.duration; remaining = saved.remaining; deadline = Number.isFinite(saved.deadline) ? saved.deadline : null; startedAt = Number.isFinite(saved.startedAt) ? saved.startedAt : null;
+ history = Array.isArray(saved.history) ? saved.history.filter(h => h && Number.isFinite(h.duration) && h.duration > 0 && (h.mode === 'stopwatch' || h.duration <= MAX * 1000) && Number.isFinite(h.endedAt) && ['Completed','Reset','Changed'].includes(h.result)).slice(0,100) : [];
+ }
+ const theme = localStorage.getItem('adless-timer-theme'); if (themes.includes(theme)) document.documentElement.dataset.theme = theme;
+} catch (_) { storageOK = false; }
+function record(result, endedAt = Date.now()) {
+ if (startedAt === null) return;
+ history.unshift({duration,endedAt,result}); history = history.slice(0,100); startedAt = null;
+}
+function sync() {
+ if (deadline === null) return;
+ remaining = Math.max(0,deadline - Date.now());
+ if (remaining === 0) { const endedAt = deadline; deadline = null; record('Completed',endedAt); save(); if (Date.now() - endedAt < 5000) chime(); }
+}
+function render() {
+ applySize();
+ const displayedTime = viewTime();
+ $('time').value = displayedTime;
+ $('time').readOnly = mode !== 'timer' || deadline !== null;
+ $('time').setAttribute('aria-label', mode === 'clock' ? 'Current local time' : mode === 'stopwatch' ? 'Stopwatch elapsed time' : 'Timer duration in minutes and seconds');
+ $('mode').textContent = mode === 'timer' ? 'Timer' : mode === 'clock' ? 'Clock' : 'Stopwatch';
+ $('actions').hidden = mode === 'clock';
+ $('toggle').classList.toggle('running', deadline !== null);
+ $('toggle').textContent = deadline !== null ? 'Pause' : remaining === 0 ? 'Start again' : startedAt !== null ? 'Resume' : 'Start';
+ const done = remaining === 0 && duration > 0;
+ $('status').textContent = deadline !== null ? 'One moment at a time.' : done ? 'Time is up.' : startedAt !== null ? 'Paused. Take your time.' : 'Ready when you are.';
+ document.body.classList.toggle('done',done);
+ $('progress').style.width = (duration ? 100 * (1 - remaining / duration) : 0) + '%';
+ $('count').textContent = history.length || '';
+ document.title = (deadline !== null ? format(remaining) + ' · ' : '') + 'Show Time — Adless';
+ if (mode !== 'timer') {
+ const running = mode === 'stopwatch' && stopwatchStart !== null;
+ $('toggle').classList.toggle('running', running);
+ $('toggle').textContent = running ? 'Pause' : elapsed > 0 ? 'Resume' : 'Start';
+ $('status').textContent = mode === 'clock' ? '' : running ? 'Running' : elapsed > 0 ? 'Paused' : 'Ready when you are.';
+ document.body.classList.toggle('done', false);
+ $('progress').style.width = '0%';
+ document.title = (mode === 'clock' ? 'Clock' : 'Stopwatch') + ' · Show Time';
+ }
+}
+function setTime(seconds) {
+ sync(); if (mode !== 'timer' || deadline !== null) return;
+ record('Changed'); duration = Math.max(0,Math.min(MAX,seconds)) * 1000; remaining = duration; save(); render();
+}
+function typeDigit(digit) { if (mode !== 'timer' || deadline !== null) return; digits = (editing ? digits + digit : digit).slice(-6); editing = true; const n = Number(digits); setTime(Math.floor(n / 100) * 60 + n % 100); }
+function toggle() {
+ if (mode === 'clock') return;
+ if (mode === 'stopwatch') { toggleStopwatch(); return; }
+ prepareAudio();
+ sync(); editing = false;
+ if (deadline !== null) { deadline = null; } else {
+ if (!remaining) remaining = duration;
+ if (!remaining) return;
+ if (startedAt === null) startedAt = Date.now();
+ deadline = Date.now() + remaining;
+ }
+ save(); render();
+}
+function reset() { if (mode === 'clock') return; if (mode === 'stopwatch') { resetStopwatch(); return; } sync(); record('Reset'); deadline = null; remaining = duration; editing = false; save(); render(); }
+$('toggle').onclick = toggle; $('reset').onclick = reset;
+$('time').addEventListener('input', () => { const value = $('time').value.replace(/\D/g,'').slice(-6); digits = value; editing = true; const n = Number(value); setTime(Math.floor(n/100)*60+n%100); });
+$('time').addEventListener('focus', () => { editing = false; });
+document.addEventListener('keydown', e => {
+ if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+ if (e.key === '/' || e.key === '?') { e.preventDefault(); if (!e.repeat && !$('history-dialog').open) toggleHelp(); return; }
+ if ($('help-dialog').open) return;
+ if (e.key.toLowerCase() === 'h') { e.preventDefault(); if (!e.repeat) cycleTheme(); return; }
+ if (e.key.toLowerCase() === 'd') { e.preventDefault(); if (!e.repeat) toggleDecimals(); return; }
+ if (e.key.toLowerCase() === 'm') { e.preventDefault(); if (!e.repeat) toggleSound(); return; }
+ if ($('history-dialog').open) return;
+ if (e.key.toLowerCase() === 't') { e.preventDefault(); if (!e.repeat) cycleMode(); return; }
+ if (e.key.toLowerCase() === 'r') { e.preventDefault(); if (e.repeat) return; if (mode === 'clock') return; if (mode === 'stopwatch') { if (stopwatchStart !== null) resetStopwatch(true); return; } sync(); if (deadline !== null) { reset(); toggle(); } return; }
+ if (e.key.toLowerCase() === 'f') { e.preventDefault(); if (e.repeat) return; if (e.shiftKey) $('fullscreen').onclick(); else fillScreen(); return; }
+ if (e.key === '-' || e.key === '+' || e.key === '=') { e.preventDefault(); changeSize(e.key === '-' ? -1 : 1); return; }
+ const onButton = e.target.closest('button,a');
+ if (onButton && (e.key === 'Enter' || e.key === ' ')) return;
+ if (/^\d$/.test(e.key)) { e.preventDefault(); typeDigit(e.key); }
+ else if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) { e.preventDefault(); editing = false; setTime(Math.ceil(remaining/1000) + ({ArrowLeft:-60,ArrowRight:60,ArrowUp:1,ArrowDown:-1}[e.key])); }
+ else if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (mode !== 'timer' || deadline !== null) return; digits = editing ? digits.slice(0,-1) : ''; editing = true; const n = Number(digits); setTime(Math.floor(n/100)*60+n%100); }
+ else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (e.repeat) return; if (e.key === 'Enter') toggle(); else if (mode === 'stopwatch') { if (stopwatchStart === null) { if (elapsed > 0) resetStopwatch(); else toggleStopwatch(); } } else if (mode === 'timer') { sync(); if (mode !== 'timer' || deadline !== null) return; if (startedAt !== null) reset(); else toggle(); } }
+});
+function showHistory() {
+ const list = $('history-list'); list.replaceChildren();
+ if (!history.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Your timer sessions will appear here.'; list.append(li); }
+ history.forEach(h => { const li = document.createElement('li'), info = document.createElement('span'), date = document.createElement('small'), use = document.createElement('button'); info.textContent = (h.mode === 'stopwatch' ? 'Stopwatch · ' : '') + h.result; date.textContent = new Date(h.endedAt).toLocaleString(); info.append(date); use.textContent = format(h.duration); use.setAttribute('aria-label','Use '+format(h.duration)+' timer'); use.onclick = () => { if (deadline !== null) { $('status').textContent = 'Pause the current timer before changing its duration.'; } else if (h.duration <= MAX * 1000) { mode = 'timer'; saveView(); editing = false; setTime(h.duration/1000); } $('history-dialog').close(); }; li.append(info,use); list.append(li); });
+ $('clear-history').disabled = !history.length;
+}
+$('history').onclick = () => { sync(); render(); showHistory(); $('history-dialog').showModal(); };
+$('close-history').onclick = () => $('history-dialog').close();
+$('clear-history').onclick = () => { history = []; save(); showHistory(); render(); };
+$('theme').onclick = cycleTheme;
+if (!document.documentElement.requestFullscreen) $('fullscreen').hidden = true;
+$('fullscreen').onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch (_) { $('status').textContent = 'Full screen is unavailable in this browser.'; } };
+document.addEventListener('fullscreenchange', () => {
+ const active = !!document.fullscreenElement;
+ $('fullscreen').setAttribute('aria-label', (active ? 'Exit' : 'Enter') + ' full screen (Shift+F)');
+ $('fullscreen').title = (active ? 'Exit full screen' : 'Full screen') + ' · Shift+F';
+ $('fullscreen-path').setAttribute('d', active ? 'M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5' : 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5');
+});
+document.addEventListener('visibilitychange', () => { sync(); save(); saveView(); render(); });
+window.addEventListener('pagehide', () => { sync(); save(); saveView(); });
+sync(); render(); setInterval(() => { sync(); render(); },16);
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+</body>
+</html>

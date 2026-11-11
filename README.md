@@ -27,6 +27,8 @@
 
 | App | What it does | Status |
 | --- | --- | --- |
+| [Bible Connections](https://atlantachristianstudents.github.io/adless/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | beta |
+| [Show Time](https://atlantachristianstudents.github.io/adless/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | beta |
 | [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
