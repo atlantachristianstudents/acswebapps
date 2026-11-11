@@ -215,7 +215,10 @@ function render() {
  $('time').value = displayedTime;
  $('time').readOnly = mode !== 'timer' || deadline !== null;
  $('time').setAttribute('aria-label', mode === 'clock' ? 'Current local time' : mode === 'stopwatch' ? 'Stopwatch elapsed time' : 'Timer duration in minutes and seconds');
- $('mode').textContent = mode === 'timer' ? 'Timer' : mode === 'clock' ? 'Clock' : 'Stopwatch';
+ const nextMode = ['timer','clock','stopwatch'][(['timer','clock','stopwatch'].indexOf(mode) + 1) % 3];
+$('mode').textContent = nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch';
+$('mode').setAttribute('aria-label', 'Switch to ' + (nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch') + ' · T');
+$('mode').title = 'Cycle to ' + (nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch') + ' · T';
  $('actions').hidden = mode === 'clock';
  $('toggle').classList.toggle('running', deadline !== null);
  $('toggle').textContent = deadline !== null ? 'Pause' : remaining === 0 ? 'Start again' : startedAt !== null ? 'Resume' : 'Start';
