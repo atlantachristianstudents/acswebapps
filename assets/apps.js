@@ -47,7 +47,7 @@ window.APPS = [
     description: "Display hymn number or text in full-screen seemlessly.",
     icon: "A",
     tags: ["Worship", "Presentation"],
-    status: "beta",
+    status: "live",
     url: "apps/big-text"
   },
   {
