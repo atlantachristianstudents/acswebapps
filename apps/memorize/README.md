@@ -2,6 +2,19 @@
 
 Practice recalling a verse, poem, speech, or any other text from memory.
 
+## Bible verses (Recovery Version)
+
+The app can pull verse text directly from the same Recovery Version source used by the **Verses** app. On the preparation page, use **Find a Bible verse**:
+
+- Search by reference — `John 3:16`, `john 3:16-17`, `Rom. 8:28–30`, `1 Cor. 13:4`, `Jude 4`, or a whole chapter (`John 3`, capped at 20 verses). Book names, common abbreviations, and the same aliases as the Verses app are accepted.
+- Or search a few words of the verse (e.g. `God is love`) to find it by content.
+- Each result offers **Memorize** (saves the verse and starts practice), **Hide words**, and **Save**.
+- The verse text (about 4.5 MB) is downloaded once and cached in IndexedDB (`adless-memorize` database), so it stays available offline after the first load. If the download fails, you are asked to retry; nothing else in the app is affected.
+
+## Saved verses
+
+Saved verses are kept in localStorage under `adless-memorize-verses-v1`, with an optional group name (existing groups are offered as suggestions), a learning/learned status, best accuracy, and attempt count. Filter the list with **All / Learning / Learned**, practice any verse directly, toggle **Mark learned**, or delete it. Completing a practice check on a saved verse automatically records the score, and a 100% result marks it learned. Use **Hide words** for a different kind of drill: tap words to hide or reveal them, or progressively hide 1 or 5 more words at a time until you can recite the verse from what remains.
+
 1. Enter your reference text or import a UTF-8 `.txt`, `.text`, or `.md` file, or a `.pdf` with selectable text. There is no app-imposed word or character limit for references, answers, or imported text. PDFs may be up to 10 MB and 100 pages. Import replaces the reference only after validation; review or edit it before beginning, especially PDF spacing, reading order, headers, and page breaks. Markdown is imported as literal text, including formatting characters. Scanned PDFs need OCR first; password-protected PDFs must be unlocked before importing. Word files must first be exported as plain text or PDF. Empty, oversized, and unreadable files leave your current reference intact.
 2. Choose whether to ignore capitalization and punctuation, then select **Begin practice**.
 3. The reference disappears. Recall uses a blank, full-window text box with no header or instructions. In ordinary practice, small controls at the bottom let you **Check my recall** or **Edit reference**. In Test mode, only a small submission-shortcut reminder remains. Empty submissions are allowed to reveal everything you missed.

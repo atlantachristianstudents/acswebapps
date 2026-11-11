@@ -34,7 +34,7 @@ window.APPS = [
   {
     id: "memorize",
     name: "Memorize",
-    description: "Type a passage from memory on a blank page, then check missing, changed, and extra words. Works offline.",
+    description: "Memorize Bible verses (Recovery Version) or any passage: hide words or type from memory and check missing, changed, and extra words. Works offline.",
     icon: "✍️",
     iconUrl: "apps/memorize/icons/icon.svg",
     tags: ["Study", "Memory"],
