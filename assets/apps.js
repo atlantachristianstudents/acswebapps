@@ -43,12 +43,12 @@ window.APPS = [
   },
   {
     id: "big-text",
-    name: "Big Text",
+    name: "Show Songs",
     description: "Display hymn number or text in full-screen seemlessly.",
     icon: "A",
     tags: ["Worship", "Presentation"],
     status: "live",
-    url: "apps/big-text"
+    url: "apps/show-songs"
   },
   {
     id: "verses",

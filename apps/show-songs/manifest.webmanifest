@@ -1,6 +1,6 @@
 {
-  "name": "Big Text",
-  "short_name": "Big Text",
+  "name": "Show Songs",
+  "short_name": "Show Songs",
   "description": "Type digits or text and it scales to fill the screen.",
   "start_url": "./index.html",
   "scope": "./",

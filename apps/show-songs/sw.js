@@ -1,8 +1,8 @@
-// Big Text service worker: lets the app open and work offline.
+// Show Songs service worker: lets the app open and work offline.
 // - The page itself is network-first, so a new version shows up as soon as you are online.
 // - Icons, manifest and the Google Fonts files are served from cache and refreshed in the background.
 // Bump VERSION to drop old caches.
-var VERSION = 'big-text-v81';
+var VERSION = 'big-text-v83';
 var SHELL = [
   './',
   './index.html',

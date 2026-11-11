@@ -26,12 +26,12 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download and validate the complete Songbase library
-        run: python3 apps/big-text/songbasescraper.py --embed
+        run: python3 apps/show-songs/songbasescraper.py --embed
       - name: Commit changed songs and refresh the offline cache version
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          git add apps/big-text/songbase_all.json apps/big-text/index.html apps/big-text/sw.js
+          git add apps/show-songs/songbase_all.json apps/show-songs/index.html apps/show-songs/sw.js
           if git diff --cached --quiet; then
             echo "Songbase library is unchanged."
           else

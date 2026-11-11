@@ -30,7 +30,7 @@
 | [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
-| [Big Text](https://atlantachristianstudents.github.io/adless/apps/big-text/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
+| [Show Songs](https://atlantachristianstudents.github.io/adless/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. | live |
 | [Verse Lookup](https://atlantachristianstudents.github.io/adless/apps/verses/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
 | [Songbook](https://atlantachristianstudents.github.io/adless/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
@@ -49,7 +49,7 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 
 ## Technologies
 
-Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. The only scheduled automation refreshes Big Text’s Songbase data; apps are still served as-is.
+Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. The only scheduled automation refreshes Show Songs’s Songbase data; apps are still served as-is.
 
 A few apps bundle or use specialized pieces:
 
@@ -103,7 +103,7 @@ sw.js                      Home page service worker (skips apps/, which have the
 .nojekyll                  Tells GitHub Pages to serve files as-is (no Jekyll processing)
 AGENTS.md                  Conventions for AI coding agents working in this repo
 .github/workflows/
-  update-songbase.yml       Refresh Big Text’s Songbase data every six hours
+  update-songbase.yml       Refresh Show Songs’s Songbase data every six hours
 assets/
   apps.js                  App registry — edit this to add or list apps
   main.js                  Theme toggle, tag filters, search, keyboard shortcuts, cards
@@ -115,7 +115,7 @@ apps/
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, reading, records, and friend races
   memorize/                Memorization practice with word comparison and PDF import
-  big-text/                Full-screen hymn numbers and text
+  show-songs/              Full-screen hymn numbers and text
   tunes/                   Tuner, metronome, tone generator, and chord detection
   verses/                  Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
@@ -159,7 +159,7 @@ Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, 
 
 `.nojekyll` must stay in the repo root so GitHub Pages serves files as-is (Jekyll would otherwise exclude folders such as `apps/_template/`).
 
-Big Text’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The workflow requests a [Pages rebuild](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) after bot commits, since those pushes do not trigger the branch-based build automatically. Keep Actions enabled and permit the workflow’s `contents: write` and `pages: write` permissions; protected branches must allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
+Show Songs’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The workflow requests a [Pages rebuild](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) after bot commits, since those pushes do not trigger the branch-based build automatically. Keep Actions enabled and permit the workflow’s `contents: write` and `pages: write` permissions; protected branches must allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
 
 ## Troubleshooting
 

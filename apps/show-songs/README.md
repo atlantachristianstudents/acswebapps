@@ -1,4 +1,4 @@
-# Big Text
+# Show Songs
 
 Type a number (or a line of text) and it is drawn full-screen, scaled to fit the window. The display has no heading bar. Built for projecting hymn numbers: with the `l`/`c`/`k`/`s`/`b`/`e` keys it can show the same number in other languages' hymnals below the big one (English hymns 1-1348). No network needed once installed.
 
