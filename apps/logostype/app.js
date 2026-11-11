@@ -282,55 +282,97 @@ function journeyTypingStats() {
   const allSeconds = attempts.reduce((sum, item) => sum + (item.elapsedMs ?? item.typingMs ?? 0), 0) / 1000;
   return `Time spent typing (successful attempts): ${format(seconds)} · Total time spent (all attempts): ${format(allSeconds)}`;
 }
+let activeCelebration = null;
 function celebrateJourney(colorCount = 1, durationMs = 4500 * colorCount) {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (motion.matches || document.hidden) return;
+  colorCount = Math.max(1, Math.min(7, Math.floor(colorCount)));
+  // A new record and a chapter/book milestone can happen in the same task.
+  if (activeCelebration) {
+    if (activeCelebration.colors >= colorCount) return;
+    activeCelebration.stop();
+  }
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1000";
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
   const context = canvas.getContext("2d");
   if (!context) return;
-  document.body.append(canvas);
   const colors = ["#e2b714", "#88c0d0", "#ebbcba", "#a3be8c", "#f5f5f5", "#e67e50", "#e65d80"].slice(0, colorCount);
-  const pieces = Array.from({ length: 160 }, (_, index) => ({
-    x: Math.random() * canvas.width,
-    y: -20 - Math.random() * canvas.height * 0.5,
-    vx: (Math.random() - 0.5) * 180,
-    vy: 100 + Math.random() * 180,
-    angle: Math.random() * Math.PI,
-    spin: (Math.random() - 0.5) * 8,
-    color: colors[index % colors.length],
-  }));
-  const duration = durationMs;
-  let started, last;
-  function frame(now) {
-    started ??= now;
-    const delta = Math.min((now - (last ?? now)) / 1000, 0.05);
-    last = now;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.globalAlpha = Math.max(0, Math.min(1, (duration - (now - started)) / 800));
-    for (const piece of pieces) {
-      piece.x += piece.vx * delta;
-      piece.y += piece.vy * delta;
-      piece.vy += 70 * delta;
-      piece.angle += piece.spin * delta;
-      if (colorCount > 1 && piece.y > canvas.height + 20 && now - started < duration - 800) {
-        piece.x = Math.random() * canvas.width;
-        piece.y = -20;
-        piece.vy = 100 + Math.random() * 180;
-      }
-      context.save();
-      context.translate(piece.x, piece.y);
-      context.rotate(piece.angle);
-      context.fillStyle = piece.color;
-      context.fillRect(-4, -6, 8, 12);
-      context.restore();
+  // Cache rotation once instead of saving, rotating, and restoring for every piece on every frame.
+  const sprites = document.createElement("canvas"), cell = 24, rotations = 16;
+  sprites.width = cell * rotations; sprites.height = cell * colors.length;
+  const spriteContext = sprites.getContext("2d");
+  if (!spriteContext) return;
+  colors.forEach((color, row) => {
+    for (let angle = 0; angle < rotations; angle++) {
+      spriteContext.save();
+      spriteContext.translate(angle * cell + cell / 2, row * cell + cell / 2);
+      spriteContext.rotate(angle / rotations * Math.PI * 2);
+      spriteContext.fillStyle = color;
+      spriteContext.fillRect(-4, -6, 8, 12);
+      spriteContext.restore();
     }
-    if (now - started < duration) requestAnimationFrame(frame);
-    else canvas.remove();
+  });
+  let width, height, scale;
+  function resize() {
+    width = Math.max(1, window.innerWidth); height = Math.max(1, window.innerHeight);
+    scale = Math.min(1, Math.sqrt(1000000 / (width * height)));
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    context.setTransform(scale, 0, 0, scale, 0, 0);
   }
-  requestAnimationFrame(frame);
+  resize();
+  const pieces = Array.from({ length: Math.min(96, Math.max(40, Math.round(width * height / 12000))) }, (_, index) => ({
+    x: Math.random() * width, y: -20 - Math.random() * height * 0.5,
+    vx: (Math.random() - 0.5) * 180, vy: 100 + Math.random() * 180,
+    angle: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 8,
+    color: index % colors.length, born: 0,
+  }));
+  let started, last, frameId, frames = 0, slowFrames = 0;
+  const animation = { colors: colorCount, stop() {
+    if (frameId !== undefined) cancelAnimationFrame(frameId);
+    canvas.remove();
+    document.removeEventListener("visibilitychange", visibilityChanged);
+    if (activeCelebration === animation) activeCelebration = null;
+  } };
+  function visibilityChanged() { if (document.hidden) animation.stop(); }
+  activeCelebration = animation;
+  document.addEventListener("visibilitychange", visibilityChanged);
+  document.body.append(canvas);
+  function frame(now) {
+    if (activeCelebration !== animation) return;
+    if (document.hidden || motion.matches) { animation.stop(); return; }
+    started ??= now;
+    const elapsed = now - started;
+    if (elapsed >= durationMs) { animation.stop(); return; }
+    if (window.innerWidth !== width || window.innerHeight !== height) resize();
+    if (last !== undefined) {
+      frames++;
+      if (now - last > 34) slowFrames++;
+      if (frames >= 30) {
+        if (slowFrames > 10 && pieces.length > 24) pieces.length = Math.max(24, Math.floor(pieces.length * 0.75));
+        frames = 0; slowFrames = 0;
+      }
+    }
+    last = now;
+    context.clearRect(0, 0, width, height);
+    context.globalAlpha = Math.max(0, Math.min(1, (durationMs - elapsed) / 800));
+    for (const piece of pieces) {
+      const age = (elapsed - piece.born) / 1000;
+      const x = piece.x + piece.vx * age, y = piece.y + piece.vy * age + 35 * age * age;
+      if (y > height + cell && colorCount > 1 && elapsed < durationMs - 800) {
+        piece.x = Math.random() * width; piece.y = -20;
+        piece.vy = 100 + Math.random() * 180; piece.born = elapsed;
+        continue;
+      }
+      if (x < -cell || x > width + cell || y < -cell || y > height + cell) continue;
+      const angle = ((piece.angle + piece.spin * age) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+      const rotation = Math.floor(angle / (Math.PI * 2) * rotations);
+      context.drawImage(sprites, rotation * cell, piece.color * cell, cell, cell, x - cell / 2, y - cell / 2, cell, cell);
+    }
+    frameId = requestAnimationFrame(frame);
+  }
+  frameId = requestAnimationFrame(frame);
 }
 function setReadingView(active) {
   window.collaborativeJourneys?.unmount();

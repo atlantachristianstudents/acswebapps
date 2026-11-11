@@ -54,7 +54,7 @@ Personal records list the fastest saved WPM for a verse (verse tests and complet
 
 Scripture Journey stacks the current chapter and current book progress bars in the left sidebar above the overall word-progress bar, with completed verses for the chapter and completed chapters for the book, plus percentages. A chapter counts toward book progress only once all its verses are completed. They follow the current verse, start at zero when entering a new chapter or book, and remain full when the selected journey is complete. These appear alongside the overall journey progress in both entire Scriptures and individual book journeys.
 
-Confetti celebrates each completed chapter and book in Scripture Journey, including the entire Scriptures journey. Chapter completions use one confetti color for 4.5 seconds, book completions use three colors for 13.5 seconds (three times as long), and completing the entire Scriptures journey uses seven colors for 31.5 seconds (seven times as long). Confetti continues falling throughout the longer celebrations. Overlapping milestones trigger only the highest celebration. Confetti respects the device’s reduced-motion preference.
+Confetti celebrates each completed chapter and book in Scripture Journey, including the entire Scriptures journey. Chapter completions use one confetti color for 4.5 seconds, book completions use three colors for 13.5 seconds (three times as long), and completing the entire Scriptures journey uses seven colors for 31.5 seconds (seven times as long). Confetti continues falling throughout the longer celebrations. Overlapping milestones trigger only the highest celebration. Confetti respects the device’s reduced-motion preference. Celebrations share one animation; a higher milestone replaces a lower one. Rotated pieces are cached, off-screen pieces are skipped, and particle count and canvas resolution are bounded to reduce rendering work. Sustained slow frames reduce particle density, and hidden tabs stop the animation.
 
 The Scripture Journey controls use fixed top spacing so the journey selector stays in place as verse lengths change.
 
@@ -266,3 +266,5 @@ In Reading (menu 2), the boxed **collaborations** button beside the Old/New Test
 Both typing and reading collaboration pickers include an **×** delete icon for each saved collaboration. A confirmation dialog using the current theme removes only this device’s copy and disconnects it if active; other participants’ copies and your local typing history remain. You can rejoin by code later.
 
 Reading chapter selection uses a themed popup table with book rows and buttons for completed chapters, highlighting the current chapter. It works for personal and collaborative reading.
+
+Run confetti animation performance and cleanup checks with `node tests/confetti.cjs`.
