@@ -57,6 +57,7 @@ function validateBackup(data){
   if(!Number.isSafeInteger(data.bookProgress)||data.bookProgress<0||data.bookProgress>scriptureReferences.length)throw new Error('The backup has invalid Scripture Journey progress.');
   if(!Array.isArray(data.history))throw new Error('The backup has invalid typing history.');
   if(data.replayRetentionLimit!==undefined&&(!Number.isSafeInteger(data.replayRetentionLimit)||data.replayRetentionLimit<0||data.replayRetentionLimit>1000000))throw new Error('Invalid replay retention.');
+  if(data.history.length>1000000||(data.journeyAttempts?.length||0)>1000000||(data.collaborativeJourneys?.length||0)>10000)throw new Error('The backup contains too many records.');
   const modes=['time','words','quote','custom','book'];
   const history=data.history.map(item=>{
     if(!item||!Number.isFinite(item.wpm)||item.wpm<0||!Number.isFinite(item.accuracy)||item.accuracy<0||item.accuracy>100||!modes.includes(item.mode)||!Number.isInteger(item.limit)||item.limit<1||item.limit>3600||typeof item.date!=='string'||item.date.length>100)throw new Error('The backup contains an invalid typing result.');
@@ -71,6 +72,10 @@ function validateBackup(data){
       if(item.mode!=='custom'||item.customPreset!=='default')throw new Error('The backup has an invalid custom text preset.');
       result.customPreset=item.customPreset;
     }
+    if(item.durationMs!==undefined){
+      if(!Number.isFinite(item.durationMs)||item.durationMs<0)throw new Error('The backup contains an invalid typing duration.');
+      result.durationMs=item.durationMs;
+    }
     if(item.rawWpm!==undefined){
       if(!Number.isFinite(item.rawWpm)||item.rawWpm<0)throw new Error('The backup contains an invalid raw WPM.');
       result.rawWpm=item.rawWpm;
@@ -84,7 +89,7 @@ function validateBackup(data){
       result.reference=item.reference;
     }
     if(item.collaborationId!==undefined){
-      if(item.mode!=='book'||typeof item.collaborationId!=='string'||!/^(?:[a-z]{8}|[a-f0-9]{24})$/.test(item.collaborationId)||typeof item.journey!=='string'||!item.journey.trim()||item.journey.length>80||typeof item.contributor!=='string'||!item.contributor.trim()||item.contributor.length>24)throw new Error('The backup contains an invalid collaboration result.');
+      if(item.mode!=='book'||typeof item.collaborationId!=='string'||!/^(?:[0-9]{12}|[a-z]{8}|[a-f0-9]{24})$/.test(item.collaborationId)||typeof item.journey!=='string'||!item.journey.trim()||item.journey.length>80||typeof item.contributor!=='string'||!item.contributor.trim()||item.contributor.length>24)throw new Error('The backup contains an invalid collaboration result.');
       result.collaborationId=item.collaborationId;result.contributor=item.contributor;
     }
     if(item.journey!==undefined){
@@ -94,6 +99,8 @@ function validateBackup(data){
     if(item.chart!==undefined)result.chart=validateHistoryChart(item.chart);
     if(item.replay!==undefined)result.replay=validateAttemptReplay(item.replay);
     if(item.raceReplay!==undefined)result.raceReplay=validateRaceReplay(item.raceReplay);
+    const durationMs=Math.max(result.durationMs||0,result.replay?.durationMs||0,...(result.chart?.sampleTimes||[]).slice(-1).map(time=>time*1000),item.mode==='time'?item.limit*1000:0);
+    if(result.mode!=='custom'&&result.wpm>=300&&durationMs>1000)throw new Error('The backup contains an invalid typing result: average speed is 300 WPM or higher over more than one second.');
     return result;
   });
   if(data.name!==undefined&&(typeof data.name!=='string'||data.name.length>24))throw new Error('The backup has an invalid name.');
@@ -115,12 +122,64 @@ function validateBackup(data){
   }
   const completions=data.journeyCompletions??[];
   if(!Array.isArray(completions)||completions.some(value=>typeof value!=='string'||!Number.isFinite(Date.parse(value))))throw new Error('The backup has invalid journey completion history.');
+  const books=validateBookJourneys(data.bookJourneys??{});
+  const shuffled=typeof validateJourneyShuffled==='function'?validateJourneyShuffled(data.journeyShuffled??{}):{};
+  const typed=new Map(),countedIds=new Set();
+  for(const result of history){
+    if(result.mode!=='book'||result.collaborationId||!result.reference)continue;
+    if(result.id&&countedIds.has(result.id))continue;
+    if(result.id)countedIds.add(result.id);
+    const name=result.journey||'Entire Scriptures';
+    if(!typed.has(name))typed.set(name,new Map());
+    typed.get(name).set(result.reference,(typed.get(name).get(result.reference)||0)+1);
+  }
+  function requireTyping(name,start,end,progress,cycles){
+    const references=typed.get(name)||new Map();
+    const required=new Set(shuffled[name]?.verses||[]);
+    for(let i=start;i<start+progress;i++)required.add(i);
+    // A finished current journey is already counted in its completion history.
+    const active=progress<end-start;
+    for(let index=start;index<end;index++){
+      const count=Math.max(cycles,active?cycles+(required.has(index)?1:0):required.has(index)?1:0);
+      if((references.get(scriptureReferences[index])||0)<count)throw new Error('Cannot import: '+name+' progress has no matching typing record for '+scriptureReferences[index]+' (requires '+count+' completed typing results).');
+    }
+  }
+  requireTyping('Entire Scriptures',0,scriptureReferences.length,data.bookProgress,new Set([...completions,...(completedAt?[completedAt]:[])].map(value=>new Date(value).toISOString())).size);
+  for(const [name,state] of Object.entries(books)){
+    const book=journeyBooks.find(book=>book.name===name);
+    requireTyping(name,book.start,book.end,state.progress,new Set(state.completions).size);
+  }
+  for(const name of Object.keys(shuffled)){
+    if(name==='Entire Scriptures'||books[name])continue;
+    const book=journeyBooks.find(book=>book.name===name);
+    requireTyping(name,book.start,book.end,0,0);
+  }
+  const attemptIds=new Map();
+  for(const item of data.journeyAttempts||[]){
+    const previous=attemptIds.get(item.id);
+    if(previous&&(previous.journey!==item.journey||previous.reference!==item.reference))throw new Error('Conflicting journey attempt ID in backup.');
+    attemptIds.set(item.id,item);
+  }
+  const ids=new Map();
+  for(const item of history){
+    if(!item.id)continue;
+    const signature=JSON.stringify([item.mode,item.reference,item.journey,item.collaborationId,item.contributor,item.date,item.wpm,item.accuracy,item.limit]);
+    if(ids.has(item.id)&&ids.get(item.id)!==signature)throw new Error('Conflicting typing result ID in backup.');
+    ids.set(item.id,signature);
+  }
   return {collaborativeJourneys:window.collaborativeJourneys?.validate(data.collaborativeJourneys??[])||[],friendRecords:window.friendRecords?.validate(data.friendRecords??[])||[],journeyShuffled:typeof validateJourneyShuffled === "function" ? validateJourneyShuffled(data.journeyShuffled??{}) : {},replayRetentionLimit:data.replayRetentionLimit,journeyDates:validateJourneyDates(data.journeyDates??{}),theme:themeName,customThemeColors:themeColors,journeyAttempts:validateJourneyAttempts(data.journeyAttempts??[]),bookJourneys:validateBookJourneys(data.bookJourneys??{}),bookProgress:data.bookProgress,history,name:data.name,journeyCompletedAt:completedAt,journeyCompletions:[...new Set([...completions.map(value=>new Date(value).toISOString()),...(completedAt?[completedAt]:[])])].sort()};
 }
 function historyKey(item){
   return item.id?'id:'+item.id:JSON.stringify([item.date,item.mode,item.limit,item.wpm,item.accuracy,item.rawWpm??null,item.reference??null,item.journey??null]);
 }
 function mergeTypingHistory(existing,incoming){
+  const ids=new Map();
+  for(const item of [...existing,...incoming]){
+    if(!item.id)continue;
+    const signature=JSON.stringify([item.mode,item.reference,item.journey,item.collaborationId,item.contributor,item.date,item.wpm,item.accuracy,item.limit]);
+    if(ids.has(item.id)&&ids.get(item.id)!==signature)throw new Error('Conflicting typing result ID in backup.');
+    ids.set(item.id,signature);
+  }
   // Preserve multiple identical sessions within a backup while avoiding duplicates on repeated imports.
   const counts=new Map(),positions=new Map();
   existing.forEach((item,index)=>{const key=historyKey(item);counts.set(key,(counts.get(key)||0)+1);if(!positions.has(key))positions.set(key,[]);positions.get(key).push(index);});
@@ -137,8 +196,8 @@ function mergeTypingHistory(existing,incoming){
 }
 function importBackup(data){
   if(window.friendRace?.active)throw new Error('Leave the race room before importing a backup.');
-  checkpointJourneyAttempt();
   const backup=validateBackup(data);
+  checkpointJourneyAttempt();
   const retainedLimit=0;
   const merged=applyReplayRetention(mergeTypingHistory(history,backup.history),retainedLimit);
   const mergedJourneyDates=mergeJourneyDates(journeyDates,backup.journeyDates);
@@ -172,8 +231,9 @@ function importBackup(data){
     const local=mergedShuffled[name];
     mergedShuffled[name]=local?.cycle===state.cycle?{cycle:state.cycle,verses:[...new Set([...local.verses,...state.verses])]}:!local||(state.cycle||'')>(local.cycle||'')?state:local;
   }
-  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit','logostype-journey-shuffled','logostype-friends-records'];
+  const keys=['logostype-history','logostype-book-progress','logostype-racer','logostype-journey-completed-at','logostype-journey-completions','logostype-book-journeys','logostype-journey-attempts','logostype-theme','logostype-custom-colors','logostype-journey-dates','logostype-replay-limit','logostype-journey-shuffled','logostype-friends-records','logostype-collaborative-journeys'];
   const mergedFriends=window.friendRecords?.merge(window.friendRecords.export(),backup.friendRecords)||[];
+  const mergedCollaborations=window.collaborativeJourneys?.prepareImport(backup.collaborativeJourneys||[])||[];
   const previous=keys.map(key=>localStorage.getItem(key));
   try{
     localStorage.setItem(keys[0],JSON.stringify(merged));
@@ -189,12 +249,13 @@ function importBackup(data){
     localStorage.setItem(keys[10],String(retainedLimit));
     localStorage.setItem(keys[11],JSON.stringify(mergedShuffled));
     localStorage.setItem(keys[12],JSON.stringify(mergedFriends));
+    localStorage.setItem(keys[13],JSON.stringify(mergedCollaborations));
   }catch(error){
     keys.forEach((key,i)=>{try{if(previous[i]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[i])}catch{}});
     throw new Error('Could not save the backup. Browser storage may be full.');
   }
   window.friendRecords?.replace(mergedFriends);
-  window.collaborativeJourneys?.import(backup.collaborativeJourneys||[]);
+  window.collaborativeJourneys?.replace(mergedCollaborations);
   const added=merged.length-history.length;
   journeyShuffled=mergedShuffled;shuffledPosition=null;
   journeyAttempts=mergedAttempts;journeyDates=mergedJourneyDates;replayRetentionLimit=retainedLimit;
@@ -213,6 +274,7 @@ document.body.append(backupInput);
 backupInput.addEventListener('change',async()=>{
   const file=backupInput.files[0];if(!file)return;
   try{
+    if(file.size>256*1024*1024)throw new Error('The backup exceeds the 256 MiB import limit.');
     const added=importBackup(JSON.parse(await file.text()));
     dataStatus(`Imported ${added} typing result${added===1?'':'s'}. Scripture Journey: ${bookProgress.toLocaleString()} verses completed.`);
   }catch(error){dataStatus(error instanceof SyntaxError?'Could not read the backup. Choose a valid JSON file.':error.message)}

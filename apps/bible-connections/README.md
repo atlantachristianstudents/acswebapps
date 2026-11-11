@@ -6,7 +6,7 @@ An interactive map of Bible cross-references based on the Holy Bible Recovery Ve
 - Choose a book, chapter, and optional verse using the selectors, including on touch screens.
 - Set connection depth from 0 to 9 with the Steps selector or number keys.
 - Use left/right arrows to move chapters and up/down arrows to move verses after selecting a chapter.
-- Press V to toggle verse hover; Escape or Clear resets the selection.
+- Verse hover is off by default. Press V to toggle it; Escape or Clear resets the selection.
 - Chapter connections traverse in either direction; verse connections follow outgoing references. Counts include repeated links as described in the app.
 
 ## Install and offline use

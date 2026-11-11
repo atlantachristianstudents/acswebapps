@@ -549,10 +549,32 @@ function enterTyping() {
   switchTypingMenu("typing");
 }
 
+function showInvalidJourneyResult() {
+  sampleWpm(true);
+  const chartData=captureChart();
+  let dialog=$("#invalidJourneyDialog");
+  if(!dialog){
+    dialog=document.createElement('dialog');dialog.id='invalidJourneyDialog';
+    dialog.setAttribute('aria-labelledby','invalidJourneyTitle');
+    dialog.innerHTML='<button type="button" class="close" aria-label="Close invalid result">×</button><h2 id="invalidJourneyTitle">Verse result invalid</h2><p>This verse was not saved or counted toward journey progress because its average speed was 300 WPM or higher over more than one second. Try the verse again.</p><p id="invalidJourneySummary"></p><canvas id="invalidJourneyChart" role="img" aria-label="Invalid verse typing speed chart"></canvas>'+chartLegend('invalidJourneyChart')+'<button type="button" class="option" data-retry-invalid>retry verse</button>';
+    document.body.append(dialog);
+    dialog.querySelector('.close').onclick=()=>dialog.close();
+    dialog.querySelector('[data-retry-invalid]').onclick=()=>dialog.close();
+    dialog.addEventListener('close',()=>input.focus());
+  }
+  $('#invalidJourneySummary').textContent=scriptureReferences[journeyPosition()]+' · '+speed()+' WPM · '+((Date.now()-start)/1000).toFixed(2)+'s';
+  const canvas=$('#invalidJourneyChart');canvas._chartData=chartData;
+  if(!dialog.open)dialog.showModal();
+  drawChart(canvas,chartData);
+  dialog.querySelector('[data-retry-invalid]').focus();
+}
 function completeBookVerse() {
   if (mode !== "book") return;
   const previousPosition = journeyPosition();
-  const passed = typed === target && target.length > 0 && !parseTyping(input.value).extraCount;
+  const invalidSpeed = speed() >= 300 && start && Date.now() - start > 1000;
+  const complete = typed === target && target.length > 0 && !parseTyping(input.value).extraCount;
+  if(invalidSpeed && complete){showInvalidJourneyResult();return false;}
+  const passed = !invalidSpeed && complete;
   if (passed) {
     if (!done) sampleWpm(true);
     if (activeJourneyAttempt) {
@@ -564,6 +586,7 @@ function completeBookVerse() {
     const result = {
       id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
       wpm: speed(),
+      durationMs: Math.max(0, Date.now() - start),
       rawWpm: rawSpeed(),
       accuracy: total ? Math.round(((total - errors) / total) * 100) : 100,
       mode: "book",
@@ -900,7 +923,13 @@ function finish(saveResult = true) {
   $("#chartLegend").hidden = $("#chart").hidden;
   $("#accuracy").textContent = accuracy + "%";
   $("#testType").textContent = `${mode === "quote" ? "verse" : mode} ${mode === "time" ? limit + "s" : mode === "words" ? limit : ""} · english`;
-  $("#resultDetails").textContent = `${elapsed.toFixed(2)}s · ${typed.length} characters · ${errors} errors`;
+  const invalidSpeed = mode !== "custom" && wpm >= 300 && elapsed > 1;
+  if (invalidSpeed) {
+    saveResult = false;
+    $("#chart").hidden=false;
+    $("#chartLegend").hidden=false;
+  }
+  $("#resultDetails").textContent = `${elapsed.toFixed(2)}s · ${typed.length} characters · ${errors} errors` + (invalidSpeed ? " · invalid result: average speed must be below 300 WPM for tests longer than one second" : "");
   const references = $("#testReferences");
   if (mode === "time") testReferences = [...new Set(testSourceRanges.filter(source => source.start < typed.length).map(source => source.reference))];
   references.hidden = !["time", "words", "quote"].includes(mode) || !!window.friendRace?.active || !testReferences.length;
@@ -911,6 +940,7 @@ function finish(saveResult = true) {
     const result = {
       id: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2),
       wpm,
+      durationMs: Math.max(0, elapsed * 1000),
       rawWpm: rawSpeed(),
       accuracy,
       mode,
@@ -983,7 +1013,7 @@ function chartTimeRange(times) {
 function drawChart(c = $("#chart"), data = captureChart()) {
   data = visibleChartData(data);
   c._visibleData = data;
-  c.hidden = !data.sampleTimes.length || (c.id === "chart" && !!(window.friendRace?.active && window.friendRace.running));
+  c.hidden = !data.sampleTimes.length || (c.id === "chart" && !!(window.friendRace?.active && window.friendRace.running) && !(done && mode !== "custom" && speed() >= 300 && Date.now()-start > 1000));
   const legend = document.querySelector(`[data-chart-target="${c.id}"]`);
   if (legend) legend.hidden = c.hidden;
   if (c.id === "chart") hideChartHover();
@@ -1101,6 +1131,8 @@ window.addEventListener("resize", () => {
   if (done && !$("#chart").hidden) drawChart();
   const canvas = $("#historyChart");
   if (canvas && $("#modal").open && canvas._chartData) drawChart(canvas, canvas._chartData);
+  const invalidCanvas=$("#invalidJourneyChart");
+  if(invalidCanvas && $("#invalidJourneyDialog").open)drawChart(invalidCanvas,invalidCanvas._chartData);
 });
 input.addEventListener("keydown", (event) => {
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) event.preventDefault();

@@ -48,3 +48,13 @@ assert.deepEqual(bursts,[1],'ties do not trigger record confetti');
 context.window.friendRace.active=true;context.done=false;vm.runInContext('finish()',context);
 assert.deepEqual(bursts,[1],'race results do not trigger personal-record confetti');
 console.log('Personal record checks passed: single-color celebration, ties excluded, race results excluded.');
+
+context.done=false;context.speed=()=>300;context.mode='words';context.window.friendRace.active=false;
+let invalidCharts=0;context.drawChart=()=>invalidCharts++;
+const beforeInvalid=context.history.length;
+vm.runInContext('finish()',context);
+assert.equal(context.history.length,beforeInvalid,'invalid speed is not saved');
+assert.equal(invalidCharts,1,'invalid speed still draws its final chart');
+assert.equal(elements.get('#chart').hidden,false);
+assert.match(elements.get('#resultDetails').textContent,/invalid result/);
+console.log('Invalid result chart checks passed: note and chart retained without saving.');

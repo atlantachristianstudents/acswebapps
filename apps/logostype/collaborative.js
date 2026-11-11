@@ -4,14 +4,14 @@
   const uid = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), n => n.toString(16).padStart(2, '0')).join('');
   function journeyCode() {
     let code = '';
-    while (code.length < 8) {
+    while (code.length < 12) {
       const bytes = crypto.getRandomValues(new Uint8Array(16));
-      for (const byte of bytes) if (byte < 234 && code.length < 8) code += String.fromCharCode(97 + byte % 26);
+      for (const byte of bytes) if (byte < 250 && code.length < 12) code += String(byte % 10);
     }
     return code;
   }
   const bounds = scope => scope === '' ? {start: 0, end: scriptureReferences.length} : journeyBooks.find(b => b.name === scope);
-  const validCode = code => typeof code === 'string' && /^(?:[a-z]{8}|[a-f0-9]{24})$/.test(code);
+  const validCode = code => typeof code === 'string' && /^(?:[0-9]{12}|[a-z]{8}|[a-f0-9]{24})$/.test(code);
   function validate(value) {
     if (!Array.isArray(value) || value.length > 200) throw Error('Invalid collaborative journeys.');
     return value.map(j => {
@@ -34,8 +34,6 @@
   dialog.setAttribute('aria-labelledby', 'collaborativeTitle');
   dialog.innerHTML = `<h1 id="collaborativeTitle">Create or join a collaboration</h1>
     <p class="cj-intro">Type Scripture together. Shared progress stays separate from your personal journeys.</p>
-    <label class="cj-name-field">Your name <input id="cjName" maxlength="24" placeholder="Enter your name" autocomplete="nickname" aria-describedby="cjNameHint"></label>
-    <p class="cj-help" id="cjNameHint">This name appears beside the verses you contribute.</p>
     <div class="cj-setup-grid">
       <form id="cjCreateForm" class="cj-setup-card">
         <h2>Create a collaboration</h2><p class="cj-help">Start a journey, then share its code with friends.</p>
@@ -45,7 +43,7 @@
       </form>
       <form id="cjJoinForm" class="cj-setup-card">
         <h2>Join a collaboration</h2><p class="cj-help">Enter the code shared by your friend.</p>
-        <label>Journey code <input id="cjCode" placeholder="8-letter code" autocapitalize="none" maxlength="24" spellcheck="false" autocomplete="off"></label>
+        <label>Journey code <input id="cjCode" placeholder="12-digit code" autocapitalize="none" maxlength="24" spellcheck="false" autocomplete="off"></label>
         <button type="button" id="cjJoin" class="cj-action">Join collaboration</button>
       </form>
     </div>
@@ -53,19 +51,38 @@
     <p id="cjStatus" role="status" aria-live="polite"></p>
     <section id="cjWorkspace" hidden aria-label="Collaboration info">
       <div class="cj-info-top"><div><h3 id="cjHeading"></h3><p class="cj-info-caption" id="cjScopeInfo"></p></div><span id="cjProgress"></span></div>
-      <div class="cj-invite"><span class="cj-info-caption">Invite friends</span>
-        <div class="cj-info-row"><strong id="cjSharedCode" aria-label="Journey invitation code"></strong><button type="button" id="cjCopyCode">copy code</button><button type="button" id="cjConnection">reconnect</button></div>
+      <div class="cj-invite"><div class="cj-invite-heading"><span class="cj-info-caption">Invite friends</span><p id="cjConnectionStatus" role="status" aria-live="polite" hidden></p></div>
+        <div class="cj-info-row"><strong id="cjSharedCode" aria-label="Journey invitation code"></strong><button type="button" id="cjCopyCode">copy code</button><div class="cj-connection-controls"><button type="button" id="cjConnection">reconnect</button></div></div>
         <p class="cj-info-caption">Share this code. Friends enter it in menu 3 to join.</p>
         <p id="cjCopyStatus" role="status" aria-live="polite" hidden></p>
       </div>
-      <p id="cjConnectionStatus" role="status" aria-live="polite" hidden></p>
-      <details class="cj-verse-picker"><summary>Choose a different verse</summary><div class="cj-info-row"><label>Verse <select id="cjVerse"></select></label><button type="button" id="cjNext">next unfinished verse</button></div><p class="cj-info-caption">Choose different verses to divide the work. ✓ means already completed.</p></details>
+      <details class="cj-verse-picker"><summary>Choose a different verse</summary><div class="cj-info-row"><button type="button" id="cjVerse" aria-haspopup="dialog" aria-controls="cjVerseDialog">Choose verse ▦</button><button type="button" id="cjNext">next unfinished verse</button></div><p class="cj-info-caption">Choose different verses to divide the work. ✓ means already completed.</p></details>
       <details><summary id="cjContributorSummary">Contributors</summary><div id="cjContributors"></div></details>
       <p id="cjFeedback" role="status" aria-live="polite"></p></section>`;
   document.querySelector('#readingContent').after(dialog);
   const workspace=dialog.querySelector('#cjWorkspace');
   document.querySelector('#bookProgress').before(workspace);
   const el = id => document.querySelector('#cj' + id);
+  const nameDialog=document.createElement('dialog');
+  nameDialog.id='cjNameDialog';
+  nameDialog.setAttribute('aria-labelledby','cjNameTitle');
+  nameDialog.innerHTML='<button type="button" class="close" aria-label="Cancel name entry">×</button><h2 id="cjNameTitle">Choose your name</h2><form><label for="cjName">Your name</label><input class="race-field" id="cjName" maxlength="24" placeholder="Enter your name" autocomplete="nickname" required aria-describedby="cjNameHint"><p id="cjNameHint">This name appears beside the verses you contribute.</p><button class="option" type="submit">continue</button></form>';
+  document.body.append(nameDialog);
+  let afterName=null;
+  function withName(action) {
+    el('Name').value=el('Name').value.trim()||getProfileName()||'';
+    if(el('Name').value.trim()){updateDefaultTitle();action();return;}
+    afterName=action;nameDialog.showModal();el('Name').focus();
+  }
+  nameDialog.querySelector('.close').onclick=()=>nameDialog.close();
+  nameDialog.addEventListener('close',()=>{afterName=null;});
+  nameDialog.querySelector('form').onsubmit=event=>{
+    event.preventDefault();const name=el('Name').value.trim();
+    if(!name){el('Name').setCustomValidity('Enter your name.');el('Name').reportValidity();return;}
+    try{localStorage.setItem('logostype-racer',name);updateProfileLabel();}catch{}
+    updateDefaultTitle();const action=afterName;afterName=null;nameDialog.close();action?.();
+  };
+
   let selected=false, sharedShuffle=false, infoExpanded=false;
   let autoSync=true, syncRetry=null, connectTimeout=null;
   const infoButton=document.querySelector('#collaborationInfo');
@@ -73,7 +90,8 @@
     const active=!!current && currentMenu==='collaborative';
     infoButton.hidden=!active;
     infoButton.setAttribute('aria-expanded',String(active && infoExpanded));
-    infoButton.textContent='collaboration info '+(infoExpanded?'▴':'▾');
+    infoButton.textContent=infoExpanded?'▴':'▾';
+    infoButton.setAttribute('aria-label',infoExpanded?'Hide collaboration info':'Show collaboration info');
     workspace.hidden=!active || !infoExpanded;
   }
   infoButton.onclick=()=>{infoExpanded=!infoExpanded;syncInfo();};
@@ -84,7 +102,7 @@
   document.body.append(picker);
   picker.querySelector('.close').onclick=()=>picker.close();
   document.querySelector('#chooseCollaborations').onclick=()=>{refreshSaved();picker.showModal();};
-  const status = (message, warning=false) => { el('Status').textContent = message; el('ConnectionStatus').textContent=warning?message:''; el('ConnectionStatus').hidden=!warning; };
+  const status = (message, warning=false) => { el('Status').textContent = message; el('ConnectionStatus').textContent=warning?message:message.split(' · ')[0]; el('ConnectionStatus').title=message; el('ConnectionStatus').classList.toggle('cj-online',!warning && /^(Hosting|Connected)/.test(message)); el('ConnectionStatus').hidden=!message; };
   function syncConnection() {
     el('Connection').textContent=peer?'disconnect':'reconnect';
     el('Connection').title=peer?'Stop syncing; your progress stays saved on this device.':'Reconnect to sync saved contributions.';
@@ -93,7 +111,7 @@
     try { localStorage.setItem(key, JSON.stringify(records)); return true; }
     catch { status('Could not save shared progress. Export a backup before closing this tab.',true); return false; }
   }
-  function merge(incoming) {
+  function prepareImport(incoming) {
     const clean = validate(incoming);
     const merged = validate(records);
     for (const j of clean) {
@@ -101,13 +119,53 @@
       if (old) {
         if (old.scope !== j.scope || old.title !== j.title) throw Error('Journey details do not match.');
         const entries = new Map(old.entries.map(e => [e.id, e]));
-        for (const e of j.entries) if (!entries.has(e.id)) entries.set(e.id, e);
+        for (const e of j.entries) {
+          const previous=entries.get(e.id);
+          if(previous&&JSON.stringify(previous)!==JSON.stringify(e))throw Error('Conflicting collaborative contribution ID.');
+          if(!previous)entries.set(e.id,e);
+        }
         old.entries = [...entries.values()].sort((a,b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
       } else merged.push(j);
     }
-    records = validate(merged);
+    return validate(merged);
+  }
+  function replace(incoming) {
+    records=validate(incoming);
     if (current) current=records.find(j=>j.id===current.id)||current;
-    save(); refreshSaved(); paint();
+    refreshSaved();paint();
+  }
+  function merge(incoming) {
+    replace(prepareImport(incoming));
+    save();
+  }
+  const deleteDialog=document.createElement('dialog');
+  deleteDialog.id='cjDeleteDialog';deleteDialog.setAttribute('aria-labelledby','cjDeleteTitle');
+  deleteDialog.innerHTML='<h2 id="cjDeleteTitle">Delete local collaboration?</h2><p id="cjDeleteMessage"></p><p>Other participants keep their copies. Your typing history stays saved.</p><div class="cj-delete-actions"><button type="button" class="option" data-cancel>cancel</button><button type="button" class="danger-button" data-confirm>delete local copy</button></div>';
+  document.body.append(deleteDialog);
+  let pendingDelete=null;
+  function requestRemove(id,after=()=>{}){
+    const record=records.find(item=>item.id===id);if(!record)return;
+    pendingDelete={id,after,trigger:document.activeElement};
+    deleteDialog.querySelector('#cjDeleteMessage').textContent='Remove your saved copy of “'+record.title+'”?';
+    deleteDialog.showModal();deleteDialog.querySelector('[data-cancel]').focus();
+  }
+  deleteDialog.querySelector('[data-cancel]').onclick=()=>deleteDialog.close();
+  deleteDialog.querySelector('[data-confirm]').onclick=()=>{
+    const pending=pendingDelete;if(!pending)return;
+    if(remove(pending.id)){deleteDialog.close();pending.after();}
+  };
+  deleteDialog.addEventListener('close',()=>{const trigger=pendingDelete?.trigger;pendingDelete=null;if(trigger?.isConnected)trigger.focus();});
+  function remove(id) {
+    const record=records.find(item=>item.id===id);if(!record)return false;
+    const remaining=records.filter(item=>item.id!==id);
+    try{localStorage.setItem(key,JSON.stringify(remaining));}
+    catch{status('Could not delete this collaboration from browser storage.',true);return false;}
+    if(current?.id===id){
+      autoSync=false;disconnect();current=null;selected=false;verse=null;infoExpanded=false;
+      menuStates.delete('collaborative');
+      if(currentMenu==='collaborative')enterBook();
+    }
+    records=remaining;refreshSaved();paint();return true;
   }
   function refreshSaved() {
     const list=el('Saved'); list.replaceChildren();
@@ -120,7 +178,10 @@
       const button=document.createElement('button');button.type='button';button.className='collaboration-choice';
       button.textContent=j.title+' · '+(j.scope||'entire Scriptures')+' · '+new Set(j.entries.map(e=>e.verse)).size+' verses';
       button.setAttribute('aria-pressed',String(selected&&current?.id===j.id));
-      button.onclick=()=>{picker.close();if(current?.id!==j.id)select(j);selected=true;openJourney();};list.append(button);
+      button.onclick=()=>{picker.close();if(current?.id!==j.id)select(j);selected=true;openJourney();};
+      const row=document.createElement('div');row.className='collaboration-saved-row';
+      const removeButton=document.createElement('button');removeButton.type='button';removeButton.className='danger-button';removeButton.textContent='×';removeButton.setAttribute('aria-label','Delete local copy of '+j.title);
+      removeButton.onclick=()=>requestRemove(j.id);row.append(button,removeButton);list.append(row);
     }
   }
   function paint() {
@@ -134,15 +195,15 @@
     el('Progress').textContent = `${completed.size} / ${range.end-range.start} verses completed · ${(completed.size/(range.end-range.start)*100).toFixed(2)}%`;
     // Preserve an in-progress verse when a friend completes it concurrently.
     if (verse === null || verse < range.start || verse > range.end) verse = Array.from({length:range.end-range.start}, (_,i) => range.start+i).find(i => !completed.has(i)) ?? range.end;
-    const select = el('Verse');
-    select.replaceChildren(...Array.from({length:range.end-range.start}, (_,i) => { const n=range.start+i; return new Option(scriptureReferences[n]+(completed.has(n)?' ✓':''), n); }));
-    select.value = verse;
+    el('Verse').textContent=(scriptureReferences[verse]||'Choose verse')+' ▦';
+    if(verseDialog.open)renderVerseTable();
     const groups = new Map();
     for (const e of current.entries) { if (!groups.has(e.name)) groups.set(e.name, []); groups.get(e.name).push(e); }
     el('ContributorSummary').textContent='Contributors ('+groups.size+')';
     el('Contributors').replaceChildren(...[...groups].map(([name, entries]) => {
       const section=document.createElement('details'), summary=document.createElement('summary'), list=document.createElement('ul');
-      summary.textContent=name+' · '+entries.length+' contribution(s)';
+      const share=completed.size?new Set(entries.map(e=>e.verse)).size/completed.size*100:0;
+      summary.textContent=name+' · '+entries.length+' contribution(s) · '+share.toFixed(1)+'% of current progress';
       for (const e of entries) { const li=document.createElement('li'); li.textContent=scriptureReferences[e.verse]+' · '+new Date(e.at).toLocaleString(); list.append(li); }
       section.append(summary,list); return section;
     }));
@@ -169,7 +230,7 @@
   function publish() { for(const c of links.values()) send(c); }
   function connect(asHost, automatic=false) {
     const code=el('Code').value.trim().toLowerCase();
-    if (!validCode(code)) return status('Enter the eight-letter journey code. Older 24-character codes also work.');
+    if (!validCode(code)) return status('Enter the 12-digit journey code. Older eight-letter and 24-character codes also work.');
     if (asHost && (!current || current.id !== code)) return status('Open the saved journey before hosting it.');
     if (!el('Name').value.trim()) return status('Enter your contributor name.');
     if (typeof Peer === 'undefined') return status('Connection service is unavailable. Try again later.');
@@ -242,12 +303,12 @@
   portionDialog.querySelector('.close').onclick=()=>portionDialog.close();
   portionDialog.addEventListener('close',()=>el('Scope').focus());
   el('Scope').onclick=()=>{portionDialog.showModal();grid.querySelector('[aria-pressed="true"]').focus();};
-  el('Create').onclick=()=>{
+  el('Create').onclick=()=>withName(()=>{
     if(!el('Name').value.trim())return status('Enter your contributor name.');
     const title=el('Title').value.trim(); if(!title)return status('Enter a journey title.');
     let code; do {code=journeyCode();} while(records.some(j=>j.id===code));
     const j={id:code,title,scope:chosenScope,entries:[]}; records.push(j); select(j); save(); connect(true,true); openJourney();
-  };
+  });
   el('Connection').onclick=()=>{if(peer||syncRetry){autoSync=false;disconnect();}else {autoSync=true;startSync();}};
   el('CopyCode').onclick=async()=>{
     if(!current)return;
@@ -256,17 +317,59 @@
     catch {el('CopyStatus').textContent='Select the code above and copy it to share.';}
     el('CopyStatus').hidden=false;
   };
-  el('Join').onclick=()=>connect(false);
+  el('Join').onclick=()=>{
+    if(!validCode(el('Code').value.trim().toLowerCase()))return status('Enter the 12-digit journey code. Older eight-letter and 24-character codes also work.');
+    withName(()=>connect(false));
+  };
   el('CreateForm').onsubmit=event=>{event.preventDefault();el('Create').click();};
   el('JoinForm').onsubmit=event=>{event.preventDefault();el('Join').click();};
   function chooseVerse(index=null) {
     verse=index;
+    if(index!==null){sharedShuffle=false;syncNavigation();}
     el('Feedback').textContent='';
     refreshTyping();
     paint();
     input.focus();
   }
-  el('Verse').onchange=()=>chooseVerse(Number(el('Verse').value));
+  const verseDialog=document.createElement('dialog');
+  verseDialog.id='cjVerseDialog';
+  verseDialog.setAttribute('aria-labelledby','cjVerseTitle');
+  verseDialog.innerHTML='<button type="button" class="close" aria-label="Close verse picker">×</button><h2 id="cjVerseTitle">Choose a verse</h2><div class="journey-grid cj-verse-books" aria-label="Books"></div><p>✓ means already completed.</p><table><caption></caption><thead><tr><th scope="col">Chapter</th><th scope="col">Verses</th></tr></thead><tbody></tbody></table>';
+  document.body.append(verseDialog);
+  let pickerBook=null;
+  function renderVerseTable() {
+    if(!current)return;
+    const range=bounds(current.scope), completed=new Set(current.entries.map(e=>e.verse));
+    const books=journeyBooks.filter(b=>b.start<range.end && b.end>range.start);
+    if(!books.includes(pickerBook))pickerBook=books.find(b=>verse>=b.start && verse<b.end)||books[0];
+    const bookGrid=verseDialog.querySelector('.cj-verse-books');bookGrid.replaceChildren();
+    for(const book of books){
+      const button=document.createElement('button');button.type='button';button.textContent=book.name;
+      button.setAttribute('aria-pressed',String(book===pickerBook));
+      button.onclick=()=>{pickerBook=book;renderVerseTable();};bookGrid.append(button);
+    }
+    verseDialog.querySelector('caption').textContent=pickerBook.name;
+    const body=verseDialog.querySelector('tbody');body.replaceChildren();
+    let chapter=null,cell;
+    for(let i=Math.max(range.start,pickerBook.start);i<Math.min(range.end,pickerBook.end);i++){
+      const parts=scriptureReferences[i].match(/(\d+):(\d+)$/);
+      if(!parts)continue;
+      if(chapter!==parts[1]){
+        chapter=parts[1];const row=document.createElement('tr'),heading=document.createElement('th');
+        heading.scope='row';heading.textContent=chapter;cell=document.createElement('td');row.append(heading,cell);body.append(row);
+      }
+      const button=document.createElement('button');button.type='button';button.textContent=parts[2]+(completed.has(i)?' ✓':'');
+      button.setAttribute('aria-label',scriptureReferences[i]+(completed.has(i)?', completed':''));
+      button.setAttribute('aria-pressed',String(i===verse));
+      button.onclick=()=>{verseDialog.close();chooseVerse(i);};cell.append(button);
+    }
+  }
+  verseDialog.querySelector('.close').onclick=()=>verseDialog.close();
+  verseDialog.addEventListener('close',()=>el('Verse').focus());
+  el('Verse').onclick=()=>{
+    pickerBook=null;renderVerseTable();verseDialog.showModal();
+    verseDialog.querySelector('td [aria-pressed="true"]')?.focus();
+  };
   el('Next').onclick=()=>chooseVerse();
   function unmount() { workspace.hidden=true;infoButton.hidden=true;infoButton.setAttribute('aria-expanded','false'); }
   function mount() { syncInfo(); }
@@ -300,6 +403,12 @@
     const name=el('Name').value.trim()||getProfileName()||'typist';
     current.entries.push({id:uid(),verse:index,name:name.slice(0,24),at:new Date().toISOString()});
     verse=null;
+    if(!sharedShuffle){
+      const range=bounds(current.scope),completed=new Set(current.entries.map(e=>e.verse));
+      for(let next=index+1;next<range.end;next++){
+        if(!completed.has(next)){verse=next;break;}
+      }
+    }
     save();publish();paint();
     el('Feedback').textContent='Verse contributed. Thank you!';
   }
@@ -310,7 +419,7 @@
     if(!el('Title').value.trim()||el('Title').value===automaticTitle)el('Title').value=next;
     automaticTitle=next;
   }
-  el('Name').addEventListener('input',updateDefaultTitle);
+  el('Name').addEventListener('input',()=>{el('Name').setCustomValidity('');updateDefaultTitle();});
   function openJourney() {
     if(!current)return;
     selected=true;
@@ -335,5 +444,5 @@
     if(window.friendRace?.active) { window.friendRace.requestLeave(open); return; }
     open();
   };
-  window.collaborativeJourneys={open,openJourney,selected:()=>selected,personal:()=>{selected=false;},shuffle:()=>sharedShuffle,toggleShuffle:()=>{sharedShuffle=!sharedShuffle;verse=null;},journey,position,contribute,historyInfo,unmount,refreshTyping,export:()=>JSON.parse(JSON.stringify(records)),validate,import:merge,clear:()=>{autoSync=false;disconnect();records=[];current=null;selected=false;verse=null;refreshSaved();paint();}};
+  window.collaborativeJourneys={open,openJourney,selected:()=>selected,personal:()=>{selected=false;},shuffle:()=>sharedShuffle,toggleShuffle:()=>{sharedShuffle=!sharedShuffle;verse=null;},journey,position,contribute,historyInfo,unmount,refreshTyping,export:()=>JSON.parse(JSON.stringify(records)),validate,prepareImport,replace,requestRemove,import:merge,clear:()=>{autoSync=false;disconnect();records=[];current=null;selected=false;verse=null;refreshSaved();paint();}};
 })();
