@@ -184,15 +184,15 @@
         position: sticky;
         top: 0;
         z-index: 1;
-        display: block;
-        width: 100%;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
         min-width: 0;
         box-sizing: border-box;
-        margin-bottom: 16px;
-        padding: 8px;
+        margin-bottom: 12px;
+        padding: 6px;
         background: var(--bg);
-        white-space: normal;
-        overflow-wrap: anywhere;
       }
       #presentation #presentation-exit:focus-visible { outline-offset: -4px; }
       #presentation-slides {
@@ -230,7 +230,8 @@
       #presentation-refs[data-compact="true"] dd:first-of-type { font-size: clamp(36px, 4.5vw, 60px); }
       #presentation-refs[data-compact="true"] dd { margin-bottom: 12px; }
       #presentation-capo { font: 13px/1.5 var(--font-utility); overflow-wrap: anywhere; margin: 0 0 16px; }
-      .guitar-line { white-space: pre-wrap; }
+      .lyric-line, .guitar-line { display: flow-root; white-space: pre-wrap; }
+      .lyric-phrase { display: inline-block; max-width: 100%; vertical-align: bottom; white-space: pre-wrap; overflow-wrap: anywhere; }
       .guitar-token { display: inline-block; position: relative; padding-top: 0.8em; min-width: var(--chord-width); max-width: 100%; vertical-align: bottom; }
       .guitar-chord { position: absolute; top: 0; left: 0; font: 600 0.6em/1.2 var(--font-utility); white-space: nowrap; }
       #presentation-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 0; }
@@ -369,7 +370,7 @@
     <section id="presentation" tabindex="-1" role="dialog" aria-modal="true" aria-label="Hymn presentation" hidden>
       <div id="presentation-content">
         <aside id="presentation-numbers" aria-label="Hymn numbers and presentation controls">
-          <button type="button" id="presentation-exit">Exit (Space)</button>
+          <button type="button" id="presentation-exit" aria-label="Exit presentation" title="Exit presentation (Space)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
           <header>
             <span id="presentation-title"></span>
             <label id="presentation-version-control" hidden>Lyrics version
@@ -760,6 +761,42 @@
         var presentationSong = null, presentationVersions = [], presentationLibrarySong = false;
         var presentationScale = 1; // keep the chosen size across stanza changes.
 
+        function setPresentationVersions(songs) {
+          presentationVersions = [];
+          songs.forEach(function (song) {
+            var firstVersion = presentationVersions.length;
+            var sections = [], current = null;
+            (song.lyrics || "").replace(/\r\n?/g, "\n").split("\n").forEach(function (line) {
+              var heading = line.match(/^\s*###(?!#)\s*(.*?)\s*$/);
+              if (heading) {
+                current = { name: heading[1], lines: [] };
+                sections.push(current);
+              } else {
+                if (!current) { current = { name: "", lines: [] }; sections.push(current); }
+                current.lines.push(line);
+              }
+            });
+            sections.forEach(function (section) {
+              var lyrics = section.lines.join("\n").trim();
+              if (!hymnSlides(lyrics).length) return;
+              var version = Object.assign({}, song, { lyrics: lyrics });
+              version.versionName = section.name || song.title;
+              presentationVersions.push(version);
+            });
+            if (presentationVersions.length === firstVersion) presentationVersions.push(song);
+          });
+          presentationVersion.textContent = "";
+          presentationVersion.hidden = false;
+          presentationVersions.forEach(function (song, i) {
+            var option = document.createElement("option");
+            option.value = String(i);
+            option.textContent = song.versionName || song.title;
+            presentationVersion.appendChild(option);
+          });
+          presentationVersion.value = "0";
+          document.getElementById("presentation-version-control").hidden = presentationVersions.length < 2;
+        }
+
         function hymnSlides(lyrics) {
           // Songbase uses bracketed chords, # metadata, standalone stanza numbers,
           // and indented choruses. Keep lyric line breaks, not musical annotations.
@@ -832,9 +869,26 @@
         function presentationFits(width, height) {
           if (presentationLyrics.scrollHeight > height + 1 || presentationLyrics.scrollWidth > width + 1) return false;
           // A grid or chord token can overflow internally without enlarging the column.
-          var elements = presentationLyrics.querySelectorAll(".song-section, .song-part, .song-part-text, .guitar-line, .guitar-token");
+          var elements = presentationLyrics.querySelectorAll(".song-section, .song-part, .song-part-text, .lyric-line, .lyric-phrase, .guitar-line, .guitar-token");
           for (var i = 0; i < elements.length; i++) {
             if (elements[i].scrollWidth > elements[i].clientWidth + 1) return false;
+          }
+          if (presentationFullSong) {
+            // Column fragmentation can paint an oversized stanza across its neighbor
+            // without increasing scrollWidth. Check the actual stanza rectangles too.
+            var bounds = presentationLyrics.getBoundingClientRect();
+            var sections = presentationLyrics.querySelectorAll(".song-section");
+            var rectangles = [];
+            for (var sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+              var rect = sections[sectionIndex].getBoundingClientRect();
+              if (rect.right > bounds.right + 1 || rect.bottom > bounds.top + height + 1) return false;
+              for (var otherIndex = 0; otherIndex < rectangles.length; otherIndex++) {
+                var other = rectangles[otherIndex];
+                if (Math.min(rect.right, other.right) - Math.max(rect.left, other.left) > 1 &&
+                    Math.min(rect.bottom, other.bottom) - Math.max(rect.top, other.top) > 1) return false;
+              }
+              rectangles.push(rect);
+            }
           }
           return true;
         }
@@ -863,7 +917,14 @@
             if (columns === 1 || best > bestSize + 0.1) { bestSize = best; bestColumns = columns; }
           }
           presentationLyrics.style.columnCount = String(bestColumns);
-          presentationLyrics.style.fontSize = Math.max(1, bestSize * presentationScale) + "px";
+          var finalSize = Math.max(1, bestSize * presentationScale * 0.98);
+          presentationLyrics.style.fontSize = finalSize + "px";
+          // Recheck the final column layout: balancing and phrase wrapping can
+          // change at fractional font sizes after the column search.
+          while (finalSize > 1 && !presentationFits(width, height)) {
+            finalSize = Math.max(1, finalSize * 0.95);
+            presentationLyrics.style.fontSize = finalSize + "px";
+          }
           syncPad();
         }
 
@@ -908,28 +969,47 @@
           });
         }
 
+        function lyricPhrases(line) {
+          // Keep clauses together when they fit; long clauses still wrap at words.
+          // Ignore punctuation inside chord annotations and apostrophes in words.
+          return line.match(/(?:\[[^\]\n]*\]|[^,;:.!?，；：。！？…])+[,;:.!?，；：。！？…]*(?:["”’»)]*(?=\s|$))?|[,;:.!?，；：。！？…]+/g) || [line];
+        }
+
         function renderSongPart(element, part) {
-          if (!presentationGuitar) { element.appendChild(document.createTextNode(part.text)); return; }
-          (part.chordText || part.text).split("\n").forEach(function (line) {
+          (presentationGuitar ? part.chordText || part.text : part.text).split("\n").forEach(function (line) {
             var row = document.createElement("div");
-            row.className = "guitar-line";
-            var pattern = /\[([^\]\n]*)\]([^\s\[]*)/g, match, offset = 0;
-            while ((match = pattern.exec(line))) {
-              row.appendChild(document.createTextNode(line.slice(offset, match.index)));
-              if (match[1]) {
-                var token = document.createElement("span");
-                token.className = "guitar-token";
-                token.style.setProperty("--chord-width", (match[1].length * 0.42) + "em");
-                var chord = document.createElement("span");
-                chord.className = "guitar-chord";
-                chord.textContent = match[1];
-                token.appendChild(chord);
-                token.appendChild(document.createTextNode(match[2]));
-                row.appendChild(token);
-              } else row.appendChild(document.createTextNode(match[2]));
-              offset = pattern.lastIndex;
-            }
-            row.appendChild(document.createTextNode(line.slice(offset) || (line ? "" : "\u00a0")));
+            row.className = presentationGuitar ? "guitar-line" : "lyric-line";
+            lyricPhrases(line).forEach(function (phrase, index) {
+              // Put spaces between inline blocks so the browser can break there.
+              var leading = phrase.match(/^\s+/);
+              if (index && leading) {
+                row.appendChild(document.createTextNode(leading[0]));
+                phrase = phrase.slice(leading[0].length);
+              }
+              var group = document.createElement("span");
+              group.className = "lyric-phrase";
+              if (!presentationGuitar) group.textContent = phrase || "\u00a0";
+              else {
+                var pattern = /\[([^\]\n]*)\]([^\s\[]*)/g, match, offset = 0;
+                while ((match = pattern.exec(phrase))) {
+                  group.appendChild(document.createTextNode(phrase.slice(offset, match.index)));
+                  if (match[1]) {
+                    var token = document.createElement("span");
+                    token.className = "guitar-token";
+                    token.style.setProperty("--chord-width", (match[1].length * 0.42) + "em");
+                    var chord = document.createElement("span");
+                    chord.className = "guitar-chord";
+                    chord.textContent = match[1];
+                    token.appendChild(chord);
+                    token.appendChild(document.createTextNode(match[2]));
+                    group.appendChild(token);
+                  } else group.appendChild(document.createTextNode(match[2]));
+                  offset = pattern.lastIndex;
+                }
+                group.appendChild(document.createTextNode(phrase.slice(offset) || (phrase ? "" : "\u00a0")));
+              }
+              row.appendChild(group);
+            });
             element.appendChild(row);
           });
         }
@@ -1079,16 +1159,9 @@
           presentationSong = librarySong || null;
           presentationNumber = selectedFromNumber ? String(currentEnglishNumber() || "") : librarySong ? "" : String(parseInt(value, 10));
           var versions = selectedVersions || (librarySong ? [librarySong] : hymnData[presentationNumber]);
-          presentationVersions = versions;
           if (!versions) { flash("No lyrics available for hymn " + presentationNumber); return; }
           presentationFocus = document.activeElement;
-          presentationVersion.textContent = "";
-          versions.forEach(function (song, i) {
-            var option = document.createElement("option");
-            option.value = String(i); option.textContent = song.title;
-            presentationVersion.appendChild(option);
-          });
-          document.getElementById("presentation-version-control").hidden = versions.length < 2;
+          setPresentationVersions(versions);
           presenting = true;
           presentation.hidden = false;
           stage.inert = true;
@@ -1122,9 +1195,7 @@
           var fullSong = presentationFullSong;
           presentationLibrarySong = true;
           presentationSong = song;
-          presentationVersions = [song];
-          presentationVersion.value = "0";
-          presentationVersion.hidden = true;
+          setPresentationVersions([song]);
           renderPresentationRefs();
           selectHymnVersion();
           if (fullSong) { presentationFullSong = true; renderPresentation(); }
@@ -1225,6 +1296,10 @@
         presentationNext.addEventListener("click", function () { movePresentation(1); });
         presentationVersion.addEventListener("change", selectHymnVersion);
         window.addEventListener("resize", fitPresentation);
+        document.addEventListener("fullscreenchange", fitPresentation);
+        if (typeof ResizeObserver !== "undefined") {
+          new ResizeObserver(function () { fitPresentation(); }).observe(presentationBody);
+        }
 
         var textMode = false; // t = any character, Esc = digits only
         var value = "";
@@ -5056,7 +5131,7 @@
 
           if (presenting) {
             if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
-            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrR ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
+            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrRtT ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
             if (e.key === "Tab") {
               e.preventDefault();
               if (!e.repeat) togglePresentationSidebar();
