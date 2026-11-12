@@ -98,7 +98,7 @@ const team={human:{name:'Human',lane:1}};
 bots.setup(team,'human',{});bots.addBot(60);
 const botId=Object.keys(team).find(id=>id!=='human');
 assert.equal(team[botId].lane,2,'relay bot receives its own lane');
-bots.selectLane('human',2);
+bots.selectLane(botId,1);
 const legs=bots.buildRelayLegs('cat dog',team);
 bots.setup(team,'human',legs);
 bots.begin({round:2,text:'cat dog',duration:10,custom:true,formatting:false});

@@ -4052,6 +4052,8 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;   // leave browser shortcuts (zoom etc.) alone
     e.preventDefault(); e.stopPropagation();
     var k = e.key;
+    // Pronunciation owns arrows and H/J/K/L, including Shift, before scroll shortcuts.
+    if (scrollPresent && pronAlive() && pronKey(e, VIM[k.toLowerCase()] || k)) return;
     if (e.shiftKey && ((slideMode && /^[hl]$/i.test(k)) || (scrollPresent && /^[jk]$/i.test(k)))) {
       var jump = k.toLowerCase();
       if (jump === "h" || jump === "l") goPresent(jump === "h" ? 0 : slides.length - 1, jump === "l");
@@ -4894,7 +4896,7 @@
       var nx = pron.words[pron.idx + 1];   // look the next word up in the background
       if (nx && /[A-Za-z]/.test(nx.textContent) && !localPron(nx.textContent, pron.ref, nx.getAttribute("data-cmp") === "1") && !engCache.hasOwnProperty(engKey(nx.textContent))) engPron(nx.textContent).catch(function () {});
     } else pronLines(txt, "");
-    if (!presenting && w.scrollIntoView) w.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if ((!presenting || scrollPresent) && w.scrollIntoView) w.scrollIntoView({ block: "nearest", inline: "nearest" });
     pronPlace();
   }
   function pronGo(i) { pron.idx = i; pronShow(); }

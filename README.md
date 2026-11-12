@@ -34,6 +34,7 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 | [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
 | [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
+| [Verse Review](https://atlantachristianstudents.github.io/adless/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
 | [Show Songs](https://atlantachristianstudents.github.io/adless/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. | live |
 | [Show Words](https://atlantachristianstudents.github.io/adless/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
@@ -119,6 +120,7 @@ apps/
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, reading, records, and friend races
   memorize/                Memorization practice with word comparison and PDF import
+  verse-review/            Offline Bible verse practice with spaced reviews
   show-songs/              Full-screen hymn numbers and text
   tunes/                   Tuner, metronome, tone generator, and chord detection
   show-words/              Verse presenter with external-display support

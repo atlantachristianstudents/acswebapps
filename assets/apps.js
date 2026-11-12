@@ -60,6 +60,16 @@ window.APPS = [
     url: "apps/memorize"
   },
   {
+    id: "verse-review",
+    name: "Verse Review",
+    description: "Practice Bible verses with spaced reviews. Add your own text, recall it, and schedule the next session. Private and offline-friendly.",
+    icon: "🧠",
+    iconUrl: "apps/verse-review/icons/icon.svg",
+    tags: ["Study", "Memory"],
+    status: "beta",
+    url: "apps/verse-review"
+  },
+  {
     id: "big-text",
     name: "Show Songs",
     description: "Display hymn number or text in full-screen seemlessly.",

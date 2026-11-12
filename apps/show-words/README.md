@@ -15,6 +15,7 @@ Open the address once while online; the app caches itself. After that it works w
 
 - The Scripture text (RcV) is downloaded the same way as in Logostype: the loader built into `index.html` fetches it from the configured Scripture API and caches it in IndexedDB with a localStorage backup, refreshing the cache after 15 days. First use and cache refresh need an internet connection; a fresh cached copy works offline. The text is no longer bundled inside `index.html`.
 - Additional verse text files can be imported and stored on that device.
+- In scroll presentation, pronunciation mode takes priority for arrow keys and H/J/K/L (including Shift); these keys move the pronunciation cursor, and the view scrolls as needed to keep the current word visible.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 
 ## External display

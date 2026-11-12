@@ -43,7 +43,8 @@
   function buildRelayLegs(text, roster) {
     const words=text.split(/\s+/), legs={};
     for(let lane=1;lane<=8;lane++){
-      const members=Object.keys(roster).filter(id=>roster[id].connected!==false&&isRacer(roster[id])&&roster[id].lane===lane);
+      const members=Object.keys(roster).filter(id=>roster[id].connected!==false&&isRacer(roster[id])&&roster[id].lane===lane)
+        .sort((a,b)=>(roster[a].laneJoinOrder||0)-(roster[b].laneJoinOrder||0));
       members.forEach((id,index)=>{
         const startWord=Math.floor(index*words.length/members.length);
         const offset=words.slice(0,startWord).join(' ').length+(startWord?1:0);
@@ -71,8 +72,9 @@
         if(!preview&&local<typed.length)state+=typed[local]===target[local]?' correct':' incorrect';
         if(!preview&&local===typed.length&&!done)state+=' cursor';
       }
+      if(local<0||local>=leg.text.length)state+=' relay-other';
       if(preview){
-        for(const other of Object.values(viewLegs))if(other.lane===leg.lane&&position>=other.offset&&position<other.offset+other.text.length)state+=' relay-preview-section relay-section-'+(other.index%2);
+        for(const other of Object.values(viewLegs))if(other.lane===leg.lane&&position>=other.offset&&position<other.offset+other.text.length)state+=' relay-preview-section relay-section-'+other.index;
       }else for(const {id,other,parsed} of teammates){
         const at=position-other.offset, progress=parsed?parsed.text.length:players[id]?.position||0;
         if(at>=0&&at<Math.min(progress,other.text.length)){
@@ -106,12 +108,20 @@
     const leg=relayLegs[id];
     return !!leg&&leg.members.slice(0,leg.index).every(member=>players[member]?.finished||players[member]?.connected===false);
   }
+  function joinRelayLane(player,lane,roster=players) {
+    player.lane=lane;
+    player.laneJoinOrder=1+Math.max(0,...Object.values(roster).map(p=>p.laneJoinOrder||0));
+  }
   function normalizeRelayRoster(roster) {
     const racers=Object.values(roster).filter(p=>p.connected!==false&&isRacer(p));
     const occupied=[...new Set(racers.map(p=>p.lane).filter(lane=>Number.isInteger(lane)&&lane>0))].sort((a,b)=>a-b);
     const mapping=new Map(occupied.map((lane,index)=>[lane,index+1]));
     let count=occupied.length;
-    for(const player of racers)player.lane=mapping.get(player.lane)||++count;
+    for(const player of racers){
+      const lane=mapping.get(player.lane);
+      if(!lane)joinRelayLane(player,++count,roster);
+      else {player.lane=lane;if(!player.laneJoinOrder)joinRelayLane(player,lane,roster);}
+    }
     return count;
   }
   function normalizeRelayLanes(){relayLaneCount=normalizeRelayRoster(players);}
@@ -136,7 +146,7 @@
   function selectLane(id,lane) {
     if(!relay||raceSettingsLocked()||players[id]?.ready||!isRacer(players[id]||{role:'watcher'})||!Number.isInteger(lane)||lane<1||lane>relayLaneCount)return;
     if(players[id].lane===lane)return;
-    editRelayTeams();settingsChanged();players[id].lane=lane;publish();
+    editRelayTeams();settingsChanged();joinRelayLane(players[id],lane);publish();
   }
   function paintRelay() {
     const locked=raceSettingsLocked();
@@ -152,13 +162,16 @@
     if(!relay)return;
     const leg=(phase==='finished'&&players[self]?.ready?previewRelayLegs():relayLegs)[self];
     $('#relayPassageHint').textContent=leg
-      ? (phase==='lobby'?'Preview · ':'')+'Lane '+leg.lane+' · your section: leg '+(leg.index+1)+' of '+leg.members.length+'. Underlined letters are yours; green highlights show teammates’ progress. Labeled markers show each lane.'
+      ? (phase==='lobby'?'Preview · ':'')+'Lane '+leg.lane+' · your section: leg '+(leg.index+1)+' of '+leg.members.length+'. '+(phase==='lobby'||phase==='finished'&&players[self]?.ready?'Your section uses normal text; teammates’ sections are faded and labeled.':'Your section uses normal text; teammates’ sections are faded. Green highlights show teammates’ progress. Labeled markers show each lane.')
       : 'Underlined letters mark your assigned section during the race. Green highlights show teammates’ progress; markers show each lane.';
     if(leg&&phase!=='lobby')$('#testSection').style.display='block';
     const list=$('#racers'),rows=[];
     const lanes=[];
     for(let lane=1;lane<=8;lane++){
-      const members=Object.entries(players).filter(([id,p])=>isRacer(p)&&(locked||phase==='finished'?relayLegs[id]?.lane===lane:p.connected!==false&&p.lane===lane));
+      const members=Object.entries(players).filter(([id,p])=>isRacer(p)&&(locked||phase==='finished'?relayLegs[id]?.lane===lane:p.connected!==false&&p.lane===lane))
+        .sort(([a,first],[b,second])=>locked||phase==='finished'
+          ? (relayLegs[a]?.index||0)-(relayLegs[b]?.index||0)
+          : (first.laneJoinOrder||0)-(second.laneJoinOrder||0));
       if(!members.length)continue;
       const complete=members.every(([,p])=>completedPassage(p));
       const time=complete?Math.max(...members.map(([,p])=>p.finishMs||0)):Infinity;
@@ -620,6 +633,7 @@
     if(next)next();
   };
   function leave(message, returnToLobby=true) {
+    if($('#publicRoomDialog').open)$('#publicRoomDialog').close();
     if($('#removeRacerDialog').open)$('#removeRacerDialog').close();pendingRemove=null;
     hideCountdown();
     if($('#restartReplayDialog').open)$('#restartReplayDialog').close();
@@ -1100,14 +1114,14 @@
     button.title=name+' · '+speed+' WPM';button.setAttribute('aria-label','Add '+name+' bot at '+speed+' WPM');
     button.onclick=()=>addBot(speed);$('#raceBotChoices').append(button);
   }
-  $('#relayMode').onclick=()=>{if(!host||ghost||raceSettingsLocked())return;editRelayTeams();settingsChanged();relay=!relay;if(relay){let lane=0;for(const player of Object.values(players))if(player.connected!==false&&isRacer(player))player.lane=++lane;}publish();};
+  $('#relayMode').onclick=()=>{if(!host||ghost||raceSettingsLocked())return;editRelayTeams();settingsChanged();relay=!relay;if(relay){let lane=0;for(const player of Object.values(players))if(player.connected!==false&&isRacer(player))joinRelayLane(player,++lane);}publish();};
   function requestLane(lane){
     if(host)selectLane(self,lane);else send(links.get('host'),{type:'lane',lane});
   }
   function addRelayLane(id){
     if(!relay||raceSettingsLocked()||players[id]?.ready||relayLaneCount>=8||!players[id]||players[id].connected===false||!isRacer(players[id]))return;
     if(Object.values(players).filter(p=>p.connected!==false&&isRacer(p)&&p.lane===players[id].lane).length<2)return;
-    editRelayTeams();settingsChanged();players[id].lane=relayLaneCount+1;publish();
+    editRelayTeams();settingsChanged();joinRelayLane(players[id],relayLaneCount+1);publish();
   }
   $('#addRelayLane').onclick=()=>{if(host)addRelayLane(self);else send(links.get('host'),{type:'add-lane'});};
   $('#raceDurationForm').onsubmit=e=>e.preventDefault();
@@ -1168,7 +1182,21 @@
     if(sendRoomChat(text)){$('#roomChatStatus').textContent='';field.value='';}
     else $('#roomChatStatus').textContent='Please wait a moment and retry. Chat may be reconnecting.';
   };
-  $('#roomVisibility').onclick=()=>{if(host&&!ghost&&api.active&&!hostIsReady()){settingsChanged();unlisted=!unlisted;publish();}};
+  $('#roomVisibility').onclick=()=>{
+    if(!host||ghost||!api.active||hostIsReady())return;
+    if(unlisted){
+      if(!$('#publicRoomDialog').open)$('#publicRoomDialog').showModal();
+      $('#cancelPublicRoom').focus();
+      return;
+    }
+    settingsChanged();unlisted=true;publish();
+  };
+  $('#cancelPublicRoom').onclick=()=>$('#publicRoomDialog').close();
+  $('#confirmPublicRoom').onclick=()=>{
+    $('#publicRoomDialog').close();
+    if(!host||ghost||!api.active||hostIsReady()||!unlisted)return;
+    settingsChanged();unlisted=false;publish();
+  };
   $('#cancelRemoveRacer').onclick=()=>{pendingRemove=null;$('#removeRacerDialog').close();};
   $('#removeRacerDialog').addEventListener('cancel',()=>{pendingRemove=null;});
   $('#confirmRemoveRacer').onclick=()=>{

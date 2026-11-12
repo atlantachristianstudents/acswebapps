@@ -2,7 +2,8 @@
 
 An interactive map of Bible cross-references based on the Holy Bible Recovery Version. All chart data is embedded in `index.html`; no downloads or accounts are needed.
 
-- Hover over a chapter or arc to trace connections; click or tap to pin it.
+- Hover over a chapter or arc to trace connections; on touch screens, drag across the chart to explore, including from a pinned selection. The preview stays visible after lifting your finger. Click or tap to pin or unpin a connection.
+- Dragging on the chart explores connections; swipe outside the chart to scroll the page.
 - Choose a book, chapter, and optional verse using the selectors, including on touch screens.
 - Set connection depth from 0 to 9 with the Steps selector or number keys.
 - Use left/right arrows to move chapters and up/down arrows to move verses after selecting a chapter.

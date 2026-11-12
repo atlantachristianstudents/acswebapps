@@ -1096,13 +1096,12 @@
         display: flex;
         gap: 8px;
       }
-      .relay-assigned { background: color-mix(in srgb, var(--main-color, #d9a441) 12%, transparent); border-bottom: 2px solid currentColor; }
+      .relay-other { color: color-mix(in srgb, var(--muted) 45%, var(--bg)); }
       body.relay-preview #words {
         line-height: 2.7;
         padding-top: 22px;
       }
-      .relay-preview-section.relay-section-0 { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-      .relay-preview-section.relay-section-1 { background: color-mix(in srgb, #a3be8c 18%, transparent); }
+      .relay-assigned .relay-leg-label { font-weight: 700; }
       .relay-leg-label {
         position: absolute;
         top: -20px;
@@ -2329,6 +2328,14 @@
       <div class="confirm-actions">
         <button id="cancelLeaveRace" autofocus>cancel</button
         ><button id="confirmLeaveRace" class="race-leave">close room</button>
+      </div>
+    </dialog>
+    <dialog id="publicRoomDialog" aria-labelledby="publicRoomTitle">
+      <h2 id="publicRoomTitle">make room public?</h2>
+      <p>Your room will appear in the public room list, where anyone can join or watch.</p>
+      <div class="confirm-actions">
+        <button type="button" id="cancelPublicRoom" autofocus>cancel</button
+        ><button type="button" id="confirmPublicRoom">make public</button>
       </div>
     </dialog>
     <dialog id="removeRacerDialog" aria-labelledby="removeRacerTitle">
