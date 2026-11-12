@@ -1,4 +1,4 @@
-# Adless
+# ACS Web Apps
 
 **Free, ad-free web apps by Atlanta Christian Students.** Everything runs in the browser — no accounts and no ads, with limited usage counts. The site is a static app directory, and every app is a self-contained PWA that keeps working offline after the first visit.
 
@@ -208,4 +208,6 @@ Only fixed app and event labels are explicitly sent via GoatCounter's tracking p
 
 When adding an app, copy the `adless-usage` script into its main page, set its fixed folder identifier, document its usage counts, and bump its service-worker cache version. Keep copies synchronized. To change or disable collection, edit the endpoint or remove the script in every app and bump each affected cache version. The app directory itself, presentation-only windows, legacy redirect pages, and the starter template do not emit app events.
 
-App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the Adless project,” with **Adless project** linking to the app directory.
+App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
+
+The public name is **ACS Web Apps**. Existing `/adless/` URLs, storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.

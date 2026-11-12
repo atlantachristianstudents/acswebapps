@@ -1,9 +1,9 @@
-// Adless home-page service worker: lets the app directory open offline.
+// ACS Web Apps home-page service worker: lets the app directory open offline.
 // - Navigations to the home page are network-first (new versions show up when online).
 // - Other home-page files and the Inter font are stale-while-revalidate.
 // - Everything under apps/ is left alone: each app has its own service worker and cache.
 // Bump VERSION whenever index.html, manifest.json, sw.js or anything in SHELL changes.
-const VERSION = "adless-home-v19";
+const VERSION = "adless-home-v20";
 const SHELL = [
   "./",
   "index.html",

@@ -46,6 +46,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/show-words/open`, `apps/show-words/installed-open`, or `apps/show-words/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside the **?** help menu to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu to return to the app directory.
 
-The help menu identifies Show Words as part of the Adless project, with a link to the app directory.
+The help menu identifies Show Words as part of the ACS Web Apps project, with a link to the app directory.

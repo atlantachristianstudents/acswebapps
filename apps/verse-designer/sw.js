@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "verse-designer-v13";
+var VERSION = "verse-designer-v14";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "scripture-references.js"];
 
 self.addEventListener("install", function (e) {

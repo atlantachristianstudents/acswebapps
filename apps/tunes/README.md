@@ -1,6 +1,6 @@
 # Tunes
 
-Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; navigation back to Adless is in the bottom-right **?** menu.
+Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; navigation back to ACS Web Apps is in the bottom-right **?** menu.
 
 ## Install (needs the files served over HTTPS once, so the browser can cache them)
 - Host this folder on any static host (GitHub Pages, Netlify, Cloudflare Pages), open the URL, then:
@@ -36,6 +36,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/tunes/open`, `apps/tunes/installed-open`, or `apps/tunes/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Tuner as part of the Adless project, with a link to the app directory.
+The help menu identifies Tuner as part of the ACS Web Apps project, with a link to the app directory.

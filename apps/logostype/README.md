@@ -2,7 +2,7 @@
 
 Type the Scriptures and read what you typed. Practice on your own or race against friends.
 
-The About dialog uses the same description as the Adless home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header. The **← Adless** link is inside **About**. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
+The About dialog uses the same description as the ACS Web Apps home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header. The **← ACS Web Apps** link is inside **About**. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
 
 Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 
@@ -72,7 +72,7 @@ Opening reading mode or switching between its grid and book views starts at the 
 
 Scripture Journey opens by default. The Typing Test menu icon opens timed/word/verse/custom tests; the Logostype brand returns to Scripture Journey. Links to `index.html#typing` open Typing Test directly.
 
-The app files live directly in `apps/logostype/`, matching the other Adless apps. The `dist/` folder contains only compatibility pages and a worker that forward old hosted URLs and installed copies to the new location; it is not a build directory. Hosted progress stays on the same origin. For direct `file://` use, export a backup before moving an existing copy, then import it at the new location because browsers may isolate storage by file path.
+The app files live directly in `apps/logostype/`, matching the other ACS Web Apps apps. The `dist/` folder contains only compatibility pages and a worker that forward old hosted URLs and installed copies to the new location; it is not a build directory. Hosted progress stays on the same origin. For direct `file://` use, export a backup before moving an existing copy, then import it at the new location because browsers may isolate storage by file path.
 
 Scripture Journey highlights the current verse reference above the typing area, with the correction hint beneath it. The status line omits completed-verse and completed-journey counts; progress stays in the sidebar and completion history stays in records.
 
@@ -278,4 +278,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/logostype/open`, `apps/logostype/installed-open`, or `apps/logostype/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside **About** to return to the app directory.
+Navigation: find **← ACS Web Apps** inside **About** to return to the app directory.
+
+About identifies Logos Type as part of the ACS Web Apps project and links to the app directory.

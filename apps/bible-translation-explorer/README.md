@@ -13,7 +13,7 @@ Compare the included component scores for 11 Bible translations in an interactiv
 
 Open `index.html` directly, or serve this folder on any static host. From the repository root, run `python3 -m http.server 8000` and visit <http://localhost:8000/apps/bible-translation-explorer/>.
 
-On HTTPS or localhost, visit once online to cache the app, then use your browser’s install or Add to Home Screen option where supported. The app works offline after caching. Direct `file://` use works without service-worker installation. The optional Adless back link points to the parent directory when hosted within this repository.
+On HTTPS or localhost, visit once online to cache the app, then use your browser’s install or Add to Home Screen option where supported. The app works offline after caching. Direct `file://` use works without service-worker installation. The optional ACS Web Apps back link points to the parent directory when hosted within this repository.
 
 ## Files and updates
 
@@ -28,6 +28,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/bible-translation-explorer/open`, `apps/bible-translation-explorer/installed-open`, or `apps/bible-translation-explorer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Bible Translation Explorer as part of the Adless project, with a link to the app directory.
+The help menu identifies Bible Translation Explorer as part of the ACS Web Apps project, with a link to the app directory.

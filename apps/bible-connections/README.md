@@ -14,7 +14,7 @@ An interactive map of Bible cross-references based on the Holy Bible Recovery Ve
 
 Serve this folder on HTTPS or localhost and open it once online to cache the app. Use your browser’s Install app or Add to Home Screen action where available. Once cached, the visualization and its data work offline. The source attribution link requires an internet connection.
 
-You can also open `index.html` directly with `file://`; the chart works, but installation and offline caching require a web server. The optional Adless back link assumes the app lives under `apps/`.
+You can also open `index.html` directly with `file://`; the chart works, but installation and offline caching require a web server. The optional ACS Web Apps back link assumes the app lives under `apps/`.
 
 The folder is self-contained and can be copied to any static host. When changing cached files, increment the version in `sw.js` and update its `FILES` list if needed. Its cache cleanup is limited to this app’s own cache prefix.
 
@@ -27,6 +27,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/bible-connections/open`, `apps/bible-connections/installed-open`, or `apps/bible-connections/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Bible Connections as part of the Adless project, with a link to the app directory.
+The help menu identifies Bible Connections as part of the ACS Web Apps project, with a link to the app directory.

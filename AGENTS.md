@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Project overview
 
-"Adless" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/adless/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
+"ACS Web Apps" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/adless/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
 
 The home page (`index.html`) renders an app directory from a registry; each app is an independent, self-contained PWA in its own folder under `apps/`.
 
@@ -42,7 +42,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 ## Architectural rules
 
 1. **Self-contained apps.** An app folder must work when copied or hosted on its own. Never link assets outside `apps/<id>/` (no `../../assets/...`). The only allowed cross-references are:
-   - the optional Adless project link (`href="../../"`, introduced by “[App Name] is part of the Adless project”), which simply 404s when the folder is hosted standalone;
+   - the optional ACS Web Apps project link (`href="../../"`, introduced by “[App Name] is part of the ACS Web Apps project”), which simply 404s when the folder is hosted standalone;
    - files listed in that app's own `sw.js` `FILES`.
 2. **Registry-driven.** Apps appear on the home page only via `assets/apps.js` (`window.APPS`). Do not add app listings elsewhere.
 3. **No build/output artifacts.** There are no generated files; everything is hand-edited.

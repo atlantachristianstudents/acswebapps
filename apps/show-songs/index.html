@@ -272,6 +272,19 @@
         z-index: 1;
         pointer-events: none;
       }
+      #adless-mobile-back { display: none; }
+      @media (max-width: 767px) {
+        #adless-mobile-back {
+          display: inline-block;
+          margin-top: 8px;
+          padding: 8px 12px;
+          border: 1px solid currentColor;
+          border-radius: 6px;
+          color: inherit;
+          text-decoration: none;
+          cursor: pointer !important;
+        }
+      }
       #song-languages { width: min(560px, calc(100vw - 32px)); max-height: 80dvh; overflow: auto; box-sizing: border-box; padding: 20px; border: 1px solid var(--hint); border-radius: 12px; background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font-utility); }
       #song-languages::backdrop { background: #0009; }
       #song-language-options { display: grid; gap: 8px; }
@@ -4801,7 +4814,7 @@
                 searchHelp,
                 MOD + "+delete clears" + d + MOD + "+z undo" + d + MOD + "+shift+z / " + MOD + "+y redo" + d + MOD + "+c copies",
                 MOD + " + - / + size" + d + MOD + "+f fill" + d + "alt+w wrap",
-                MOD + "+\\ or esc number mode" + d + MOD + "+← back to Adless",
+                MOD + "+\\ or esc number mode" + d + MOD + "+← back to ACS Web Apps",
                 "switch to numbers, then press space to present a hymn",
                 "any key closes this",
               ]
@@ -4826,10 +4839,12 @@
                   d +
                   "t text mode",
                 "l all languages" + d + "b k c s r main: Burmese, Korean, Chinese, Spanish 2nd, Russian (input uses the main language)" + d + "e english + korean with Russian" + d + "a same without Russian" + d + "shift+e Enjoyer Korean below",
-                MOD + "+← back to Adless",
+                MOD + "+← back to ACS Web Apps",
                 "any key closes this",
               ];
-          return "<div>" + lines.join("<br>") + "</div>";
+          return "<div>" + lines.join("<br>") +
+            '<p>Show Songs is part of the ACS Web Apps project.<br>' +
+            '<a id="adless-mobile-back" href="../../">Back to ACS Web Apps</a></p></div>';
         }
         function showHelp() {
           helpEl.innerHTML = helpHtml();
@@ -4935,7 +4950,7 @@
           setValue(position > maxNumber ? "s" + (position - maxNumber) : String(position));
         }
 
-        // Keyboard shortcut (Ctrl/Cmd+Left) returns to the Adless home page.
+        // Keyboard shortcut (Ctrl/Cmd+Left) returns to the ACS Web Apps home page.
         function goBackAdless() {
           window.location.href = "../../";
         }
@@ -5453,7 +5468,7 @@
         });
     </script>
     <script id="adless-usage">
-// Adless usage counts: keep this self-contained copy in each app in sync.
+// ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
   var app = "show-songs";

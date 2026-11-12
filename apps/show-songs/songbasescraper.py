@@ -97,7 +97,7 @@ def update_snapshot(data, directory=APP_DIR, embed=False):
 
 
 def download_library():
-    request = urllib.request.Request(API_URL, headers={"User-Agent": "Adless-Big-Text-Songbase-Sync/1.0"})
+    request = urllib.request.Request(API_URL, headers={"User-Agent": "ACS Web Apps-Big-Text-Songbase-Sync/1.0"})
     for attempt in range(3):
         try:
             with urllib.request.urlopen(request, timeout=120) as response:

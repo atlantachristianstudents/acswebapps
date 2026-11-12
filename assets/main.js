@@ -1,5 +1,5 @@
 /*
- * Adless — home page behaviour: theme toggle, tag filters, search, app cards.
+ * ACS Web Apps — home page behaviour: theme toggle, tag filters, search, app cards.
  * The app registry itself lives in apps.js (window.APPS).
  */
 (function () {

@@ -1,6 +1,6 @@
 # App template
 
-Copy this folder to `apps/<app-id>/` to start a new Adless app (see the root README for the full walkthrough). Everything the app needs lives inside this folder, so it can be copied or hosted anywhere as-is.
+Copy this folder to `apps/<app-id>/` to start a new ACS Web Apps app (see the root README for the full walkthrough). Everything the app needs lives inside this folder, so it can be copied or hosted anywhere as-is.
 
 ## Files
 
@@ -17,8 +17,8 @@ Copy this folder to `apps/<app-id>/` to start a new Adless app (see the root REA
 4. Replace the placeholder favicon and `icons/icon.svg` with your own artwork.
 5. Bump `VERSION` in `sw.js` every time you change `index.html`.
 6. Register the app in `assets/apps.js` (add an entry with `status: "beta"` or `"live"`).
-7. Keep everything self-contained: relative paths only, and never link files outside this folder except the optional `← Adless` back link (`../../`).
+7. Keep everything self-contained: relative paths only, and never link files outside this folder except the optional `← ACS Web Apps` back link (`../../`).
 
-Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies App Name as part of the Adless project, with a link to the app directory.
+The help menu identifies App Name as part of the ACS Web Apps project, with a link to the app directory.

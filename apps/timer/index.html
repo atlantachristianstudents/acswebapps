@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f5f3ee">
 <meta name="color-scheme" content="light dark">
 <meta name="description" content="A minimal full-screen timer, clock, and stopwatch with keyboard controls and local history.">
-<title>Show Time — Adless</title>
+<title>Show Time — ACS Web Apps</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <style>
@@ -31,7 +31,7 @@
 </main>
 <button id="history" class="icon-button" aria-label="Timer history" aria-haspopup="dialog" title="History"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7m2-5v6l4 2"/></svg><span id="count" aria-hidden="true"></span></button>
 <button id="help" aria-label="Keyboard shortcuts" aria-haspopup="dialog" title="Keyboard shortcuts · / or ?">?</button>
-<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2><button id="close-help" aria-label="Close keyboard shortcuts">Close</button></div><p>Show Time is part of the <a href="../../" style="color:inherit;text-decoration:underline">Adless project</a>.</p><div class="hint"><span><kbd>/ or ?</kbd> toggle shortcuts</span><span><kbd>T</kbd> timer / clock / stopwatch</span><span><kbd>0–9</kbd> type time</span><span><kbd>← →</kbd> minutes</span><span><kbd>↓ ↑</kbd> seconds</span><span><kbd>enter</kbd> start / stop</span><span><kbd>space</kbd> start / reset paused</span><span><kbd>R</kbd> restart running</span><span><kbd>H</kbd> theme</span><span><kbd>D</kbd> decimals</span><span><kbd>M</kbd> sound</span><span><kbd>A</kbd> ambient on / off</span><span><kbd>− +</kbd> size</span><span><kbd>F</kbd> fill</span><span><kbd>shift F</kbd> full screen</span></div></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2><button id="close-help" aria-label="Close keyboard shortcuts">Close</button></div><p>Show Time is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</p><div class="hint"><span><kbd>/ or ?</kbd> toggle shortcuts</span><span><kbd>T</kbd> timer / clock / stopwatch</span><span><kbd>0–9</kbd> type time</span><span><kbd>← →</kbd> minutes</span><span><kbd>↓ ↑</kbd> seconds</span><span><kbd>enter</kbd> start / stop</span><span><kbd>space</kbd> start / reset paused</span><span><kbd>R</kbd> restart running</span><span><kbd>H</kbd> theme</span><span><kbd>D</kbd> decimals</span><span><kbd>M</kbd> sound</span><span><kbd>A</kbd> ambient on / off</span><span><kbd>− +</kbd> size</span><span><kbd>F</kbd> fill</span><span><kbd>shift F</kbd> full screen</span></div></dialog>
 <div id="progress" aria-hidden="true"></div>
 <dialog id="ambient-dialog" aria-labelledby="ambient-title"><div class="dialog-head"><h2 id="ambient-title">Ambient sounds</h2><button id="close-ambient" aria-label="Close ambient sounds">Close</button></div><div class="row"><label for="ambient-enable">Play ambient sound</label><button id="ambient-enable" aria-pressed="false">Off</button></div><div id="ambient-options" hidden><p class="choice-label" style="font-size:12px;color:var(--muted);margin:14px 0 0">Sound</p><div class="choice" role="group" aria-label="Ambient sound choice"><button data-sound="rain" aria-pressed="false">Rain</button><button data-sound="forest" aria-pressed="false">Forest</button><button data-sound="ocean" aria-pressed="false">Ocean</button><button data-sound="white" aria-pressed="false">White noise</button></div><div class="row"><label for="ambient-volume">Volume</label><input id="ambient-volume" type="range" min="0" max="100" value="50" aria-label="Ambient sound volume"></div><p style="font-size:12px;color:var(--muted);margin:8px 0 0">Sound plays continuously until turned off. Press <kbd>A</kbd> to stop it quickly.</p></div></dialog>
 <dialog id="history-dialog" aria-labelledby="history-title"><div class="dialog-head"><h2 id="history-title">Your time, remembered.</h2><button id="close-history" aria-label="Close history">Close</button></div><p class="privacy">Saved on this device. Select a duration to use it again.</p><ul id="history-list"></ul><button id="clear-history">Clear history</button></dialog>
@@ -355,7 +355,7 @@ $('mode').title = 'Cycle to ' + (nextMode === 'timer' ? 'Timer' : nextMode === '
  document.body.classList.toggle('done',done);
  $('progress').style.width = (duration ? 100 * (1 - remaining / duration) : 0) + '%';
  $('count').textContent = history.length || '';
- document.title = (deadline !== null ? format(remaining) + ' · ' : '') + 'Show Time — Adless';
+ document.title = (deadline !== null ? format(remaining) + ' · ' : '') + 'Show Time — ACS Web Apps';
  if (mode !== 'timer') {
  const running = mode === 'stopwatch' && stopwatchStart !== null;
  $('toggle').classList.toggle('running', running);
@@ -441,7 +441,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.
 })();
 </script>
   <script id="adless-usage">
-// Adless usage counts: keep this self-contained copy in each app in sync.
+// ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
   var app = "timer";

@@ -23,7 +23,7 @@ Open the app, edit the verse text and reference, tweak the controls, and press *
 
 ## Install
 
-Visit the app on the deployed Adless site (or any HTTPS host) and use your browser's "Install app" option. The app is cached by its service worker for offline use.
+Visit the app on the deployed ACS Web Apps site (or any HTTPS host) and use your browser's "Install app" option. The app is cached by its service worker for offline use.
 
 ## Files
 
@@ -49,6 +49,6 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/verse-designer/open`, `apps/verse-designer/installed-open`, or `apps/verse-designer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
-Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Verse Designer as part of the Adless project, with a link to the app directory.
+The help menu identifies Verse Designer as part of the ACS Web Apps project, with a link to the app directory.
