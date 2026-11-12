@@ -4,10 +4,11 @@ An interactive map of Bible cross-references based on the Holy Bible Recovery Ve
 
 - Hover over a chapter or arc to trace connections; on touch screens, drag across the chart to explore, including from a pinned selection. The preview stays visible after lifting your finger. Click or tap to pin or unpin a connection.
 - Dragging on the chart explores connections; swipe outside the chart to scroll the page.
-- Choose a book, chapter, and optional verse using the selectors, including on touch screens.
+- Choose a book, chapter, and optional verse using the selectors, including on touch screens. The selectors also follow chapter and verse selections on the chart and keyboard navigation; clearing the selection or exploring an arc resets them.
+- Expand results beneath the selection summary to browse chapters or verses grouped by their shortest connection step, starting with the selection at step 0. Expand each step to see its results in Bible order.
 - Set connection depth from 0 to 9 with the Steps selector or number keys.
 - Use left/right arrows to move chapters and up/down arrows to move verses after selecting a chapter.
-- Verse hover is off by default. Press V to toggle it; Escape or Clear resets the selection.
+- Verse hover is off by default. Press V to toggle it; turning it off keeps a hover unpinned and preserves an existing pin. Escape or Clear resets the selection.
 - Chapter connections traverse in either direction; verse connections follow outgoing references. Counts include repeated links as described in the app.
 
 ## Install and offline use
