@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Project overview
 
-"ACS Web Apps" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/adless/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
+"ACS Web Apps" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/acswebapps/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
 
 The home page (`index.html`) renders an app directory from a registry; each app is an independent, self-contained PWA in its own folder under `apps/`.
 
@@ -19,7 +19,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | Path | Purpose |
 | --- | --- |
 | `index.html` | Home page (app directory). Script at the end is minimal; behavior lives in `assets/main.js`. |
-| `404.html` | Not-found page. Links are absolute (`/adless/...`) because GitHub Pages serves it from arbitrary depths. |
+| `404.html` | Not-found page. Links are absolute (`/acswebapps/...`) because GitHub Pages serves it from arbitrary depths. |
 | `manifest.json` | Home-page web-app manifest (standalone PWA; icons in `assets/icons/`). |
 | `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `adless-home-vN`). Must not handle `apps/` requests. |
 | `.github/workflows/update-songbase.yml` | Six-hourly Songbase refresh for Show Songs; uses Python standard library, commits changed snapshots, requests a Pages rebuild. |
@@ -80,7 +80,7 @@ There is no test suite, formatter, or linter configured. Verification means: the
 
 - **Do not edit files by the names `*~`, `*.un~`, `.DS_Store`** — those are editor/OS backups. Never commit them.
 - Forgetting to bump `sw.js` `VERSION` after editing an app (see above).
-- `404.html` uses absolute paths (`/adless/`) — they are correct for the GitHub Pages project site but break on other hosts; don't "fix" them to relative paths.
+- `404.html` uses absolute paths (`/acswebapps/`) — they are correct for the GitHub Pages project site but break on other hosts; don't "fix" them to relative paths.
 - `assets/main.js`'s card icons fall back to the registry `icon` emoji, then `assets/favicon.svg`, if the icon image 404s — this is intentional.
 - The home page loads Inter from Google Fonts (a deliberate external dependency); everything else is local.
 - The big app files (`apps/show-words/index.html` is ~405 KB) contain large amounts of embedded data and refined interaction code — treat them as production code.

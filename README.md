@@ -2,9 +2,9 @@
 
 **Free, ad-free web apps by Atlanta Christian Students.** Everything runs in the browser — no accounts and no ads, with limited usage counts. The site is a static app directory, and every app is a self-contained PWA that keeps working offline after the first visit.
 
-[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://atlantachristianstudents.github.io/adless/)
+[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://atlantachristianstudents.github.io/acswebapps/)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/77euBtgZjU)
-[![Issues](https://img.shields.io/badge/GitHub-Issues-5865F2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/atlantachristianstudents/adless/issues)
+[![Issues](https://img.shields.io/badge/GitHub-Issues-5865F2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/atlantachristianstudents/acswebapps/issues)
 
 The Tools filter includes Bible Translation Explorer and Bible Connections. Show Time appears under Presentation.
 
@@ -29,16 +29,16 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 
 | App | What it does | Status |
 | --- | --- | --- |
-| [Bible Connections](https://atlantachristianstudents.github.io/adless/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
-| [Show Time](https://atlantachristianstudents.github.io/adless/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
-| [Bible Translation Explorer](https://atlantachristianstudents.github.io/adless/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
-| [Logos Type](https://atlantachristianstudents.github.io/adless/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
-| [Memorize](https://atlantachristianstudents.github.io/adless/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
-| [Verse Review](https://atlantachristianstudents.github.io/adless/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
-| [Show Songs](https://atlantachristianstudents.github.io/adless/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
-| [Tuner](https://atlantachristianstudents.github.io/adless/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. | live |
-| [Show Words](https://atlantachristianstudents.github.io/adless/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
-| [Songbook](https://atlantachristianstudents.github.io/adless/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
+| [Bible Connections](https://atlantachristianstudents.github.io/acswebapps/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
+| [Show Time](https://atlantachristianstudents.github.io/acswebapps/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
+| [Bible Translation Explorer](https://atlantachristianstudents.github.io/acswebapps/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
+| [Logos Type](https://atlantachristianstudents.github.io/acswebapps/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
+| [Memorize](https://atlantachristianstudents.github.io/acswebapps/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
+| [Verse Review](https://atlantachristianstudents.github.io/acswebapps/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
+| [Show Songs](https://atlantachristianstudents.github.io/acswebapps/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
+| [Tuner](https://atlantachristianstudents.github.io/acswebapps/apps/tunes/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. | live |
+| [Show Words](https://atlantachristianstudents.github.io/acswebapps/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
+| [Songbook](https://atlantachristianstudents.github.io/acswebapps/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
 Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (listed but not yet available).
 
@@ -65,7 +65,7 @@ A few apps bundle or use specialized pieces:
 
 ## Install and offline use
 
-1. Open the [live site](https://atlantachristianstudents.github.io/adless/) in a modern browser.
+1. Open the [live site](https://atlantachristianstudents.github.io/acswebapps/) in a modern browser.
 2. Install the site or an individual app:
    - **Android / Chrome / Edge:** browser menu → **Install app**.
    - **iPhone / iPad (Safari):** Share → **Add to Home Screen**.
@@ -158,10 +158,10 @@ Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, 
 
 ## Deploying on GitHub Pages
 
-1. Push these files to the branch Pages deploys from (`main` of [atlantachristianstudents/adless](https://github.com/atlantachristianstudents/adless)).
+1. Push these files to the branch Pages deploys from (`main` of [atlantachristianstudents/acswebapps](https://github.com/atlantachristianstudents/acswebapps)).
 2. In the repo, go to **Settings → Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save.
-4. After a minute the site is live at <https://atlantachristianstudents.github.io/adless/>.
+4. After a minute the site is live at <https://atlantachristianstudents.github.io/acswebapps/>.
 
 `.nojekyll` must stay in the repo root so GitHub Pages serves files as-is (Jekyll would otherwise exclude folders such as `apps/_template/`).
 
@@ -182,7 +182,7 @@ Still stuck? Ask in the [Discord](https://discord.gg/77euBtgZjU) or open an issu
 
 Join the **Discord** for help, quick questions, bug reports, and app ideas: <https://discord.gg/77euBtgZjU>.
 
-You can also open an issue on GitHub: <https://github.com/atlantachristianstudents/adless/issues>. Issues are best for reproducible bugs and feature requests; Discord is best for quick back-and-forth.
+You can also open an issue on GitHub: <https://github.com/atlantachristianstudents/acswebapps/issues>. Issues are best for reproducible bugs and feature requests; Discord is best for quick back-and-forth.
 
 ## Contributing
 
@@ -210,4 +210,4 @@ When adding an app, copy the `adless-usage` script into its main page, set its f
 
 App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
 
-The public name is **ACS Web Apps**. Existing `/adless/` URLs, storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
+The public name is **ACS Web Apps**. The site uses `/acswebapps/` URLs. Existing storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
