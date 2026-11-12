@@ -112,7 +112,7 @@
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   #present.top .ptext { align-items: flex-start; }   /* slides with several steps: text starts at the top, so earlier steps stay put */
   #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
-  #present.scrolling .ptext { align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; }
+  #present.scrolling .ptext { align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; scrollbar-gutter: stable; }
   #present.scrolling .scrollverse { margin: 0 0 .45em; }
   #present.scrolling .scrollref { font-weight: 700; color: var(--accent); margin-right: .4em; }
   /* slides with several passages: each reference runs inline on the first line of its passage */
@@ -3026,7 +3026,7 @@
     renderPresent();
     if (anchorRow) {
       var restored = pin.querySelector('[data-pos="' + anchorRow + '"]');
-      if (restored) box.scrollTop = restored.offsetTop - pin.offsetTop - (anchorTop - box.getBoundingClientRect().top);
+      if (restored) box.scrollTop += restored.getBoundingClientRect().top - anchorTop;
     }
   }
   var extPanel = false;   // true while the phone shows the control panel and the verses go to the external display
@@ -3136,6 +3136,7 @@
       pin.textContent = "";
       presList().forEach(function (v) {
         var row = document.createElement("div"); row.className = "scrollverse";
+        row.dataset.pos = v.dataset.bi + ":" + v.dataset.ch + ":" + v.dataset.v;
         var ref = document.createElement("span"); ref.className = "scrollref";
         ref.textContent = v.dataset.ref + (v.dataset.ver ? " · " + v.dataset.ver : "");
         row.appendChild(ref);
