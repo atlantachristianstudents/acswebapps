@@ -94,7 +94,7 @@ window.APPS = [
     description: "Design beautiful Bible verse wallpapers and shareable images with custom typography and gradients. Export as PNG, offline.",
     icon: "❝",
     iconUrl: "apps/verse-designer/icons/icon.svg",
-    tags: ["Tools", "Memory"],
+    tags: ["Tools", "Worship", "Memory"],
     status: "beta"
   },
   {
