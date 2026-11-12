@@ -1,6 +1,6 @@
 // Verse Lookup offline cache. Bump VERSION when you replace index.html.
-var VERSION = "verse-lookup-v30";
-var FILES = ["./", "./index.html", "./display.html", "./asv.txt", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
+var VERSION = "verse-lookup-v33";
+var FILES = ["./", "./index.html", "./display.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });
@@ -12,6 +12,12 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   var r = e.request;
   if (r.method !== "GET" || new URL(r.url).origin !== location.origin) return;   // leave the dictionary lookup alone
+  if (r.mode === "navigate") {   // app pages: network first, so a new version is picked up instead of being hidden behind the cache
+    e.respondWith(fetch(r).catch(function () {
+      return caches.match(r, { ignoreSearch: true }).then(function (hit) { return hit || caches.match("./index.html"); });
+    }));
+    return;
+  }
   e.respondWith(caches.match(r, { ignoreSearch: true }).then(function (hit) {
     return hit || fetch(r).catch(function () { return caches.match("./index.html"); });
   }));

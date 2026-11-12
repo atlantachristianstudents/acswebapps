@@ -13,7 +13,7 @@ Open the address once while online; the app caches itself. After that it works w
 
 ## Notes
 
-- The American Standard Version (`asv.txt`) loads by default. ASV, KJV, and YLT text files are included; copyrighted modern translations are not bundled.
+- The Scripture text (RcV) is downloaded the same way as in Logostype: the loader built into `index.html` fetches it from the configured Scripture API and caches it in IndexedDB with a localStorage backup, refreshing the cache after 15 days. First use and cache refresh need an internet connection; a fresh cached copy works offline. The text is no longer bundled inside `index.html`.
 - Additional verse text files can be imported and stored on that device.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 
