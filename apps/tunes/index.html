@@ -993,6 +993,58 @@
       .cbar.on i {
         background: var(--ok);
       }
+
+      /* ---------- chord studio ---------- */
+      #studio {
+        order: 6;
+      }
+      .cs textarea {
+        font: inherit;
+        font-size: 1rem;
+        width: 100%;
+        min-height: 9rem;
+        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--fg);
+        border: 1.5px solid var(--track);
+        border-radius: 10px;
+        padding: 0.6rem;
+        resize: vertical;
+        line-height: 1.5;
+      }
+      .cs .trow {
+        margin-bottom: 0.8rem;
+      }
+      .csout {
+        border: 1.5px solid var(--track);
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+        margin-top: 1rem;
+        overflow-x: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .csout .cl {
+        line-height: 1.7;
+        min-height: 1.7em;
+        white-space: pre-wrap;
+      }
+      .csout b.ch {
+        font-weight: 600;
+        color: var(--ok);
+        white-space: nowrap;
+      }
+      .cshead {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 1.2rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+      .cshead b {
+        color: var(--fg);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -1240,6 +1292,52 @@
           </div>
         </div>
       </section>
+      <section class="view tones-view cs" id="studio" aria-label="Chord studio">
+        <div class="tp">
+          <h2>Chord studio</h2>
+          <label class="bfield"
+            >Chord chart <textarea id="sIn" placeholder="One line per line, e.g.&#10;Verse:  G   D   Em   C" spellcheck="false"></textarea></label
+          >
+          <div class="trow">
+            <label class="bfield" style="margin: 0"
+              >Chart key <select id="sKey"></select
+            ></label>
+            <label class="bfield" style="margin: 0"
+              >Transpose
+              <span class="a4ctl" role="group" aria-label="Transpose in semitones">
+                <button type="button" id="sDown" aria-label="Transpose down one semitone">−</button
+                ><input
+                  id="sShift"
+                  type="number"
+                  inputmode="numeric"
+                  min="-11"
+                  max="11"
+                  step="1"
+                  aria-label="Transpose in semitones" /><button
+                  type="button"
+                  id="sUp"
+                  aria-label="Transpose up one semitone">
+                  +
+                </button>
+              </span>
+            </label>
+            <label class="bfield" style="margin: 0"
+              >Capo <select id="sCapo"></select
+            ></label>
+          </div>
+          <div class="trow">
+            <button class="small" id="sCopy">Copy chart</button>
+            <button class="small" id="sClear">Clear</button>
+          </div>
+          <div class="bfield">Transposed chart</div>
+          <div class="csout" id="sOut" aria-live="polite"></div>
+          <div class="bfield" id="sHint" style="margin-top: 0.6rem">
+            Enter chords inline in your lyrics. Chords can be written with ♯/♭ or plain # and b (F#, Bb, D/F#, Em7b5),
+            and output always uses proper glyphs. Transpose moves every chord; capo shows the shapes to play
+            relative to the capo. Use a plain name (e.g. F♯) for the chart key even if you play G shapes.
+          </div>
+        </div>
+      </section>
     </div>
     <div id="mFlash" style="position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 5"></div>
     <footer>
@@ -1283,6 +1381,13 @@
             <circle cx="17.5" cy="16" r="2.5" />
           </svg>
         </button>
+        <button aria-label="Chord studio" title="Chord studio (7)" aria-keyshortcuts="7" data-i="6">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 21V4h5v17" />
+            <path d="M6 12h5" />
+            <path d="M13.5 9.5h6M16.5 6.5v6" />
+          </svg>
+        </button>
       </div>
       <button id="wake" class="small" aria-pressed="true">Keeping screen on</button>
       <button id="btn" hidden>Enable microphone</button>
@@ -1290,7 +1395,7 @@
     </footer>
     <script>
       const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-      const VIEWS = ["tuner", "instruments", "graph", "metronome", "tones", "chords"];
+      const VIEWS = ["tuner", "instruments", "graph", "metronome", "tones", "chords", "studio"];
       let A4 = 440;
       const $ = (id) => document.getElementById(id);
       let ctx,
@@ -1324,7 +1429,7 @@
       document.querySelectorAll("#dots button").forEach((b) => b.addEventListener("click", () => go(+b.dataset.i)));
       addEventListener("keydown", (e) => {
         if (e.target.closest && e.target.closest("input,select,textarea,[contenteditable]:not([contenteditable='false'])")) return;
-        if (!e.defaultPrevented && !e.isComposing && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && /^[1-6]$/.test(e.key)) {
+        if (!e.defaultPrevented && !e.isComposing && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && /^[1-7]$/.test(e.key)) {
           e.preventDefault();
           go(Number(e.key) - 1);
           return;
@@ -2816,6 +2921,152 @@
           showBars([]);
           renderHist();
         });
+      })();
+
+      /* ---------- chord studio (transposer & capo) ---------- */
+      (function () {
+        const S = (id) => document.getElementById(id);
+        const SHARP = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+        const FLAT = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+        // keys that read naturally with flats
+        const FLAT_KEYS = new Set(["F", "B♭", "E♭", "A♭", "D♭", "G♭", "d", "c", "g", "f", "e♭", "a♭"]);
+        const idx = (n) => {
+          const m = /^([A-G])([#♯b♭]?)$/.exec(n);
+          if (!m) return -1;
+          const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]];
+          return (base + (m[2] === "♯" || m[2] === "#" ? 1 : m[2] === "♭" || m[2] === "b" ? -1 : 0) + 12) % 12;
+        };
+        const label = (i, useFlats) => (useFlats ? FLAT : SHARP)[((i % 12) + 12) % 12];
+
+        // parse a chord token: root (♯/♭/ASCII # or b), optional suffix, optional /bass
+        const RE = /^([A-G][#♯b♭]?)([^/\s]*)(?:\/([A-G][#♯b♭]?))?$/;
+        // tidy suffixes for display: ASCII #/b become the proper glyphs (b only before a number, e.g. m7b5)
+        const tidy = (s) => s.replace(/#/g, "♯").replace(/b(?=\d)/g, "♭");
+        function parseChord(t) {
+          const m = RE.exec(t);
+          if (!m) return null;
+          const r = idx(m[1]);
+          if (r < 0) return null;
+          const b = m[3] === undefined ? null : idx(m[3]);
+          if (m[3] !== undefined && b < 0) return null;
+          return { root: r, suf: m[2], bass: b };
+        }
+
+        let state = { key: "C", shift: 0, capo: 0, text: "" };
+        try {
+          const saved = JSON.parse(localStorage.getItem("tunes.chordstudio") || "null");
+          if (saved && typeof saved.text === "string") state = saved;
+        } catch (e) {}
+        const save = () => {
+          try {
+            localStorage.setItem("tunes.chordstudio", JSON.stringify(state));
+          } catch (e) {}
+        };
+
+        S("sKey").innerHTML = SHARP.map((n) => `<option>${n}</option>`).join("");
+        S("sCapo").innerHTML = Array.from({ length: 8 }, (_, i) => `<option value="${i}">${i ? i : "No capo"}</option>`).join("");
+        S("sIn").value = state.text;
+        S("sKey").value = state.key;
+        S("sShift").value = String(state.shift);
+        S("sCapo").value = String(state.capo);
+
+        // an upper-case token that isn't a word (e.g. "G", "F♯m7", "B♭/D") is a chord;
+        // a lower-case word or "A" standing alone in prose is left alone unless it parses with a suffix
+        function isChordToken(t, prev, next) {
+          if (!RE.test(t)) return false;
+          const p = parseChord(t);
+          if (!p) return false;
+          if (p.suf || p.bass !== null) return true; // "Em", "G/B", "Asus4" — unambiguous
+          // bare major chord names: require chord-ish neighbours or start of a chord line
+          const chordish = (w) => w && RE.test(w) && (parseChord(w).suf || parseChord(w).bass !== null);
+          return !/[a-z]/.test(prev || "") && (chordish(next) || prev === undefined);
+        }
+
+        function escapeHtml(s) {
+          return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function render() {
+          const useFlats = FLAT_KEYS.has(state.key);
+          const keyIdx = idx(state.key);
+          const shift = state.shift,
+            capo = state.capo;
+          const out = [];
+          let count = 0;
+          state.text.split(/\r?\n/).forEach((line) => {
+            const toks = line.split(/(\s+)/);
+            const nextToks = toks.map((t) => (/^[A-G][#♯b♭]?[a-z0-9()#♯♭b+/\-]*$/.test(t) ? t : ""));
+            let html = "";
+            toks.forEach((t, i) => {
+              if (/^\s+$/.test(t) || t === "") {
+                html += escapeHtml(t);
+                return;
+              }
+              const bare = t.replace(/[(),]/g, "");
+              if (isChordToken(bare, toks[i - 2], nextToks[i + 2])) {
+                const p = parseChord(bare);
+                const newRoot = (p.root + keyIdx + shift) % 12;
+                const playRoot = (p.root + shift - capo) % 12;
+                let out1 = label(newRoot, useFlats) + tidy(p.suf);
+                if (p.bass !== null) out1 += "/" + label((p.bass + keyIdx + shift) % 12, useFlats);
+                let shape = label(playRoot, useFlats) + tidy(p.suf);
+                if (p.bass !== null) shape += "/" + label((p.bass + shift - capo) % 12, true);
+                count++;
+                html += `<b class="ch" title="Shape: ${escapeHtml(shape)}">${escapeHtml(out1)}</b>`;
+                if (!p.suf && p.bass === null && bare !== t) html += escapeHtml(t.slice(bare.length));
+              } else {
+                html += escapeHtml(t);
+              }
+            });
+            out.push(`<div class="cl">${html || " "}</div>`);
+          });
+          S("sOut").innerHTML = out.join("");
+          const finalKey = label((keyIdx + shift) % 12, useFlats);
+          const capoKey = capo ? label((keyIdx + shift - capo) % 12, true) : null;
+          S("sHint").textContent =
+            (state.text.trim() ? `${count} chord${count === 1 ? "" : "s"} · ` : "") +
+            `Key ${state.key}${shift ? " → " + finalKey : ""}` +
+            (capo ? ` · Capo ${capo}: play ${capoKey} shapes` : " · No capo");
+        }
+
+        function update(saveText, newShift) {
+          if (saveText) state.text = S("sIn").value;
+          state.key = S("sKey").value;
+          state.shift = Math.max(-11, Math.min(11, Math.round(newShift !== undefined ? newShift : +S("sShift").value) || 0));
+          S("sShift").value = String(state.shift);
+          state.capo = +S("sCapo").value;
+          save();
+          render();
+        }
+        S("sIn").addEventListener("input", () => update(true));
+        ["sKey", "sCapo"].forEach((id) => S(id).addEventListener("change", () => update(false)));
+        S("sShift").addEventListener("input", () => {
+          const v = parseFloat(S("sShift").value);
+          if (!isNaN(v)) update(false, v);
+        });
+        S("sShift").addEventListener("change", () => {
+          S("sShift").value = String(state.shift);
+          update(false);
+        });
+        S("sShift").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") S("sShift").blur();
+        });
+        [["sDown", -1], ["sUp", 1]].forEach(([id, d]) => {
+          S(id).addEventListener("click", () => update(false, state.shift + d));
+        });
+        S("sClear").addEventListener("click", () => {
+          S("sIn").value = "";
+          update(true);
+        });
+        S("sCopy").addEventListener("click", async () => {
+          const text = S("sOut").innerText.replace(/\n\n+/g, "\n").trim();
+          try {
+            await navigator.clipboard.writeText(text);
+            S("sCopy").textContent = "Copied!";
+            setTimeout(() => (S("sCopy").textContent = "Copy chart"), 1200);
+          } catch (e) {}
+        });
+        render();
       })();
 
       /* ---------- keep screen awake ---------- */

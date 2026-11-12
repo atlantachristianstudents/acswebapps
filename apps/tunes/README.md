@@ -1,6 +1,6 @@
 # Tunes
 
-Tuner, instrument tuner, audio graph, metronome, tone generator and key/chord detector. No network needed once installed.
+Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed.
 
 ## Install (needs the files served over HTTPS once, so the browser can cache them)
 - Host this folder on any static host (GitHub Pages, Netlify, Cloudflare Pages), open the URL, then:
@@ -14,7 +14,13 @@ Run `python3 -m http.server 8000` in this folder and open http://localhost:8000 
 Or just open index.html directly; it is fully self-contained, though some browsers re-ask for microphone access each time and cannot install it.
 
 ## Keyboard shortcuts
-Press **1–6** to switch tabs: **1** Tuner, **2** Instruments, **3** Graph, **4** Metronome, **5** Tones, **6** Key and chords. These shortcuts are ignored while editing fields or holding modifier keys. Left and right arrow keys also switch tabs; the space bar starts or stops the metronome when its tab is open.
+Press **1–7** to switch tabs: **1** Tuner, **2** Instruments, **3** Graph, **4** Metronome, **5** Tones, **6** Key and chords, **7** Chord studio. These shortcuts are ignored while editing fields or holding modifier keys. Left and right arrow keys also switch tabs; the space bar starts or stops the metronome when its tab is open.
+
+## Chord studio
+Type or paste lyrics with inline chords (e.g. `G   D   Em   C`), pick the chart's key, then:
+- **Transpose** shifts every chord (and slash-bass notes) into the new key, respelling with sharps or flats to match the target key.
+- **Capo** (frets 1–7) shows the chord shapes to play relative to the capo; the sounding key is shown under the chart.
+- The transposed chart updates live, keeps your line layout, and can be copied with one tap. Chart text, key, transpose and capo are remembered on this device.
 
 ## Microphone permission
 Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tunes also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
