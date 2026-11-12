@@ -82,6 +82,8 @@ Each app has its own manifest and service worker, so apps can be installed indep
 
 ## Local development
 
+On macOS, run `zsh serve.zsh` from this checkout (or use its full path from any directory). It starts the server on port 8000 and opens your default browser. Press Ctrl+C in the terminal to stop it. Requires Python 3 and curl.
+
 Run a static server from the repository root so relative paths and service workers resolve correctly:
 
 ```sh
