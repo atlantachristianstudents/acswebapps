@@ -16,13 +16,13 @@
 :root[data-theme=dark]{color-scheme:dark;--bg:#171a17;--ink:#eceee6;--muted:#a1a799;--line:#353b31;--accent:#bccd9c;--panel:#20241e}
 :root[data-theme=white]{color-scheme:light;--bg:#fff;--ink:#000;--muted:#000;--line:#bfbfbf;--accent:#000;--panel:#fff}
 :root[data-theme=black]{color-scheme:dark;--bg:#000;--ink:#fff;--muted:#fff;--line:#444;--accent:#fff;--panel:#000}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,sans-serif}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:100px;padding:10px 19px}button:hover{background:var(--line)}:focus-visible{outline:2px solid var(--accent);outline-offset:6px}header{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:24px 32px;gap:12px}header{top:0}a{color:var(--muted);text-decoration:none}.brand{letter-spacing:.2em;font-size:12px}.tools{display:flex;gap:8px}.tools button{font-size:12px;padding:8px 13px}main{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 20px 140px}#time{width:100%;max-width:none;border:0;padding:0;outline-offset:8px;background:transparent;color:var(--ink);font:300 clamp(72px,20vw,250px)/1.15 ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.075em;border-radius:8px;caret-color:var(--accent)}#time:focus{outline:1px solid var(--line)}#status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.actions{margin-top:24px}[hidden]{display:none!important}.actions{display:flex;gap:10px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:122px}.primary:hover{background:var(--accent);border-color:var(--accent)}.primary.running{background:#b93824;border-color:#b93824;color:#fff}.primary.running:hover{background:#982d1c;border-color:#982d1c}.hint{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:40px;font-size:12px;color:var(--muted)}kbd{font:inherit;color:var(--ink)}#progress{position:fixed;bottom:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s linear}dialog{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(460px,calc(100% - 32px));max-height:80svh}dialog::backdrop{background:#0005;backdrop-filter:blur(5px)}.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}h2{font-size:18px;font-weight:500;margin:0}#history-list{list-style:none;padding:0;margin:22px 0}#history-list li{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);gap:12px}#history-list small{display:block;color:var(--muted);font-size:11px}.empty,.privacy{color:var(--muted);font-size:12px}.done #time{color:var(--accent)}@media(max-width:600px){header{padding:20px}.hint{max-width:300px;gap:8px 18px}.tools{gap:5px}.tools button{padding:7px 10px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,sans-serif}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:100px;padding:10px 19px}button:hover{background:var(--line)}:focus-visible{outline:2px solid var(--accent);outline-offset:6px}header{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:24px 32px;gap:12px}header{top:0}a{color:var(--muted);text-decoration:none}.brand{letter-spacing:.2em;font-size:12px}.brand .next{color:var(--muted)}.tools{display:flex;gap:8px}.tools button{font-size:12px;padding:8px 13px}main{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 20px 140px}#time{width:100%;max-width:none;border:0;padding:0;outline-offset:8px;background:transparent;color:var(--ink);font:300 clamp(72px,20vw,250px)/1.15 ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.075em;border-radius:8px;caret-color:var(--accent)}#time:focus{outline:1px solid var(--line)}#status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.actions{margin-top:24px}[hidden]{display:none!important}.actions{display:flex;gap:10px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:122px}.primary:hover{background:var(--accent);border-color:var(--accent)}.primary.running{background:#b93824;border-color:#b93824;color:#fff}.primary.running:hover{background:#982d1c;border-color:#982d1c}.hint{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:40px;font-size:12px;color:var(--muted)}kbd{font:inherit;color:var(--ink)}#progress{position:fixed;bottom:0;left:0;height:3px;background:var(--accent);width:0;transition:width .2s linear}dialog{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(460px,calc(100% - 32px));max-height:80svh}dialog::backdrop{background:#0005;backdrop-filter:blur(5px)}.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}h2{font-size:18px;font-weight:500;margin:0}#history-list{list-style:none;padding:0;margin:22px 0}#history-list li{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);gap:12px}#history-list small{display:block;color:var(--muted);font-size:11px}.empty,.privacy{color:var(--muted);font-size:12px}.done #time{color:var(--accent)}@media(max-width:600px){header{padding:20px}.hint{max-width:300px;gap:8px 18px}.tools{gap:5px}.tools button{padding:7px 10px}}
 #help{position:fixed;right:20px;bottom:20px;width:40px;height:40px;padding:0;font-size:20px;background:var(--bg)}#help-dialog .hint{display:grid;grid-template-columns:1fr;justify-content:start;gap:12px;margin-top:24px;max-width:none}#help-dialog kbd{display:inline-block;min-width:90px}
-.icon-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.tools .icon-button{width:38px;height:38px;padding:8px;display:grid;place-items:center}.sound-off{display:none}#sound[data-muted=true] .sound-off{display:block}#sound[data-muted=true] .sound-on{display:none}#history{position:fixed;left:20px;bottom:20px;width:40px;height:40px;padding:9px;background:var(--bg)}#count{position:absolute;left:30px;bottom:27px;font-size:10px;background:var(--bg);border-radius:8px;padding:0 3px}
+.icon-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.tools .icon-button{width:38px;height:38px;padding:8px;display:grid;place-items:center}.sound-off{display:none}#sound[data-muted=true] .sound-off{display:block}#sound[data-muted=true] .sound-on{display:none}#ambient .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);position:absolute;top:8px;right:8px}#ambient[data-enabled=true] .dot{display:block}#ambient .dot{display:none}#ambient-dialog .row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px 0 4px}#ambient-dialog .choice{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}#ambient-dialog .choice button{padding:6px 14px;font-size:12px}#ambient-dialog .choice button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}#ambient-dialog input[type=range]{accent-color:var(--accent);width:180px}#history{position:fixed;left:20px;bottom:20px;width:40px;height:40px;padding:9px;background:var(--bg)}#count{position:absolute;left:30px;bottom:27px;font-size:10px;background:var(--bg);border-radius:8px;padding:0 3px}
 </style>
 </head>
 <body>
-<header><div style="display:flex;align-items:center;gap:10px"><a href="../../" title="Back to all apps" aria-label="Back to all apps" style="color:var(--muted);font-size:12px;border:1px solid var(--line);border-radius:100px;padding:6px 12px;text-decoration:none;white-space:nowrap;transition:color .15s">← Adless</a><button class="brand" id="mode" title="Cycle timer, clock, stopwatch · T">Timer</button></div><div class="tools"><button id="theme" aria-label="Cycle color theme (H)" title="Cycle theme · H">◐</button><button id="fullscreen" class="icon-button" aria-label="Enter full screen (Shift+F)" title="Full screen · Shift+F"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="fullscreen-path" d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button id="sound" class="icon-button" aria-label="Mute timer sound (M)" title="Mute sound · M"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+<header><div style="display:flex;align-items:center;gap:10px"><a href="../../" title="Back to all apps" aria-label="Back to all apps" style="color:var(--muted);font-size:12px;border:1px solid var(--line);border-radius:100px;padding:6px 12px;text-decoration:none;white-space:nowrap;transition:color .15s">← Adless</a><button class="brand" id="mode" title="Cycle timer, clock, stopwatch · T">Timer</button></div><div class="tools"><button id="theme" aria-label="Cycle color theme (H)" title="Cycle theme · H">◐</button><button id="fullscreen" class="icon-button" aria-label="Enter full screen (Shift+F)" title="Full screen · Shift+F"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="fullscreen-path" d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button id="sound" class="icon-button" aria-label="Mute timer sound (M)" title="Mute sound · M"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button><button id="ambient" class="icon-button" aria-label="Ambient sounds (A)" title="Ambient sounds · A" aria-haspopup="dialog" style="position:relative"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><path d="M4 14a2 2 0 0 1 2 2v2a2 2 0 0 1-2 0v-4zm16 0a2 2 0 0 0-2 2v2a2 2 0 0 0 2 0v-4z" fill="currentColor" stroke="none"/><path d="M12 20v2"/></svg><span class="dot" aria-hidden="true"></span></button></div></header>
 <main>
 <input id="time" value="01:30" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Timer duration in minutes and seconds. Type digits; last two digits are seconds.">
 <p id="status" role="status" aria-live="polite">Ready when you are.</p>
@@ -31,8 +31,9 @@
 </main>
 <button id="history" class="icon-button" aria-label="Timer history" aria-haspopup="dialog" title="History"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7m2-5v6l4 2"/></svg><span id="count" aria-hidden="true"></span></button>
 <button id="help" aria-label="Keyboard shortcuts" aria-haspopup="dialog" title="Keyboard shortcuts · / or ?">?</button>
-<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2><button id="close-help" aria-label="Close keyboard shortcuts">Close</button></div><div class="hint"><span><kbd>/ or ?</kbd> toggle shortcuts</span><span><kbd>T</kbd> timer / clock / stopwatch</span><span><kbd>0–9</kbd> type time</span><span><kbd>← →</kbd> minutes</span><span><kbd>↓ ↑</kbd> seconds</span><span><kbd>enter</kbd> start / stop</span><span><kbd>space</kbd> start / reset paused</span><span><kbd>R</kbd> restart running</span><span><kbd>H</kbd> theme</span><span><kbd>D</kbd> decimals</span><span><kbd>M</kbd> sound</span><span><kbd>− +</kbd> size</span><span><kbd>F</kbd> fill</span><span><kbd>shift F</kbd> full screen</span></div></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-head"><h2 id="help-title">Keyboard shortcuts</h2><button id="close-help" aria-label="Close keyboard shortcuts">Close</button></div><div class="hint"><span><kbd>/ or ?</kbd> toggle shortcuts</span><span><kbd>T</kbd> timer / clock / stopwatch</span><span><kbd>0–9</kbd> type time</span><span><kbd>← →</kbd> minutes</span><span><kbd>↓ ↑</kbd> seconds</span><span><kbd>enter</kbd> start / stop</span><span><kbd>space</kbd> start / reset paused</span><span><kbd>R</kbd> restart running</span><span><kbd>H</kbd> theme</span><span><kbd>D</kbd> decimals</span><span><kbd>M</kbd> sound</span><span><kbd>A</kbd> ambient on / off</span><span><kbd>− +</kbd> size</span><span><kbd>F</kbd> fill</span><span><kbd>shift F</kbd> full screen</span></div></dialog>
 <div id="progress" aria-hidden="true"></div>
+<dialog id="ambient-dialog" aria-labelledby="ambient-title"><div class="dialog-head"><h2 id="ambient-title">Ambient sounds</h2><button id="close-ambient" aria-label="Close ambient sounds">Close</button></div><div class="row"><label for="ambient-enable">Play ambient sound</label><button id="ambient-enable" aria-pressed="false">Off</button></div><div id="ambient-options" hidden><p class="choice-label" style="font-size:12px;color:var(--muted);margin:14px 0 0">Sound</p><div class="choice" role="group" aria-label="Ambient sound choice"><button data-sound="rain" aria-pressed="false">Rain</button><button data-sound="forest" aria-pressed="false">Forest</button><button data-sound="ocean" aria-pressed="false">Ocean</button><button data-sound="white" aria-pressed="false">White noise</button></div><div class="row"><label for="ambient-volume">Volume</label><input id="ambient-volume" type="range" min="0" max="100" value="50" aria-label="Ambient sound volume"></div><p style="font-size:12px;color:var(--muted);margin:8px 0 0">Sound plays continuously until turned off. Press <kbd>A</kbd> to stop it quickly.</p></div></dialog>
 <dialog id="history-dialog" aria-labelledby="history-title"><div class="dialog-head"><h2 id="history-title">Your time, remembered.</h2><button id="close-history" aria-label="Close history">Close</button></div><p class="privacy">Saved on this device. Select a duration to use it again.</p><ul id="history-list"></ul><button id="clear-history">Clear history</button></dialog>
 <script>
 (() => {
@@ -96,7 +97,8 @@ function toggleSound() {
  muted = !muted;
  try { localStorage.setItem('adless-timer-muted', String(muted)); } catch (_) {}
  if (muted && audioContext && audioContext.state === 'running') audioContext.suspend().catch(() => {});
- if (!muted) prepareAudio();
+ if (muted) stopAmbientNodes();
+ if (!muted) { prepareAudio(); startAmbient(); }
  updateSoundButton();
 }
 function chime() {
@@ -121,6 +123,123 @@ $('help').onclick = toggleHelp;
 $('close-help').onclick = () => $('help-dialog').close();
 $('sound').onclick = toggleSound;
 updateSoundButton();
+// Ambient sounds: procedurally generated with Web Audio, no audio files needed.
+const ambientSounds = ['rain', 'forest', 'ocean', 'white'];
+let ambient = { enabled: false, sound: 'rain', volume: 50 };
+try {
+  const saved = JSON.parse(localStorage.getItem('adless-timer-ambient'));
+  if (saved && typeof saved === 'object') {
+    if (typeof saved.enabled === 'boolean') ambient.enabled = saved.enabled;
+    if (ambientSounds.includes(saved.sound)) ambient.sound = saved.sound;
+    if (Number.isInteger(saved.volume) && saved.volume >= 0 && saved.volume <= 100) ambient.volume = saved.volume;
+  }
+} catch (_) {}
+let ambientNodes = null;
+function saveAmbient() { try { localStorage.setItem('adless-timer-ambient', JSON.stringify(ambient)); } catch (_) {} }
+function stopAmbientNodes() {
+  if (!ambientNodes) return;
+  const { gain, cleanup } = ambientNodes;
+  try {
+    gain.gain.cancelScheduledValues(audioContext.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.0001, audioContext.currentTime + 0.08);
+    setTimeout(() => { try { cleanup(); gain.disconnect(); } catch (_) {} }, 120);
+  } catch (_) { try { cleanup(); gain.disconnect(); } catch (_) {} }
+  ambientNodes = null;
+}
+function buildAmbient(kind, gain) {
+  const nodes = [], timers = [];
+  let src;
+  const makeNoise = (seconds = 2) => {
+    const buffer = audioContext.createBuffer(1, audioContext.sampleRate * seconds, audioContext.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const s = audioContext.createBufferSource();
+    s.buffer = buffer; s.loop = true; return s;
+  };
+  const lowpass = freq => { const f = audioContext.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq; return f; };
+  const chain = (...list) => { for (let i = 0; i < list.length - 1; i++) list[i].connect(list[i + 1]); };
+  if (kind === 'white') {
+    src = makeNoise();
+    chain(src, gain);
+  } else if (kind === 'rain') {
+    src = makeNoise();
+    const high = audioContext.createBiquadFilter(); high.type = 'bandpass'; high.frequency.value = 3000; high.Q.value = 0.5;
+    const low = lowpass(5000);
+    chain(src, low, high, gain);
+  } else if (kind === 'ocean') {
+    src = makeNoise();
+    const low = lowpass(400);
+    const lfo = audioContext.createOscillator(), depth = audioContext.createGain();
+    lfo.frequency.value = 0.12; depth.gain.value = 300;
+    lfo.connect(depth); depth.connect(low.frequency); lfo.start();
+    chain(src, low, gain);
+    nodes.push(lfo, depth);
+  } else { // forest
+    src = makeNoise();
+    const low = lowpass(900);
+    chain(src, low, gain);
+    // Sparse bird chirps over soft wind.
+    timers.push(setInterval(() => {
+      if (!ambient.enabled || audioContext.state !== 'running') return;
+      if (Math.random() > 0.35) return;
+      const at = audioContext.currentTime;
+      const chirps = 1 + Math.floor(Math.random() * 3);
+      for (let c = 0; c < chirps; c++) {
+        const tone = audioContext.createOscillator(), v = audioContext.createGain();
+        tone.type = 'sine';
+        const base = 2000 + Math.random() * 1800;
+        tone.frequency.setValueAtTime(base, at + c * 0.18);
+        tone.frequency.exponentialRampToValueAtTime(base * (1.2 + Math.random() * 0.4), at + c * 0.18 + 0.12);
+        v.gain.setValueAtTime(0, at + c * 0.18);
+        v.gain.linearRampToValueAtTime(0.06 * (ambient.volume / 100), at + c * 0.18 + 0.02);
+        v.gain.exponentialRampToValueAtTime(0.0001, at + c * 0.18 + 0.14);
+        tone.connect(v); v.connect(gain);
+        tone.onended = () => { tone.disconnect(); v.disconnect(); };
+        tone.start(at + c * 0.18); tone.stop(at + c * 0.18 + 0.16);
+      }
+    }, 2600));
+  }
+  src.start();
+  nodes.push(src);
+  return { nodes, cleanup() { timers.forEach(t => clearInterval(t)); nodes.forEach(n => { try { n.stop ? n.stop() : n.disconnect(); } catch (_) {} try { n.disconnect(); } catch (_) {} }); } };
+}
+function startAmbient() {
+  if (!ambient.enabled || muted) { stopAmbientNodes(); return; }
+  prepareAudio();
+  if (!audioContext || audioContext.state !== 'running') return;
+  stopAmbientNodes();
+  const gain = audioContext.createGain();
+  gain.gain.value = (ambient.volume / 100) * 0.6;
+  gain.connect(audioContext.destination);
+  const built = buildAmbient(ambient.sound, gain);
+  ambientNodes = { gain, cleanup: built.cleanup };
+}
+function setAmbientVolume() { if (ambientNodes) ambientNodes.gain.gain.setTargetAtTime((ambient.volume / 100) * 0.6, audioContext.currentTime, 0.05); }
+function updateAmbientUi() {
+  $('ambient').dataset.enabled = String(ambient.enabled);
+  $('ambient-enable').textContent = ambient.enabled ? 'On' : 'Off';
+  $('ambient-enable').setAttribute('aria-pressed', String(ambient.enabled));
+  $('ambient-options').hidden = !ambient.enabled;
+  document.querySelectorAll('#ambient-dialog .choice button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sound === ambient.sound)));
+  $('ambient-volume').value = ambient.volume;
+}
+function toggleAmbient() {
+  ambient.enabled = !ambient.enabled;
+  saveAmbient(); updateAmbientUi();
+  if (ambient.enabled) startAmbient(); else stopAmbientNodes();
+}
+function chooseAmbient(sound) {
+  ambient.sound = sound;
+  saveAmbient(); updateAmbientUi();
+  if (ambient.enabled) startAmbient();
+}
+$('ambient').onclick = () => { updateAmbientUi(); $('ambient-dialog').showModal(); };
+$('close-ambient').onclick = () => $('ambient-dialog').close();
+$('ambient-enable').onclick = toggleAmbient;
+$('ambient-volume').addEventListener('input', e => { ambient.volume = Number(e.target.value); saveAmbient(); setAmbientVolume(); });
+document.querySelectorAll('#ambient-dialog .choice button').forEach(b => b.onclick = () => chooseAmbient(b.dataset.sound));
+updateAmbientUi();
 const decimalsByMode = {timer:0, clock:0, stopwatch:0};
 try {
  const saved = JSON.parse(localStorage.getItem('adless-timer-decimals'));
@@ -216,7 +335,16 @@ function render() {
  $('time').readOnly = mode !== 'timer' || deadline !== null;
  $('time').setAttribute('aria-label', mode === 'clock' ? 'Current local time' : mode === 'stopwatch' ? 'Stopwatch elapsed time' : 'Timer duration in minutes and seconds');
  const nextMode = ['timer','clock','stopwatch'][(['timer','clock','stopwatch'].indexOf(mode) + 1) % 3];
-$('mode').textContent = nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch';
+ const modeNames = {timer:'Timer', clock:'Clock', stopwatch:'Stopwatch'};
+ const modeLabel = modeNames[mode] + ' → ' + modeNames[nextMode];
+ const modeButton = $('mode');
+ if (modeButton.dataset.label !== modeLabel) {
+  modeButton.dataset.label = modeLabel;
+  modeButton.replaceChildren(
+   document.createTextNode(modeNames[mode] + ' '),
+   Object.assign(document.createElement('span'), {className:'next', textContent:'→ ' + modeNames[nextMode]})
+  );
+ }
 $('mode').setAttribute('aria-label', 'Switch to ' + (nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch') + ' · T');
 $('mode').title = 'Cycle to ' + (nextMode === 'timer' ? 'Timer' : nextMode === 'clock' ? 'Clock' : 'Stopwatch') + ' · T';
  $('actions').hidden = mode === 'clock';
@@ -267,6 +395,7 @@ document.addEventListener('keydown', e => {
  if (e.key.toLowerCase() === 'h') { e.preventDefault(); if (!e.repeat) cycleTheme(); return; }
  if (e.key.toLowerCase() === 'd') { e.preventDefault(); if (!e.repeat) toggleDecimals(); return; }
  if (e.key.toLowerCase() === 'm') { e.preventDefault(); if (!e.repeat) toggleSound(); return; }
+ if (e.key.toLowerCase() === 'a') { e.preventDefault(); if (!e.repeat && !$('ambient-dialog').open) toggleAmbient(); return; }
  if ($('history-dialog').open) return;
  if (e.key.toLowerCase() === 't') { e.preventDefault(); if (!e.repeat) cycleMode(); return; }
  if (e.key.toLowerCase() === 'r') { e.preventDefault(); if (e.repeat) return; if (mode === 'clock') return; if (mode === 'stopwatch') { if (stopwatchStart !== null) resetStopwatch(true); return; } sync(); if (deadline !== null) { reset(); toggle(); } return; }
@@ -289,6 +418,14 @@ $('history').onclick = () => { sync(); render(); showHistory(); $('history-dialo
 $('close-history').onclick = () => $('history-dialog').close();
 $('clear-history').onclick = () => { history = []; save(); showHistory(); render(); };
 $('theme').onclick = cycleTheme;
+// Ambient is remembered as enabled, but audio needs a user gesture: resume it on the first interaction.
+function firstGestureAmbient() {
+  if (ambient.enabled && !ambientNodes && !muted) startAmbient();
+  document.removeEventListener('pointerdown', firstGestureAmbient);
+  document.removeEventListener('keydown', firstGestureAmbient);
+}
+document.addEventListener('pointerdown', firstGestureAmbient);
+document.addEventListener('keydown', firstGestureAmbient);
 if (!document.documentElement.requestFullscreen) $('fullscreen').hidden = true;
 $('fullscreen').onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch (_) { $('status').textContent = 'Full screen is unavailable in this browser.'; } };
 document.addEventListener('fullscreenchange', () => {
