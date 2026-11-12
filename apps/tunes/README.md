@@ -1,6 +1,6 @@
 # Tunes
 
-Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed.
+Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; navigation back to Adless is in the bottom-right **?** menu.
 
 ## Install (needs the files served over HTTPS once, so the browser can cache them)
 - Host this folder on any static host (GitHub Pages, Netlify, Cloudflare Pages), open the URL, then:
@@ -35,3 +35,5 @@ This app reports fixed app/event labels to GoatCounter for visible page opens, o
 No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/tunes/open`, `apps/tunes/installed-open`, or `apps/tunes/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
+
+Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.

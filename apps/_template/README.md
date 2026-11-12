@@ -18,3 +18,5 @@ Copy this folder to `apps/<app-id>/` to start a new Adless app (see the root REA
 5. Bump `VERSION` in `sw.js` every time you change `index.html`.
 6. Register the app in `assets/apps.js` (add an entry with `status: "beta"` or `"live"`).
 7. Keep everything self-contained: relative paths only, and never link files outside this folder except the optional `← Adless` back link (`../../`).
+
+Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.

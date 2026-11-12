@@ -2,7 +2,7 @@
 
 Type the Scriptures and read what you typed. Practice on your own or race against friends.
 
-The About dialog uses the same description as the Adless home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header, which now includes a compact **← Adless** link on the left to return to the Adless home page. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
+The About dialog uses the same description as the Adless home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header. The **← Adless** link is inside **About**. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.
 
 Open `index.html` directly in your browser to type Scripture and use Scripture Journey. No server, installation, or build is required. Keep this entire app folder together; its scripts and icons use relative paths.
 
@@ -277,3 +277,5 @@ This app reports fixed app/event labels to GoatCounter for visible page opens, o
 No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/logostype/open`, `apps/logostype/installed-open`, or `apps/logostype/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
+
+Navigation: find **← Adless** inside **About** to return to the app directory.

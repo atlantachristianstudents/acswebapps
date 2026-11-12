@@ -1406,7 +1406,7 @@ function openModal(type) {
   if (type === "settings") content.innerHTML += renderKeyboardShortcuts();
   if (type === "about")
     content.innerHTML =
-      "<h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Inspired by <a href=\"https://monkeytype.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Monkeytype</a> and its minimalist typing experience.</p><p>Speed is measured in words per minute, using five characters per word. Average WPM excludes each word with an uncorrected mistake, including its following space. Correcting the word restores its credit. Accuracy includes all keystrokes, even corrected mistakes.</p>";
+      "<p><a href=\"../../\">← Adless</a></p><h2>logostype</h2><p>Type the Scriptures and read what you typed. Practice on your own or race against friends.</p><p>Inspired by <a href=\"https://monkeytype.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Monkeytype</a> and its minimalist typing experience.</p><p>Speed is measured in words per minute, using five characters per word. Average WPM excludes each word with an uncorrected mistake, including its following space. Correcting the word restores its credit. Accuracy includes all keystrokes, even corrected mistakes.</p>";
   if (type === "history" || type === "profile")
     content.innerHTML =
       '<h2>typing history</h2><p>Press H to focus the latest result.</p>' +

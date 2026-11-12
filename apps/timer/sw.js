@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "timer-v29";
+var VERSION = "timer-v30";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
 
 self.addEventListener("install", function (e) {
