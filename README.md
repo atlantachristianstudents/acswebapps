@@ -208,4 +208,4 @@ Only fixed app and event labels are explicitly sent via GoatCounter's tracking p
 
 When adding an app, copy the `adless-usage` script into its main page, set its fixed folder identifier, document its usage counts, and bump its service-worker cache version. Keep copies synchronized. To change or disable collection, edit the endpoint or remove the script in every app and bump each affected cache version. The app directory itself, presentation-only windows, legacy redirect pages, and the starter template do not emit app events.
 
-App navigation: the optional **← Adless** link lives inside **About** when available, or the **?** help menu otherwise.
+App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the Adless project,” with **Adless project** linking to the app directory.

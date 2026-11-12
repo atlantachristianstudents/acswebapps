@@ -42,7 +42,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 ## Architectural rules
 
 1. **Self-contained apps.** An app folder must work when copied or hosted on its own. Never link assets outside `apps/<id>/` (no `../../assets/...`). The only allowed cross-references are:
-   - the optional `← Adless` back link (`href="../../"`), which simply 404s when the folder is hosted standalone;
+   - the optional Adless project link (`href="../../"`, introduced by “[App Name] is part of the Adless project”), which simply 404s when the folder is hosted standalone;
    - files listed in that app's own `sw.js` `FILES`.
 2. **Registry-driven.** Apps appear on the home page only via `assets/apps.js` (`window.APPS`). Do not add app listings elsewhere.
 3. **No build/output artifacts.** There are no generated files; everything is hand-edited.

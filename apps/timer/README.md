@@ -38,3 +38,5 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/timer/open`, `apps/timer/installed-open`, or `apps/timer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
 Navigation: find **← Adless** inside the **?** help menu to return to the app directory.
+
+The help menu identifies Show Time as part of the Adless project, with a link to the app directory.

@@ -7,3 +7,5 @@ Verses and review schedules are stored in this browser's local storage and are n
 Open `index.html` or host this folder on a static server. Service worker caching is enabled on HTTP(S) hosts; local storage also works when opened as a file.
 
 Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+
+The help menu identifies Verse Review as part of the Adless project, with a link to the app directory.

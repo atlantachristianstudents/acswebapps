@@ -50,3 +50,5 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/verse-designer/open`, `apps/verse-designer/installed-open`, or `apps/verse-designer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
 Navigation: find **← Adless** inside the **?** help menu at the bottom right to return to the app directory.
+
+The help menu identifies Verse Designer as part of the Adless project, with a link to the app directory.
