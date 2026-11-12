@@ -5,6 +5,7 @@ Create beautiful Bible verse wallpapers and shareable images. Type a verse, pick
 ## Features
 
 - **Verse lookup** — pick a book, chapter, and verse (or a range like `16-18`) and press **Look up**. Text comes from the same RcV source Logostype uses; it reuses Logostype's cached download when available, caches locally (15-day TTL), and only fetches when online.
+- **Verse search** — type words (e.g. `light`) or a reference (e.g. `John 3:16`, `1 cor 8`) in the search box. Word matches are listed with their references and highlighted; clicking one (or pressing Enter on a reference) loads it into the design. Searching downloads and saves the full verse text in the app's own IndexedDB cache, so once loaded it works offline.
 
 - **Screen-size presets** — Phone (1080×2340), Story (1080×1920), Square (1080×1080), Desktop (2560×1440), Wide (3440×1440).
 - **Layout presets** — Centered, Left, Card (rounded translucent panel), Line (accent rules above and below), and Quote (oversized quotation mark).

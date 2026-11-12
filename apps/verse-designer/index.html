@@ -47,11 +47,15 @@
       font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
     .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
       display: flex;
       align-items: center;
       gap: .75rem;
       padding: .6rem 1rem;
       border-bottom: 1px solid var(--border);
+      background: var(--bg);
     }
     .topbar a {
       display: inline-block;
@@ -273,6 +277,18 @@
     .adv-only { display: none; }
     body.advanced .adv-only { display: block; }
     body.advanced .adv-inline { display: inline-block; }
+    /* Verse search results */
+    .srlist { max-height: 14em; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: .35rem; }
+    .srlist button {
+      display: block; width: 100%; text-align: left; padding: .35rem .6rem;
+      border: 0; border-bottom: 1px solid var(--border); background: transparent;
+      color: var(--text); font: inherit; font-size: .82rem; cursor: pointer;
+    }
+    .srlist button:last-child { border-bottom: 0; }
+    .srlist button:hover { background: var(--accent-soft); }
+    .srlist b { color: var(--accent); white-space: nowrap; margin-right: .35em; }
+    .srlist mark { background: var(--accent-soft); color: var(--accent); border-radius: 2px; }
+    .srempty { padding: .4rem .6rem; font-size: .82rem; color: var(--muted); }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   </style>
 </head>
@@ -304,6 +320,10 @@
             <button type="button" class="ghost" id="lkBtn" style="margin-top:1.45rem">Look up</button>
           </label>
         </div>
+        <label class="field"><span class="sr">Search verses</span>
+          <input type="text" id="lkSearch" placeholder="Search words or a reference (light, John 3:16)" autocomplete="off" spellcheck="false">
+        </label>
+        <div id="lkResults" hidden></div>
         <p class="hint" id="lkStatus" role="status" aria-live="polite"></p>
         <label class="field"><span>Verse text</span>
           <textarea id="verse">For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life.</textarea>
@@ -1102,6 +1122,175 @@
       }
     }
 
+    // ---------- Verse search ----------
+    // Word search over the cached RcV text, plus direct reference lookup — like Show Words.
+    var SEARCH_LIMIT = 60;
+    var bookIndex = null;   // lowercase book name -> array of {book, c, v} first index per chapter
+
+    function buildBookIndex() {
+      if (bookIndex || typeof scriptureReferences === "undefined") return;
+      bookIndex = {};
+      scriptureReferences.forEach(function (ref, i) {
+        var r = parseRef(ref);
+        if (!r) return;
+        var k = r.book.toLowerCase();
+        if (!bookIndex[k]) bookIndex[k] = { name: r.book, first: i, chapters: {} };
+        if (!bookIndex[k].chapters[r.c]) bookIndex[k].chapters[r.c] = i;
+        bookIndex[k].last = i;
+      });
+    }
+
+    // Resolve a book from a prefix ("john" -> John, "1 cor" -> 1 Corinthians).
+    function resolveBook(str) {
+      buildBookIndex();
+      if (!bookIndex) return null;
+      var q = str.toLowerCase().replace(/\s+/g, " ").trim();
+      if (!q) return null;
+      var exact = bookIndex[q];
+      if (exact) return exact;
+      var hits = Object.keys(bookIndex).filter(function (k) { return k.indexOf(q) === 0; });
+      if (hits.length === 1) return bookIndex[hits[0]];
+      // "1 cor", "2 sam": number + prefix of the rest
+      var m = /^(\d)\s+(.+)$/.exec(q);
+      if (m) {
+        var h2 = Object.keys(bookIndex).filter(function (k) {
+          var p = /^(\d)\s+(.+)$/.exec(k);
+          return p && p[1] === m[1] && p[2].indexOf(m[2]) === 0;
+        });
+        if (h2.length === 1) return bookIndex[h2[0]];
+      }
+      return null;
+    }
+
+    // Reference query like "john 3:16", "gen 1:1-3".
+    function refQuery(q) {
+      var m = /^(.+?)\s+(\d+)(?::(\d+)(?:\s*[-\u2013]\s*(\d+))?)?$/.exec(q.trim());
+      if (!m) return null;
+      var bk = resolveBook(m[1]);
+      if (!bk) return null;
+      var c = +m[2], v1 = m[3] ? +m[3] : 1;
+      var v2 = m[4] ? +m[4] : (m[3] ? v1 : verseCount(bk.name, c) || 1);
+      if (v2 < v1) { var t = v1; v1 = v2; v2 = t; }
+      return { book: bk.name, c: c, v1: v1, v2: v2, ref: bk.name + " " + c + ":" + (v1 === v2 ? v1 : v1 + "-" + v2) };
+    }
+
+    // Word search: every word must appear. Searches the normalized lowercase text lines.
+    function wordSearch(q, lines) {
+      var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!words.length) return [];
+      var out = [];
+      for (var i = 0; i < lines.length && out.length < SEARCH_LIMIT; i++) {
+        var lc = lines[i].toLowerCase();
+        var ok = true;
+        for (var w = 0; w < words.length; w++) { if (lc.indexOf(words[w]) < 0) { ok = false; break; } }
+        if (ok) out.push({ i: i, text: lines[i] });
+      }
+      return out;
+    }
+
+    var searchDeb = null;
+    function renderSearchResults(hits, q, partial) {
+      var box = $("lkResults");
+      box.hidden = false;
+      box.innerHTML = "";
+      var list = document.createElement("div");
+      list.className = "srlist";
+      hits.forEach(function (h) {
+        var ref = typeof scriptureReferences !== "undefined" ? scriptureReferences[h.i] : "";
+        var b = document.createElement("button");
+        b.type = "button";
+        var lab = document.createElement("b");
+        lab.textContent = ref || "Verse " + (h.i + 1);
+        b.appendChild(lab);
+        // Highlight the search words in the text.
+        var plain = h.text.replace(/\s+/g, " ").trim();
+        var plainLC = plain.toLowerCase();
+        var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+        var frag = document.createDocumentFragment(), pos = 0;
+        while (pos < plain.length) {
+          var idx = -1, wl = 0;
+          for (var w = 0; w < words.length; w++) {
+            var f = plainLC.indexOf(words[w], pos);
+            if (f >= 0 && (idx < 0 || f < idx)) { idx = f; wl = words[w].length; }
+          }
+          if (idx < 0) { frag.appendChild(document.createTextNode(plain.slice(pos))); break; }
+          if (idx > pos) frag.appendChild(document.createTextNode(plain.slice(pos, idx)));
+          var mk = document.createElement("mark");
+          mk.textContent = plain.substr(idx, wl);
+          frag.appendChild(mk);
+          pos = idx + wl;
+        }
+        b.appendChild(frag);
+        b.addEventListener("click", function () { useSearchResult(h.i, ref); });
+        list.appendChild(b);
+      });
+      box.appendChild(list);
+      if (partial) {
+        var p = document.createElement("p");
+        p.className = "srempty";
+        p.textContent = "Showing the first " + hits.length + " matches — add words to narrow it down.";
+        box.appendChild(p);
+      }
+    }
+
+    function useSearchResult(i, ref) {
+      $("lkResults").hidden = true;
+      $("lkSearch").value = "";
+      if (!ref) return;
+      var r = parseRef(ref);
+      var range = findRange(r.book, r.c, r.v, r.v);
+      if (!range) return;
+      loadScriptureText().then(function (lines) {
+        var text = lines.slice(range.first, range.last + 1).join(" ").trim();
+        if (!text) throw new Error("empty");
+        state.verse = text;
+        state.reference = ref;
+        syncControls();
+        update();
+        lookupStatus("");
+        toast("Loaded " + ref);
+      }).catch(function () {
+        lookupStatus("Could not load verse text — try again when online.");
+      });
+    }
+
+    function doSearch() {
+      var q = $("lkSearch").value.trim();
+      if (!q) { $("lkResults").hidden = true; return; }
+      var rq = refQuery(q);
+      if (rq) {
+        var range = findRange(rq.book, rq.c, rq.v1, rq.v2);
+        if (!range) {
+          lookupStatus(rq.book + " " + rq.c + " has " + verseCount(rq.book, rq.c) + " verses.");
+          return;
+        }
+        loadScriptureText().then(function (lines) {
+          var text = lines.slice(range.first, range.last + 1).join(" ").trim();
+          if (!text) throw new Error("empty");
+          state.verse = text;
+          state.reference = rq.ref;
+          syncControls();
+          update();
+          lookupStatus("");
+          $("lkResults").hidden = true;
+          toast("Loaded " + rq.ref);
+        }).catch(function () {
+          lookupStatus("Could not load verse text — try again when online.");
+        });
+        return;
+      }
+      // Word search — needs the text loaded.
+      lookupStatus("Searching…");
+      loadScriptureText().then(function (lines) {
+        var hits = wordSearch(q, lines);
+        lookupStatus(hits.length ? hits.length + (hits.length >= SEARCH_LIMIT ? "+" : "") + " verses found" : "No verses containing “" + q + "”.");
+        if (!hits.length) { $("lkResults").hidden = true; return; }
+        renderSearchResults(hits, q, hits.length >= SEARCH_LIMIT);
+      }).catch(function () {
+        lookupStatus("Search needs the verse text: load a verse once (online) and search again.");
+      });
+    }
+
     // ---------- Verse lookup ----------
     // scripture-references.js is a flat array of per-verse reference strings
     // ("Genesis 1:1" ... "Revelation 22:21"), line-parallel with the RcV text.
@@ -1176,17 +1365,55 @@
         });
     }
 
+    // IndexedDB keeps the full text safely (it is ~4.5 MB: over the
+    // comfortable localStorage quota), so searches work offline forever.
+    var IDB_NAME = "verse-designer-database", IDB_STORE = "scripture", IDB_KEY = "verse-designer-scripture-v1";
+    function idbOpen() {
+      return new Promise(function (resolve, reject) {
+        var req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = function () { req.result.createObjectStore(IDB_STORE); };
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
+      });
+    }
+    function idbGet(key) {
+      return idbOpen().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(IDB_STORE, "readonly");
+          var req = tx.objectStore(IDB_STORE).get(key);
+          req.onsuccess = function () { resolve(req.result || null); };
+          req.onerror = function () { reject(req.error); };
+          tx.oncomplete = function () { db.close(); };
+        });
+      });
+    }
+    function idbPut(key, value) {
+      return idbOpen().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(IDB_STORE, "readwrite");
+          tx.objectStore(IDB_STORE).put(value, key);
+          tx.oncomplete = function () { db.close(); resolve(); };
+          tx.onerror = function () { db.close(); reject(tx.error); };
+        });
+      });
+    }
+
     function acceptScripture(rawText) {
       var lines = normalizeScripture(rawText);
       if (typeof scriptureReferences !== "undefined" && lines.length !== scriptureReferences.length) {
         throw new Error("verse count mismatch (" + lines.length + " vs " + scriptureReferences.length + ")");
       }
       textLines = lines;
-      // Persist the normalized, aligned text.
+      var joined = lines.join("\n");
+      // Persist the normalized, aligned text: IndexedDB first (it always fits),
+      // then localStorage as a best-effort fallback for a faster cold start.
       try {
-        localStorage.setItem(TEXT_KEY, lines.join("\n"));
+        localStorage.setItem(TEXT_KEY, joined);
         localStorage.setItem(TEXT_DATE_KEY, String(Date.now()));
       } catch (e) {}
+      if (typeof indexedDB !== "undefined") {
+        idbPut(IDB_KEY, joined).catch(function () {});
+      }
       return lines;
     }
 
@@ -1215,28 +1442,45 @@
         }
         cached = null;
       }
-      // Try Logostype's IndexedDB cache before downloading (open without a
-      // version so we adopt whatever version Logostype created).
+      // Try our own IndexedDB cache, then Logostype's, before downloading.
       if (!force && typeof indexedDB !== "undefined") {
-        return new Promise(function (resolve) {
-          var open;
-          try { open = indexedDB.open("logostype-database"); }
-          catch (e) { resolve(null); return; }
-          open.onerror = function () { resolve(null); };
-          open.onupgradeneeded = function () { resolve(null); }; // DB doesn't exist yet; don't create it
-          open.onsuccess = function () {
-            var db = open.result;
-            if (!db.objectStoreNames.contains("scripture")) { db.close(); resolve(null); return; }
-            var tx = db.transaction("scripture", "readonly");
-            var req = tx.objectStore("scripture").get("logostype-scripture-v1");
-            req.onsuccess = function () { db.close(); resolve(req.result || null); };
-            req.onerror = function () { db.close(); resolve(null); };
-          };
-        }).then(function (text) {
-          if (typeof text === "string" && text.trim()) {
-            return acceptScripture(text);
+        return idbGet(IDB_KEY).catch(function () { return null; }).then(function (saved) {
+          if (typeof saved === "string" && saved.trim()) {
+            var lines = saved.split(/\r?\n/);
+            if (!haveRef || lines.length === scriptureReferences.length) {
+              textLines = lines;
+              return textLines;
+            }
           }
-          return fetchScripture();
+          return null;
+        }).then(function (own) {
+          if (own) return own;
+          if (cached && haveRef) {
+            var lines = cached.split(/\r?\n/);
+            if (lines.length === scriptureReferences.length) { textLines = lines; return textLines; }
+          }
+          // Logostype's IndexedDB cache (open without a version so we adopt
+          // whatever version Logostype created).
+          return new Promise(function (resolve) {
+            var open;
+            try { open = indexedDB.open("logostype-database"); }
+            catch (e) { resolve(null); return; }
+            open.onerror = function () { resolve(null); };
+            open.onupgradeneeded = function () { resolve(null); }; // DB doesn't exist yet; don't create it
+            open.onsuccess = function () {
+              var db = open.result;
+              if (!db.objectStoreNames.contains("scripture")) { db.close(); resolve(null); return; }
+              var tx = db.transaction("scripture", "readonly");
+              var req = tx.objectStore("scripture").get("logostype-scripture-v1");
+              req.onsuccess = function () { db.close(); resolve(req.result || null); };
+              req.onerror = function () { db.close(); resolve(null); };
+            };
+          }).then(function (text) {
+            if (typeof text === "string" && text.trim()) {
+              return acceptScripture(text);
+            }
+            return fetchScripture();
+          });
         });
       }
       return fetchScripture();
@@ -1299,6 +1543,15 @@
     $("lkBtn").addEventListener("click", doLookup);
     $("lkVerse").addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); doLookup(); }
+    });
+    // Verse search wiring (debounced live search).
+    $("lkSearch").addEventListener("input", function () {
+      clearTimeout(searchDeb);
+      var v = this;
+      searchDeb = setTimeout(function () { if (v.value.trim()) doSearch(); }, 200);
+    });
+    $("lkSearch").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); clearTimeout(searchDeb); doSearch(); }
     });
 
     // Advanced controls.
