@@ -38,3 +38,12 @@ Visit the app on the deployed Adless site (or any HTTPS host) and use your brows
 - Fonts use OS-bundled stacks only (Georgia, Palatino, system-ui, Trebuchet, Consolas), keeping the app dependency-free and offline-safe.
 - Settings persist under the `verse-designer-state` localStorage key. Imported images are downscaled to 1600px JPEG data URLs before saving; if storage is full the image is dropped from persistence rather than failing the whole save.
 - Custom image backgrounds are drawn client-side from a same-origin data URL, so canvas export (toBlob) is never tainted.
+
+
+## Usage counts
+
+This app reports fixed app/event labels to GoatCounter for visible page opens, opens in standalone/minimal-ui mode (including iOS home-screen mode), and browser-supported `appinstalled` events. Reloads count as opens; returning to an already open app does not. Installed opens are a subset of all opens. Install detection is incomplete, especially on iOS; downloads and uninstall totals are not measured.
+
+No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
+
+Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/verse-designer/open`, `apps/verse-designer/installed-open`, or `apps/verse-designer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.

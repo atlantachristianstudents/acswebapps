@@ -662,5 +662,92 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   });
 }
 </script>
+  <script id="adless-usage">
+// Adless usage counts: keep this self-contained copy in each app in sync.
+(function () {
+  "use strict";
+  var app = "bible-translation-explorer";
+  var endpoint = "https://atlantachristianstudents.goatcounter.com/count";
+  if (!/^https?:$/.test(location.protocol) ||
+      /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
+      navigator.webdriver || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return;
+
+  // Each tab owns its queue, avoiding duplicate sends from other open tabs.
+  // Storage failure must never prevent an app from opening.
+  var key = "adless-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
+  try {
+    var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
+    if (Array.isArray(saved)) queue = saved.filter(function (item) {
+      return item && /^(open|installed-open|install)$/.test(item.event) &&
+        typeof item.time === "number" && item.time <= Date.now() && Date.now() - item.time < lifetime;
+    }).slice(-100);
+  } catch (_) {}
+  function save() {
+    try {
+      if (queue.length) sessionStorage.setItem(key, JSON.stringify(queue));
+      else sessionStorage.removeItem(key);
+    } catch (_) {}
+  }
+  function record(event) {
+    queue.push({ event: event, time: Date.now() });
+    queue = queue.slice(-100);
+    save();
+    flush();
+  }
+  function flush() {
+    if (sending || !queue.length || navigator.onLine === false) return;
+    if (retry) { clearTimeout(retry); retry = null; }
+    while (queue.length && Date.now() - queue[0].time >= lifetime) queue.shift();
+    save();
+    if (!queue.length) return;
+    sending = true;
+    var item = queue[0], pixel = new Image(), timer;
+    function finish(ok) {
+      if (!pixel) return;
+      clearTimeout(timer);
+      pixel.onload = pixel.onerror = null;
+      pixel = null;
+      sending = false;
+      if (ok) {
+        var index = queue.indexOf(item);
+        if (index !== -1) queue.splice(index, 1);
+        save();
+        flush();
+      } else if (document.visibilityState === "visible") {
+        retry = setTimeout(function () { retry = null; flush(); }, 60000);
+      }
+    }
+    pixel.onload = function () { finish(true); };
+    pixel.onerror = function () { finish(false); };
+    pixel.referrerPolicy = "no-referrer";
+    timer = setTimeout(function () { finish(false); }, 15000);
+    // Fixed event paths only: never include location, document title, or user content.
+    pixel.src = endpoint + "?p=" + encodeURIComponent("apps/" + app + "/" + item.event) +
+      "&t=" + encodeURIComponent(app + " " + item.event) + "&e=1&r=&rnd=" + Math.random();
+  }
+  function open() {
+    if (opened || document.visibilityState !== "visible") return;
+    opened = true;
+    record("open");
+    if (navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone), (display-mode: minimal-ui)").matches)) {
+      record("installed-open");
+    }
+  }
+  window.addEventListener("appinstalled", function () {
+    if (installed) return;
+    installed = true;
+    record("install");
+  });
+  window.addEventListener("online", flush);
+  document.addEventListener("visibilitychange", function () {
+    open();
+    if (document.visibilityState === "visible") flush();
+  });
+  open();
+  flush();
+}());
+  </script>
 </body>
 </html>

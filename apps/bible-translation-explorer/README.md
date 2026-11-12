@@ -18,3 +18,12 @@ On HTTPS or localhost, visit once online to cache the app, then use your browser
 ## Files and updates
 
 `index.html` contains the interface, embedded scores, styles, and scripts. `manifest.webmanifest` and `icons/icon.svg` provide install metadata; the icon depicts separate scatter-plot points in a clockwise arc from the top of the y-axis toward the lower right, without connecting lines; `sw.js` caches all runtime files. Bump its `VERSION` whenever a cached file changes and update `FILES` when adding assets.
+
+
+## Usage counts
+
+This app reports fixed app/event labels to GoatCounter for visible page opens, opens in standalone/minimal-ui mode (including iOS home-screen mode), and browser-supported `appinstalled` events. Reloads count as opens; returning to an already open app does not. Installed opens are a subset of all opens. Install detection is incomplete, especially on iOS; downloads and uninstall totals are not measured.
+
+No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
+
+Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/bible-translation-explorer/open`, `apps/bible-translation-explorer/installed-open`, or `apps/bible-translation-explorer/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.

@@ -24,3 +24,12 @@ If the CORS proxy is unreachable, syncing falls back to `songbase.life` directly
 Everything is stored on the device: books and settings in localStorage, songs in IndexedDB. Nothing is uploaded anywhere.
 
 When you replace index.html with a newer version, change VERSION in sw.js so devices pick it up.
+
+
+## Usage counts
+
+This app reports fixed app/event labels to GoatCounter for visible page opens, opens in standalone/minimal-ui mode (including iOS home-screen mode), and browser-supported `appinstalled` events. Reloads count as opens; returning to an already open app does not. Installed opens are a subset of all opens. Install detection is incomplete, especially on iOS; downloads and uninstall totals are not measured.
+
+No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
+
+Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/songs/open`, `apps/songs/installed-open`, or `apps/songs/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.

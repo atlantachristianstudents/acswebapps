@@ -109,3 +109,8 @@ Update docs in the same change when the implementation changes:
 ## Big Text Songbase refresh
 
 `apps/show-songs/songbasescraper.py --embed` is the approved source-data refresh for `songbase_all.json` and the embedded `songbase-data` script. It validates a complete library, ignores fetch-only timestamp changes, escapes HTML in embedded data, and bumps the app cache version. The scheduled workflow uses only Python’s standard library; preserve its explicit Pages rebuild step for bot commits. In the app, downloaded libraries are stored in the independent `bigtext-songbase` IndexedDB database, which must survive service-worker cache upgrades. Songbase blocks browser CORS requests, so the app fetches the published same-origin snapshot rather than scraping the upstream API directly.
+
+
+## Usage analytics
+
+Registered apps include an inline `adless-usage` script in their main `index.html`, with a fixed app-folder identifier and the GoatCounter endpoint. Keep these self-contained copies synchronized; do not add a cross-app runtime asset or CDN script. Only fixed open, installed-open, and supported install event labels may be collected; never send user content, searches, full URLs, or referrers. Preserve opt-out and local-development guards, failure isolation, and bounded per-tab offline queues. Update usage documentation and bump each affected app cache version when changing analytics. New apps should copy the script and set their own folder identifier. Redirect and presentation-only pages must not emit extra opens.
