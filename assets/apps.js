@@ -89,6 +89,15 @@ window.APPS = [
     url: "apps/tunes"
   },
   {
+    id: "verse-designer",
+    name: "Verse Designer",
+    description: "Design beautiful Bible verse wallpapers and shareable images with custom typography and gradients. Export as PNG, offline.",
+    icon: "❝",
+    iconUrl: "apps/verse-designer/icons/icon.svg",
+    tags: ["Tools", "Memory"],
+    status: "beta"
+  },
+  {
     id: "songs",
     name: "Songbook",
     description: "Browse thousands of songs, build set lists, and present lyrics full-screen. Works offline.",

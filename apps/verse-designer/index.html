@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verse Designer — Adless</title>
+  <meta name="description" content="Design beautiful Bible verse wallpapers and shareable images. Custom typography, gradients, and layouts — exported as PNG, entirely offline.">
+  <meta name="theme-color" content="#3b4bf5" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b4bf5'/%3E%3Cstop offset='1' stop-color='%239b6df2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Georgia, serif' font-size='32' fill='%23fff' text-anchor='middle'%3E%E2%9D%9D%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    // Offline support: cache the app with sw.js (see README).
+    if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
+  </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f8fc;
+      --panel: #ffffff;
+      --text: #182033;
+      --muted: #68738a;
+      --border: #e7e9f0;
+      --accent: #3b4bf5;
+      --accent-soft: #eceefc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d111b;
+        --panel: #141a29;
+        --text: #edf0fa;
+        --muted: #9ba7bd;
+        --border: #273047;
+        --accent: #7886ff;
+        --accent-soft: #20273f;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar a {
+      display: inline-block;
+      padding: .4rem .8rem;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 600;
+      transition: background .15s;
+    }
+    .topbar span { color: var(--muted); }
+    .topbar .spacer { flex: 1; }
+    .adv-toggle {
+      padding: .35rem .8rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .adv-toggle[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(280px, 350px) 1fr;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      main { grid-template-columns: 1fr; }
+      .preview-col { order: -1; }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .panel h2 {
+      margin: 0 0 .75rem;
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    label.field { display: block; margin-bottom: .7rem; }
+    label.field > span {
+      display: block;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: .25rem;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: .45rem .6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
+    textarea {
+      width: 100%;
+      min-height: 5.5em;
+      padding: .45rem .6rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      resize: vertical;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    input[type="color"] {
+      width: 2.2rem; height: 1.9rem;
+      padding: 0; border: 1px solid var(--border);
+      border-radius: 6px; background: none; cursor: pointer;
+      vertical-align: middle;
+    }
+    input[type="checkbox"] { accent-color: var(--accent); }
+    .row { display: flex; gap: .5rem; align-items: center; }
+    .row.wrap { flex-wrap: wrap; }
+    .grow { flex: 1; }
+    .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .chip {
+      padding: .35rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .grads { display: grid; grid-template-columns: repeat(6, 1fr); gap: .4rem; }
+    .grad {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      padding: 0;
+    }
+    .grad[aria-pressed="true"] { border-color: var(--accent); }
+    .grad.custom {
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1rem; text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    }
+    .grad.custom[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+    button.primary {
+      display: inline-block;
+      padding: .5rem .95rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    button.primary:disabled { opacity: .55; cursor: wait; }
+    button.ghost {
+      padding: .5rem .95rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+    button.ghost:hover { border-color: var(--accent); }
+    /* Sticky preview: stays in view while scrolling through the controls. */
+    .preview-col { align-self: stretch; }
+    .preview-sticky {
+      position: sticky;
+      top: .75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      max-height: calc(100vh - 1.5rem);
+      overflow: hidden;
+    }
+    .preview-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 0;
+    }
+    #preview {
+      max-width: 100%;
+      max-height: 72vh;
+      width: auto;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(10, 14, 30, .22);
+      background: #222;
+    }
+    .preview-hint {
+      font-size: .78rem;
+      color: var(--muted);
+      text-align: center;
+      margin: 0;
+    }
+    /* Phones: preview sticks at the top with a tighter budget so the
+       controls below stay reachable. */
+    @media (max-width: 880px) {
+      .preview-sticky {
+        top: .5rem;
+        max-height: none;
+        z-index: 5;
+        padding-bottom: .35rem;
+        background: var(--bg);
+      }
+      #preview { max-height: 34vh; }
+      .preview-hint { display: none; }
+    }
+    .hint { font-size: .78rem; color: var(--muted); margin: .4rem 0 0; }
+    .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 1.25rem;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--text);
+      color: var(--bg);
+      padding: .55rem 1rem;
+      border-radius: 999px;
+      font-size: .85rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 10;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    /* Advanced-only controls */
+    .adv-only { display: none; }
+    body.advanced .adv-only { display: block; }
+    body.advanced .adv-inline { display: inline-block; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../../" aria-label="Back to all apps">← Adless</a>
+    <span>Verse Designer</span>
+    <span class="spacer"></span>
+    <span id="dims" aria-hidden="true"></span>
+    <button type="button" class="adv-toggle" id="advToggle" aria-pressed="false" title="Show extra fine-tuning controls">⚙ Advanced</button>
+  </div>
+
+  <main>
+    <section aria-label="Design controls">
+      <div class="panel">
+        <h2>Verse</h2>
+        <!-- Verse lookup: loads text from the bundled reference index + cached/downloaded RcV text -->
+        <div class="row wrap lookup">
+          <label class="field grow" style="margin:0"><span>Book</span>
+            <select id="lkBook" aria-label="Book"></select>
+          </label>
+          <label class="field" style="margin:0;width:4.5rem"><span>Ch.</span>
+            <input type="number" id="lkChapter" min="1" value="3" aria-label="Chapter">
+          </label>
+          <label class="field" style="margin:0;width:4.5rem"><span>Verse(s)</span>
+            <input type="text" id="lkVerse" value="16" inputmode="numeric" aria-label="Verse or range, e.g. 16-18">
+          </label>
+          <label class="field" style="margin:0"><span class="sr">Look up</span>
+            <button type="button" class="ghost" id="lkBtn" style="margin-top:1.45rem">Look up</button>
+          </label>
+        </div>
+        <p class="hint" id="lkStatus" role="status" aria-live="polite"></p>
+        <label class="field"><span>Verse text</span>
+          <textarea id="verse">For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life.</textarea>
+        </label>
+        <div class="row">
+          <label class="field grow"><span>Reference</span>
+            <input type="text" id="reference" value="John 3:16">
+          </label>
+          <label class="field" style="margin-bottom:0"><span class="sr">Show reference</span>
+            <input type="checkbox" id="showRef" checked>
+            <span style="display:inline;font-size:.82rem;color:var(--muted)">Show</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Screen size</h2>
+        <div class="chips" id="sizeChips" role="group" aria-label="Screen size presets"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Layout</h2>
+        <div class="chips" id="layoutChips" role="group" aria-label="Layout presets"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Background</h2>
+        <div class="grads" id="gradGrid" role="group" aria-label="Background presets"></div>
+        <div class="row wrap" style="margin-top:.7rem">
+          <label class="field" style="margin:0"><span>Color A</span><input type="color" id="c1"></label>
+          <label class="field" style="margin:0"><span>Color B</span><input type="color" id="c2"></label>
+          <label class="field grow" style="margin:0"><span>Angle <span id="angleVal"></span></span>
+            <input type="range" id="angle" min="0" max="360" value="135">
+          </label>
+        </div>
+        <p class="hint">Pick a preset, or choose <strong>Custom</strong> / <strong>Image</strong> at the end of the grid.</p>
+        <!-- Image background controls (shown when the Image swatch is selected) -->
+        <div id="imageControls" style="display:none;margin-top:.7rem">
+          <div class="row wrap">
+            <button type="button" class="ghost" id="pickImage">🖼 Choose image…</button>
+            <button type="button" class="ghost" id="clearImage" style="display:none">Remove</button>
+            <span class="hint" id="imageName" style="align-self:center"></span>
+          </div>
+          <input type="file" id="imageFile" accept="image/*" class="sr" aria-hidden="true" tabindex="-1">
+          <div class="adv-only">
+            <div class="row wrap" style="margin-top:.5rem">
+              <label class="field" style="margin:0"><span>Fit</span>
+                <select id="imgFit">
+                  <option value="cover">Cover (fill)</option>
+                  <option value="contain">Contain (fit)</option>
+                  <option value="stretch">Stretch</option>
+                </select>
+              </label>
+              <label class="field" style="margin:0"><span>Position</span>
+                <select id="imgPos">
+                  <option value="center">Center</option>
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+              </label>
+            </div>
+            <label class="field"><span>Dim overlay <span id="imgDimVal"></span></span>
+              <input type="range" id="imgDim" min="0" max="80" value="0">
+            </label>
+            <label class="field"><span>Blur <span id="imgBlurVal"></span></span>
+              <input type="range" id="imgBlur" min="0" max="40" value="0">
+            </label>
+            <label class="field"><span>Overlay color</span>
+              <input type="color" id="imgTint" value="#000000">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Typography</h2>
+        <label class="field"><span>Font</span>
+          <select id="font">
+            <option value="Georgia, 'Times New Roman', serif">Georgia (serif)</option>
+            <option value="'Palatino Linotype', Palatino, 'Book Antiqua', serif">Palatino (serif)</option>
+            <option value="'Iowan Old Style', 'Apple Garamond', Georgia, serif">Old style (serif)</option>
+            <option value="system-ui, 'Segoe UI', Roboto, sans-serif">System (sans)</option>
+            <option value="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">Neo-grotesque (sans)</option>
+            <option value="'Trebuchet MS', 'Segoe UI', sans-serif">Trebuchet (sans)</option>
+            <option value="Consolas, 'Cascadia Code', 'Courier New', monospace">Mono</option>
+          </select>
+        </label>
+        <label class="field"><span>Weight <span id="weightVal"></span></span>
+          <input type="range" id="weight" min="300" max="700" step="100" value="400">
+        </label>
+        <label class="field"><span>Size <span id="sizeVal"></span></span>
+          <input type="range" id="size" min="3" max="12" step="0.25" value="6">
+        </label>
+        <div class="row">
+          <label class="field grow"><span>Verse color</span>
+            <input type="color" id="textColor" value="#ffffff">
+          </label>
+          <label class="field grow"><span>Reference color</span>
+            <input type="color" id="accentColor" value="#ffffff">
+          </label>
+        </div>
+        <label class="field"><span class="sr">Auto-fit text</span>
+          <input type="checkbox" id="autoFit" checked>
+          <span style="display:inline;font-size:.82rem;color:var(--muted)">Auto-fit (shrink long verses to fit)</span>
+        </label>
+
+        <!-- Advanced typography -->
+        <div class="adv-only">
+          <label class="field"><span>Letter spacing <span id="lsVal"></span></span>
+            <input type="range" id="letterSpacing" min="-5" max="40" step="1" value="0">
+          </label>
+          <label class="field"><span>Line height <span id="lhVal"></span></span>
+            <input type="range" id="lineHeight" min="100" max="220" step="5" value="135">
+          </label>
+          <label class="field"><span>Text opacity <span id="toVal"></span></span>
+            <input type="range" id="textOpacity" min="20" max="100" step="5" value="100">
+          </label>
+          <label class="field"><span>Text shadow <span id="shVal"></span></span>
+            <input type="range" id="textShadow" min="0" max="40" step="1" value="0">
+          </label>
+          <label class="field"><span>Verse transform</span>
+            <select id="textTransform">
+              <option value="none">Normal</option>
+              <option value="upper">ALL CAPS</option>
+            </select>
+          </label>
+          <label class="field"><span>Reference size <span id="rsVal"></span></span>
+            <input type="range" id="refScale" min="20" max="80" step="5" value="42">
+          </label>
+          <label class="field"><span class="sr">Uppercase reference</span>
+            <input type="checkbox" id="refUpper">
+            <span style="display:inline;font-size:.82rem;color:var(--muted)">Uppercase reference</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Advanced composition panel -->
+      <div class="panel adv-only" id="compositionPanel">
+        <h2>Composition</h2>
+        <label class="field"><span>Vertical position <span id="vpVal"></span></span>
+          <input type="range" id="vertPos" min="0" max="100" step="1" value="50">
+        </label>
+        <label class="field"><span>Padding <span id="padVal"></span></span>
+          <input type="range" id="padding" min="4" max="20" step="1" value="10">
+        </label>
+        <label class="field"><span>Vignette <span id="vgVal"></span></span>
+          <input type="range" id="vignette" min="0" max="60" step="2" value="18">
+        </label>
+        <label class="field"><span>Film grain <span id="grVal"></span></span>
+          <input type="range" id="grain" min="0" max="20" step="1" value="0">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="download">⬇ Download PNG</button>
+        <button class="ghost" id="copy">Copy image</button>
+        <button class="ghost" id="randomize">🎲 Surprise me</button>
+        <button class="ghost" id="reset">Reset</button>
+      </div>
+    </section>
+
+    <section class="preview-col preview-sticky" aria-label="Preview">
+      <div class="preview-wrap">
+        <canvas id="preview" width="540" height="960" role="img" aria-label="Verse wallpaper preview"></canvas>
+      </div>
+      <p class="preview-hint">Export renders at full resolution — the preview is scaled down.</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="scripture-references.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    // ---------- Presets ----------
+    var SIZES = [
+      { id: "phone",   name: "Phone",    w: 1080, h: 2340 },
+      { id: "story",   name: "Story",    w: 1080, h: 1920 },
+      { id: "square",  name: "Square",   w: 1080, h: 1080 },
+      { id: "desktop", name: "Desktop",  w: 2560, h: 1440 },
+      { id: "wide",    name: "Wide",     w: 3440, h: 1440 }
+    ];
+
+    var LAYOUTS = [
+      { id: "center", name: "Centered" },
+      { id: "left",   name: "Left" },
+      { id: "card",   name: "Card" },
+      { id: "line",   name: "Line" },
+      { id: "quote",  name: "Quote" }
+    ];
+
+    var BGS = [
+      { id: "dawn",    name: "Dawn",     c1: "#2b3a67", c2: "#f4a261", angle: 150 },
+      { id: "deepsea", name: "Deep sea", c1: "#0f2027", c2: "#2c5364", angle: 160 },
+      { id: "violet",  name: "Violet",   c1: "#3b4bf5", c2: "#9b6df2", angle: 135 },
+      { id: "sunset",  name: "Sunset",   c1: "#ff5f6d", c2: "#ffc371", angle: 135 },
+      { id: "forest",  name: "Forest",   c1: "#134e5e", c2: "#71b280", angle: 135 },
+      { id: "night",   name: "Night",    c1: "#141a29", c2: "#3a2c5c", angle: 145 },
+      { id: "sand",    name: "Sand",     c1: "#e8d8c3", c2: "#c98d5e", angle: 120 },
+      { id: "ink",     name: "Ink",      c1: "#1a1c22", c2: "#3f4451", angle: 140 },
+      { id: "rose",    name: "Rose",     c1: "#f8b5b1", c2: "#f6729b", angle: 130 },
+      { id: "mint",    name: "Mint",     c1: "#d9f2e6", c2: "#6fc3a7", angle: 130 },
+      { id: "slate",   name: "Slate",    c1: "#485563", c2: "#29323c", angle: 155 },
+      { id: "gold",    name: "Gold",     c1: "#3e2f1c", c2: "#c9a227", angle: 135 }
+    ];
+    var CUSTOM_BG = "custom", IMAGE_BG = "image";
+
+    // Text colors that pair with a preset (dark text on light presets).
+    var BG_TEXT = { sand: "#3a2a14", rose: "#5c1f30", mint: "#14432f" };
+
+    var STORE_KEY = "verse-designer-state";
+
+    // ---------- State ----------
+    var DEFAULTS = {
+      verse: "For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life.",
+      reference: "John 3:16",
+      showRef: true,
+      size: "phone",
+      layout: "center",
+      bg: "violet",
+      c1: "#3b4bf5",
+      c2: "#9b6df2",
+      angle: 135,
+      font: "Georgia, 'Times New Roman', serif",
+      weight: 400,
+      sizePct: 6,
+      textColor: "#ffffff",
+      accentColor: "#ffffff",
+      autoFit: true,
+      // advanced
+      letterSpacing: 0,        // thousandths of font size (e.g. 30 = +0.03em)
+      lineHeight: 135,         // percent
+      textOpacity: 100,
+      textShadow: 0,           // percent of font size
+      textTransform: "none",
+      refScale: 42,            // percent of verse font size
+      refUpper: false,
+      vertPos: 50,             // percent
+      padding: 10,             // percent of min dimension
+      vignette: 18,            // 0..60
+      grain: 0,
+      // image background
+      imageData: null,         // dataURL
+      imageName: "",
+      imgFit: "cover",
+      imgPos: "center",
+      imgDim: 0,
+      imgBlur: 0,
+      imgTint: "#000000",
+      advanced: false
+    };
+    var state = JSON.parse(JSON.stringify(DEFAULTS));
+
+    var $ = function (id) { return document.getElementById(id); };
+    var preview = $("preview");
+
+    // ---------- Helpers ----------
+    function toast(msg) {
+      var t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(t._h);
+      t._h = setTimeout(function () { t.classList.remove("show"); }, 1800);
+    }
+
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+    function hexToRgb(hex) {
+      var m = /^#?([0-9a-f]{6})$/i.exec(hex);
+      if (!m) return [255, 255, 255];
+      var n = parseInt(m[1], 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function withAlpha(hex, a) {
+      var rgb = hexToRgb(hex);
+      return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")";
+    }
+
+    function isDark(hex) {
+      var rgb = hexToRgb(hex);
+      return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) < 140;
+    }
+
+    function curSize() {
+      return SIZES.find(function (s) { return s.id === state.size; }) || SIZES[0];
+    }
+
+    // ---------- Image background ----------
+    var imgEl = null, imgKey = "";
+
+    function loadImageIfNeeded(cb) {
+      if (!state.imageData) { imgEl = null; imgKey = ""; if (cb) cb(); return; }
+      if (imgEl && imgKey === state.imageData) { if (cb) cb(); return; }
+      var im = new Image();
+      im.onload = function () { imgEl = im; imgKey = state.imageData; if (cb) cb(); };
+      im.onerror = function () { imgEl = null; if (cb) cb(); };
+      im.src = state.imageData;
+    }
+
+    // Downscale an uploaded image to keep localStorage small.
+    function importImage(file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          var MAX = 1600;
+          var r = Math.min(1, MAX / Math.max(im.width, im.height));
+          var cv = document.createElement("canvas");
+          cv.width = Math.round(im.width * r);
+          cv.height = Math.round(im.height * r);
+          cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+          state.imageData = cv.toDataURL("image/jpeg", 0.85);
+          state.imageName = file.name || "image";
+          state.bg = IMAGE_BG;
+          if (isDark(imgTone())) { /* keep text color */ }
+          syncControls();
+          refreshAll();
+          toast("Image loaded");
+        };
+        im.onerror = function () { toast("Could not read that image"); };
+        im.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Average-ish tone of the image for auto text color.
+    function imgTone() {
+      if (!imgEl) return "#000000";
+      try {
+        var cv = document.createElement("canvas");
+        cv.width = 10; cv.height = 10;
+        var c = cv.getContext("2d");
+        c.drawImage(imgEl, 0, 0, 10, 10);
+        var d = c.getImageData(0, 0, 10, 10).data;
+        var r = 0, g = 0, b = 0;
+        for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+        var n = d.length / 4;
+        var hex = "#" + [r, g, b].map(function (v) {
+          var s = Math.round(v / n).toString(16);
+          return s.length < 2 ? "0" + s : s;
+        }).join("");
+        return hex;
+      } catch (e) { return "#000000"; }
+    }
+
+    // ---------- Rendering ----------
+
+    // Wrap text into lines that fit maxWidth. Preserves explicit newlines.
+    function wrapText(c, text, font, maxWidth) {
+      c.font = font;
+      var paragraphs = text.split(/\n+/);
+      var lines = [];
+      for (var p = 0; p < paragraphs.length; p++) {
+        var words = paragraphs[p].trim().split(/\s+/).filter(Boolean);
+        if (!words.length) { continue; }
+        var line = words[0];
+        for (var i = 1; i < words.length; i++) {
+          var test = line + " " + words[i];
+          if (c.measureText(test).width <= maxWidth) {
+            line = test;
+          } else {
+            lines.push(line);
+            line = words[i];
+          }
+        }
+        lines.push(line);
+      }
+      return lines;
+    }
+
+    function fontString(px, weight, family) {
+      return weight + " " + px + "px " + family;
+    }
+
+    // Choose the largest font size (<= maxPx) whose wrapped text fits the box.
+    function fitFontSize(c, text, family, weight, maxPx, boxW, boxH, lhRatio) {
+      var lo = Math.max(12, maxPx * 0.1), hi = maxPx, best = lo;
+      for (var i = 0; i < 14; i++) {
+        var mid = (lo + hi) / 2;
+        var lines = wrapText(c, text, fontString(mid, weight, family), boxW);
+        if (lines.length * mid * lhRatio <= boxH) { best = mid; lo = mid; }
+        else { hi = mid; }
+      }
+      return best;
+    }
+
+    // Tileable noise pattern, generated once per strength.
+    var noiseCache = { key: "", canvas: null };
+    function noisePattern(c, strength, w) {
+      var key = strength + ":" + w;
+      if (noiseCache.key !== key) {
+        var cv = document.createElement("canvas");
+        cv.width = 128; cv.height = 128;
+        var nc = cv.getContext("2d");
+        var id = nc.createImageData(128, 128);
+        for (var i = 0; i < id.data.length; i += 4) {
+          var v = Math.random() * 255;
+          id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
+          id.data[i + 3] = 255;
+        }
+        nc.putImageData(id, 0, 0);
+        noiseCache = { key: key, canvas: cv };
+      }
+      return c.createPattern(noiseCache.canvas, "repeat");
+    }
+
+    function drawBackground(c, w, h, s) {
+      if (s.bg === IMAGE_BG && imgEl) {
+        var iw = imgEl.width, ih = imgEl.height;
+        var scale, dw, dh, dx, dy;
+        if (s.imgFit === "stretch") {
+          dw = w; dh = h; dx = 0; dy = 0;
+        } else {
+          scale = s.imgFit === "cover"
+            ? Math.max(w / iw, h / ih)
+            : Math.min(w / iw, h / ih);
+          dw = iw * scale; dh = ih * scale;
+          dx = (w - dw) / 2;
+          dy = s.imgPos === "top" ? 0 : s.imgPos === "bottom" ? h - dh : (h - dh) / 2;
+        }
+        c.save();
+        if (s.imgBlur > 0) {
+          try { c.filter = "blur(" + (s.imgBlur / 100 * Math.min(w, h) / 2) + "px)"; } catch (e) {}
+          // Slightly overdraw so blurred edges don't show gaps.
+          var pad = s.imgBlur / 100 * Math.min(w, h) * 2;
+          c.drawImage(imgEl, dx - pad, dy - pad, dw + pad * 2, dh + pad * 2);
+        } else {
+          c.drawImage(imgEl, dx, dy, dw, dh);
+        }
+        c.restore();
+        // Dim/tint overlay.
+        if (s.imgDim > 0) {
+          c.fillStyle = withAlpha(s.imgTint, s.imgDim / 100);
+          c.fillRect(0, 0, w, h);
+        }
+      } else {
+        var rad = (s.angle - 90) * Math.PI / 180;
+        var cx = w / 2, cy = h / 2;
+        var len = Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad));
+        var g = c.createLinearGradient(
+          cx - Math.sin(rad) * len / 2, cy + Math.cos(rad) * len / 2,
+          cx + Math.sin(rad) * len / 2, cy - Math.cos(rad) * len / 2
+        );
+        g.addColorStop(0, s.c1);
+        g.addColorStop(1, s.c2);
+        c.fillStyle = g;
+        c.fillRect(0, 0, w, h);
+      }
+
+      // Vignette for depth (strength tunable in Advanced).
+      if (s.vignette > 0) {
+        var vg = c.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
+        vg.addColorStop(0, "rgba(0,0,0,0)");
+        vg.addColorStop(1, "rgba(0,0,0," + (s.vignette / 100) + ")");
+        c.fillStyle = vg;
+        c.fillRect(0, 0, w, h);
+      }
+
+      // Film grain.
+      if (s.grain > 0) {
+        c.save();
+        c.globalAlpha = s.grain / 100 * 0.35;
+        c.globalCompositeOperation = "overlay";
+        c.fillStyle = noisePattern(c, s.grain, Math.min(w, h));
+        c.fillRect(0, 0, w, h);
+        c.restore();
+      }
+    }
+
+    function applyLetterSpacing(c, px) {
+      // Chrome/Edge support ctx.letterSpacing; guarded everywhere else.
+      if ("letterSpacing" in c) {
+        c.letterSpacing = px + "px";
+      }
+    }
+
+    function drawVerse(c, w, h, s) {
+      var u = Math.min(w, h) / 100;
+      var pad = (s.padding / 100) * Math.min(w, h);
+      var boxW, cx, align;
+
+      switch (s.layout) {
+        case "left":
+          boxW = w - pad * 2.4; cx = pad * 1.2; align = "left";
+          break;
+        case "card":
+          boxW = w - pad * 2.8; cx = w / 2; align = "center";
+          break;
+        case "line":
+          boxW = w - pad * 2.2; cx = w / 2; align = "center";
+          break;
+        case "quote":
+          boxW = w - pad * 2.6; cx = w / 2; align = "center";
+          break;
+        default:
+          boxW = w - pad * 2.2; cx = w / 2; align = "center";
+      }
+
+      var lhRatio = s.lineHeight / 100;
+      var maxPx = (s.sizePct / 100) * Math.min(w, h);
+      var refPx0 = maxPx * s.refScale / 100;
+      var refGap0 = (s.showRef && s.reference) ? maxPx * 0.9 : 0;
+      var boxH = h - pad * 2.4 - (s.showRef && s.reference ? refPx0 + refGap0 : 0);
+
+      var px = s.autoFit
+        ? fitFontSize(c, s.verse, s.font, s.weight, maxPx, boxW, boxH, lhRatio)
+        : maxPx;
+      var font = fontString(px, s.weight, s.font);
+      var ls = s.letterSpacing / 1000 * px;
+      applyLetterSpacing(c, ls);
+      var lines = wrapText(c, s.verse, font, boxW);
+      var lineH = px * lhRatio;
+
+      var refPx = px * s.refScale / 100;
+      var refGap = (s.showRef && s.reference) ? px * 0.9 : 0;
+      var totalH = lines.length * lineH + refGap + (s.showRef && s.reference ? refPx : 0);
+
+      // Vertical placement: slider positions the block's center within the safe area.
+      var cy = pad + (h - pad * 2) * (s.vertPos / 100);
+      cy = clamp(cy, pad + totalH / 2, h - pad - totalH / 2);
+      var y = cy - totalH / 2 + lineH / 2;
+
+      // --- layout decorations (under the text) ---
+      if (s.layout === "card") {
+        var cw = boxW + pad * 1.4, ch = totalH + pad * 1.2;
+        var r = Math.min(u * 6, ch / 2);
+        c.save();
+        c.shadowColor = "rgba(0,0,0,0.3)";
+        c.shadowBlur = u * 6;
+        c.shadowOffsetY = u * 2;
+        c.fillStyle = "rgba(0,0,0,0.22)";
+        roundRect(c, cx - cw / 2, cy - ch / 2, cw, ch, r);
+        c.fill();
+        c.restore();
+        c.strokeStyle = withAlpha(s.accentColor, 0.5);
+        c.lineWidth = Math.max(2, u * 0.35);
+        roundRect(c, cx - cw / 2, cy - ch / 2, cw, ch, r);
+        c.stroke();
+      } else if (s.layout === "line") {
+        var lw = boxW * 0.35;
+        c.strokeStyle = withAlpha(s.accentColor, 0.85);
+        c.lineWidth = Math.max(2, u * 0.5);
+        c.beginPath();
+        c.moveTo(cx - lw / 2, cy - totalH / 2 - u * 4);
+        c.lineTo(cx + lw / 2, cy - totalH / 2 - u * 4);
+        c.stroke();
+        c.beginPath();
+        c.moveTo(cx - lw / 2, cy + totalH / 2 + u * 4);
+        c.lineTo(cx + lw / 2, cy + totalH / 2 + u * 4);
+        c.stroke();
+      } else if (s.layout === "quote") {
+        var qPx = px * 2.2;
+        c.fillStyle = withAlpha(s.accentColor, 0.35);
+        c.font = fontString(qPx, 700, s.font);
+        c.textAlign = "center";
+        c.fillText("\u201C", cx, cy - totalH / 2 - qPx * 0.12);
+      }
+
+      // --- verse text ---
+      c.font = font;
+      c.fillStyle = withAlpha(s.textColor, s.textOpacity / 100);
+      c.textAlign = align;
+      c.textBaseline = "middle";
+      if (s.textShadow > 0) {
+        c.shadowColor = "rgba(0,0,0,0.55)";
+        c.shadowBlur = s.textShadow / 100 * px;
+        c.shadowOffsetY = s.textShadow / 100 * px * 0.4;
+      }
+      var text = s.textTransform === "upper" ? s.verse.toUpperCase() : s.verse;
+      for (var i = 0; i < lines.length; i++) {
+        c.fillText(lines[i], cx, y + i * lineH);
+      }
+      c.shadowColor = "rgba(0,0,0,0)";
+      c.shadowBlur = 0;
+      c.shadowOffsetY = 0;
+
+      // --- reference ---
+      if (s.showRef && s.reference) {
+        var ry = y + (lines.length - 1) * lineH + refGap + refPx / 2;
+        c.font = fontString(refPx, 600, s.font);
+        c.fillStyle = withAlpha(s.accentColor, 0.9);
+        var refText = (s.refUpper || /[Ss]ans|system|Segoe|Helvetica|Trebuchet|mono/i.test(s.font))
+          ? s.reference.toUpperCase()
+          : s.reference;
+        c.fillText(refText, cx, ry);
+      }
+      applyLetterSpacing(c, 0);
+    }
+
+    function roundRect(c, x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+
+    // Render the whole design into any canvas at any pixel scale.
+    function render(canvas, scale) {
+      var size = curSize();
+      var w = size.w * (scale || 1), h = size.h * (scale || 1);
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      var c = canvas.getContext("2d");
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, w, h);
+      c.scale(scale || 1, scale || 1);
+      drawBackground(c, size.w, size.h, state);
+      drawVerse(c, size.w, size.h, state);
+      c.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    function refreshAll() {
+      loadImageIfNeeded(function () {
+        render(preview, 0.5);
+      });
+    }
+
+    function update() {
+      $("dims").textContent = curSize().w + " × " + curSize().h;
+      $("imageControls").style.display = state.bg === IMAGE_BG ? "block" : "none";
+      refreshAll();
+      persist();
+    }
+
+    // ---------- Exclusive selection across all chip groups ----------
+    // Every group is rebuilt, then pressed states are re-derived from the
+    // single source of truth (state), so exactly one chip per group lights up.
+    function refreshSelection() {
+      setChipPressed($("sizeChips"), state.size);
+      setChipPressed($("layoutChips"), state.layout);
+      Array.prototype.forEach.call($("gradGrid").children, function (b) {
+        b.setAttribute("aria-pressed", String(b.dataset.bg === state.bg));
+      });
+    }
+
+    function setChipPressed(group, selId) {
+      Array.prototype.forEach.call(group.children, function (b) {
+        b.setAttribute("aria-pressed", String(b.dataset.id === selId));
+      });
+    }
+
+    function buildChips(el, items, onPick, extra) {
+      el.innerHTML = "";
+      items.forEach(function (item) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.textContent = item.name;
+        b.dataset.id = item.id;
+        if (extra) extra(b, item);
+        b.addEventListener("click", function () { onPick(item); });
+        el.appendChild(b);
+      });
+    }
+
+    function buildBackgroundGrid() {
+      var grid = $("gradGrid");
+      grid.innerHTML = "";
+      BGS.forEach(function (bg) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "grad";
+        b.title = bg.name;
+        b.setAttribute("aria-label", "Background: " + bg.name);
+        b.style.background = "linear-gradient(" + (bg.angle - 90) + "deg, " + bg.c1 + ", " + bg.c2 + ")";
+        b.dataset.bg = bg.id;
+        b.addEventListener("click", function () { pickPresetBg(bg); });
+        grid.appendChild(b);
+      });
+      // Custom gradient swatch.
+      var custom = document.createElement("button");
+      custom.type = "button";
+      custom.className = "grad custom";
+      custom.title = "Custom gradient";
+      custom.setAttribute("aria-label", "Custom gradient background");
+      custom.textContent = "✎";
+      custom.dataset.bg = CUSTOM_BG;
+      custom.addEventListener("click", function () {
+        state.bg = CUSTOM_BG;
+        refreshSelection();
+        update();
+      });
+      grid.appendChild(custom);
+      // Image swatch.
+      var image = document.createElement("button");
+      image.type = "button";
+      image.className = "grad custom";
+      image.title = "Image background";
+      image.setAttribute("aria-label", "Image background");
+      image.textContent = "🖼";
+      image.dataset.bg = IMAGE_BG;
+      image.addEventListener("click", function () {
+        state.bg = IMAGE_BG;
+        refreshSelection();
+        update();
+        if (!state.imageData) $("imageFile").click();
+      });
+      grid.appendChild(image);
+      refreshSelection();
+    }
+
+    function pickPresetBg(bg) {
+      state.bg = bg.id;
+      state.c1 = bg.c1; state.c2 = bg.c2; state.angle = bg.angle;
+      state.textColor = BG_TEXT[bg.id] || "#ffffff";
+      state.accentColor = isDark(bg.c1) || isDark(bg.c2) ? "#ffffff" : (BG_TEXT[bg.id] || "#3a2a14");
+      syncControls();
+      refreshSelection();
+      update();
+    }
+
+    function markBgEdited() {
+      state.bg = CUSTOM_BG;
+      syncControls();
+      refreshSelection();
+      update();
+    }
+
+    // ---------- Sync controls from state ----------
+    function syncControls() {
+      $("verse").value = state.verse;
+      $("reference").value = state.reference;
+      $("showRef").checked = state.showRef;
+      $("c1").value = state.c1;
+      $("c2").value = state.c2;
+      $("angle").value = state.angle;
+      $("angleVal").textContent = state.angle + "°";
+      $("font").value = state.font;
+      $("weight").value = state.weight;
+      $("weightVal").textContent = state.weight;
+      $("size").value = state.sizePct;
+      $("sizeVal").textContent = Math.round(state.sizePct * 10) / 10 + "%";
+      $("textColor").value = state.textColor;
+      $("accentColor").value = state.accentColor;
+      $("autoFit").checked = state.autoFit;
+      $("letterSpacing").value = state.letterSpacing;
+      $("lsVal").textContent = (state.letterSpacing / 10) + "%";
+      $("lineHeight").value = state.lineHeight;
+      $("lhVal").textContent = (state.lineHeight / 100).toFixed(2);
+      $("textOpacity").value = state.textOpacity;
+      $("toVal").textContent = state.textOpacity + "%";
+      $("textShadow").value = state.textShadow;
+      $("shVal").textContent = state.textShadow;
+      $("textTransform").value = state.textTransform;
+      $("refScale").value = state.refScale;
+      $("rsVal").textContent = state.refScale + "%";
+      $("refUpper").checked = state.refUpper;
+      $("vertPos").value = state.vertPos;
+      $("vpVal").textContent = state.vertPos + "%";
+      $("padding").value = state.padding;
+      $("padVal").textContent = state.padding + "%";
+      $("vignette").value = state.vignette;
+      $("vgVal").textContent = state.vignette + "%";
+      $("grain").value = state.grain;
+      $("grVal").textContent = state.grain;
+      $("imgFit").value = state.imgFit;
+      $("imgPos").value = state.imgPos;
+      $("imgDim").value = state.imgDim;
+      $("imgDimVal").textContent = state.imgDim + "%";
+      $("imgBlur").value = state.imgBlur;
+      $("imgBlurVal").textContent = state.imgBlur + "%";
+      $("imgTint").value = state.imgTint;
+      $("imageName").textContent = state.imageName ? state.imageName : "";
+      $("clearImage").style.display = state.imageData ? "inline-block" : "none";
+
+      buildChips($("sizeChips"), SIZES, function (item) {
+        state.size = item.id;
+        refreshSelection();
+        update();
+      });
+      buildChips($("layoutChips"), LAYOUTS, function (item) {
+        state.layout = item.id;
+        refreshSelection();
+        update();
+      });
+      buildBackgroundGrid();
+      refreshSelection();
+    }
+
+    // ---------- Persistence ----------
+    function persist() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+      catch (e) {
+        // Likely quota: drop the (large) image and retry with the rest.
+        try {
+          var slim = JSON.parse(JSON.stringify(state));
+          slim.imageData = null;
+          localStorage.setItem(STORE_KEY, JSON.stringify(slim));
+        } catch (e2) {}
+      }
+    }
+
+    // ---------- Verse lookup ----------
+    // scripture-references.js is a flat array of per-verse reference strings
+    // ("Genesis 1:1" ... "Revelation 22:21"), line-parallel with the RcV text.
+    var TEXT_KEY = "verse-designer-scripture";
+    var TEXT_DATE_KEY = "verse-designer-scripture-date";
+    var TEXT_TTL = 15 * 24 * 60 * 60 * 1000;
+    var textLines = null;
+
+    function lookupStatus(msg) { $("lkStatus").textContent = msg; }
+
+    function parseRef(str) {
+      var m = /^(.+?)\s+(\d+):(\d+)$/.exec(str);
+      return m ? { book: m[1], c: +m[2], v: +m[3] } : null;
+    }
+
+    function initBookSelect() {
+      var sel = $("lkBook");
+      if (typeof scriptureReferences === "undefined" || sel.options.length) return;
+      var seen = {};
+      scriptureReferences.forEach(function (ref) {
+        var r = parseRef(ref);
+        if (r && !seen[r.book]) {
+          seen[r.book] = true;
+          var o = document.createElement("option");
+          o.textContent = r.book;
+          sel.appendChild(o);
+        }
+      });
+    }
+
+    // Find the flat index of a reference, scanning for book + chapter + verse.
+    function findRange(book, chapter, v1, v2) {
+      var first = -1, last = -1, inBook = false;
+      for (var i = 0; i < scriptureReferences.length; i++) {
+        var r = parseRef(scriptureReferences[i]);
+        if (!r) continue;
+        if (r.book === book) inBook = true;
+        else if (inBook && first >= 0) break; // passed the book's end
+        else if (inBook) continue;
+        else continue;
+        if (r.c === chapter && r.v >= v1 && r.v <= v2) {
+          if (first < 0) first = i;
+          last = i;
+        }
+        if (first >= 0 && r.c > chapter) break;
+      }
+      return first >= 0 ? { first: first, last: last } : null;
+    }
+
+    function verseCount(book, chapter) {
+      var n = 0;
+      for (var i = 0; i < scriptureReferences.length; i++) {
+        var r = parseRef(scriptureReferences[i]);
+        if (r && r.book === book && r.c === chapter) n++;
+        else if (n && r && r.book === book && r.c > chapter) break;
+      }
+      return n;
+    }
+
+    // The RcV file has a blank line after every verse and prefixes each line
+    // with its reference ("Gen. 1:1 ..."). Normalize exactly like Logostype so
+    // the result is line-parallel with scriptureReferences (31103 lines).
+    function normalizeScripture(text) {
+      return text
+        .split(/\r?\n/)
+        .map(function (line) {
+          return line.trim().replace(/^(?:[1-3]\s*)?[A-Za-z][A-Za-z .-]*?\s*\d+:\d+\s+/, "");
+        })
+        .filter(function (line) {
+          try { return line.replace(/\p{P}/gu, "").trim(); }
+          catch (e) { return line.trim(); }
+        });
+    }
+
+    function acceptScripture(rawText) {
+      var lines = normalizeScripture(rawText);
+      if (typeof scriptureReferences !== "undefined" && lines.length !== scriptureReferences.length) {
+        throw new Error("verse count mismatch (" + lines.length + " vs " + scriptureReferences.length + ")");
+      }
+      textLines = lines;
+      // Persist the normalized, aligned text.
+      try {
+        localStorage.setItem(TEXT_KEY, lines.join("\n"));
+        localStorage.setItem(TEXT_DATE_KEY, String(Date.now()));
+      } catch (e) {}
+      return lines;
+    }
+
+    function fetchScripture() {
+      return fetch("https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV").then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        // Full-body read: waits until the entire ~4.5 MB has arrived.
+        return r.text();
+      }).then(function (text) {
+        if (!text.trim()) throw new Error("empty download");
+        return acceptScripture(text);
+      });
+    }
+
+    function loadScriptureText(force) {
+      if (textLines && !force) return Promise.resolve(textLines);
+      var cached = null, haveRef = typeof scriptureReferences !== "undefined";
+      try { cached = localStorage.getItem(TEXT_KEY); } catch (e) {}
+      // A cached copy is only usable if it matches the reference count
+      // (guards against older raw-format caches).
+      if (!force && cached && haveRef) {
+        var lines = cached.split(/\r?\n/);
+        if (lines.length === scriptureReferences.length) {
+          textLines = lines;
+          return Promise.resolve(textLines);
+        }
+        cached = null;
+      }
+      // Try Logostype's IndexedDB cache before downloading (open without a
+      // version so we adopt whatever version Logostype created).
+      if (!force && typeof indexedDB !== "undefined") {
+        return new Promise(function (resolve) {
+          var open;
+          try { open = indexedDB.open("logostype-database"); }
+          catch (e) { resolve(null); return; }
+          open.onerror = function () { resolve(null); };
+          open.onupgradeneeded = function () { resolve(null); }; // DB doesn't exist yet; don't create it
+          open.onsuccess = function () {
+            var db = open.result;
+            if (!db.objectStoreNames.contains("scripture")) { db.close(); resolve(null); return; }
+            var tx = db.transaction("scripture", "readonly");
+            var req = tx.objectStore("scripture").get("logostype-scripture-v1");
+            req.onsuccess = function () { db.close(); resolve(req.result || null); };
+            req.onerror = function () { db.close(); resolve(null); };
+          };
+        }).then(function (text) {
+          if (typeof text === "string" && text.trim()) {
+            return acceptScripture(text);
+          }
+          return fetchScripture();
+        });
+      }
+      return fetchScripture();
+    }
+
+    function doLookup() {
+      var book = $("lkBook").value;
+      var chapter = parseInt($("lkChapter").value, 10);
+      var vm = /^(\d+)(?:\s*[-\u2013]\s*(\d+))?$/.exec($("lkVerse").value.trim());
+      if (!vm || !book || !chapter) { lookupStatus("Enter a verse number or range like 16-18."); return; }
+      var v1 = +vm[1], v2 = vm[2] ? +vm[2] : v1;
+      if (v2 < v1) { var t = v1; v1 = v2; v2 = t; }
+      var range = findRange(book, chapter, v1, v2);
+      if (!range) {
+        lookupStatus("Invalid verse — try " + book + " " + chapter + " has " + verseCount(book, chapter) + " verses.");
+        return;
+      }
+      var refText = book + " " + chapter + ":" + (v1 === v2 ? v1 : v1 + "-" + v2);
+      var btn = $("lkBtn");
+      btn.disabled = true;
+      lookupStatus("Loading…");
+      loadScriptureText().then(function (lines) {
+        return lines.slice(range.first, range.last + 1).join(" ").trim();
+      }).catch(function () {
+        return loadScriptureText(true).then(function (lines) {
+          return lines.slice(range.first, range.last + 1).join(" ").trim();
+        });
+      }).then(function (text) {
+        if (!text) throw new Error("empty");
+        state.verse = text;
+        state.reference = refText;
+        syncControls();
+        update();
+        lookupStatus("");
+        toast("Loaded " + refText);
+      }).catch(function (err) {
+        lookupStatus("Could not load verse text" + (err && err.message ? " (" + err.message + ")" : "") + " — try again when online.");
+      }).finally(function () { btn.disabled = false; });
+    }
+
+    // ---------- Wiring ----------
+    $("verse").addEventListener("input", function () { state.verse = this.value; update(); });
+    $("reference").addEventListener("input", function () { state.reference = this.value; update(); });
+    $("showRef").addEventListener("change", function () { state.showRef = this.checked; update(); });
+    $("c1").addEventListener("input", function () { state.c1 = this.value; markBgEdited(); });
+    $("c2").addEventListener("input", function () { state.c2 = this.value; markBgEdited(); });
+    $("angle").addEventListener("input", function () {
+      state.angle = +this.value;
+      $("angleVal").textContent = state.angle + "°";
+      markBgEdited();
+    });
+    $("font").addEventListener("change", function () { state.font = this.value; update(); });
+    $("weight").addEventListener("input", function () { state.weight = +this.value; $("weightVal").textContent = state.weight; update(); });
+    $("size").addEventListener("input", function () { state.sizePct = +this.value; $("sizeVal").textContent = Math.round(state.sizePct * 10) / 10 + "%"; update(); });
+    $("textColor").addEventListener("input", function () { state.textColor = this.value; update(); });
+    $("accentColor").addEventListener("input", function () { state.accentColor = this.value; update(); });
+    $("autoFit").addEventListener("change", function () { state.autoFit = this.checked; update(); });
+
+    // Verse lookup wiring.
+    $("lkBtn").addEventListener("click", doLookup);
+    $("lkVerse").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); doLookup(); }
+    });
+
+    // Advanced controls.
+    $("letterSpacing").addEventListener("input", function () { state.letterSpacing = +this.value; $("lsVal").textContent = (state.letterSpacing / 10) + "%"; update(); });
+    $("lineHeight").addEventListener("input", function () { state.lineHeight = +this.value; $("lhVal").textContent = (state.lineHeight / 100).toFixed(2); update(); });
+    $("textOpacity").addEventListener("input", function () { state.textOpacity = +this.value; $("toVal").textContent = state.textOpacity + "%"; update(); });
+    $("textShadow").addEventListener("input", function () { state.textShadow = +this.value; $("shVal").textContent = state.textShadow; update(); });
+    $("textTransform").addEventListener("change", function () { state.textTransform = this.value; update(); });
+    $("refScale").addEventListener("input", function () { state.refScale = +this.value; $("rsVal").textContent = state.refScale + "%"; update(); });
+    $("refUpper").addEventListener("change", function () { state.refUpper = this.checked; update(); });
+    $("vertPos").addEventListener("input", function () { state.vertPos = +this.value; $("vpVal").textContent = state.vertPos + "%"; update(); });
+    $("padding").addEventListener("input", function () { state.padding = +this.value; $("padVal").textContent = state.padding + "%"; update(); });
+    $("vignette").addEventListener("input", function () { state.vignette = +this.value; $("vgVal").textContent = state.vignette + "%"; update(); });
+    $("grain").addEventListener("input", function () { state.grain = +this.value; $("grVal").textContent = state.grain; update(); });
+
+    // Image background.
+    $("pickImage").addEventListener("click", function () { $("imageFile").click(); });
+    $("imageFile").addEventListener("change", function () {
+      if (this.files && this.files[0]) importImage(this.files[0]);
+      this.value = "";
+    });
+    $("clearImage").addEventListener("click", function () {
+      state.imageData = null; state.imageName = "";
+      syncControls(); refreshSelection(); update();
+      toast("Image removed");
+    });
+    $("imgFit").addEventListener("change", function () { state.imgFit = this.value; update(); });
+    $("imgPos").addEventListener("change", function () { state.imgPos = this.value; update(); });
+    $("imgDim").addEventListener("input", function () { state.imgDim = +this.value; $("imgDimVal").textContent = state.imgDim + "%"; update(); });
+    $("imgBlur").addEventListener("input", function () { state.imgBlur = +this.value; $("imgBlurVal").textContent = state.imgBlur + "%"; update(); });
+    $("imgTint").addEventListener("input", function () { state.imgTint = this.value; update(); });
+
+    // Advanced mode toggle (corner button).
+    $("advToggle").addEventListener("click", function () {
+      state.advanced = !state.advanced;
+      document.body.classList.toggle("advanced", state.advanced);
+      this.setAttribute("aria-pressed", String(state.advanced));
+      persist();
+    });
+
+    $("download").addEventListener("click", function () {
+      var btn = this;
+      btn.disabled = true;
+      loadImageIfNeeded(function () {
+        var off = document.createElement("canvas");
+        render(off, 1);
+        var size = curSize();
+        try {
+          off.toBlob(function (blob) {
+            var a = document.createElement("a");
+            var url = URL.createObjectURL(blob);
+            a.href = url;
+            a.download = "verse-" + state.size + "-" + Date.now() + ".png";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+            btn.disabled = false;
+            toast("PNG downloaded (" + size.w + "×" + size.h + ")");
+          }, "image/png");
+        } catch (e) {
+          btn.disabled = false;
+          toast("Export failed");
+        }
+      });
+    });
+
+    $("copy").addEventListener("click", function () {
+      loadImageIfNeeded(function () {
+        var off = document.createElement("canvas");
+        render(off, 1);
+        if (navigator.clipboard && navigator.clipboard.write && window.ClipboardItem) {
+          off.toBlob(function (blob) {
+            navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+              .then(function () { toast("Image copied to clipboard"); })
+              .catch(function () { toast("Copy not supported — use Download"); });
+          }, "image/png");
+        } else {
+          toast("Copy not supported — use Download");
+        }
+      });
+    });
+
+    $("randomize").addEventListener("click", function () {
+      var bg = BGS[Math.floor(Math.random() * BGS.length)];
+      var layout = LAYOUTS[Math.floor(Math.random() * LAYOUTS.length)];
+      var fonts = Array.prototype.map.call($("font").options, function (o) { return o.value; });
+      if (state.imageData && Math.random() < 0.5) {
+        state.bg = IMAGE_BG;
+      } else {
+        state.bg = bg.id; state.c1 = bg.c1; state.c2 = bg.c2; state.angle = bg.angle;
+        state.textColor = BG_TEXT[bg.id] || (isDark(bg.c1) || isDark(bg.c2) ? "#ffffff" : "#3a2a14");
+        state.accentColor = isDark(state.textColor) ? state.textColor : "#ffffff";
+      }
+      state.layout = layout.id;
+      state.font = fonts[Math.floor(Math.random() * fonts.length)];
+      syncControls();
+      refreshSelection();
+      update();
+      toast(layout.name + " · " + (state.bg === IMAGE_BG ? "Your image" : bg.name));
+    });
+
+    $("reset").addEventListener("click", function () {
+      try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+      location.reload();
+    });
+
+    // ---------- Boot ----------
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (saved && typeof saved === "object") {
+        for (var k in DEFAULTS) {
+          if (k in saved) { state[k] = saved[k]; }
+        }
+      }
+    } catch (e) {}
+
+    document.body.classList.toggle("advanced", !!state.advanced);
+    $("advToggle").setAttribute("aria-pressed", String(!!state.advanced));
+
+    syncControls();
+    update();
+
+    // Re-render when fonts finish loading (guards against odd environments).
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { update(); });
+    }
+
+    // Prepopulate the lookup book list.
+    try { initBookSelect(); } catch (e) {}
+  })();
+  </script>
+</body>
+</html>

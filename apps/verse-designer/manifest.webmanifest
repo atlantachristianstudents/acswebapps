@@ -1,0 +1,13 @@
+{
+  "name": "Verse Designer",
+  "short_name": "Verse Designer",
+  "description": "Design beautiful Bible verse wallpapers and shareable images. Export as PNG, entirely offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#3b4bf5",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
