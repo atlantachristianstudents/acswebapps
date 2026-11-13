@@ -8,18 +8,18 @@ This is the standard for new apps and redesigned controls. Existing interfaces a
 
 | Role / CSS token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--bg` | `#faf9f6` | `#091c2b` | Page background |
-| `--surface` | `#ffffff` | `#102b40` | Panels, menus, inputs |
-| `--surface-hover` | `#f0f2ef` | `#19394f` | Hovered neutral controls |
-| `--text` | `#163248` | `#faf9f6` | Main text |
-| `--muted` | `#576773` | `#c8d5df` | Supporting text |
-| `--border` | `#e0e4e4` | `#344e60` | Decorative separators |
-| `--control-border` | `#78858d` | `#859aaa` | Input and control boundaries |
-| `--accent` | `#082b46` | `#edc66b` | Primary actions, links, focus |
-| `--accent-hover` | `#163f5e` | `#f5d78f` | Primary action hover |
-| `--accent-soft` | `#edf1f4` | `#3b3424` | Selected backgrounds |
-| `--accent-text` | `#ffffff` | `#082b46` | Text on accent backgrounds |
-| `--danger` | `#a52f35` | `#ffb3b7` | Destructive actions and errors |
+| `--bg` | <span style="display:inline-block;width:1em;height:1em;background:#faf9f6;border:1px solid #78858d;vertical-align:middle"></span> `#faf9f6` | <span style="display:inline-block;width:1em;height:1em;background:#091c2b;border:1px solid #78858d;vertical-align:middle"></span> `#091c2b` | Page background |
+| `--surface` | <span style="display:inline-block;width:1em;height:1em;background:#ffffff;border:1px solid #78858d;vertical-align:middle"></span> `#ffffff` | <span style="display:inline-block;width:1em;height:1em;background:#102b40;border:1px solid #78858d;vertical-align:middle"></span> `#102b40` | Panels, menus, inputs |
+| `--surface-hover` | <span style="display:inline-block;width:1em;height:1em;background:#f0f2ef;border:1px solid #78858d;vertical-align:middle"></span> `#f0f2ef` | <span style="display:inline-block;width:1em;height:1em;background:#19394f;border:1px solid #78858d;vertical-align:middle"></span> `#19394f` | Hovered neutral controls |
+| `--text` | <span style="display:inline-block;width:1em;height:1em;background:#163248;border:1px solid #78858d;vertical-align:middle"></span> `#163248` | <span style="display:inline-block;width:1em;height:1em;background:#faf9f6;border:1px solid #78858d;vertical-align:middle"></span> `#faf9f6` | Main text |
+| `--muted` | <span style="display:inline-block;width:1em;height:1em;background:#576773;border:1px solid #78858d;vertical-align:middle"></span> `#576773` | <span style="display:inline-block;width:1em;height:1em;background:#c8d5df;border:1px solid #78858d;vertical-align:middle"></span> `#c8d5df` | Supporting text |
+| `--border` | <span style="display:inline-block;width:1em;height:1em;background:#e0e4e4;border:1px solid #78858d;vertical-align:middle"></span> `#e0e4e4` | <span style="display:inline-block;width:1em;height:1em;background:#344e60;border:1px solid #78858d;vertical-align:middle"></span> `#344e60` | Decorative separators |
+| `--control-border` | <span style="display:inline-block;width:1em;height:1em;background:#78858d;border:1px solid #78858d;vertical-align:middle"></span> `#78858d` | <span style="display:inline-block;width:1em;height:1em;background:#859aaa;border:1px solid #78858d;vertical-align:middle"></span> `#859aaa` | Input and control boundaries |
+| `--accent` | <span style="display:inline-block;width:1em;height:1em;background:#082b46;border:1px solid #78858d;vertical-align:middle"></span> `#082b46` | <span style="display:inline-block;width:1em;height:1em;background:#edc66b;border:1px solid #78858d;vertical-align:middle"></span> `#edc66b` | Primary actions, links, focus |
+| `--accent-hover` | <span style="display:inline-block;width:1em;height:1em;background:#163f5e;border:1px solid #78858d;vertical-align:middle"></span> `#163f5e` | <span style="display:inline-block;width:1em;height:1em;background:#f5d78f;border:1px solid #78858d;vertical-align:middle"></span> `#f5d78f` | Primary action hover |
+| `--accent-soft` | <span style="display:inline-block;width:1em;height:1em;background:#edf1f4;border:1px solid #78858d;vertical-align:middle"></span> `#edf1f4` | <span style="display:inline-block;width:1em;height:1em;background:#3b3424;border:1px solid #78858d;vertical-align:middle"></span> `#3b3424` | Selected backgrounds |
+| `--accent-text` | <span style="display:inline-block;width:1em;height:1em;background:#ffffff;border:1px solid #78858d;vertical-align:middle"></span> `#ffffff` | <span style="display:inline-block;width:1em;height:1em;background:#082b46;border:1px solid #78858d;vertical-align:middle"></span> `#082b46` | Text on accent backgrounds |
+| `--danger` | <span style="display:inline-block;width:1em;height:1em;background:#a52f35;border:1px solid #78858d;vertical-align:middle"></span> `#a52f35` | <span style="display:inline-block;width:1em;height:1em;background:#ffb3b7;border:1px solid #78858d;vertical-align:middle"></span> `#ffb3b7` | Destructive actions and errors |
 
 Copy tokens into each app's inline stylesheet; never load a shared stylesheet from outside its folder. The starter includes both system theme detection and an explicit `data-theme` override. Preserve existing theme storage keys when migrating apps.
 
