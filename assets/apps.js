@@ -13,14 +13,14 @@
  */
 window.APPS = [
   {
-    id: "rcv-chronological",
-    name: "Chronological · Recovery Version",
+    id: "chronological-bible",
+    name: "Chronological Bible",
     description: "Read the Recovery Version in chronological order, with timeline navigation, Scripture search, and saved readings. Works offline.",
     icon: "📖",
-    iconUrl: "apps/rcv-chronological/dist/icon.svg",
+    iconUrl: "apps/chronological-bible/dist/icon.svg",
     tags: ["Study"],
     status: "beta",
-    url: "apps/rcv-chronological/dist/"
+    url: "apps/chronological-bible/dist/"
   },
   {
     id: "bible-connections",

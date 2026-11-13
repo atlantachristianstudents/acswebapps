@@ -1,5 +1,5 @@
-const CACHE = 'rcv-chronological-v17';
-const FILES = ['./', 'index.html', 'style.css', 'app.js', 'data.js', 'manifest.json', 'icon.svg'];
+const CACHE = 'rcv-chronological-v18';
+const FILES = ['./', 'index.html'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
@@ -9,8 +9,6 @@ self.addEventListener('activate', e => {
     .map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin ||
-      !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
-  e.respondWith(caches.open(CACHE).then(c => c.match(e.request)).then(r => r || fetch(e.request)));
+  if (e.request.mode !== 'navigate') return;
+  e.respondWith(fetch(e.request).catch(() => caches.match('index.html')));
 });

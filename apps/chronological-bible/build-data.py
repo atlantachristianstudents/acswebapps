@@ -1,6 +1,6 @@
 import re,json,zipfile,xml.etree.ElementTree as E,collections
 from pathlib import Path
-base=Path('/Users/zionpark/Downloads'); out=base/'rcv-chronological'
+base=Path('/Users/zionpark/Downloads'); out=base/'chronological-bible'
 s=(base/'verse-lookup-embedded.html').read_text(); d=json.loads(re.search(r'<script type="application/json" id="embedded">(.*?)</script>',s,re.S)[1]); text=next(v['text'] for v in d['versions'] if v['name']=='RcV.txt')
 short=['Gen.','Exo.','Lev.','Num.','Deut.','Josh.','Judg.','Ruth','1 Sam.','2 Sam.','1 Kings','2 Kings','1 Chron.','2 Chron.','Ezra','Neh.','Esth.','Job','Psa.','Prov.','Eccl.','S.S.','Isa.','Jer.','Lam.','Ezek.','Dan.','Hosea','Joel','Amos','Oba.','Jonah','Micah','Nahum','Hab.','Zeph.','Hag.','Zech.','Mal.','Matt.','Mark','Luke','John','Acts','Rom.','1 Cor.','2 Cor.','Gal.','Eph.','Phil.','Col.','1 Thes.','2 Thes.','1 Tim.','2 Tim.','Titus','Philem.','Heb.','James','1 Pet.','2 Pet.','1 John','2 John','3 John','Jude','Rev.']
 long='Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|1 Samuel|2 Samuel|1 Kings|2 Kings|1 Chronicles|2 Chronicles|Ezra|Nehemiah|Esther|Job|Psalm|Proverbs|Ecclesiastes|Song of Solomon|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|John|Acts|Romans|1 Corinthians|2 Corinthians|Galatians|Ephesians|Philippians|Colossians|1 Thessalonians|2 Thessalonians|1 Timothy|2 Timothy|Titus|Philemon|Hebrews|James|1 Peter|2 Peter|1 John|2 John|3 John|Jude|Revelation'.split('|')
