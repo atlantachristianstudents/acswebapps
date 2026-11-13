@@ -8,6 +8,8 @@ Run `python3 -m http.server 8080 --directory dist` from this directory for local
 
 ## ACS Web Apps integration
 
+Open the app at `https://acswebapps.com/apps/rcv-chronological/`. The folder’s `index.html` forwards to `dist/`, preserving query parameters and verse fragments. The forwarding page does not emit usage events; the reader counts its own open.
+
 The home-page registry links directly to `dist/`, the self-contained runnable app. No build is required. Open `dist/index.html` directly for local reading, or serve `dist/` over HTTP for installation and offline caching. On a supported browser, open the app online once, then use the browser’s Install/Add to Home Screen command. Wait for the initial cache download before going offline.
 
 The deployed reader uses the standard ACS anonymous usage counts with the fixed `rcv-chronological` identifier; Scripture, searches, bookmarks, and reading position are never sent. Local hosting and privacy opt-outs disable counts. The standalone HTML export is a separate local-use artifact and does not report usage.
