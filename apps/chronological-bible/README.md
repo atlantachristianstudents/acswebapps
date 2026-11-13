@@ -8,7 +8,7 @@ Run `python3 -m http.server 8080 --directory dist` from this directory for local
 
 ## Passage selection
 
-Open Search to choose a book, chapter, and verse from tables, or type a reference or phrase. Click a cell, or Tab into the table and use the arrow keys to move between cells. Enter or Space selects the focused cell; selecting a verse opens it in the reader. Home/End move to the first/last cell in a row; Ctrl+Home/End move to the first/last cell in the table. Use the Books, book name, and chapter buttons above the table to revisit a selection. Escape closes Search.
+Open Search to choose a book, chapter, and verse from tables, or type a reference or phrase. Click a cell, or Tab into the table and use the arrow keys to move between cells. Enter or Space selects the focused cell; selecting a verse opens it in the reader. Home/End move to the first/last cell in a row; Ctrl+Home/End move to the first/last cell in the table. Use the Books, book name, and chapter buttons above the table to revisit a selection. Escape closes Search. On phones, book tables use two readable columns and touch targets are at least 44px high. Search opens with the passage table focused on touch devices, keeping the keyboard closed until you tap the text field. The text field uses 16px type, and the dialog fits the available viewport; normal pinch zoom remains available.
 
 ## ACS Web Apps integration
 

@@ -14,14 +14,14 @@ function go(i,target=-1){state.index=i;focusVerse=target;history.replaceState(nu
 function jump(v){const i=parts.findIndex(p=>v>=p.start&&v<p.end);if(i>=0)go(i,v)}
 $('#eras').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.era!==undefined)go(parts.findIndex(p=>p.era===+b.dataset.era));else go(+b.dataset.part)};
 $('#previous').onclick=()=>go(Math.max(0,state.index-1));$('#next').onclick=()=>go(Math.min(parts.length-1,state.index+1));$('#home').onclick=e=>{e.preventDefault();go(0)};$('#bookmark').onclick=()=>{const at=state.saved.indexOf(state.index);if(at<0)state.saved.push(state.index);else state.saved.splice(at,1);state.saved.sort((a,b)=>a-b);persist();render(false)};$('#timelineTab').onclick=()=>{savedView=false;nav()};$('#savedTab').onclick=()=>{savedView=true;nav()};$('#menu').onclick=()=>document.body.classList.add('nav-open');$('#close').onclick=$('#shade').onclick=()=>document.body.classList.remove('nav-open');
-$('#searchOpen').onclick=()=>{$('#searchDialog').showModal();$('#query').focus()};$('#settingsOpen').onclick=()=>$('#settings').showModal();$('#about').onclick=()=>$('#info').showModal();document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('#smaller').onclick=()=>{fontBeforeMax=null;state.size=Math.max(16,state.size-1);appearance()};$('#larger').onclick=()=>{fontBeforeMax=null;state.size=Math.min(28,state.size+1);appearance()};document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;appearance()});
+$('#searchOpen').onclick=()=>{$('#searchDialog').showModal();if(matchMedia('(hover: none) and (pointer: coarse)').matches)passageTable.querySelector('button[tabindex="0"]')?.focus({preventScroll:true});else $('#query').focus()};$('#settingsOpen').onclick=()=>$('#settings').showModal();$('#about').onclick=()=>$('#info').showModal();document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('#smaller').onclick=()=>{fontBeforeMax=null;state.size=Math.max(16,state.size-1);appearance()};$('#larger').onclick=()=>{fontBeforeMax=null;state.size=Math.min(28,state.size+1);appearance()};document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;appearance()});
 const passageTable=$('#passageTable');
 let passageBook='',passageChapter=0,passageStage='books',passageColumns=3;
 const passageIndex=new Map();
 verses.forEach(([ref],i)=>{const m=ref.match(/^(.*) (\d+):(\d+)$/);if(!m)return;if(!passageIndex.has(m[1]))passageIndex.set(m[1],new Map());const chapters=passageIndex.get(m[1]);if(!chapters.has(+m[2]))chapters.set(+m[2],new Map());chapters.get(+m[2]).set(+m[3],i)});
 function renderPassage(focus=false){
   const values=passageStage==='books'?books:passageStage==='chapters'?[...passageIndex.get(passageBook).keys()].sort((a,b)=>a-b):[...passageIndex.get(passageBook).get(passageChapter).keys()].sort((a,b)=>a-b);
-  passageColumns=passageStage==='books'?3:5;
+  passageColumns=passageStage==='books'?(matchMedia('(max-width: 600px)').matches?2:3):5;
   $('#passageBook').hidden=!passageBook;$('#passageBook').textContent=passageBook;
   $('#passageChapter').hidden=!passageChapter;$('#passageChapter').textContent='Chapter '+passageChapter;
   const label=passageStage==='books'?'Choose a book':passageStage==='chapters'?passageBook+' — choose a chapter':passageBook+' '+passageChapter+' — choose a verse';
@@ -54,6 +54,11 @@ passageTable.onkeydown=e=>{
   else return;
   e.preventDefault();e.stopPropagation();buttons[next].focus();
 };
+matchMedia('(max-width: 600px)').addEventListener('change',()=>{
+  const active=document.activeElement,inTable=passageTable.contains(active),choice=active?.dataset.choice;
+  renderPassage();
+  if(inTable)passageTable.querySelector(`[data-choice="${choice}"]`)?.focus({preventScroll:true});
+});
 renderPassage();
 let timer;$('#query').oninput=()=>{clearTimeout(timer);timer=setTimeout(search,130)};
 function search(){const raw=$('#query').value.trim(),q=raw.toLowerCase().replace(/psalms/g,'psalm');if(q.length<2){$('#results').innerHTML='';$('#searchHint').textContent='Enter at least two characters.';return}const hits=[];let total=0;const refQuery=/\d/.test(q);for(let i=0;i<verses.length;i++){const [ref,text]=verses[i],r=ref.toLowerCase();if((refQuery&&(r===q||r.startsWith(q+':')||r.startsWith(q+' ')))||(!refQuery&&(text.toLowerCase().includes(q)||r.startsWith(q)))){total++;if(hits.length<80)hits.push(i)}}$('#searchHint').textContent=total?`${total.toLocaleString()} results${total>80?' · showing the first 80':''}`:'No matches. Try a full book name or a different phrase.';$('#results').innerHTML=hits.map(i=>`<button data-verse="${i}"><b>${esc(verses[i][0])} · ${esc(eras[verses[i][2]].title)}</b><span>${esc(verses[i][1])}</span></button>`).join('')}

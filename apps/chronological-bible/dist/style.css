@@ -7,3 +7,8 @@ body.large-text #reader{padding-left:32px;padding-right:32px}body.larger-text #r
 body.larger-text #reader{padding-left:12px;padding-right:12px}@media(max-width:1000px){body.larger-text #reader{padding-left:12px;padding-right:12px}}@media(max-width:700px){body.larger-text #reader{padding-left:10px;padding-right:10px}}:fullscreen #reader{max-width:none;padding-left:12px;padding-right:12px}
 
 article p{transition:font-size .22s cubic-bezier(.2,.8,.2,1),line-height .22s cubic-bezier(.2,.8,.2,1)}#reader{transition:padding .22s cubic-bezier(.2,.8,.2,1)}@media(prefers-reduced-motion:reduce){article p,#reader{transition:none}}
+
+/* Keep phone controls readable without requiring page zoom. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}input{font-size:16px}.dialoghead button{min-width:44px;min-height:44px}.passage-select td button{touch-action:manipulation}.passage-path button{font-size:14px}.passage-select td button{font-size:16px}.passage-select .book-table button{font-size:14px;word-break:normal;overflow-wrap:normal}.passage-select>p{font-size:14px}
+@media(max-width:600px){dialog{width:calc(100% - 16px);max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);padding:16px;margin:auto;overscroll-behavior:contain}.dialoghead{margin-bottom:12px;gap:8px}.dialoghead h2{font-size:24px}.passage-select{margin-top:12px}.passage-select caption{padding:8px 4px}.passage-select table{border-spacing:4px}.passage-select .book-table button{padding:10px 6px}.tools button,#menu,#close{min-width:44px;min-height:44px}#reader{overflow-wrap:break-word}}
+@media(hover:none) and (pointer:coarse){#passageKeys{display:none}}
