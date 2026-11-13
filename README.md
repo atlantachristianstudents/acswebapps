@@ -8,6 +8,8 @@
 
 The Tools filter includes Bible Translation Explorer and Bible Connections. Show Time appears under Presentation.
 
+For contributors: start with the [product vision](VISION.md), [design guide](DESIGN.md), and [contribution workflow](CONTRIBUTING.md). These define the audience, warm off-white, navy, and gold design direction, backlog, review policy, and release checks.
+
 ## Table of contents
 
 - [Apps](#apps)
@@ -29,6 +31,7 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 
 | App | What it does | Status |
 | --- | --- | --- |
+| [Chronological · Recovery Version](https://atlantachristianstudents.github.io/acswebapps/apps/rcv-chronological/dist/) | Read the Recovery Version in chronological order with timeline navigation, search, saved readings, and offline access. | beta |
 | [Bible Connections](https://atlantachristianstudents.github.io/acswebapps/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Show Time](https://atlantachristianstudents.github.io/acswebapps/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://atlantachristianstudents.github.io/acswebapps/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
@@ -54,7 +57,7 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 
 ## Technologies
 
-Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. The only scheduled automation refreshes Show Songs’s Songbase data; apps are still served as-is.
+Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. Scheduled automation refreshes Show Songs’s Songbase data. A separate validation workflow checks pull requests and pushes to `main`; neither workflow builds the apps, which are still served as-is.
 
 A few apps bundle or use specialized pieces:
 
@@ -109,8 +112,13 @@ manifest.json              Home page web-app manifest (standalone PWA)
 sw.js                      Home page service worker (skips apps/, which have their own)
 .nojekyll                  Tells GitHub Pages to serve files as-is (no Jekyll processing)
 AGENTS.md                  Conventions for AI coding agents working in this repo
+VISION.md                  Audience, product commitments, and priorities
+DESIGN.md                  Shared palette, controls, and accessibility guidance
+CONTRIBUTING.md            Backlog, reviews, validation, and release policy
+scripts/validate.py        Dependency-free repository and cache-version checks
 .github/workflows/
   update-songbase.yml       Refresh Show Songs’s Songbase data every six hours
+  validate.yml              Validate PRs and main without a build step
 assets/
   apps.js                  App registry — edit this to add or list apps
   main.js                  Theme toggle, tag filters, search, keyboard shortcuts, cards
@@ -123,17 +131,18 @@ apps/
   logostype/               Scripture typing, reading, records, and friend races
   memorize/                Memorization practice with word comparison and PDF import
   verse-review/            Offline Bible verse practice with spaced reviews
+  rcv-chronological/       Chronological Recovery Version reader (served from dist/)
   show-songs/              Full-screen hymn numbers and text
   tunes/                   Tuner, metronome, tone generator, and chord detection
   show-words/              Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
 ```
 
-App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
+App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. The imported Chronological Recovery Version reader keeps its runnable files, including `manifest.json`, in `apps/rcv-chronological/dist/`; its source-data helper and standalone HTML export stay alongside that folder. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
 
 ## Adding a new app
 
-1. Copy `apps/_template/` to `apps/<app-id>/` (for example, `apps/tuner/`). The folder name is the app's `id`.
+1. Agree on the app’s purpose and smallest useful release in an issue with the project lead (see [VISION.md](VISION.md)). Copy `apps/_template/` to `apps/<app-id>/` (for example, `apps/tuner/`). The folder name is the app's `id`.
 2. Build the app inside `apps/<app-id>/index.html`. Keep everything self-contained and use **relative paths only**, so the app works offline and on any static host. See `apps/_template/README.md` for the checklist.
 3. Register the app in `assets/apps.js` by adding an entry and setting `status` to `"live"` or `"beta"`:
 
@@ -148,7 +157,7 @@ App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and
    }
    ```
 
-4. Commit and push. The card appears on the home page automatically.
+4. Run the [validation and manual checks](CONTRIBUTING.md#verify-before-review), then open a PR with project-lead approval for the new app. After merge and deployment, the registry makes the card appear automatically.
 
 Statuses are `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination. The registry fields are also documented in the header comment of `assets/apps.js`.
 
@@ -188,14 +197,11 @@ You can also open an issue on GitHub: <https://github.com/atlantachristianstuden
 
 ## Contributing
 
-Issues, suggestions, and pull requests are welcome. Before opening a PR:
+Issues, suggestions, and pull requests are welcome. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow. Ordinary changes need one other collaborator's approval; new apps and major direction changes also need project-lead approval.
 
-1. Run a local server and verify the change in the browser.
-2. Keep every app self-contained, with no new dependencies, CDN links, or build tools.
-3. Bump the relevant service-worker cache version (see above) whenever cached files change.
-4. Update the root README, the app's `README.md`, and the `assets/apps.js` header comment when behavior, structure, or registry fields change.
+Run `python3 scripts/validate.py --base origin/main` before review, then record relevant browser checks in the PR. The validator uses Python's standard library and Node's built-in syntax checking; there is no dependency installation or build step. It checks classic inline and external JavaScript, manifests and their local targets, registry destinations, service-worker asset lists, and cache-version increases against the selected base.
 
-Contributions to the home page should keep it dependency-free and accessible (keyboard operable, ARIA labels accurate).
+The GitHub workflow runs on PRs and pushes to `main`. Branch protection, required checks, the shared backlog, and project-lead review assignments need repository setup; see the [setup checklist](CONTRIBUTING.md#repository-setup-checklist), including the scheduled Songbase updater's direct-push requirement.
 
 ## License
 
@@ -204,7 +210,7 @@ Please see the repository on GitHub for licensing details (no license file is bu
 
 ## App usage analytics
 
-All ten registered apps contain a self-contained, dependency-free `adless-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
+Registered apps contain a self-contained, dependency-free `adless-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
 
 Only fixed app and event labels are explicitly sent via GoatCounter's tracking pixel endpoint; no third-party scripts, cookies, referrers, URL parameters, searches, user content, or persistent visitor identifiers are added. The service receives IP addresses and browser headers as part of the request. Do Not Track and Global Privacy Control suppress all reporting. Localhost, file hosting, and automated browsers are excluded. A per-tab sessionStorage queue retries offline/failed events on reconnection, when the tab becomes visible, and every minute after a visible failure. It holds at most 100 events for seven days and can be lost when a tab closes. Delivery time determines the date in the dashboard; blockers, interrupted requests, and browser install-event support make totals approximate.
 

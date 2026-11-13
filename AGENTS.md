@@ -32,6 +32,15 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | `apps/<id>/manifest.webmanifest` | Per-app PWA manifest. |
 | `apps/_template/` | Starter kit for new apps. |
 
+## Product direction and contribution workflow
+
+- Read `VISION.md`, `DESIGN.md`, and `CONTRIBUTING.md` before feature or interface work.
+- Primary audience: Christian students and campus gatherings; tools remain open to everyone.
+- New interfaces use the warm off-white, navy, and gold design tokens demonstrated in `apps/_template/`. Existing apps migrate gradually during relevant work, with no broad restyling as part of unrelated fixes.
+- Work on branches and open PRs. Ordinary changes need another collaborator's approval; new apps and major direction changes also need project-lead approval. Obtain agreement on major scope in an issue before implementation.
+- Run `python3 scripts/validate.py --base origin/main` plus relevant manual checks. Documentation-only changes need link/diff checks.
+- Keep the Songbase workflow's direct pushes and Pages rebuild in mind when configuring branch protection; follow the setup checklist in `CONTRIBUTING.md`.
+
 ## Coding conventions
 
 - Vanilla JS only; no frameworks, no libraries, no npm packages.
@@ -74,7 +83,7 @@ node --check apps/<id>/sw.js
 node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8'));console.log('ok')"
 ```
 
-There is no test suite, formatter, or linter configured. Verification means: the server serves every page and manifest with HTTP 200, `node --check` passes on edited JS, and manual browser checks on `localhost` (which counts as secure, so camera/ microphone and service workers work).
+The dependency-free `scripts/validate.py` checks JavaScript syntax (including inline classic scripts), manifests, registry destinations, offline asset lists, and, with `--base REF`, cache-version increases. `.github/workflows/validate.yml` runs it on PRs and pushes to `main`. There is no formatter or linter configured. Manual verification still means: the server serves every page and manifest with HTTP 200, `node --check` passes on edited JS, and manual browser checks on `localhost` (which counts as secure, so camera/ microphone and service workers work).
 
 ## Common pitfalls
 
@@ -102,6 +111,7 @@ There is no test suite, formatter, or linter configured. Verification means: the
 Update docs in the same change when the implementation changes:
 
 - Root `README.md` — structure, features, adding-an-app workflow, deployment, troubleshooting.
+- `VISION.md`, `DESIGN.md`, and `CONTRIBUTING.md` — product direction, shared design rules, or contributor/release policy when those change.
 - The relevant `apps/<id>/README.md` — app-specific behavior and install instructions.
 - `assets/apps.js` header comment — registry field docs.
 - This file — conventions and pitfalls that change.
