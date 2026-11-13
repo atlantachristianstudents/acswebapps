@@ -212,16 +212,16 @@
     }
     button.ghost:hover { border-color: var(--accent); }
     /* Sticky preview: stays in view while scrolling through the controls.
-       It starts below the sticky top bar so nothing is covered. */
+       It sits flush under the sticky top bar so nothing is covered. */
     .preview-col { align-self: stretch; }
     .preview-sticky {
       position: sticky;
-      top: calc(var(--topbar-h) + .5rem);
+      top: var(--topbar-h);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: .4rem;
-      max-height: calc(100vh - var(--topbar-h) - 1rem);
+      max-height: calc(100vh - var(--topbar-h));
       overflow: hidden;
     }
     .preview-wrap {
@@ -245,11 +245,11 @@
       text-align: center;
       margin: 0;
     }
-    /* Phones: preview sticks just under the top bar with a tighter budget
+    /* Phones: preview sticks flush under the top bar with a tighter budget
        so the controls below stay reachable. */
     @media (max-width: 880px) {
       .preview-sticky {
-        top: calc(var(--topbar-h) + .35rem);
+        top: var(--topbar-h);
         max-height: none;
         z-index: 5;
         padding-bottom: .35rem;
@@ -1917,6 +1917,15 @@
     });
 
     // ---------- Boot ----------
+    // Every load starts at the top. The browser would otherwise restore the
+    // scroll offset, which puts a refreshed page straight back at the
+    // advanced section it was scrolled to — the scroll must only happen
+    // when the Advanced button is pressed.
+    try {
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      window.scrollTo(0, 0);
+    } catch (e) {}
+
     // Measure the top bar so the sticky preview clears it.
     syncBarHeight();
     if (window.ResizeObserver) {
