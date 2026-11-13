@@ -17,10 +17,10 @@ window.APPS = [
     name: "Chronological · Recovery Version",
     description: "Read the Recovery Version in chronological order, with timeline navigation, Scripture search, and saved readings. Works offline.",
     icon: "📖",
-    iconUrl: "apps/rcv-chronological/dist/icon.svg",
+    iconUrl: "apps/rcv-chronological/icons/icon.svg",
     tags: ["Study"],
     status: "beta",
-    url: "apps/rcv-chronological/dist/"
+    url: "apps/rcv-chronological/"
   },
   {
     id: "bible-connections",

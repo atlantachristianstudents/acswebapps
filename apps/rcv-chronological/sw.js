@@ -1,5 +1,5 @@
-const CACHE = 'rcv-chronological-v4';
-const FILES = ['./', 'index.html', 'style.css', 'app.js', 'data.js', 'manifest.json', 'icon.svg'];
+const CACHE = 'rcv-chronological-v6';
+const FILES = ['./', 'index.html', 'style.css', 'app.js', 'order.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
