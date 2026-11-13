@@ -1,6 +1,6 @@
 {
-  "name": "Tunes",
-  "short_name": "Tunes",
+  "name": "Tune",
+  "short_name": "Tune",
   "description": "Tuner, metronome, tone generator and chord detector that works offline.",
   "start_url": "./index.html",
   "scope": "./",

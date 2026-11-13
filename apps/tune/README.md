@@ -1,4 +1,4 @@
-# Tunes
+# Tune
 
 Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; navigation back to ACS Web Apps is in the bottom-right **?** menu.
 
@@ -7,7 +7,7 @@ Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detec
   - Android / Chrome / Edge desktop: browser menu > Install app
   - iPhone / iPad: Safari > Share > Add to Home Screen
   - Mac Safari: File > Add to Dock
-- After the first load, Tunes runs fully offline.
+- After the first load, Tune runs fully offline.
 
 ## Local use
 Run `python3 -m http.server 8000` in this folder and open http://localhost:8000 (localhost counts as secure, so install and offline work there too).
@@ -23,9 +23,9 @@ Type or paste lyrics with inline chords (e.g. `G   D   Em   C`), pick the chart'
 - The transposed chart updates live, keeps your line layout, and can be copied with one tap. Chart text, key, transpose and capo are remembered on this device.
 
 ## Microphone permission
-Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tunes also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
+Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tune also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
 
-When you switch apps, lock the screen, or leave the page, Tunes releases microphone capture and reconnects when you return. If your browser requires a tap to resume audio, tap **Resume listening**. If microphone access fails, use **Enable microphone** to retry. This also applies when launched from the home screen.
+When you switch apps, lock the screen, or leave the page, Tune releases microphone capture and reconnects when you return. If your browser requires a tap to resume audio, tap **Resume listening**. If microphone access fails, use **Enable microphone** to retry. This also applies when launched from the home screen.
 
 
 ## Usage counts
@@ -34,8 +34,14 @@ This app reports fixed app/event labels to GoatCounter for visible page opens, o
 
 No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
 
-Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/tunes/open`, `apps/tunes/installed-open`, or `apps/tunes/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
+Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/tune/open`, `apps/tune/installed-open`, or `apps/tune/install`. The self-contained `adless-usage` script in `index.html` must stay in sync with the other apps.
 
 Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Tuner as part of the ACS Web Apps project, with a link to the app directory.
+The help menu identifies Tune as part of the ACS Web Apps project, with a link to the app directory.
+
+## App icon
+
+The directory, browser tab, and installed app use a warm-white tuning fork on a forest-green background, matching the simple rounded icon style of the other live apps. Maskable icons keep the tuning fork within the central safe area.
+
+The app lives at `apps/tune/`. The existing `tunes.chordstudio` storage key is retained so saved chord-studio settings survive the rename on the same origin.

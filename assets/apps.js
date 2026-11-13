@@ -100,13 +100,14 @@ window.APPS = [
     url: "apps/show-words"
   },
   {
-    id: "tunes",
-    name: "Tuner",
+    id: "tune",
+    name: "Tune",
+    iconUrl: "apps/tune/icons/icon.svg",
     description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
     icon: "🎸",
     tags: ["Worship", "Music"],
     status: "live",
-    url: "apps/tunes"
+    url: "apps/tune"
   },
   {
     id: "verse-designer",
