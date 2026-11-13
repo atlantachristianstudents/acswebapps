@@ -6,6 +6,10 @@ Text comes from the RcV payload embedded in the local verse-lookup-embedded.html
 
 Run `python3 -m http.server 8080 --directory dist` from this directory for local use.
 
+## Passage selection
+
+Open Search to choose a book, chapter, and verse from tables, or type a reference or phrase. Click a cell, or Tab into the table and use the arrow keys to move between cells. Enter or Space selects the focused cell; selecting a verse opens it in the reader. Home/End move to the first/last cell in a row; Ctrl+Home/End move to the first/last cell in the table. Use the Books, book name, and chapter buttons above the table to revisit a selection. Escape closes Search.
+
 ## ACS Web Apps integration
 
 Open the app at `https://acswebapps.com/apps/chronological-bible/`. The folder’s `index.html` forwards to `dist/`, preserving query parameters and verse fragments. The forwarding page does not emit usage events; the reader counts its own open.
