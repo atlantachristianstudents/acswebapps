@@ -134,6 +134,14 @@ html.editing-calendar #plan-calendar>.calendar-toolbar:first-child,html.editing-
 #settings .plan-toolbar{justify-content:flex-start}
 #toggle-calendar{margin-left:auto}
 html.keyboard-open #schedule-transfer-status{display:none}
+
+/* Consistent field focus and text selection on mobile browsers. */
+#settings :is(textarea,input[type=text],input[type=search]){-webkit-appearance:none;appearance:none;box-shadow:none;border:1px solid var(--border);border-radius:10px;caret-color:var(--accent);line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-user-select:text;user-select:text}
+#settings :is(textarea,input[type=text],input[type=search],select):focus{outline:none;outline-offset:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--selected)}
+#settings :is(textarea,input[type=text],input[type=search])::selection{background:var(--accent);color:var(--on-accent)}
+#settings :is(textarea,input[type=text],input[type=search])::placeholder{color:var(--muted);opacity:.8}
+#settings textarea{scroll-padding:10px;overflow-x:hidden;overflow-y:auto}
+@media(forced-colors:active){#settings :is(textarea,input[type=text],input[type=search],select):focus{outline:2px solid Highlight;outline-offset:2px}}
 </style>
 <script>try{const theme=JSON.parse(localStorage.getItem('rise-settings-v1')||'{}').theme;if(['dawn','paper','sage','ocean','rose','dusk','midnight'].includes(theme))document.documentElement.dataset.theme=theme;else document.documentElement.dataset.theme='dawn'}catch(_){document.documentElement.dataset.theme='dawn'}</script>
 <script>if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
@@ -148,7 +156,7 @@ const themeNames=['dawn','paper','sage','ocean','rose','dusk','midnight'];
 function applyTheme(name){const theme=themeNames.includes(name)?name:'dawn';document.documentElement.dataset.theme=theme;$('theme').value=theme;document.querySelector('meta[name="theme-color"]').content=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}
 applyTheme(prefs.theme);
 $('theme').addEventListener('change',()=>applyTheme($('theme').value));
-const APP_VERSION='rise-v26';
+const APP_VERSION='rise-v27';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');

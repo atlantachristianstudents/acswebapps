@@ -42,3 +42,5 @@ Saved daily plans open as an editable monthly calendar in settings. The calendar
 Use **Import** and **Export** in the daily-plan toolbar to transfer schedules. JSON exports include the plan, repeat setting, original start date, and date-specific calendar edits. Import also accepts `.txt` files with one day per line (starting today and repeating). Imported references are validated against downloaded Scripture before replacing the draft; invalid files leave the draft intact. Review the imported calendar and choose **Save settings** to keep it, or **Close** to discard it. Exports include current draft edits.
 
 Settings open and close with a short slide and fade independent of keyboard height. Closing no longer rebuilds the settings contents mid-transition; verse gestures pause briefly during the transition, and verse regrouping waits until settings close.
+
+Text fields use consistent rounded borders, a theme-colored caret and selection, and a soft focus ring on mobile. Native text editing and selection handles remain available, with an explicit focus outline in forced-color mode.
