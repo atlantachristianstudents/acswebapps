@@ -142,6 +142,10 @@ html.keyboard-open #schedule-transfer-status{display:none}
 #settings :is(textarea,input[type=text],input[type=search])::placeholder{color:var(--muted);opacity:.8}
 #settings textarea{scroll-padding:10px;overflow-x:hidden;overflow-y:auto}
 @media(forced-colors:active){#settings :is(textarea,input[type=text],input[type=search],select):focus{outline:2px solid Highlight;outline-offset:2px}}
+
+/* Prevent the mobile viewport from rubber-banding behind settings. */
+html,body{overflow:hidden;overscroll-behavior:none}
+#settings,#books,#calendar-days,#settings textarea{overscroll-behavior:none}
 </style>
 <script>try{const theme=JSON.parse(localStorage.getItem('rise-settings-v1')||'{}').theme;if(['dawn','paper','sage','ocean','rose','dusk','midnight'].includes(theme))document.documentElement.dataset.theme=theme;else document.documentElement.dataset.theme='dawn'}catch(_){document.documentElement.dataset.theme='dawn'}</script>
 <script>if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
@@ -156,7 +160,7 @@ const themeNames=['dawn','paper','sage','ocean','rose','dusk','midnight'];
 function applyTheme(name){const theme=themeNames.includes(name)?name:'dawn';document.documentElement.dataset.theme=theme;$('theme').value=theme;document.querySelector('meta[name="theme-color"]').content=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}
 applyTheme(prefs.theme);
 $('theme').addEventListener('change',()=>applyTheme($('theme').value));
-const APP_VERSION='rise-v27';
+const APP_VERSION='rise-v28';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');
@@ -343,18 +347,38 @@ function display(){if(!lines)return;if(prefs.mode==='daily'){const custom=schedu
 function updateBookList(){const query=cleanRef($('book-search').value);[...$('books').tBodies[0].rows].forEach(row=>row.hidden=!cleanRef(row.textContent).includes(query));const count=$('books').querySelectorAll('tbody input:checked').length;$('book-count').textContent=books.length?(count?count+' selected':'Whole Bible · no books selected'):'Loading books…'}
 function updateMode(){const mode=$('mode').value;$('schedule').disabled=mode!=='daily';$('range-text').disabled=mode==='daily';$('schedule').setCustomValidity('');$('range-text').setCustomValidity('');$('custom-field').hidden=mode!=='daily';$('book-field').hidden=mode==='daily';$('repeat-label').hidden=mode!=='daily';$('mode-hint').textContent=mode==='daily'?'Plan your own verses, one day at a time.':mode==='shuffle'?'A different verse each day from your selection.':'Read through your selection in Bible order, one verse each day.'}
 function syncForm(){applyTheme(prefs.theme);$('mode').value=prefs.mode;$('schedule').value=prefs.schedule;$('repeat').checked=!!prefs.repeat;$('custom-field').hidden=prefs.mode!=='daily';$('book-field').hidden=prefs.mode==='daily';$('repeat-label').hidden=prefs.mode!=='daily';const selected=new Set(prefs.books||[]);[...$('books').querySelectorAll('tbody input')].forEach(o=>o.checked=selected.has(o.value));$('range-text').value=prefs.range||'';$('book-search').value='';updateMode();updateBookList();syncCalendar()}
-function setOpen(open){if(panel.classList.contains('open')===open)return;verseGesture=false;verseReadyAt=Date.now()+300;cancelSlideTransition();panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();$('mode').focus({preventScroll:true})}else{applyTheme(prefs.theme);document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
+let settingsBaseline='';
+function settingsSnapshot(){return JSON.stringify({mode:$('mode').value,theme:$('theme').value,schedule:$('schedule').value,repeat:$('repeat').checked,books:[...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value).sort(),range:$('range-text').value,started:$('mode').value==='daily'?draftStarted():prefs.started,calendarOverrides:Object.keys(calendarOverrides).sort().map(key=>[key,calendarOverrides[key]])})}
+function requestCloseSettings(){if(!panel.classList.contains('open'))return;if(settingsSnapshot()!==settingsBaseline&&!window.confirm('Discard unsaved settings changes? Choose Cancel to keep editing.'))return;setOpen(false)}
+function setOpen(open){if(panel.classList.contains('open')===open)return;verseGesture=false;verseReadyAt=Date.now()+300;cancelSlideTransition();panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();settingsBaseline=settingsSnapshot();$('mode').focus({preventScroll:true})}else{applyTheme(prefs.theme);document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
 $('mode').addEventListener('change',updateMode);
-$('book-search').addEventListener('input',updateBookList);$('books').addEventListener('change',updateBookList);$('clear-books').addEventListener('click',()=>{$('books').querySelectorAll('tbody input').forEach(input=>input.checked=false);updateBookList()});$('close-settings').addEventListener('click',()=>setOpen(false));
+$('book-search').addEventListener('input',updateBookList);$('books').addEventListener('change',updateBookList);$('clear-books').addEventListener('click',()=>{$('books').querySelectorAll('tbody input').forEach(input=>input.checked=false);updateBookList()});$('close-settings').addEventListener('click',requestCloseSettings);
 $('schedule').addEventListener('input',()=>$('schedule').setCustomValidity(''));$('range-text').addEventListener('input',()=>$('range-text').setCustomValidity(''));
 form.addEventListener('submit',e=>e.preventDefault());
 $('save-settings').addEventListener('click',e=>{e.preventDefault();if($('mode').value==='daily'){const invalid=Object.keys(calendarOverrides).find(key=>{const refs=referencesForDay(calendarOverrides[key]);return !refs.length||refs.some(i=>i<0)});if(invalid!==undefined){calendarDate=Number(invalid);calendarMonth=new Date(calendarDate*86400000);setCalendarView(true);$('calendar-references').setCustomValidity('Enter valid verses for this date, or choose Use plan.');$('calendar-references').reportValidity();return}}if($('mode').value==='daily'){const rows=$('schedule').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!rows.length||rows.some(row=>{const refs=referencesForDay(row);return !refs.length||refs.some(i=>i<0)})){setCalendarView(false);$('schedule').setCustomValidity('Enter valid references, one day per line, such as John 3:16-18, 20; Romans 8:28.');$('schedule').reportValidity();return}}const selected=[...$('books').querySelectorAll('tbody input:checked')].map(o=>o.value),range=$('range-text').value.trim();if($('mode').value!=='daily'&&range&&!rangeIndices(range)){$('range-text').setCustomValidity('Check the book, chapter, or verse range.');$('range-text').reportValidity();return}const started=$('mode').value==='daily'?draftStarted():($('mode').value===prefs.mode&&Number.isInteger(prefs.started)?prefs.started:day);prefs={calendarOverrides:{...calendarOverrides},theme:$('theme').value,mode:$('mode').value,schedule:$('schedule').value,repeat:$('repeat').checked,books:selected,range,started};try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}setOpen(false);display()});
-document.addEventListener('keydown',e=>{if(e.key==='/'&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){e.preventDefault();setOpen(true)}else if(e.key==='Escape')setOpen(false)});
+document.addEventListener('keydown',e=>{if(e.key==='/'&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){e.preventDefault();setOpen(true)}else if(e.key==='Escape')requestCloseSettings()});
 // Block multi-touch zoom, including Safari's native pinch gestures.
 function preventPinch(event){if(event.cancelable)event.preventDefault()}
 document.addEventListener('gesturestart',preventPinch,{passive:false});
 document.addEventListener('gesturechange',preventPinch,{passive:false});
 document.addEventListener('touchmove',event=>{if(event.touches.length>1)preventPinch(event)},{passive:false});
+let settingsTouch=null;
+panel.addEventListener('touchstart',event=>{
+settingsTouch=null;
+if(!panel.classList.contains('open')||event.touches.length!==1||event.target.closest('input,textarea,select,#books,#calendar-days'))return;
+settingsTouch={x:event.touches[0].clientX,y:event.touches[0].clientY};
+},{passive:true});
+panel.addEventListener('touchmove',event=>{
+if(!settingsTouch)return;if(event.touches.length!==1){settingsTouch=null;return}
+// Settings itself never follows a finger; only its nested editors and lists scroll.
+if(event.cancelable)event.preventDefault();
+},{passive:false});
+panel.addEventListener('touchend',event=>{
+const start=settingsTouch;settingsTouch=null;if(!start||!panel.classList.contains('open')||!event.changedTouches.length)return;
+const dy=event.changedTouches[0].clientY-start.y,dx=event.changedTouches[0].clientX-start.x;
+if(dy< -65&&Math.abs(dy)>Math.abs(dx))requestCloseSettings();
+},{passive:true});
+panel.addEventListener('touchcancel',()=>settingsTouch=null,{passive:true});
 let touchY=0,touchX=0,verseGesture=false;
 document.addEventListener('touchstart',e=>{verseGesture=Date.now()>=verseReadyAt&&e.touches.length===1&&!panel.classList.contains('open')&&!e.target.closest('button,input,textarea,select');if(verseGesture){touchY=e.touches[0].clientY;touchX=e.touches[0].clientX}},{passive:true});
 document.addEventListener('touchend',e=>{if(!verseGesture||panel.classList.contains('open')||!e.changedTouches.length)return;verseGesture=false;const dy=e.changedTouches[0].clientY-touchY,dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dy)<=65||Math.abs(dy)<=Math.abs(dx))return;if(dy<0)moveSlide(1);else if(slideIndex>0)moveSlide(-1);else setOpen(true)},{passive:true});

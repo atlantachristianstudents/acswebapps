@@ -44,3 +44,7 @@ Use **Import** and **Export** in the daily-plan toolbar to transfer schedules. J
 Settings open and close with a short slide and fade independent of keyboard height. Closing no longer rebuilds the settings contents mid-transition; verse gestures pause briefly during the transition, and verse regrouping waits until settings close.
 
 Text fields use consistent rounded borders, a theme-colored caret and selection, and a soft focus ring on mobile. Native text editing and selection handles remain available, with an explicit focus outline in forced-color mode.
+
+In settings, swiping up on the panel closes it just like **Close**, discarding unsaved edits. Swiping down leaves the panel still. The viewport does not bounce behind settings; gestures inside the book list, calendar list, and text editors retain their native scrolling and editing behavior.
+
+Closing settings by **Close**, an upward panel swipe, or Escape asks for confirmation when there are unsaved changes, including themes, imported schedules, books, ranges, and calendar edits. Cancel keeps the current draft; confirming discards it. Merely browsing the calendar does not prompt, and **Save settings** closes directly after validation.
