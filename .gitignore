@@ -7,3 +7,6 @@ Thumbs.db
 # Local editors
 .idea/
 .vscode/
+
+.syncthing.*
+*.sync-conflict-*
