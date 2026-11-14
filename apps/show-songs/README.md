@@ -110,4 +110,4 @@ Maintainers can view totals at https://atlantachristianstudents.goatcounter.com.
 
 The bottom of the **?** shortcut help says “Show Songs is part of the ACS Web Apps project” as plain text. On mobile screens (up to 767px wide), a separate **Back to ACS Web Apps** button links to the app directory.
 
-A floating **?** button in the bottom-right corner opens a help panel that identifies Show Songs as part of the ACS Web Apps project, with a link to the app directory. The button stays out of the way while a hymn is presented and while the shortcut help is open.
+The display has no floating help button. Use the existing **?** / **/** keyboard shortcuts for help; the project information and mobile back link remain available there.
