@@ -68,3 +68,5 @@ Every line in a daily plan counts as a day, including blank lines at the beginni
 The **?** button between the theme icon and Close opens a theme-matched About dialog with a brief description and a relative ACS Web Apps project link. The link opens in a new tab so the current settings draft stays available. **Done** or Escape dismisses the dialog without closing settings.
 
 Settings now open directly to a two-dimensional month grid with weekday headings and each day’s references. The verse-selection dropdown is removed. Tap a date to edit its verses; Import (file or URL), Export, Today, and the line-by-line plan editor remain available. Existing shuffle/sequential preferences continue to supply their dated readings until a daily plan is entered or imported; calendar date overrides apply to those readings too. New installations start with an empty daily plan.
+
+The **?** About button appears only in settings. The main verse screen has no About button.
