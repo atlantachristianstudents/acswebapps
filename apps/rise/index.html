@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f4efe5"><meta name="color-scheme" content="light"><meta name="description" content="Begin your morning with a verse from the Recovery Version.">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#f4efe5"><meta name="color-scheme" content="light"><meta name="description" content="Begin your morning with a verse from the Recovery Version.">
 <title>Rise</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon.svg"><link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <style>
 :root{font-family:Georgia,"Iowan Old Style","Times New Roman",serif;color:#24302b;background:#f4efe5;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:max(28px,env(safe-area-inset-top)) 28px max(28px,env(safe-area-inset-bottom));text-align:center}.page{width:min(100%,560px)}.verse{font-size:clamp(28px,7vw,42px);line-height:1.45;letter-spacing:-.025em;margin:0;font-weight:400;white-space:pre-line}.reference{font:600 13px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#7c806e;margin:26px 0 0}#settings{position:fixed;inset:0;z-index:2;min-height:100svh;overflow:auto;display:grid;align-items:center;padding:max(28px,env(safe-area-inset-top)) 24px max(28px,env(safe-area-inset-bottom));background:#f4efe5;text-align:left;transform:translateY(-100%);visibility:hidden;transition:transform .22s ease,visibility .22s}#settings.open{transform:translateY(0);visibility:visible}#settings form{width:min(100%,520px);margin:auto;font:14px/1.45 system-ui,sans-serif}#settings h1{font:500 21px Georgia,serif;margin:0 0 18px}#settings label{display:block;margin:14px 0 6px;color:#49534b}#settings select,#settings textarea,#settings input[type=text]{width:100%;border:1px solid #c9c8bc;border-radius:8px;background:#fffdf8;color:#24302b;font:16px system-ui,sans-serif;padding:10px}#settings textarea{min-height:105px;resize:vertical}#books{display:block;width:100%;max-height:38svh;overflow:auto;border:1px solid #c9c8bc;border-radius:8px;background:#fffdf8;border-collapse:collapse}#books th,#books td{padding:8px 10px;border-bottom:1px solid #e5e2d8;text-align:left}#books th{position:sticky;top:0;background:#f4efe5;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#596459}#books th:last-child,#books td:last-child{text-align:center;width:76px}#books tr:last-child td{border-bottom:0}#books input{width:18px;height:18px;accent-color:#44584b;cursor:pointer}#settings .hint{font-size:12px;color:#71776d;margin:5px 0}#book-field[hidden],#custom-field[hidden]{display:none}#settings .actions{display:flex;align-items:center;justify-content:space-between;margin-top:18px}#repeat-label{display:flex;align-items:center;gap:8px;margin:0}#settings button[type=submit]{border:0;border-radius:8px;background:#44584b;color:white;padding:10px 18px;font:600 14px system-ui,sans-serif;cursor:pointer}@media(prefers-reduced-motion:reduce){#settings{transition:none}}
 
-body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pinch-zoom}
-.page{min-width:0;overflow-wrap:anywhere;touch-action:pan-x pinch-zoom}
+body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pan-y}
+.page{min-width:0;overflow-wrap:anywhere;touch-action:pan-x}
 /* Settings use the same quiet palette as the daily verse. */
 #settings{display:block;overscroll-behavior:contain;padding:0 20px;scroll-padding:24px}
 #settings form{padding:32px 0 0}
@@ -42,6 +42,8 @@ body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pinch-zo
 #settings button[type=submit]{min-width:145px;min-height:48px;border-radius:12px;font-size:15px}
 @media(max-width:400px){.settings-group{padding:14px}#settings .actions .hint{max-width:15ch}}
 
+html{touch-action:pan-x pan-y}
+#settings{touch-action:pan-y}
 /* Keep settings in the viewport; only the book list and schedule editor scroll. */
 #settings{height:var(--screen-height,100dvh);min-height:0;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom));overflow:hidden}
 #settings form{height:100%;min-height:0;padding:0;display:flex;flex-direction:column;gap:8px}
@@ -85,7 +87,7 @@ const SOURCE='https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV',DB='morning-word-script
 let lines=null,byRef=new Map(),byBook=new Map(),books=[];
 const defaults={mode:'shuffle',schedule:'',repeat:true,book:'',books:[],range:'',started:day};let prefs={...defaults};
 try{prefs={...defaults,...JSON.parse(localStorage.getItem(SETTINGS)||'{}')};if((!prefs.books||!prefs.books.length)&&prefs.book)prefs.books=[prefs.book];}catch(_){}
-const APP_VERSION='rise-v20';
+const APP_VERSION='rise-v21';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');
@@ -224,6 +226,11 @@ $('book-search').addEventListener('input',updateBookList);$('books').addEventLis
 $('schedule').addEventListener('input',()=>$('schedule').setCustomValidity(''));$('range-text').addEventListener('input',()=>$('range-text').setCustomValidity(''));
 form.addEventListener('submit',e=>{e.preventDefault();if($('mode').value==='daily'){const rows=$('schedule').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!rows.length||rows.some(row=>{const refs=referencesForDay(row);return !refs.length||refs.some(i=>i<0)})){$('schedule').setCustomValidity('Enter valid references, one day per line, such as John 3:16-18, 20; Romans 8:28.');$('schedule').reportValidity();return}}const selected=[...$('books').querySelectorAll('tbody input:checked')].map(o=>o.value),range=$('range-text').value.trim();if($('mode').value!=='daily'&&range&&!rangeIndices(range)){$('range-text').setCustomValidity('Check the book, chapter, or verse range.');$('range-text').reportValidity();return}prefs={mode:$('mode').value,schedule:$('schedule').value,repeat:$('repeat').checked,books:selected,range,started:day};try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}setOpen(false);display()});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){e.preventDefault();setOpen(true)}else if(e.key==='Escape')setOpen(false)});
+// Block multi-touch zoom, including Safari's native pinch gestures.
+function preventPinch(event){if(event.cancelable)event.preventDefault()}
+document.addEventListener('gesturestart',preventPinch,{passive:false});
+document.addEventListener('gesturechange',preventPinch,{passive:false});
+document.addEventListener('touchmove',event=>{if(event.touches.length>1)preventPinch(event)},{passive:false});
 let touchY=0,touchX=0,verseGesture=false;
 document.addEventListener('touchstart',e=>{verseGesture=e.touches.length===1&&!panel.classList.contains('open')&&!e.target.closest('button,input,textarea,select');if(verseGesture){touchY=e.touches[0].clientY;touchX=e.touches[0].clientX}},{passive:true});
 document.addEventListener('touchend',e=>{if(!verseGesture||panel.classList.contains('open')||!e.changedTouches.length)return;verseGesture=false;const dy=e.changedTouches[0].clientY-touchY,dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dy)<=65||Math.abs(dy)<=Math.abs(dx))return;if(dy<0)moveSlide(1);else if(slideIndex>0)moveSlide(-1);else setOpen(true)},{passive:true});
