@@ -32,3 +32,5 @@ Settings use a compact viewport layout with always-visible Save and update contr
 Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling inside the settings book list and schedule editor remain available.
 
 Pressing Enter in settings fields does not save or close settings. Enter in the schedule adds a new line; use **Save settings** to save and return to the verse screen. The Save button remains keyboard accessible.
+
+Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. Changes preview immediately across the verse screen, settings, and browser theme color. **Save settings** remembers the theme on this device; **Close** or Escape restores the saved theme. Dusk and Midnight use dark native controls. The theme picker sits beside verse selection to keep settings compact.
