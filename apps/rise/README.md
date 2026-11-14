@@ -58,3 +58,5 @@ The main verse and reference do not show selection or tap highlights during read
 Press `/` to toggle settings, including when a dropdown has focus. Closing this way confirms unsaved changes. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
 
 **Import** opens a theme-matched dialog for choosing a file or pasting a URL. URL imports accept direct HTTP(S) links to Rise JSON exports or plain-text plans; the source must allow browser cross-origin access. Downloads omit credentials and referrers, time out after 20 seconds, and are limited to 1 MB. Invalid or canceled imports leave the draft intact. Imported plans remain drafts until saved.
+
+Every line in a daily plan counts as a day, including blank lines at the beginning, middle, or end. Blank days display only the centered Rise icon; they do not fall back to a random verse. Clearing a calendar date also creates an icon-only day. Blank days are preserved in file/URL imports and JSON exports, including repeating and entirely blank plans. Text files ending in a newline therefore include a final blank day.
