@@ -21,7 +21,9 @@ Mobile installation uses local 192px and 512px PNG icons with an opaque backgrou
 
 A single custom-schedule line can include verse ranges, multiple books, and shortened references: `John 3:16-18, 20; Romans 8:28`. This shows all five verses on the same day, grouping consecutive verses when they fit. `John 3:16, 17, 18` and `Psalm 23:1, 23:4` also work. Ranges may span chapters, such as `John 3:36-4:2`.
 
-Consecutive verses from the same book share a slide when they fit near the normal reading size. Longer passages split across slides, and separate passages stay separate. Grouping adjusts to screen size and rotation, preserving your current passage. Swipe up or press the up arrow for the next verse; swipe down or press the down arrow for the previous verse. On the first slide, swiping down opens settings. Swipe anywhere on the verse screen to navigate; the screen shows only the current verse and reference, with no navigation buttons or slide indicators. Each slide automatically reduces its text size to keep the verse and reference on one screen, including after rotating the phone. Settings remain scrollable.
+Consecutive verses from the same book share a slide when they fit near the normal reading size. Longer passages split across slides, and separate passages stay separate. Grouping adjusts to screen size and rotation, preserving your current passage. Swipe up for the next verse; swipe down or press either the up or down arrow key for the previous verse. On the first slide, swiping down or pressing either arrow key opens settings. Swipe anywhere on the verse screen to navigate; the screen shows only the current verse and reference, with no navigation buttons or slide indicators. Each slide automatically reduces its text size to keep the verse and reference on one screen, including after rotating the phone. Settings remain scrollable.
+
+On the first visit, a one-time popup explains that swiping down (or pressing the up/down arrow keys or `/`) opens settings. Confirming with **Got it** dismisses it and records the dismissal in localStorage so it does not reappear on later visits.
 
 Use **Check for updates** in settings to manually download and activate the latest app version. Save settings first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
 
@@ -41,6 +43,10 @@ Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, 
 
 Phone settings use 44px touch targets, shorter mode labels, safe-area spacing, and narrow-screen layouts. When the on-screen keyboard opens, settings prioritize the active editor and keep Close and Save reachable; the normal controls return when the keyboard closes. Book search retains its results while editing, and the range editor hides the book list temporarily.
 
+On a computer, a trackpad or mouse-wheel scroll over the verse screen behaves like a phone swipe: scrolling down opens settings from the first slide or moves to the previous verse, and scrolling up moves to the next verse. The verse screen never scrolls behind the gesture.
+
+In the plan editor, pressing Tab adds a new day instead of leaving the field, and a live counter under the textarea shows how many days are planned.
+
 Saved daily plans open as an editable monthly calendar in settings. The calendar lists every date and all assigned references, including repeated plans, and marks today. Select a date to edit its verses; date edits override only that date. **Use plan** restores the scheduled references. **Edit plan** switches back to the one-line-per-day editor. **Save settings** saves the plan and date edits; **Close** discards them. Browsing months and changing a date or theme preserves the original plan start date. A changed base plan starts today; dated overrides remain attached to their dates.
 
 Use **Import** and **Export** in the daily-plan toolbar to transfer schedules. JSON exports include the plan, repeat setting, original start date, and date-specific calendar edits. Import also accepts `.txt` files with one day per line (starting today and repeating). Imported references are validated against downloaded Scripture before replacing the draft; invalid files leave the draft intact. Review the imported calendar and choose **Save settings** to keep it, or **Close** to discard it. Exports include current draft edits.
@@ -59,14 +65,14 @@ The discard confirmation matches the active theme. **Keep editing** preserves th
 
 The main verse and reference do not show selection or tap highlights during reading gestures. Selection and editing remain available in settings text fields.
 
-Press `/` to toggle settings, including when a dropdown has focus. Closing this way confirms unsaved changes. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
+Press `/` to toggle settings, including when a dropdown has focus. You can also press <kbd>/</kbd> or the up or down arrow keys to open settings. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
 
 **Import** opens a theme-matched dialog for choosing a file or pasting a URL. URL imports accept direct HTTP(S) links to Rise JSON exports or plain-text plans; the source must allow browser cross-origin access. Downloads omit credentials and referrers, time out after 20 seconds, and are limited to 1 MB. Invalid or canceled imports leave the draft intact. Imported plans remain drafts until saved.
 
 Every line in a daily plan counts as a day, including blank lines at the beginning, middle, or end. Blank days display only the centered Rise icon; they do not fall back to a random verse. Clearing a calendar date also creates an icon-only day. Blank days are preserved in file/URL imports and JSON exports, including repeating and entirely blank plans. Text files ending in a newline therefore include a final blank day.
 
-The **?** button between the theme icon and Close opens a theme-matched About dialog with a brief description and a relative ACS Web Apps project link. The link opens in a new tab so the current settings draft stays available. **Done** or Escape dismisses the dialog without closing settings.
+The **?** button that opened the About dialog between the theme icon and **Close** was removed; the About content is no longer shown on the first screen.
 
 Settings now open directly to a two-dimensional month grid with weekday headings and each day’s references. The verse-selection dropdown is removed. Tap a date to edit its verses; Import (file or URL), Export, Today, and the line-by-line plan editor remain available. Existing shuffle/sequential preferences continue to supply their dated readings until a daily plan is entered or imported; calendar date overrides apply to those readings too. New installations start with an empty daily plan.
 
-The **?** About button appears only in settings. The main verse screen has no About button.
+Settings no longer have a **?** About button; the main verse screen has no About button.
