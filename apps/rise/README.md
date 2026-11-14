@@ -18,3 +18,7 @@ Mobile installation uses local 192px and 512px PNG icons with an opaque backgrou
 A single custom-schedule line can include verse ranges, multiple books, and shortened references: `John 3:16-18, 20; Romans 8:28`. This shows all five verses on separate slides on the same day. `John 3:16, 17, 18` and `Psalm 23:1, 23:4` also work. Ranges may span chapters, such as `John 3:36-4:2`.
 
 Each daily verse appears on its own slide. Swipe up or press the up arrow for the next verse; swipe down or press the down arrow for the previous verse. On the first slide, swiping down opens settings. Swipe anywhere on the verse screen to navigate; the screen shows only the current verse and reference, with no navigation buttons or slide indicators. Each slide automatically reduces its text size to keep the verse and reference on one screen, including after rotating the phone. Settings remain scrollable.
+
+Use **Check for updates** in settings to manually download and activate the latest app version. Save settings first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
+
+When releasing a Rise update, keep `APP_VERSION` in `index.html` equal to `VERSION` in `sw.js`; the manual updater compares them to detect an upgrade.
