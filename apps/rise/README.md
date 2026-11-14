@@ -30,3 +30,5 @@ Reference matching accepts compact forms such as `Jn3:16`, `Rom8:28`, and `1Cor1
 Settings use a compact viewport layout with always-visible Save and update controls. The book list and custom-schedule editor scroll internally; the settings page itself stays in place. Short landscape screens use two columns.
 
 Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling inside the settings book list and schedule editor remain available.
+
+Pressing Enter in settings fields does not save or close settings. Enter in the schedule adds a new line; use **Save settings** to save and return to the verse screen. The Save button remains keyboard accessible.
