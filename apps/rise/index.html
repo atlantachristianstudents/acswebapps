@@ -50,7 +50,7 @@ const SOURCE='https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV',DB='morning-word-script
 let lines=null,byRef=new Map(),byBook=new Map(),books=[];
 const defaults={mode:'shuffle',schedule:'',repeat:true,book:'',books:[],range:'',started:day};let prefs={...defaults};
 try{prefs={...defaults,...JSON.parse(localStorage.getItem(SETTINGS)||'{}')};if((!prefs.books||!prefs.books.length)&&prefs.book)prefs.books=[prefs.book];}catch(_){}
-const APP_VERSION='rise-v17';
+const APP_VERSION='rise-v18';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');
@@ -109,6 +109,7 @@ cancelAnimationFrame(fitFrame);fitFrame=requestAnimationFrame(()=>{
 const viewport=window.visualViewport,height=viewport?viewport.height:window.innerHeight;
 document.body.style.setProperty('--screen-height',height+'px');
 const page=document.querySelector('main'),verse=$('verse'),reference=$('reference'),bodyStyle=getComputedStyle(document.body);
+if(dailyIndices.length&&(layoutWidth!==page.clientWidth||layoutHeight!==height)){const anchor=(dailySlides[slideIndex]||[])[0];cancelSlideTransition();dailySlides=groupSlides(dailyIndices);slideIndex=Math.max(0,dailySlides.findIndex(group=>group.includes(anchor)));paintSlide()}
 const availableHeight=Math.max(1,height-parseFloat(bodyStyle.paddingTop)-parseFloat(bodyStyle.paddingBottom)-2);
 verse.style.fontSize='';reference.style.fontSize='';reference.style.marginTop='';
 const verseSize=parseFloat(getComputedStyle(verse).fontSize),referenceSize=parseFloat(getComputedStyle(reference).fontSize),gap=parseFloat(getComputedStyle(reference).marginTop);
@@ -121,13 +122,34 @@ window.addEventListener('resize',fitVerse);
 if(window.visualViewport)window.visualViewport.addEventListener('resize',fitVerse);
 if(document.fonts)document.fonts.ready.then(fitVerse);
 fitVerse();
-let dailySlides=[],slideIndex=0,slideAnimation=null,slideTransition=0,slideMoving=false;
+let dailyIndices=[],dailySlides=[],layoutWidth=0,layoutHeight=0,slideIndex=0,slideAnimation=null,slideTransition=0,slideMoving=false;
 function cancelSlideTransition(){slideTransition++;slideMoving=false;if(slideAnimation){slideAnimation.cancel();slideAnimation=null}}
 
-function renderSlide(){const line=lines[dailySlides[slideIndex]],match=line&&line.match(/^(.*?\d+:\d+)\s+(.+)$/);if(!match)return;
-$('reference').textContent=match[1];$('verse').textContent=match[2].trim();
-fitVerse()}
-function show(indices){cancelSlideTransition();dailySlides=indices.filter(i=>lines[i]);slideIndex=0;renderSlide()}
+function verseParts(index){const match=lines[index]&&lines[index].match(/^(.*?)\s+(\d+):(\d+)\s+(.+)$/);return match?{book:match[1],chapter:match[2],verse:match[3],text:match[4].trim()}:null}
+function slideContent(group){const first=verseParts(group[0]),last=verseParts(group[group.length-1]);if(!first||!last)return null;let reference=first.book+' '+first.chapter+':'+first.verse;if(group.length>1)reference+='-'+(last.chapter===first.chapter?'':last.chapter+':')+last.verse;return {reference,text:group.map(index=>verseParts(index).text).join(' ')}}
+function groupSlides(indices){
+const page=document.querySelector('main'),height=window.visualViewport?window.visualViewport.height:window.innerHeight,bodyStyle=getComputedStyle(document.body);
+layoutWidth=page.clientWidth;layoutHeight=height;
+const availableHeight=Math.max(1,height-parseFloat(bodyStyle.paddingTop)-parseFloat(bodyStyle.paddingBottom)-2);
+const measure=document.createElement('div'),text=document.createElement('blockquote'),reference=document.createElement('p');
+measure.className='page';text.className='verse';reference.className='reference';
+measure.style.cssText='position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;width:'+layoutWidth+'px';
+measure.append(text,reference);document.body.append(measure);
+// Keep grouped passages near the normal reading size; a long single verse can still shrink to fit.
+text.style.fontSize=parseFloat(getComputedStyle(text).fontSize)*.85+'px';
+const groups=[];let current=[];
+try{for(const index of indices){const previous=current[current.length-1],part=verseParts(index),prior=verseParts(previous);
+const consecutive=current.length&&index===previous+1&&part&&prior&&part.book===prior.book;
+if(!consecutive&&current.length){groups.push(current);current=[]}
+const candidate=current.concat(index),content=slideContent(candidate);if(!content)continue;
+text.textContent=content.text;reference.textContent=content.reference;
+if(current.length&&(measure.getBoundingClientRect().height>availableHeight||measure.scrollWidth>layoutWidth)){groups.push(current);current=[index]}else current=candidate;
+}if(current.length)groups.push(current)}finally{measure.remove()}
+return groups
+}
+function paintSlide(){const group=dailySlides[slideIndex];if(!group)return;const content=slideContent(group);if(!content)return;$('reference').textContent=content.reference;$('verse').textContent=content.text}
+function renderSlide(){paintSlide();fitVerse()}
+function show(indices){cancelSlideTransition();dailyIndices=indices.filter(i=>verseParts(i));dailySlides=groupSlides(dailyIndices);slideIndex=0;renderSlide()}
 async function moveSlide(offset){
 const next=slideIndex+offset;if(slideMoving||next<0||next>=dailySlides.length)return;
 const page=document.querySelector('main');
