@@ -1,4 +1,6 @@
-# Tunes
+# Tune
+
+The tuning fork icon identifies Tune in the app directory and on installed shortcuts.
 
 Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; the bottom-right **?** menu links back to ACS Web Apps.
 
@@ -7,7 +9,7 @@ Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detec
   - Android / Chrome / Edge desktop: browser menu > Install app
   - iPhone / iPad: Safari > Share > Add to Home Screen
   - Mac Safari: File > Add to Dock
-- After the first load, Tunes runs fully offline.
+- After the first load, Tune runs fully offline.
 
 ## Local use
 Run `python3 -m http.server 8000` in this folder and open http://localhost:8000 (localhost counts as secure, so install and offline work there too).
@@ -23,9 +25,9 @@ Type or paste lyrics with inline chords (e.g. `G   D   Em   C`), pick the chart'
 - The transposed chart updates live, keeps your line layout, and can be copied with one tap. Chart text, key, transpose and capo are remembered on this device.
 
 ## Microphone permission
-Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tunes also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
+Chrome, Edge and Android remember the grant for an installed app, so you are asked once. Tune also reconnects to the mic by itself when you reopen it. iPhone/iPad Safari may still ask on each launch; that is an iOS rule and cannot be changed by the app.
 
-When you switch apps, lock the screen, or leave the page, Tunes releases microphone capture and reconnects when you return. If your browser requires a tap to resume audio, tap **Resume listening**. If microphone access fails, use **Enable microphone** to retry. This also applies when launched from the home screen.
+When you switch apps, lock the screen, or leave the page, Tune releases microphone capture and reconnects when you return. If your browser requires a tap to resume audio, tap **Resume listening**. If microphone access fails, use **Enable microphone** to retry. This also applies when launched from the home screen.
 
 
 ## Usage counts
@@ -42,4 +44,4 @@ The help menu identifies Tuner as part of the ACS Web Apps project, with a link 
 
 ## Hosting
 
-This app is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune). Enable GitHub Pages for the `main` branch from the repository root. The app is then available at <https://zioninzion.github.io/tune/>. ACS Web Apps links to it at <https://acswebapps.com/tune/>.
+This app is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune). Enable GitHub Pages for the `main` branch from the repository root. The app is then available at <https://zioninzion.github.io/tune/>. ACS Web Apps links to it at <https://acswebapps.com/apps/tune/>.
