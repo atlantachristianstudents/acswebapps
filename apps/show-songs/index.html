@@ -695,13 +695,14 @@
           });
         }
 
-        function chooseSearchHymn(song) {
+        function chooseSearchHymn(song, presentImmediately) {
           closeHymnSearch();
           if (presenting) endPresentation();
           if (song.number && hymnData[song.number]) {
             if (textMode) setMode(false);
             setValue(song.number);
             focusInput();
+            if (presentImmediately) startPresentation();
           } else startPresentation(songsById[song.id]);
         }
 
@@ -740,7 +741,13 @@
         function searchKeydown(e) {
           if (e.isComposing) return;
           if (e.key === "Escape") { e.preventDefault(); closeHymnSearch(); }
-          else if (e.key === "Enter" && e.target === searchInput) {
+          else if (e.key === " " && searchResults.contains(e.target)) {
+            e.preventDefault();
+            if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+            var songId = e.target.getAttribute("data-song-id");
+            var song = searchMatches.find(function (match) { return String(match.id) === songId; });
+            if (song) chooseSearchHymn(song, true);
+          } else if (e.key === "Enter" && e.target === searchInput) {
             e.preventDefault();
             if (searchMatches.length) chooseSearchHymn(searchMatches[0]);
           } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
