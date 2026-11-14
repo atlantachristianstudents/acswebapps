@@ -1,6 +1,6 @@
 {
-  "name": "Verse Lookup",
-  "short_name": "Verses",
+  "name": "Show Words",
+  "short_name": "Show Words",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

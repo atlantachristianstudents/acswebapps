@@ -1,5 +1,7 @@
 # Show Time
 
+The full and short installed-app names are both **Show Time**.
+
 A minimal, full-screen timer, clock, and stopwatch (countdown default: 90 seconds) with light, dark, black-on-white, and white-on-black themes. No dependencies, accounts, or network requests beyond the app's own offline files.
 
 - Select the **?** button in the bottom-right corner or press **/** or **?** to toggle keyboard shortcuts. Close the panel or press Escape to return.

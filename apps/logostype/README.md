@@ -1,5 +1,7 @@
 # Logostype
 
+The full and short installed-app names are both **Logos Type**.
+
 Type the Scriptures and read what you typed. Practice on your own or race against friends.
 
 The About dialog uses the same description as the ACS Web Apps home-page listing and acknowledges Monkeytype as inspiration, with a link to its website. The app opens directly with its main navigation header. The **← ACS Web Apps** link is inside **About**. Main menu views share the shell’s side margins, full content width, and 40px spacing below the header on desktop and mobile. Scripture Journey’s progress sidebar reserves extra space only inside the typing panel, so switching to Reading does not carry over its left inset.

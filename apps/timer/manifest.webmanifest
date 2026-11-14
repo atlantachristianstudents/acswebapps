@@ -1,5 +1,5 @@
 {
-  "name": "Show Time \u2014 ACS Web Apps",
+  "name": "Show Time",
   "short_name": "Show Time",
   "description": "A minimal full-screen timer, clock, and stopwatch with keyboard controls and private history.",
   "start_url": "./index.html",

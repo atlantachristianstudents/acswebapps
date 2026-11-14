@@ -1,5 +1,7 @@
 # Bible Translation Explorer
 
+The full and short installed-app names are both **Bible Translation Explorer**.
+
 Compare the included component scores for 11 Bible translations in an interactive scatter plot and sortable table. The original explorer’s data and scoring behavior are preserved.
 
 - Adjust literalness (transfer vs. lexical consistency), readability (fluency vs. vocabulary), and their contribution to overall scores. Each ratio ranges from 1:2 to 2:1 and starts at 1:1. The Reset 1:1 button below the readability control and to the left of the literalness axis slider returns all three weights to 1:1.

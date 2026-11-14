@@ -213,3 +213,5 @@ When adding an app, copy the `adless-usage` script into its main page, set its f
 App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
 
 The public name is **ACS Web Apps**. The site uses `/acswebapps/` URLs. Existing storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
+
+Installed app naming: each manifest uses the app directory name for both `name` and `short_name`, so full and compact shortcut labels match. The home directory installs as **ACS Web Apps**.

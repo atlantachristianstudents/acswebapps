@@ -1,5 +1,7 @@
 # Chronological Bible
 
+The full and short installed-app names are both **Chronological Bible**.
+
 Static, offline-capable Bible reader. Serve this folder with any static web server; no build step or dependencies required. Includes timeline navigation, reference/text search, URL references, saved readings, reading position, and text/theme settings. Local storage is browser-specific.
 
 The app ships only the chronological ordering (`order.js`); the Recovery Version text is downloaded at runtime from the shared RcV text file (`https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV`, documented in AGENTS.md) and cached in IndexedDB with a 15-day refresh window, matching the other RcV consumers. The first run needs internet; afterwards the reader works offline from the cache. A stale cache is used if a refresh fails. The text is validated against 31,103 verses before it is cached. Sequence comes from reese-chronological-verse-order.json, with era labels from the local Reese EPUB. All 31,102 supplied references matched; RcV Revelation 12:18 was inserted after 12:17. Study notes are not included. Chronological ordering follows Reese, with one local adjustment: Ezekiel 28:11–19 and Isaiah 14:12–17 ("Satan Cast Out of Heaven") appear immediately before Genesis 1:2, at the end of Eternity Past.

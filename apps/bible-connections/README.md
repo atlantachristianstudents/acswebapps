@@ -1,5 +1,7 @@
 # Bible Connections
 
+The full and short installed-app names are both **Bible Connections**.
+
 An interactive map of Bible cross-references based on the Holy Bible Recovery Version. All chart data is embedded in `index.html`; no downloads or accounts are needed.
 
 - Hover over a chapter or arc to trace connections; on touch screens, drag across the chart to explore, including from a pinned selection. The preview stays visible after lifting your finger. Click or tap to pin or unpin a connection.

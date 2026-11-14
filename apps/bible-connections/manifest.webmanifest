@@ -1,6 +1,6 @@
 {
   "name": "Bible Connections",
-  "short_name": "Connections",
+  "short_name": "Bible Connections",
   "description": "Explore Bible cross-references across chapters and verses.",
   "start_url": "./",
   "scope": "./",

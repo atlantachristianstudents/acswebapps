@@ -1,5 +1,7 @@
 # Verse Lookup
 
+The full and short installed-app names are both **Show Words**.
+
 An installable, offline verse presenter for projectors, livestreams, and external displays.
 
 ## Install (needs the files served over HTTPS once, so the browser can cache them)

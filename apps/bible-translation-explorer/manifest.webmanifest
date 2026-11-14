@@ -1,6 +1,6 @@
 {
   "name": "Bible Translation Explorer",
-  "short_name": "Bible Explorer",
+  "short_name": "Bible Translation Explorer",
   "description": "Compare 11 Bible translations with adjustable literalness, readability, and overall score weights.",
   "start_url": "./index.html",
   "scope": "./",

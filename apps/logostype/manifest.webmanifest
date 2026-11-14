@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Logostype — Type the scriptures",
-  "short_name": "Logostype",
+  "name": "Logos Type",
+  "short_name": "Logos Type",
   "description": "Type the Scriptures and read what you typed. Practice on your own or race against friends.",
   "start_url": "./",
   "scope": "./",
