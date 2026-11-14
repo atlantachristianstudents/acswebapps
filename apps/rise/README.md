@@ -2,7 +2,9 @@
 
 An installable, offline-friendly daily verse app. Each local calendar day selects a verse from the shared Recovery Version text source and remembers the downloaded text in IndexedDB. Add it to the phone’s Home Screen or install it from the browser to open it quickly in its own window.
 
-The app cannot launch itself when a phone wakes, replace the lock screen, or appear ahead of notifications. Open its home-screen icon to see the verse immediately; visit once online first so the Scripture can be cached for offline use.
+The app cannot launch itself when a phone wakes, replace the lock screen, or appear ahead of notifications. Open its home-screen icon to see the verse immediately; visit once online first so the Scripture can be cached for offline use. The downloaded text is stored in IndexedDB and only refreshed from the network when the cache is missing or older than 15 days.
+
+For development, a date can be previewed without touching the UI or the system clock, using browser DevTools only: `RiseTestDate.set("2026-11-17")` to preview a date, `RiseTestDate.advance(3)` to preview N days from today (or `advance()` for tomorrow), `RiseTestDate.today()` (or `RiseTestDate.reset()`) to return to the real date, and `RiseTestDate.status()` to show the active one. The override is never persisted and normal operation is unchanged.
 
 
 Swipe down or press `/` to open settings. Choose a custom daily schedule (multiple references per day can be comma or semicolon separated; use standard names such as `Psalm 23:1` or abbreviations such as `Psa. 23:1`), a daily shuffle, or sequential reading. For shuffle and sequential reading, check multiple books or enter chapter and verse ranges such as `John 3` or `John 3:16-18`; leaving both blank uses the whole Bible. Custom schedules can repeat after the last day. Settings stay on the device, and downloaded Scripture remains available offline.
