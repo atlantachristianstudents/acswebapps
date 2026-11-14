@@ -35,8 +35,8 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://acswebapps.com/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
-| [Memorize](https://acswebapps.com/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
-| [Verse Review](https://acswebapps.com/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
+| [Test](https://acswebapps.com/apps/test/) | Recite memorized text by typing it, whether it's a Bible verse or another passage. Compare your response with the reference to find missing, changed, and extra words. | beta |
+| [Verse Review](https://acswebapps.com/apps/verse-review/) | Create Bible verse flashcards to practice memorizing Scripture, then review each card on a spaced schedule. Private and offline-friendly. | beta |
 | [Show Songs](https://acswebapps.com/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Also maintained in the standalone [Tune repository](https://github.com/zioninzion/tune). | live |
 | [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
@@ -60,7 +60,7 @@ Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build
 
 A few apps bundle or use specialized pieces:
 
-- **Memorize** bundles PDF.js (with fonts and character maps) for private, offline PDF text import.
+- **Test** bundles PDF.js (with fonts and character maps) for private, offline PDF text import.
 - **Logos Type** bundles PeerJS for friend races and downloads Scripture from a public API, caching it locally.
 - **Songbook** syncs the Songbase catalog into IndexedDB.
 - The **home page** loads the Inter font from Google Fonts; some apps use Google Fonts for their display type.
@@ -129,7 +129,7 @@ apps/
   bible-connections/       Bible cross-reference explorer with an offline connection map
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, reading, records, and friend races
-  memorize/                Memorization practice with word comparison and PDF import
+  test/                    Memorization practice with word comparison and PDF import
   verse-review/            Offline Bible verse practice with spaced reviews
   verse-designer/          Verse wallpaper designer with PNG export
   chronological-bible/     Chronological Bible: Recovery Version reader
@@ -167,7 +167,7 @@ Statuses are `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming 
 
 ### Service-worker cache versions
 
-The home page has its own `sw.js` (`VERSION` = `adless-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
+The home page has its own `sw.js` (`VERSION` = `acswebapps-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
 
 Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, `"verse-lookup-v20"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/sw.js`; Tune uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
 
@@ -191,7 +191,7 @@ Show Songs’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, a
 - **Microphone doesn't work** — the app must be served over HTTPS or `localhost`. On iOS, Safari re-asks for microphone permission per launch; that is an OS rule the apps cannot change.
 - **Icons missing on a card** — the card falls back to the registry `icon` emoji, then the site favicon. Add an icon at `apps/<id>/icons/icon-192.png` or set `iconUrl` in `assets/apps.js`.
 - **Songbook won't sync** — syncing needs a connection the first time. Tap ↻ in the top bar to retry; the app falls back between the CORS proxy and `songbase.life`.
-- **Memorize can't read a PDF** — the PDF must contain selectable text (scanned PDFs need OCR first) and be at most 10 MB / 100 pages. Password-protected PDFs must be unlocked.
+- **Test can't read a PDF** — the PDF must contain selectable text (scanned PDFs need OCR first) and be at most 10 MB / 100 pages. Password-protected PDFs must be unlocked.
 
 Still stuck? Ask in the [Discord](https://discord.gg/77euBtgZjU) or open an issue.
 
@@ -218,11 +218,11 @@ Please see the repository on GitHub for licensing details (no license file is bu
 
 ## App usage analytics
 
-All ten registered apps contain a self-contained, dependency-free `adless-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
+All ten registered apps contain a self-contained, dependency-free `acswebapps-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
 
 Only fixed app and event labels are explicitly sent via GoatCounter's tracking pixel endpoint; no third-party scripts, cookies, referrers, URL parameters, searches, user content, or persistent visitor identifiers are added. The service receives IP addresses and browser headers as part of the request. Do Not Track and Global Privacy Control suppress all reporting. Localhost, file hosting, and automated browsers are excluded. A per-tab sessionStorage queue retries offline/failed events on reconnection, when the tab becomes visible, and every minute after a visible failure. It holds at most 100 events for seven days and can be lost when a tab closes. Delivery time determines the date in the dashboard; blockers, interrupted requests, and browser install-event support make totals approximate.
 
-When adding an app, copy the `adless-usage` script into its main page, set its fixed folder identifier, document its usage counts, and bump its service-worker cache version. Keep copies synchronized. To change or disable collection, edit the endpoint or remove the script in every app and bump each affected cache version. The app directory itself, presentation-only windows, legacy redirect pages, and the starter template do not emit app events.
+When adding an app, copy the `acswebapps-usage` script into its main page, set its fixed folder identifier, document its usage counts, and bump its service-worker cache version. Keep copies synchronized. To change or disable collection, edit the endpoint or remove the script in every app and bump each affected cache version. The app directory itself, presentation-only windows, legacy redirect pages, and the starter template do not emit app events.
 
 App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
 

@@ -168,7 +168,7 @@ def main():
                 previous, _ = worker_config(old.stdout)
                 before = re.fullmatch(r'(.*-v)(\d+)', previous)
                 after = re.fullmatch(r'(.*-v)(\d+)', version)
-                if not before or not after or before[1] != after[1] or int(after[2]) <= int(before[2]):
+                if not before or not after or int(after[2]) <= int(before[2]):
                     raise ValueError(f'cached files changed; increase {previous} (current: {version})')
         except (ValueError, SyntaxError) as error:
             fail(f'{relative(path)}: {error}')

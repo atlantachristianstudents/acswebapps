@@ -7,10 +7,10 @@
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#08090d;color:#eceef4}*{box-sizing:border-box}body{margin:0;padding:16px;max-width:1600px;margin-inline:auto}h1{font-size:20px;font-weight:500;margin:0 0 4px}body>p{font-size:13px;margin:4px 0;line-height:1.4}p{color:#afb6c7;margin:8px 0;line-height:1.5}.controls{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:13px}select,button{font:inherit;color:inherit;background:#202532;border:1px solid #475066;border-radius:4px;padding:4px 6px}label{display:flex;align-items:center;gap:4px}#plot{width:100%;display:block;touch-action:none;cursor:crosshair;background:#000}#status{min-height:3em;margin-top:12px;color:#eff2fa}#legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#b7bfd0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}footer{margin-top:16px;color:#959eb1;font-size:13px}a{color:#b8caff}@media(max-width:600px){body{padding:12px}.controls{gap:8px}select{font-size:16px}label{flex-wrap:wrap}}
 
-    .adless-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
-    .adless-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
-    .adless-help > summary::-webkit-details-marker { display: none; }
-    .adless-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
+    .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
+    .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
+    .acswebapps-help > summary::-webkit-details-marker { display: none; }
+    .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
   </style></head><body>
 
 <h1>Bible Connections</h1>
@@ -52,7 +52,7 @@ const results=document.getElementById('results'),resultList=document.getElementB
 function resultGroups(){const groups=Array.from({length:depth+1},()=>[]);if(!selection)return groups;if(selection.verse){const entries=Array.from(verseConnections(selection).levels,([key,step])=>{const [chapter,verse]=key.split(':').map(Number);return {chapter,verse,step}});entries.sort((a,b)=>a.step-b.step||a.chapter-b.chapter||a.verse-b.verse);for(const entry of entries)groups[entry.step].push(name(entry.chapter)+':'+entry.verse)}else{for(let c=0;c<N;c++)if(dist[c]>=0)groups[dist[c]].push(name(c))}return groups}
 function updateResults(){results.hidden=!selection;resultList.replaceChildren();if(!selection||!results.open)return;resultGroups().forEach((entries,step)=>{if(!entries.length)return;const group=document.createElement('details'),summary=document.createElement('summary');summary.textContent=(step===0?'Selected':`Step ${step}`)+` · ${entries.length.toLocaleString()} ${selection.verse?'verses':'chapters'}`;group.append(summary);group.style.margin='10px 0';group.addEventListener('toggle',()=>{if(!group.open||group.childElementCount>1)return;const list=document.createElement('p');list.textContent=entries.join(' · ');group.append(list)});resultList.append(group)})}
 results.addEventListener('toggle',updateResults);
-function updateStatus(){updateResults();document.getElementById('mode').textContent=pinned?'Pinned · Escape to clear':'Hover to explore';if(!selection){status.textContent='1,189 chapters · 56,965 interchapter references · 24,335 chapter pairs';return}if(selection.verse){const result=verseConnections(selection);status.textContent=`${name(selection.seeds[0])}:${selection.verse} · ${(outgoing.get(selection.seeds[0]+':'+selection.verse)||[]).length} outgoing references · ${result.levels.size.toLocaleString()} verses within ${depth} steps`;return}const label=selection.edge!==undefined?edges[selection.edge].slice(0,2).map(name).join(' ↔ ')+` · ${edges[selection.edge][2]} references`:name(selection.seeds[0]);const count=Array.from(dist).filter(d=>d>=0).length;status.textContent=`${label} · ${count.toLocaleString()} chapters within ${depth} step${depth===1?'':'s'}${selection.edge!==undefined?' of either endpoint':''}`}
+function updateStatus(){updateResults();document.getElementById('mode').textContent=pinned?'Pinned · Escape to clear':'Hover to explore';if(!selection){status.textContent='1,189 chapters · 56,965 interchapter references · 24,335 chapter pairs';return}if(selection.verse){const result=verseConnections(selection);status.textContent=`${name(selection.seeds[0])}:${selection.verse} · ${(outgoing.get(selection.seeds[0]+':'+selection.verse)||[]).length} outgoing references · ${result.levels.size.toLocaleString()} verses within ${depth} steps`;return}const label=selection.edge!==undefined?edges[selection.edge].slice(0,2).map(name).join(' ↔ ')+` · ${edges[selection.edge][2]} references`:name(selection.seeds[0]);const count=Array.from(dist).filter(d=>d>=0).length;let verseLabel='';if(verseMode.checked&&selection.edge!==undefined){const [a,b]=edges[selection.edge],refs=data.verseRefs.filter(r=>(r[0]===a&&r[2]===b)||(r[0]===b&&r[2]===a)),shown=refs.slice(0,4).map(r=>`${name(r[0])}:${r[1]} → ${name(r[2])}${r[3]?':'+r[3]:''}`);verseLabel=refs.length?` · Verses: ${shown.join('; ')}${refs.length>shown.length?`; +${refs.length-shown.length} more`:''}`:' · No verse details available'}status.textContent=`${label}${verseLabel} · ${count.toLocaleString()} chapters within ${depth} step${depth===1?'':'s'}${selection.edge!==undefined?' of either endpoint':''}`}
 function draw(){ctx.clearRect(0,0,width,height);ctx.globalAlpha=selection?.13:1;ctx.drawImage(base,0,0,width,height);ctx.globalAlpha=1;if(!selection)return;if(selection.verse){drawVerse();return}
 // Each wave contains edges reached from the previous wave, including links within that wave.
 for(let step=depth;step>=1;step--){ctx.strokeStyle=palette[step];ctx.globalAlpha=step===1?.85:.32;ctx.lineWidth=step===1?1.15:.7;for(const e of edges){const a=dist[e[0]],b=dist[e[1]];if(a>=0&&b>=0&&Math.min(a,b)+1===step)arc(ctx,e)}}ctx.globalAlpha=1;
@@ -98,7 +98,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
-</script>  <script id="adless-usage">
+</script>  <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
@@ -110,7 +110,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 
   // Each tab owns its queue, avoiding duplicate sends from other open tabs.
   // Storage failure must never prevent an app from opening.
-  var key = "adless-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
   var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
   try {
     var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
@@ -185,5 +185,5 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   flush();
 }());
   </script>
-<details class="adless-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Bible Connections is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Bible Connections is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
 </body></html>

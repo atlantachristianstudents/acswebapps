@@ -291,10 +291,10 @@
     .srempty { padding: .4rem .6rem; font-size: .82rem; color: var(--muted); }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-    .adless-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
-    .adless-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
-    .adless-help > summary::-webkit-details-marker { display: none; }
-    .adless-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
+    .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
+    .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
+    .acswebapps-help > summary::-webkit-details-marker { display: none; }
+    .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
   </style>
 </head>
 <body>
@@ -1689,7 +1689,7 @@
     try { initBookSelect(); } catch (e) {}
   })();
   </script>
-  <script id="adless-usage">
+  <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
@@ -1701,7 +1701,7 @@
 
   // Each tab owns its queue, avoiding duplicate sends from other open tabs.
   // Storage failure must never prevent an app from opening.
-  var key = "adless-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
   var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
   try {
     var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
@@ -1776,6 +1776,6 @@
   flush();
 }());
   </script>
-<details class="adless-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Verse Designer is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Verse Designer is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
 </body>
 </html>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Memorize — ACS Web Apps</title>
+    <title>Test — ACS Web Apps</title>
     <meta name="description" content="Practice recalling any text on a blank page, then check your words." />
     <meta name="theme-color" content="#31634d" />
     <meta name="color-scheme" content="light dark" />
@@ -530,10 +530,10 @@
         }
       }
 
-    .adless-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
-    .adless-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
-    .adless-help > summary::-webkit-details-marker { display: none; }
-    .adless-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
+    .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
+    .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
+    .acswebapps-help > summary::-webkit-details-marker { display: none; }
+    .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
   </style>
   </head>
 
@@ -545,7 +545,7 @@
 
     <main>
       <section id="setup">
-        <p class="eyebrow">Memorize / 01 · Prepare</p>
+        <p class="eyebrow">Test / 01 · Prepare</p>
         <h1>Make the words your own.</h1>
         <p class="muted">
           Add a verse, a poem, a speech, or anything you want to remember. When you begin, the text disappears.
@@ -648,7 +648,7 @@
       </section>
 
       <section id="library" aria-label="Saved verses">
-        <p class="eyebrow">Memorize / Collection</p>
+        <p class="eyebrow">Test / Collection</p>
         <h2>Saved verses</h2>
         <p class="muted">Your collection, saved on this device. Practice a verse, or hide its words to recall it in place.</p>
         <div class="lib-filters" role="group" aria-label="Filter saved verses">
@@ -661,7 +661,7 @@
       </section>
 
       <section id="practice" hidden>
-        <p class="eyebrow">Memorize / 02 · Recall</p>
+        <p class="eyebrow">Test / 02 · Recall</p>
         <h1 id="practice-heading" tabindex="-1">Start with a blank page.</h1>
         <p class="muted">Take your time. Write what you remember, then check your recall.</p>
 
@@ -689,7 +689,7 @@
       </section>
 
       <section id="ready" hidden>
-        <p class="eyebrow">Memorize / 02 · Look it over</p>
+        <p class="eyebrow">Test / 02 · Look it over</p>
         <h1 id="ready-heading" tabindex="-1">Read it once more.</h1>
         <p class="muted">When you're ready, the text disappears and recall begins.</p>
         <div id="ready-text" class="comparison"></div>
@@ -699,7 +699,7 @@
       </section>
 
       <section id="results" hidden>
-        <p class="eyebrow">Memorize / 03 · Reflect</p>
+        <p class="eyebrow">Test / 03 · Reflect</p>
         <h1 id="results-heading" tabindex="-1">Here's how you did.</h1>
 
         <div class="summary" role="status">
@@ -736,7 +736,7 @@
       </section>
 
       <section id="hider" hidden aria-label="Word hiding practice">
-        <p class="eyebrow">Memorize / Verse</p>
+        <p class="eyebrow">Test / Verse</p>
         <h1 id="hider-heading" tabindex="-1"></h1>
         <p class="muted" id="hider-note">Tap a word to hide or reveal it. See how few words you need.</p>
         <div id="hider-words" class="hider-words"></div>
@@ -757,8 +757,8 @@
 
         const $ = (id) => document.getElementById(id);
 
-        const storageKey = "adless-memorize-v1";
-        const testStorageKey = "adless-memorize-test-v1";
+        const storageKey = "acswebapps-memorize-v1";
+        const testStorageKey = "acswebapps-memorize-test-v1";
 
         let test = null;
         let phase = "setup";
@@ -1872,7 +1872,7 @@
 
         const RCV_URL = "https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV";
         const RCV_ID = "rcv-text";
-        const libraryKey = "adless-memorize-verses-v1";
+        const libraryKey = "acswebapps-memorize-verses-v1";
 
         const BOOKS =
           "Genesis|Gen.,Exodus|Exo.,Leviticus|Lev.,Numbers|Num.,Deuteronomy|Deut.,Joshua|Josh.,Judges|Judg.,Ruth|Ruth,1 Samuel|1 Sam.,2 Samuel|2 Sam.,1 Kings|1 Kings,2 Kings|2 Kings,1 Chronicles|1 Chron.,2 Chronicles|2 Chron.,Ezra|Ezra,Nehemiah|Neh.,Esther|Esth.,Job|Job,Psalms|Psa.,Proverbs|Prov.,Ecclesiastes|Eccl.,Song of Solomon|S.S.,Isaiah|Isa.,Jeremiah|Jer.,Lamentations|Lam.,Ezekiel|Ezek.,Daniel|Dan.,Hosea|Hosea,Joel|Joel,Amos|Amos,Obadiah|Oba.,Jonah|Jonah,Micah|Micah,Nahum|Nahum,Habakkuk|Hab.,Zephaniah|Zeph.,Haggai|Hag.,Zechariah|Zech.,Malachi|Mal.,Matthew|Matt.,Mark|Mark,Luke|Luke,John|John,Acts|Acts,Romans|Rom.,1 Corinthians|1 Cor.,2 Corinthians|2 Cor.,Galatians|Gal.,Ephesians|Eph.,Philippians|Phil.,Colossians|Col.,1 Thessalonians|1 Thes.,2 Thessalonians|2 Thes.,1 Timothy|1 Tim.,2 Timothy|2 Tim.,Titus|Titus,Philemon|Philem.,Hebrews|Heb.,James|James,1 Peter|1 Pet.,2 Peter|2 Pet.,1 John|1 John,2 John|2 John,3 John|3 John,Jude|Jude,Revelation|Rev.".split(",").map((s) => s.split("|"));
@@ -1949,7 +1949,7 @@
           return new Promise((resolve, reject) => {
             let open;
             try {
-              open = indexedDB.open("adless-memorize", 1);
+              open = indexedDB.open("acswebapps-memorize", 1);
             } catch (error) {
               reject(error);
               return;
@@ -2178,7 +2178,7 @@
 
           const memorize = document.createElement("button");
           memorize.type = "button";
-          memorize.textContent = "Memorize →";
+          memorize.textContent = "Practice →";
           memorize.addEventListener("click", () => {
             const saved = addToLibrary(ref, entry.text, true);
             $("library-status").textContent = ref + " added to your collection. Practice begins below.";
@@ -2539,11 +2539,11 @@
         }
       })();
     </script>
-    <script id="adless-usage">
+    <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
-  var app = "memorize";
+  var app = "test";
   var endpoint = "https://atlantachristianstudents.goatcounter.com/count";
   if (!/^https?:$/.test(location.protocol) ||
       /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
@@ -2551,7 +2551,7 @@
 
   // Each tab owns its queue, avoiding duplicate sends from other open tabs.
   // Storage failure must never prevent an app from opening.
-  var key = "adless-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
   var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
   try {
     var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
@@ -2626,6 +2626,6 @@
   flush();
 }());
   </script>
-<details class="adless-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Memorize is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Test is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
 </body>
 </html>

@@ -50,19 +50,19 @@ window.APPS = [
     url: "apps/logostype/"
   },
   {
-    id: "memorize",
-    name: "Memorize",
-    description: "Memorize Bible verses (Recovery Version) or any passage: hide words or type from memory and check missing, changed, and extra words. Works offline.",
-    icon: "✍️",
-    iconUrl: "apps/memorize/icons/icon.svg",
+    id: "test",
+    name: "Test",
+    description: "Recite memorized text by typing it, whether it's a Bible verse or another passage. Compare your response with the reference to find missing, changed, and extra words.",
+    icon: "✓",
+    iconUrl: "apps/test/icons/icon.svg",
     tags: ["Study", "Memory"],
     status: "beta",
-    url: "apps/memorize"
+    url: "apps/test"
   },
   {
     id: "verse-review",
     name: "Verse Review",
-    description: "Practice Bible verses with spaced reviews. Add your own text, recall it, and schedule the next session. Private and offline-friendly.",
+    description: "Create Bible verse flashcards to practice memorizing Scripture, then review each card on a spaced schedule. Private and offline-friendly.",
     icon: "🧠",
     iconUrl: "apps/verse-review/icons/icon.svg",
     tags: ["Study", "Memory"],

@@ -5208,7 +5208,7 @@
       .catch(function (err) { console.warn("Reading stored versions failed:", err); return fromNetwork(); });
   }
 })();
-</script>  <script id="adless-usage">
+</script>  <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
   "use strict";
@@ -5220,7 +5220,7 @@
 
   // Each tab owns its queue, avoiding duplicate sends from other open tabs.
   // Storage failure must never prevent an app from opening.
-  var key = "adless-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
   var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
   try {
     var saved = JSON.parse(sessionStorage.getItem(key) || "[]");

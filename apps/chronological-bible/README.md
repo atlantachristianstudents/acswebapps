@@ -1,6 +1,6 @@
 # Chronological Bible
 
-The full and short installed-app names are both **Chronological Bible**.
+The full and short installed-app names are both **Chronological Bible**. Its icon pairs an open Bible with a three-point timeline, using the rounded background and simple line artwork of the live app icons.
 
 Static, offline-capable Bible reader. Serve this folder with any static web server; no build step or dependencies required. Includes timeline navigation, reference/text search, URL references, saved readings, reading position, and text/theme settings. Local storage is browser-specific.
 

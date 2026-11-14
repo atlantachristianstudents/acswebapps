@@ -1,6 +1,6 @@
 {
-  "name": "Memorize",
-  "short_name": "Memorize",
+  "name": "Test",
+  "short_name": "Test",
   "description": "Recall any text on a blank page, then check your words.",
   "start_url": "./index.html",
   "scope": "./",

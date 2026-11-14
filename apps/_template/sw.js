@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "app-template-v9";
+var VERSION = "app-template-v10";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
 
 self.addEventListener("install", function (e) {

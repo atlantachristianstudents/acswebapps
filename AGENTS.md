@@ -21,7 +21,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | `index.html` | Home page (app directory). Script at the end is minimal; behavior lives in `assets/main.js`. |
 | `404.html` | Not-found page. Its back link/favicon base is chosen at runtime: `/acswebapps/` on `atlantachristianstudents.github.io`, `/` on any other host. |
 | `manifest.json` | Home-page web-app manifest (standalone PWA; icons in `assets/icons/`). |
-| `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `adless-home-vN`). Must not handle `apps/` requests. |
+| `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `acswebapps-home-vN`). Must not handle `apps/` requests. |
 | `CNAME` | Custom domain for GitHub Pages: `acswebapps.com`. The repo root is served at `/` there — see *Custom domain and base paths*. |
 | `.github/workflows/update-songbase.yml` | Six-hourly Songbase refresh for Show Songs; uses Python standard library, commits changed snapshots, requests a Pages rebuild. |
 | `.github/workflows/validate.yml` | Runs `scripts/validate.py` on pull requests and pushes to `main`. No build step. |
@@ -75,7 +75,7 @@ Rules that follow from this:
 - **Root-level absolute URLs must use the canonical domain** — `https://acswebapps.com/…`. This covers `og:url`, `og:image`, and any canonical link in `index.html`, plus the live-site links in `README.md`. The project-site URL is the fallback, not the advertised address.
 - **Inside `apps/`, always use relative paths.** An app's "← ACS Web Apps" link is `../../`, which resolves to `/` on the custom domain, to `/acswebapps/` on the project site, and 404s only when the folder is hosted on its own. Never point it at a hardcoded absolute URL — that breaks standalone hosting and the project site.
 - **Never rewrite the 404 back link to a relative path.** GitHub Pages serves `404.html` from arbitrary depths, so a relative link would resolve against the missing URL's directory and land on a 404 instead of the app directory.
-- When you change `index.html`, `manifest.json`, or anything in the home `sw.js` `SHELL`, bump the home cache version (`adless-home-vN`).
+- When you change `index.html`, `manifest.json`, or anything in the home `sw.js` `SHELL`, bump the home cache version (`acswebapps-home-vN`).
 
 ## Downloaded data and offline storage
 
@@ -120,7 +120,7 @@ Consumers currently include:
 - `apps/chronological-bible/app.js`
 - `apps/show-words/index.html`
 - `apps/verse-designer/index.html`
-- `apps/memorize/index.html`
+- `apps/test/index.html`
 
 Cache the downloaded text in IndexedDB, with the existing localStorage backup and 15-day TTL. Apps must continue working offline using cached text.
 
@@ -129,7 +129,7 @@ Do not vendor the Scripture file into the repository or add it to service-worker
 ## Dependency management
 
 - Do not add npm packages, build tools, or CDN libraries without explicit approval. The zero-dependency setup is intentional and load-bearing (it works offline, and any app can be copied out of the repo intact).
-- Approved exception: `apps/memorize/vendor/pdfjs/` bundles PDF.js, fonts, and character maps for private, offline PDF text import. Keep parser and resource versions aligned; preserve licenses and the classic-script adaptations documented in that folder.
+- Approved exception: `apps/test/vendor/pdfjs/` bundles PDF.js, fonts, and character maps for private, offline PDF text import. Keep parser and resource versions aligned; preserve licenses and the classic-script adaptations documented in that folder.
 - If an image/icon is needed, add it as an SVG file under the app's `icons/`; do not pull in icon font packages.
 
 ## Build, run, and validation commands
@@ -175,7 +175,7 @@ There is no test suite, formatter, or linter configured. Verification means: the
 
 ## Rules for modifying existing functionality
 
-- Preserve public behavior: the `window.APPS` registry format, localStorage keys (`adless-theme`, and each app's own keys), and card/status naming ("live"/"beta"/"soon").
+- Preserve public behavior: the `window.APPS` registry format, localStorage keys (`acswebapps-theme`, and each app's own keys), and card/status naming ("live"/"beta"/"soon").
 - Do not restructure the large existing apps for style; make targeted fixes only, and test them (see validation commands).
 - Keep every change compatible with file:// and http:// hosting of app folders (service-worker registrations must be guarded and fail silently).
 
@@ -195,4 +195,4 @@ Update docs in the same change when the implementation changes:
 
 ## Usage analytics
 
-Registered apps include an inline `adless-usage` script in their main `index.html`, with a fixed app-folder identifier and the GoatCounter endpoint. Keep these self-contained copies synchronized; do not add a cross-app runtime asset or CDN script. Only fixed open, installed-open, and supported install event labels may be collected; never send user content, searches, full URLs, or referrers. Preserve opt-out and local-development guards, failure isolation, and bounded per-tab offline queues. Update usage documentation and bump each affected app cache version when changing analytics. New apps should copy the script and set their own folder identifier. Redirect and presentation-only pages must not emit extra opens.
+Registered apps include an inline `acswebapps-usage` script in their main `index.html`, with a fixed app-folder identifier and the GoatCounter endpoint. Keep these self-contained copies synchronized; do not add a cross-app runtime asset or CDN script. Only fixed open, installed-open, and supported install event labels may be collected; never send user content, searches, full URLs, or referrers. Preserve opt-out and local-development guards, failure isolation, and bounded per-tab offline queues. Update usage documentation and bump each affected app cache version when changing analytics. New apps should copy the script and set their own folder identifier. Redirect and presentation-only pages must not emit extra opens.

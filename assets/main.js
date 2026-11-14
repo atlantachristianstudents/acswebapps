@@ -23,12 +23,12 @@
     root.setAttribute("data-theme", theme);
     if (themeToggle) themeToggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
     if (persist) {
-      try { localStorage.setItem("adless-theme", theme); } catch (e) {}
+      try { localStorage.setItem("acswebapps-theme", theme); } catch (e) {}
     }
   }
 
   let savedTheme = null;
-  try { savedTheme = localStorage.getItem("adless-theme"); } catch (e) {}
+  try { savedTheme = localStorage.getItem("acswebapps-theme"); } catch (e) {}
   if (savedTheme) {
     applyTheme(savedTheme, false);
   } else {

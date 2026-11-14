@@ -1,4 +1,4 @@
-# PDF.js for Memorize
+# PDF.js for Test
 
 Mozilla PDF.js **6.5.438**, from the official `pdfjs-dist` distribution:
 https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.5.438.tgz
