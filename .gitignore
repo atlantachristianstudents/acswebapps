@@ -1,4 +1,4 @@
-# Editor backups and junk
+# Editor backups and junk (including hidden editor undo files)
 .DS_Store
 *~
 *.un~
