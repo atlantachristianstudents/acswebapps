@@ -13,6 +13,15 @@
  */
 window.APPS = [
   {
+    id: "rise",
+    name: "Rise",
+    description: "Start the day with a verse from the Recovery Version. Install it to your phone’s home screen for a quiet, one-tap morning opening.",
+    icon: "☀️",
+    iconUrl: "apps/rise/icons/icon.svg",
+    tags: ["Reading", "Worship"],
+    status: "beta"
+  },
+  {
     id: "bible-connections",
     name: "Bible Connections",
     description: "Explore Bible cross-references in an interactive map. Trace connections between chapters and verses, entirely offline.",
