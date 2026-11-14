@@ -13,16 +13,6 @@
  */
 window.APPS = [
   {
-    id: "chronological-bible",
-    name: "Chronological Bible",
-    description: "Read the Recovery Version in chronological order, with timeline navigation, Scripture search, and saved readings. Works offline.",
-    icon: "📖",
-    iconUrl: "apps/chronological-bible/icons/icon.svg",
-    tags: ["Study"],
-    status: "beta",
-    url: "apps/chronological-bible/"
-  },
-  {
     id: "bible-connections",
     name: "Bible Connections",
     description: "Explore Bible cross-references in an interactive map. Trace connections between chapters and verses, entirely offline.",

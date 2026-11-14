@@ -27,9 +27,6 @@
       --border: #e7e9f0;
       --accent: #3b4bf5;
       --accent-soft: #eceefc;
-      /* Height of the sticky top bar, measured by script so the sticky
-         preview can sit below it instead of hiding behind it. */
-      --topbar-h: 3.2rem;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -211,17 +208,16 @@
       cursor: pointer;
     }
     button.ghost:hover { border-color: var(--accent); }
-    /* Sticky preview: stays in view while scrolling through the controls.
-       It sits flush under the sticky top bar so nothing is covered. */
+    /* Sticky preview: stays in view while scrolling through the controls. */
     .preview-col { align-self: stretch; }
     .preview-sticky {
       position: sticky;
-      top: var(--topbar-h);
+      top: .75rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: .4rem;
-      max-height: calc(100vh - var(--topbar-h));
+      max-height: calc(100vh - 1.5rem);
       overflow: hidden;
     }
     .preview-wrap {
@@ -245,11 +241,11 @@
       text-align: center;
       margin: 0;
     }
-    /* Phones: preview sticks flush under the top bar with a tighter budget
-       so the controls below stay reachable. */
+    /* Phones: preview sticks at the top with a tighter budget so the
+       controls below stay reachable. */
     @media (max-width: 880px) {
       .preview-sticky {
-        top: var(--topbar-h);
+        top: .5rem;
         max-height: none;
         z-index: 5;
         padding-bottom: .35rem;
@@ -293,32 +289,6 @@
     .srlist b { color: var(--accent); white-space: nowrap; margin-right: .35em; }
     .srlist mark { background: var(--accent-soft); color: var(--accent); border-radius: 2px; }
     .srempty { padding: .4rem .6rem; font-size: .82rem; color: var(--muted); }
-    /* Background image search results */
-    .imggrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-      gap: .4rem;
-      margin-top: .5rem;
-      max-height: 15em;
-      overflow: auto;
-    }
-    .imggrid button {
-      padding: 0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--bg);
-      cursor: pointer;
-      aspect-ratio: 1;
-      transition: border-color .12s;
-    }
-    .imggrid button:hover { border-color: var(--accent); }
-    .imggrid img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .imggrid .noimg {
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 100%; color: var(--muted); font-size: .75rem;
-      padding: .2rem; text-align: center;
-    }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
     .adless-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
@@ -402,7 +372,6 @@
             <button type="button" class="ghost" id="clearImage" style="display:none">Remove</button>
             <span class="hint" id="imageName" style="align-self:center"></span>
           </div>
-          <p class="hint" id="imageCredit" style="margin-top:.25rem"></p>
           <input type="file" id="imageFile" accept="image/*" class="sr" aria-hidden="true" tabindex="-1">
           <div class="adv-only">
             <div class="row wrap" style="margin-top:.5rem">
@@ -432,21 +401,6 @@
             </label>
           </div>
         </div>
-      </div>
-
-      <!-- Background image search: hidden until an image API is configured.
-           Remove the `hidden` attribute to show the panel. -->
-      <div class="panel" id="imgSearchPanel" hidden>
-        <h2>Find a background image</h2>
-        <label class="field"><span class="sr">Search background images</span>
-          <input type="text" id="imgSearch" placeholder="Search images (sunrise, mountains, texture…)" autocomplete="off" spellcheck="false">
-        </label>
-        <p class="hint" id="imgSearchStatus" role="status" aria-live="polite"></p>
-        <div id="imgSearchResults" hidden>
-          <div class="imggrid" id="imgGrid"></div>
-        </div>
-        <p class="hint">Tap a result to use it as the background. The image is downloaded and stored locally, so exports keep working offline.</p>
-        <p class="hint" id="imgSearchSetup" hidden>Set <code>IMAGE_SEARCH_API.endpoint</code> in this app's <code>index.html</code> to turn the search on.</p>
       </div>
 
       <div class="panel">
@@ -589,21 +543,6 @@
 
     var STORE_KEY = "verse-designer-state";
 
-    // ---------- Background image search ----------
-    // Paste the API here and the "Find a background image" panel starts
-    // working. `{q}` is replaced with the search term.
-    //   endpoint: "https://api.example.com/images?q={q}&per_page=24"
-    // Add headers when the API needs a key:
-    //   headers: { Authorization: "Bearer YOUR_KEY" }
-    // The JSON response is read by parseImageResults(), which understands the
-    // common shapes (Unsplash, Pexels, Openverse, Pixabay, or a plain list of
-    // image URLs). Leave `endpoint` empty to keep the search switched off.
-    var IMAGE_SEARCH_API = {
-      endpoint: "",
-      headers: {},
-      limit: 24
-    };
-
     // ---------- State ----------
     var DEFAULTS = {
       verse: "For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life.",
@@ -636,7 +575,6 @@
       // image background
       imageData: null,         // dataURL
       imageName: "",
-      imageCredit: "",
       imgFit: "cover",
       imgPos: "center",
       imgDim: 0,
@@ -659,17 +597,6 @@
     }
 
     function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
-
-    // Height of the sticky top bar. Published as --topbar-h so the sticky
-    // preview can sit below it instead of sliding underneath.
-    function barHeight() {
-      var bar = document.querySelector(".topbar");
-      return bar ? bar.offsetHeight : 0;
-    }
-
-    function syncBarHeight() {
-      document.documentElement.style.setProperty("--topbar-h", barHeight() + "px");
-    }
 
     function hexToRgb(hex) {
       var m = /^#?([0-9a-f]{6})$/i.exec(hex);
@@ -710,7 +637,18 @@
       reader.onload = function () {
         var im = new Image();
         im.onload = function () {
-          applyImage(im, file.name || "image", "");
+          var MAX = 1600;
+          var r = Math.min(1, MAX / Math.max(im.width, im.height));
+          var cv = document.createElement("canvas");
+          cv.width = Math.round(im.width * r);
+          cv.height = Math.round(im.height * r);
+          cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+          state.imageData = cv.toDataURL("image/jpeg", 0.85);
+          state.imageName = file.name || "image";
+          state.bg = IMAGE_BG;
+          if (isDark(imgTone())) { /* keep text color */ }
+          syncControls();
+          refreshAll();
           toast("Image loaded");
         };
         im.onerror = function () { toast("Could not read that image"); };
@@ -719,171 +657,24 @@
       reader.readAsDataURL(file);
     }
 
-    // Use a decoded image (uploaded or downloaded) as the background.
-    // It is re-encoded as a data URL so the canvas export is never tainted.
-    function applyImage(im, name, credit) {
-      var MAX = 1600;
-      var r = Math.min(1, MAX / Math.max(im.width, im.height));
-      var cv = document.createElement("canvas");
-      cv.width = Math.round(im.width * r);
-      cv.height = Math.round(im.height * r);
-      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
-      state.imageData = cv.toDataURL("image/jpeg", 0.85);
-      state.imageName = name || "image";
-      state.imageCredit = credit || "";
-      state.bg = IMAGE_BG;
-      syncControls();
-      refreshSelection();
-      update();
-    }
-
-    function blobToDataUrl(blob) {
-      return new Promise(function (resolve, reject) {
-        var r = new FileReader();
-        r.onload = function () { resolve(r.result); };
-        r.onerror = function () { reject(r.error || new Error("read failed")); };
-        r.readAsDataURL(blob);
-      });
-    }
-
-    function loadDataUrlImage(dataUrl) {
-      return new Promise(function (resolve, reject) {
-        var im = new Image();
-        im.onload = function () { resolve(im); };
-        im.onerror = function () { reject(new Error("decode failed")); };
-        im.src = dataUrl;
-      });
-    }
-
-    // ---------- Background image search ----------
-    // Result URLs may be absolute or relative to the API; relative ones are
-    // resolved against the endpoint so they still download correctly.
-    function resolveUrl(href, base) {
-      if (!href) return "";
-      try { return new URL(href, base).href; }
-      catch (e) { return href; }
-    }
-
-    // Reads a search response and flattens it to a list of
-    // { url, thumb, title, credit } items. Supports the common API shapes.
-    function parseImageResults(json, base) {
-      var out = [];
-      var list = null;
-      if (Array.isArray(json)) list = json;
-      else if (json && typeof json === "object") {
-        list = json.results || json.photos || json.images || json.data ||
-               json.items || json.hits || json.value || null;
-      }
-      if (!Array.isArray(list)) return out;
-      list.forEach(function (it) {
-        if (!it) return;
-        if (typeof it === "string") {
-          out.push({ url: resolveUrl(it, base), thumb: resolveUrl(it, base), title: "", credit: "" });
-          return;
-        }
-        var url = it.url || it.full || it.large || it.original || it.src || it.image ||
-                  it.image_url || it.imageUrl || it.downloadUrl || "";
-        if (it.urls) url = it.urls.full || it.urls.regular || it.urls.raw || it.urls.large || url;
-        if (it.src && typeof it.src === "object") url = it.src.large || it.src.original || it.src.full || url;
-        if (it.image && typeof it.image === "object") url = it.image.large || it.image.original || url;
-        var thumb = it.thumb || it.thumbnail || it.small || it.preview || it.previewUrl || "";
-        if (it.urls) thumb = it.urls.small || it.urls.thumb || it.urls.medium || thumb;
-        if (it.src && typeof it.src === "object") thumb = it.src.small || it.src.medium || it.src.tiny || thumb;
-        if (it.thumbnail && typeof it.thumbnail === "object") thumb = it.thumbnail.src || it.thumbnail.url || thumb;
-        url = resolveUrl(url, base);
-        thumb = resolveUrl(thumb, base) || url;
-        var title = it.title || it.alt || it.alt_description || it.description || it.name || "";
-        if (typeof title !== "string") title = "";
-        var credit = it.credit || it.attribution || it.author || it.artist || it.photographer || "";
-        if (!credit && it.user) credit = it.user.name || it.user.username || "";
-        if (typeof credit !== "string") credit = "";
-        if (url) out.push({ url: url, thumb: thumb, title: title, credit: credit });
-      });
-      return out;
-    }
-
-    function imgSearchStatus(msg) { $("imgSearchStatus").textContent = msg; }
-
-    function renderImageResults(hits) {
-      var grid = $("imgGrid");
-      grid.innerHTML = "";
-      hits.forEach(function (h) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.title = h.credit ? h.title ? h.title + " — " + h.credit : h.credit : (h.title || "Use this image");
-        b.setAttribute("aria-label", "Use as background" + (h.title ? ": " + h.title : ""));
-        var im = document.createElement("img");
-        im.loading = "lazy";
-        im.referrerPolicy = "no-referrer";
-        im.alt = h.title || "";
-        im.addEventListener("error", function () {
-          if (this.dataset.failed) return;
-          this.dataset.failed = "1";
-          var ph = document.createElement("span");
-          ph.className = "noimg";
-          ph.textContent = "No preview";
-          this.replaceWith(ph);
-        });
-        im.src = h.thumb || h.url;
-        b.appendChild(im);
-        b.addEventListener("click", function () { useRemoteImage(h); });
-        grid.appendChild(b);
-      });
-      $("imgSearchResults").hidden = false;
-    }
-
-    // Download a search result and use it as the background.
-    function useRemoteImage(h) {
-      imgSearchStatus("Downloading image…");
-      fetch(h.url, { mode: "cors", headers: IMAGE_SEARCH_API.headers || {} })
-        .then(function (r) {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return r.blob();
-        })
-        .then(blobToDataUrl)
-        .then(loadDataUrlImage)
-        .then(function (im) {
-          applyImage(im, h.title || "Image", h.credit || "");
-          $("imgSearchResults").hidden = true;
-          imgSearchStatus("Background image applied.");
-          toast("Image loaded");
-        })
-        .catch(function (err) {
-          imgSearchStatus("Could not download that image" +
-            (err && err.message ? " (" + err.message + ")" : "") +
-            " — the source may block downloads.");
-        });
-    }
-
-    function doImageSearch() {
-      var q = $("imgSearch").value.trim();
-      if (!q) { $("imgSearchResults").hidden = true; imgSearchStatus(""); return; }
-      if (!IMAGE_SEARCH_API.endpoint) {
-        imgSearchStatus("Image search is not set up in this copy of the app.");
-        return;
-      }
-      imgSearchStatus("Searching…");
-      $("imgSearchResults").hidden = true;
-      var url = IMAGE_SEARCH_API.endpoint.replace("{q}", encodeURIComponent(q));
-      fetch(url, { headers: IMAGE_SEARCH_API.headers || {} })
-        .then(function (r) {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return r.json();
-        })
-        .then(function (json) {
-          var limit = IMAGE_SEARCH_API.limit || 24;
-          var hits = parseImageResults(json, IMAGE_SEARCH_API.endpoint).slice(0, limit);
-          if (!hits.length) {
-            imgSearchStatus("No images found for “" + q + "”.");
-            return;
-          }
-          imgSearchStatus(hits.length + (hits.length >= limit ? "+" : "") + " images found.");
-          renderImageResults(hits);
-        })
-        .catch(function (err) {
-          imgSearchStatus("Image search failed" +
-            (err && err.message ? " (" + err.message + ")" : "") + ".");
-        });
+    // Average-ish tone of the image for auto text color.
+    function imgTone() {
+      if (!imgEl) return "#000000";
+      try {
+        var cv = document.createElement("canvas");
+        cv.width = 10; cv.height = 10;
+        var c = cv.getContext("2d");
+        c.drawImage(imgEl, 0, 0, 10, 10);
+        var d = c.getImageData(0, 0, 10, 10).data;
+        var r = 0, g = 0, b = 0;
+        for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+        var n = d.length / 4;
+        var hex = "#" + [r, g, b].map(function (v) {
+          var s = Math.round(v / n).toString(16);
+          return s.length < 2 ? "0" + s : s;
+        }).join("");
+        return hex;
+      } catch (e) { return "#000000"; }
     }
 
     // ---------- Rendering ----------
@@ -1307,7 +1098,6 @@
       $("imgBlurVal").textContent = state.imgBlur + "%";
       $("imgTint").value = state.imgTint;
       $("imageName").textContent = state.imageName ? state.imageName : "";
-      $("imageCredit").textContent = state.imageCredit ? "📷 " + state.imageCredit : "";
       $("clearImage").style.display = state.imageData ? "inline-block" : "none";
 
       buildChips($("sizeChips"), SIZES, function (item) {
@@ -1789,7 +1579,7 @@
       this.value = "";
     });
     $("clearImage").addEventListener("click", function () {
-      state.imageData = null; state.imageName = ""; state.imageCredit = "";
+      state.imageData = null; state.imageName = "";
       syncControls(); refreshSelection(); update();
       toast("Image removed");
     });
@@ -1799,54 +1589,12 @@
     $("imgBlur").addEventListener("input", function () { state.imgBlur = +this.value; $("imgBlurVal").textContent = state.imgBlur + "%"; update(); });
     $("imgTint").addEventListener("input", function () { state.imgTint = this.value; update(); });
 
-    // Background image search wiring (debounced live search).
-    var imgSearchDeb = null;
-    $("imgSearch").addEventListener("input", function () {
-      clearTimeout(imgSearchDeb);
-      var v = this;
-      imgSearchDeb = setTimeout(function () { if (v.value.trim()) doImageSearch(); }, 250);
-    });
-    $("imgSearch").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); clearTimeout(imgSearchDeb); doImageSearch(); }
-    });
-
     // Advanced mode toggle (corner button).
-    // Turning advanced on scrolls to the first advanced control that is
-    // actually visible, so the extra settings are right in front of you.
-    function scrollToAdvanced() {
-      var nodes = document.querySelectorAll(".adv-only");
-      var target = null;
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].offsetParent !== null) { target = nodes[i]; break; }
-      }
-      if (!target) return;
-      // Keep clear of the sticky top bar.
-      var offset = barHeight() + 12;
-      // On phones the sticky preview floats over the controls, so the
-      // section has to start below it instead of behind it.
-      var preview = document.querySelector(".preview-sticky");
-      if (preview) {
-        var pr = preview.getBoundingClientRect();
-        var tr = target.getBoundingClientRect();
-        if (pr.right > tr.left && pr.left < tr.right) {
-          var stickyTop = parseFloat(getComputedStyle(preview).top);
-          if (!isNaN(stickyTop)) offset = stickyTop + preview.offsetHeight + 12;
-        }
-      }
-      var top = target.getBoundingClientRect().top + (window.pageYOffset || 0) - offset;
-      try {
-        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-      } catch (e) {
-        window.scrollTo(0, Math.max(0, top));
-      }
-    }
-
     $("advToggle").addEventListener("click", function () {
       state.advanced = !state.advanced;
       document.body.classList.toggle("advanced", state.advanced);
       this.setAttribute("aria-pressed", String(state.advanced));
       persist();
-      if (state.advanced) scrollToAdvanced();
     });
 
     $("download").addEventListener("click", function () {
@@ -1917,32 +1665,6 @@
     });
 
     // ---------- Boot ----------
-    // Every load starts at the top. The browser would otherwise restore the
-    // scroll offset, which puts a refreshed page straight back at the
-    // advanced section it was scrolled to — the scroll must only happen
-    // when the Advanced button is pressed.
-    try {
-      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-      window.scrollTo(0, 0);
-    } catch (e) {}
-
-    // Measure the top bar so the sticky preview clears it.
-    syncBarHeight();
-    if (window.ResizeObserver) {
-      try {
-        new ResizeObserver(syncBarHeight).observe(document.querySelector(".topbar"));
-      } catch (e) {}
-    }
-    window.addEventListener("resize", syncBarHeight);
-    window.addEventListener("orientationchange", syncBarHeight);
-
-    // Background image search is opt-in: it needs an API endpoint.
-    if (!IMAGE_SEARCH_API.endpoint) {
-      $("imgSearch").disabled = true;
-      $("imgSearchSetup").hidden = false;
-      imgSearchStatus("Image search is not set up in this copy of the app.");
-    }
-
     try {
       var saved = JSON.parse(localStorage.getItem(STORE_KEY));
       if (saved && typeof saved === "object") {

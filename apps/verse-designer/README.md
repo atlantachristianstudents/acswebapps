@@ -11,8 +11,7 @@ Create beautiful Bible verse wallpapers and shareable images. Type a verse, pick
 - **Layout presets** — Centered, Left, Card (rounded translucent panel), Line (accent rules above and below), and Quote (oversized quotation mark).
 - **Backgrounds** — 12 gradient presets (Dawn, Deep sea, Violet, Sunset, Forest, Night, …), a **Custom gradient** (free color + angle control), or your **own image** — see below.
 - **Custom image background** — pick any photo from your device. Advanced controls add fit (cover / contain / stretch), position, blur, a dim/tint overlay, and automatic text color from the image tone.
-- **Background image search** (built, hidden for now) — a "Find a background image" panel that works like the verse search: type a term, get a grid of thumbnails, tap one to use it. The chosen image is downloaded, re-encoded as a local data URL, and credited under the image name. The panel is hidden until an API endpoint is configured (see *Background image search API*).
-- **Advanced mode** — toggle ⚙ Advanced in the top bar to unlock: letter spacing, line height, text opacity, text shadow, ALL-CAPS verse transform, reference size, uppercase reference, vertical position, padding, vignette strength, and film grain. Turning it on scrolls the page to the first advanced control so you land on the new settings — that jump only ever happens from the button, never on load.
+- **Advanced mode** — toggle ⚙ Advanced in the top bar to unlock: letter spacing, line height, text opacity, text shadow, ALL-CAPS verse transform, reference size, uppercase reference, vertical position, padding, vignette strength, and film grain.
 - **Typography** — serif / sans / mono system font stacks, weight, size, verse text color, and an accent color (used for the reference, rules, and card border).
 - **Auto-fit** — long verses automatically shrink to fill the safe area; turn it off to set the size manually.
 - **Export** — Download PNG at the preset's full resolution, or copy the image straight to the clipboard.
@@ -40,24 +39,6 @@ Visit the app on the deployed ACS Web Apps site (or any HTTPS host) and use your
 - Fonts use OS-bundled stacks only (Georgia, Palatino, system-ui, Trebuchet, Consolas), keeping the app dependency-free and offline-safe.
 - Settings persist under the `verse-designer-state` localStorage key. Imported images are downscaled to 1600px JPEG data URLs before saving; if storage is full the image is dropped from persistence rather than failing the whole save.
 - Custom image backgrounds are drawn client-side from a same-origin data URL, so canvas export (toBlob) is never tainted.
-- The sticky preview sits flush under the sticky top bar, offset by the measured bar height (`--topbar-h`, updated by script), so it never slides underneath the bar. The "scroll to advanced" jump keeps the section below the preview on phones.
-- Every load starts at the top of the page (`history.scrollRestoration = "manual"`): the browser would otherwise restore the scroll offset and drop a refreshed page back at the advanced section.
-
-## Background image search API
-
-The "Find a background image" panel is built but **hidden** (the panel carries the `hidden` attribute in `index.html`) until an image API is available. To turn it on, remove `hidden` from `#imgSearchPanel` and set the endpoint near the top of the app script:
-
-```js
-var IMAGE_SEARCH_API = {
-  endpoint: "https://api.example.com/images?q={q}&per_page=24",
-  headers: { Authorization: "Bearer YOUR_KEY" },  // only if the API needs one
-  limit: 24
-};
-```
-
-- `{q}` is replaced with the search term.
-- The JSON response is read by `parseImageResults()`, which understands the common shapes (Unsplash `results[].urls`, Pexels `photos[].src`, Openverse/Pixabay `results[]`, or a plain array of URLs). Relative image URLs are resolved against the endpoint.
-- Result images are fetched with CORS, re-encoded as a data URL, and stored locally, so the export stays untainted and works offline afterwards. An API whose image CDN blocks cross-origin downloads will fail with a clear message.
 
 
 ## Usage counts

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>App Name — ACS Web Apps</title>
   <meta name="description" content="One-sentence description of this app.">
-  <meta name="theme-color" content="#082b46" />
+  <meta name="theme-color" content="#3b4bf5" />
   <meta name="color-scheme" content="light dark" />
   <!-- Local icon so the app stays self-contained; replace with your own.
        (Encoded SVG rounded square with a letter "A") -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23082b46'/%3E%3Ctext x='32' y='45' font-family='Arial, sans-serif' font-size='38' font-weight='bold' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233b4bf5'/%3E%3Ctext x='32' y='45' font-family='Arial, sans-serif' font-size='38' font-weight='bold' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <script>
     // Offline support: cache the app with sw.js (see README).
@@ -21,96 +21,71 @@
   </script>
   <style>
     :root {
-      color-scheme: light;
-      --bg: #faf9f6; --surface: #ffffff; --surface-hover: #f0f2ef;
-      --text: #163248; --muted: #576773; --border: #e0e4e4;
-      --control-border: #78858d; --accent: #082b46; --accent-hover: #163f5e;
-      --accent-soft: #edf1f4; --accent-text: #ffffff; --danger: #a52f35;
-      --radius: 16px; --radius-sm: 10px;
+      color-scheme: light dark;
+      --bg: #f7f8fc;
+      --text: #182033;
+      --muted: #68738a;
+      --border: #e7e9f0;
+      --accent: #3b4bf5;
     }
     @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        color-scheme: dark;
-        --bg: #091c2b; --surface: #102b40; --surface-hover: #19394f;
-        --text: #faf9f6; --muted: #c8d5df; --border: #344e60;
-        --control-border: #859aaa; --accent: #edc66b; --accent-hover: #f5d78f;
-        --accent-soft: #3b3424; --accent-text: #082b46; --danger: #ffb3b7;
+      :root {
+        --bg: #0d111b;
+        --text: #edf0fa;
+        --muted: #9ba7bd;
+        --border: #273047;
+        --accent: #7886ff;
       }
     }
-    :root[data-theme="dark"] {
-      color-scheme: dark;
-      --bg: #091c2b; --surface: #102b40; --surface-hover: #19394f;
-      --text: #faf9f6; --muted: #c8d5df; --border: #344e60;
-      --control-border: #859aaa; --accent: #edc66b; --accent-hover: #f5d78f;
-      --accent-soft: #3b3424; --accent-text: #082b46; --danger: #ffb3b7;
-    }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    a { color: var(--accent); }
-    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-    .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--border); }
-    .theme-control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-    main { max-width: 720px; margin: auto; padding: 24px 16px 96px; }
-    h1 { margin: 0 0 16px; font-size: 2rem; line-height: 1.2; letter-spacing: -.03em; }
-    h2 { margin: 0 0 16px; font-size: 1.25rem; }
-    p { margin: 0 0 16px; }
-    .muted { color: var(--muted); }
-    .panel { margin-top: 24px; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-    input, select, button { max-width: 100%; min-height: 44px; border: 1px solid var(--control-border); border-radius: var(--radius-sm); padding: 8px 12px; font: inherit; }
-    input, select { background: var(--surface); color: var(--text); }
-    input { width: 100%; margin: 8px 0 16px; }
-    button { cursor: pointer; background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-    button:hover { background: var(--accent-hover); }
-    .result { margin: 16px 0 0; overflow-wrap: anywhere; }
-    @media (max-width: 400px) { .topbar, .panel { padding: 16px; } }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar a {
+      display: inline-block;
+      padding: .4rem .8rem;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 600;
+      transition: background .15s;
+    }
+    .topbar span { color: var(--muted); }
+    main { padding: 1.5rem; }
+    h1 { font-weight: 700; letter-spacing: -.03em; }
 
     .adless-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
-    .adless-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 44px; height: 44px; line-height: 42px; text-align: center; box-sizing: border-box; }
+    .adless-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
     .adless-help > summary::-webkit-details-marker { display: none; }
     .adless-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <strong>App Name</strong>
-    <div class="theme-control">
-      <label for="theme">Theme</label>
-      <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
-    </div>
-  </header>
+  <div class="topbar">
+
+    <span>App Name</span>
+  </div>
   <main>
-    <!-- Replace this example with the app's primary task. Keep assets local. -->
+    <!-- Build your app here. Keep everything for this app inside its own folder
+         and use relative paths so it works offline and on any static host. -->
     <h1>App Name</h1>
-    <p class="muted">One sentence explaining what someone can accomplish here.</p>
-    <section class="panel" aria-labelledby="example-heading">
-      <h2 id="example-heading">Try the controls</h2>
-      <p class="muted">Starter example: enter a message and preview it below. Replace this with your app's main task.</p>
-      <form id="example-form">
-        <label for="message">Message</label>
-        <input id="message" name="message" maxlength="200" required placeholder="Welcome to our gathering">
-        <button type="submit">Preview message</button>
-      </form>
-      <p id="result" class="result" role="status">Your preview will appear here.</p>
-    </section>
+    <p>
+      Replace this with your app. Everything below stays self-contained in this
+      folder: index.html, manifest.webmanifest, sw.js, icons/ and this README.
+    </p>
   </main>
-  <details class="adless-help">
-    <summary aria-label="Help and navigation" title="Help and navigation">?</summary>
-    <nav aria-label="App navigation">
-      <p>Use your browser's install or Add to Home Screen option to install this app. On iPhone or iPad, use Safari's Share menu.</p>
-      <p>After an online visit finishes caching, this example works offline. Preview text stays on this page and clears when you reload.</p>
-      <p>App Name is part of the <a href="../../">ACS Web Apps project</a>.</p>
-    </nav>
-  </details>
-  <script>
-    document.getElementById("theme").addEventListener("change", function () {
-      if (this.value === "system") document.documentElement.removeAttribute("data-theme");
-      else document.documentElement.setAttribute("data-theme", this.value);
-    });
-    document.getElementById("example-form").addEventListener("submit", function (event) {
-      event.preventDefault();
-      document.getElementById("result").textContent = document.getElementById("message").value;
-    });
-  </script>
+<details class="adless-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">App Name is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
 </body>
 </html>
