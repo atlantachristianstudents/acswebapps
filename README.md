@@ -2,11 +2,13 @@
 
 **Free, ad-free web apps by Atlanta Christian Students.** Everything runs in the browser — no accounts and no ads, with limited usage counts. The site is a static app directory, and every app is a self-contained PWA that keeps working offline after the first visit.
 
-[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://atlantachristianstudents.github.io/acswebapps/)
+[![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://acswebapps.com/)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/77euBtgZjU)
 [![Issues](https://img.shields.io/badge/GitHub-Issues-5865F2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/atlantachristianstudents/acswebapps/issues)
 
 The Tools filter includes Bible Translation Explorer and Bible Connections. Show Time appears under Presentation.
+
+For contributors: start with the [product vision](VISION.md), [design guide](DESIGN.md), and [contribution workflow](CONTRIBUTING.md). These define the audience, warm off-white, navy, and gold design direction, backlog, review policy, and release checks.
 
 ## Table of contents
 
@@ -29,16 +31,16 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 
 | App | What it does | Status |
 | --- | --- | --- |
-| [Bible Connections](https://atlantachristianstudents.github.io/acswebapps/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
-| [Show Time](https://atlantachristianstudents.github.io/acswebapps/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
-| [Bible Translation Explorer](https://atlantachristianstudents.github.io/acswebapps/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
-| [Logos Type](https://atlantachristianstudents.github.io/acswebapps/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
-| [Memorize](https://atlantachristianstudents.github.io/acswebapps/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
-| [Verse Review](https://atlantachristianstudents.github.io/acswebapps/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
-| [Show Songs](https://atlantachristianstudents.github.io/acswebapps/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
-| [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Hosted in the [standalone Tune repository](https://github.com/zioninzion/tune). | live |
-| [Show Words](https://atlantachristianstudents.github.io/acswebapps/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
-| [Songbook](https://atlantachristianstudents.github.io/acswebapps/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
+| [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
+| [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
+| [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
+| [Logos Type](https://acswebapps.com/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
+| [Memorize](https://acswebapps.com/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
+| [Verse Review](https://acswebapps.com/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
+| [Show Songs](https://acswebapps.com/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
+| [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Also maintained in the standalone [Tune repository](https://github.com/zioninzion/tune). | live |
+| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
+| [Songbook](https://acswebapps.com/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
 Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (listed but not yet available).
 
@@ -65,7 +67,7 @@ A few apps bundle or use specialized pieces:
 
 ## Install and offline use
 
-1. Open the [live site](https://atlantachristianstudents.github.io/acswebapps/) in a modern browser.
+1. Open the [live site](https://acswebapps.com/) in a modern browser.
 2. Install the site or an individual app:
    - **Android / Chrome / Edge:** browser menu → **Install app**.
    - **iPhone / iPad (Safari):** Share → **Add to Home Screen**.
@@ -109,8 +111,13 @@ manifest.json              Home page web-app manifest (standalone PWA)
 sw.js                      Home page service worker (skips apps/, which have their own)
 .nojekyll                  Tells GitHub Pages to serve files as-is (no Jekyll processing)
 AGENTS.md                  Conventions for AI coding agents working in this repo
+VISION.md                  Audience, product commitments, and priorities
+DESIGN.md                  Shared palette, controls, and accessibility guidance
+CONTRIBUTING.md            Backlog, reviews, validation, and release policy
+scripts/validate.py        Dependency-free repository and cache-version checks
 .github/workflows/
   update-songbase.yml       Refresh Show Songs’s Songbase data every six hours
+  validate.yml              Validate PRs and main without a build step
 assets/
   apps.js                  App registry — edit this to add or list apps
   main.js                  Theme toggle, tag filters, search, keyboard shortcuts, cards
@@ -119,13 +126,19 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  bible-connections/       Bible cross-reference explorer with an offline connection map
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, reading, records, and friend races
   memorize/                Memorization practice with word comparison and PDF import
   verse-review/            Offline Bible verse practice with spaced reviews
+  verse-designer/          Verse wallpaper designer with PNG export
+  chronological-bible/     Chronological Bible: Recovery Version reader
+  rcv-chronological/       Redirects for former Chronological Bible URLs
   show-songs/              Full-screen hymn numbers and text
   show-words/              Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
+  timer/                   Minimal full-screen timer, clock, and stopwatch
+  tune/                    Tuner, metronome, tone generator, and chord detection
 ```
 
 App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. Tune is hosted locally in `apps/tune/` and is also maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune). Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
@@ -148,7 +161,7 @@ App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and
    }
    ```
 
-4. Commit and push. The card appears on the home page automatically.
+4. Run the [validation and manual checks](CONTRIBUTING.md#verify-before-review), then open a PR with project-lead approval for the new app. After merge and deployment, the registry makes the card appear automatically.
 
 Statuses are `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination. The registry fields are also documented in the header comment of `assets/apps.js`.
 
@@ -163,9 +176,11 @@ Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, 
 1. Push these files to the branch Pages deploys from (`main` of [atlantachristianstudents/acswebapps](https://github.com/atlantachristianstudents/acswebapps)).
 2. In the repo, go to **Settings → Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save.
-4. After a minute the site is live at <https://atlantachristianstudents.github.io/acswebapps/>.
+4. After a minute the site is live at <https://acswebapps.com/>.
 
 `.nojekyll` must stay in the repo root so GitHub Pages serves files as-is (Jekyll would otherwise exclude folders such as `apps/_template/`).
+
+The custom domain comes from the `CNAME` file at the repo root (`acswebapps.com`). GitHub Pages serves the repo root at `/` on that domain, so `404.html` selects its base path at runtime rather than hardcoding `/acswebapps/`. Keep DNS pointed at GitHub Pages (an `A` record to `185.199.108–111.153.153` or a `CNAME` to `*.github.io`), and keep the **Enforce HTTPS** setting on so installed apps get a secure context for the microphone and service workers.
 
 Show Songs’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The workflow requests a [Pages rebuild](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) after bot commits, since those pushes do not trigger the branch-based build automatically. Keep Actions enabled and permit the workflow’s `contents: write` and `pages: write` permissions; protected branches must allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
 
@@ -188,12 +203,11 @@ You can also open an issue on GitHub: <https://github.com/atlantachristianstuden
 
 ## Contributing
 
-Issues, suggestions, and pull requests are welcome. Before opening a PR:
+Issues, suggestions, and pull requests are welcome. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow. Ordinary changes need one other collaborator's approval; new apps and major direction changes also need project-lead approval.
 
-1. Run a local server and verify the change in the browser.
-2. Keep every app self-contained, with no new dependencies, CDN links, or build tools.
-3. Bump the relevant service-worker cache version (see above) whenever cached files change.
-4. Update the root README, the app's `README.md`, and the `assets/apps.js` header comment when behavior, structure, or registry fields change.
+Run `python3 scripts/validate.py --base origin/main` before review, then record relevant browser checks in the PR. The validator uses Python's standard library and Node's built-in syntax checking; there is no dependency installation or build step. It checks classic inline and external JavaScript, manifests and their local targets, registry destinations, service-worker asset lists, and cache-version increases against the selected base.
+
+The GitHub workflow runs on PRs and pushes to `main`. Branch protection, required checks, the shared backlog, and project-lead review assignments need repository setup; see the [setup checklist](CONTRIBUTING.md#repository-setup-checklist), including the scheduled Songbase updater's direct-push requirement.
 
 Contributions to the home page should keep it dependency-free and accessible (keyboard operable, ARIA labels accurate).
 
@@ -212,6 +226,6 @@ When adding an app, copy the `adless-usage` script into its main page, set its f
 
 App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
 
-The public name is **ACS Web Apps**. The site uses `/acswebapps/` URLs. Existing storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
+The public name is **ACS Web Apps**. The site is served at the custom domain `https://acswebapps.com/` (the domain in `CNAME`), where the repo root is `/`; the GitHub Pages project site `https://atlantachristianstudents.github.io/acswebapps/` serves the same content one level deeper. `404.html` picks its base path at runtime so the back link works on both. Existing storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
 
 Installed app naming: each manifest uses the app directory name for both `name` and `short_name`, so full and compact shortcut labels match. The home directory installs as **ACS Web Apps**.

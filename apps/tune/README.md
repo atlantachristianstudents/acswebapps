@@ -40,8 +40,10 @@ Maintainers can view totals at https://atlantachristianstudents.goatcounter.com.
 
 Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
-The help menu identifies Tuner as part of the ACS Web Apps project, with a link to the app directory.
+The help menu identifies Tune as part of the ACS Web Apps project, with a link to the app directory.
 
 ## Hosting
 
-This app is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune). Enable GitHub Pages for the `main` branch from the repository root. The app is then available at <https://zioninzion.github.io/tune/>. ACS Web Apps links to it at <https://acswebapps.com/apps/tune/>.
+This app is hosted with the rest of ACS Web Apps, in `apps/tune/`, and is live at <https://acswebapps.com/apps/tune/>. Its source of truth is the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune), which also publishes its own GitHub Pages build at <https://zioninzion.github.io/tune/>; changes made here are ported back to that repository.
+
+The "← ACS Web Apps" link in the help menu is relative (`../../`), so it resolves to the app directory on the custom domain, to the project site, and only 404s when this folder is hosted on its own.

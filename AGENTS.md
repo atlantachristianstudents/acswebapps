@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository.
 
 ## Project overview
 
-"ACS Web Apps" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at `https://atlantachristianstudents.github.io/acswebapps/`. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
+"ACS Web Apps" is a static home for ad-free web apps built by Atlanta Christian Students, deployed on GitHub Pages at the canonical custom domain **https://acswebapps.com/**. The repo root is the deployed site; there is **no build system, no bundler, and no npm dependencies**. A scheduled GitHub Actions workflow refreshes Show Songs’ Songbase source data; it does not build the apps. Everything is plain HTML, CSS, and vanilla JavaScript served as-is.
 
 The home page (`index.html`) renders an app directory from a registry; each app is an independent, self-contained PWA in its own folder under `apps/`.
 
@@ -19,10 +19,12 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | Path | Purpose |
 | --- | --- |
 | `index.html` | Home page (app directory). Script at the end is minimal; behavior lives in `assets/main.js`. |
-| `404.html` | Not-found page. Links are absolute (`/acswebapps/...`) because GitHub Pages serves it from arbitrary depths. |
+| `404.html` | Not-found page. Its back link/favicon base is chosen at runtime: `/acswebapps/` on `atlantachristianstudents.github.io`, `/` on any other host. |
 | `manifest.json` | Home-page web-app manifest (standalone PWA; icons in `assets/icons/`). |
 | `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `adless-home-vN`). Must not handle `apps/` requests. |
+| `CNAME` | Custom domain for GitHub Pages: `acswebapps.com`. The repo root is served at `/` there — see *Custom domain and base paths*. |
 | `.github/workflows/update-songbase.yml` | Six-hourly Songbase refresh for Show Songs; uses Python standard library, commits changed snapshots, requests a Pages rebuild. |
+| `.github/workflows/validate.yml` | Runs `scripts/validate.py` on pull requests and pushes to `main`. No build step. |
 | `.nojekyll` | **Required.** Keeps GitHub Pages from running Jekyll (which would exclude `apps/_template/`). Never delete it. |
 | `assets/apps.js` | **App registry.** One object per app in `window.APPS`. Fields documented in the file's header comment. |
 | `assets/main.js` | All home-page behavior: theme, filters, search, cards, keyboard shortcuts. |
@@ -31,6 +33,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | `apps/<id>/sw.js` | Per-app service worker with a `VERSION` cache key. |
 | `apps/<id>/manifest.webmanifest` | Per-app PWA manifest. |
 | `apps/_template/` | Starter kit for new apps. |
+| `scripts/validate.py` | Dependency-free repository validation: JavaScript syntax, inline scripts, manifests, registry destinations, service-worker asset lists, and cache-version increases against a base ref. |
 
 ## Coding conventions
 
@@ -48,10 +51,80 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 3. **No build/output artifacts.** There are no generated files; everything is hand-edited.
 4. **Offline-first.** Any file an app needs offline must be in that app's `sw.js` `FILES` list, with `VERSION` bumped when contents change.
 5. **Relative paths only** inside `apps/`.
+6. **One main HTML file per app.** The app's main `index.html` must sit **directly inside its app folder**: `apps/<id>/index.html`. Never put it in `dist/`, `build/`, or any other nested output folder. `apps/<id>/index.html` *is* the app.
+7. **IndexedDB for downloaded data.** Anything fetched from the network and kept for later offline use goes in IndexedDB, not localStorage and not the service-worker cache. See *Downloaded data and offline storage*.
 
 ## Cache versioning (critical)
 
 The root `sw.js` follows the same rule for the home page (`index.html`, `manifest.json`, `assets/*` in its `SHELL`). Every app `sw.js` has a `VERSION` string like `"verse-lookup-v7"`. When you modify an app's `index.html`, `manifest.webmanifest`, or any file in `FILES`: **bump the version** (increment the trailing number) and update the `FILES` list if needed. Skipping this leaves installed users on stale, broken apps.
+
+## Custom domain and base paths
+
+The site has two valid public origins, and which one you are on decides the base path:
+
+| Host | Base path | Canonical? |
+| --- | --- | --- |
+| `acswebapps.com` (and `www.acswebapps.com`) | `/` | **Yes** — the custom domain in `CNAME` |
+| `atlantachristianstudents.github.io` | `/acswebapps/` | Fallback project site, same content one level deeper |
+| `localhost` (local server) | `/` | The repo root is the site root |
+
+GitHub Pages serves the repo root at `/` on the custom domain. The project site keeps the repository name in the path. `404.html` therefore **picks its base path at runtime** from `location.hostname` and rewrites the "← Back to all apps" link and the favicon `href`; keep that pattern and do not hardcode `/acswebapps/` there.
+
+Rules that follow from this:
+
+- **Root-level absolute URLs must use the canonical domain** — `https://acswebapps.com/…`. This covers `og:url`, `og:image`, and any canonical link in `index.html`, plus the live-site links in `README.md`. The project-site URL is the fallback, not the advertised address.
+- **Inside `apps/`, always use relative paths.** An app's "← ACS Web Apps" link is `../../`, which resolves to `/` on the custom domain, to `/acswebapps/` on the project site, and 404s only when the folder is hosted on its own. Never point it at a hardcoded absolute URL — that breaks standalone hosting and the project site.
+- **Never rewrite the 404 back link to a relative path.** GitHub Pages serves `404.html` from arbitrary depths, so a relative link would resolve against the missing URL's directory and land on a 404 instead of the app directory.
+- When you change `index.html`, `manifest.json`, or anything in the home `sw.js` `SHELL`, bump the home cache version (`adless-home-vN`).
+
+## Downloaded data and offline storage
+
+**Always use IndexedDB for data that has to be downloaded.** Scripture text, Songbase libraries, and any other content fetched at runtime belong in IndexedDB — not in localStorage, and not in the service-worker cache.
+
+- Give each app its own database (`show-words-database`, `logostype-database`, `rcv-chronological-database`, `bigtext-songbase`, …). Never reuse another app's database, and keep database names stable so existing downloads survive a release.
+- Keep the database independent of service-worker cache versions: bumping a `sw.js` `VERSION` must never wipe downloaded content.
+- Write the payload to IndexedDB first, then mirror a small backup plus a fetch timestamp in localStorage. Refresh on a TTL (15 days for Scripture text); if a refresh fails, keep serving the stale copy.
+- Validate downloaded data before storing it (line counts, record shapes, versions) and fail with a clear message when the source has changed.
+- The service-worker cache is for an app's own files only. Never add a downloaded data file to `FILES`.
+
+## Scripture text source — RcV
+
+**Always use the shared RcV Scripture text source instead of creating or maintaining separate local Scripture text files.**
+
+Source:
+
+https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV
+
+This is a static plain-text CDN file, not a JSON API. Fetch it using a normal GET or HEAD request. It supports cross-origin requests and ranged reads.
+
+Important details:
+
+- UTF-8 without BOM.
+- CRLF line endings.
+- Approximately 4.57 MB.
+- One verse per line, prefixed with its abbreviated reference.
+- Expected count: 31,103 verse lines, including `Rev. 12:18`.
+- Validate the line count after downloading. A mismatch indicates an incomplete or changed source.
+
+When bare verse text is needed, strip the reference prefix using the established shared regex:
+
+```js
+/^(?:[1-3]\s*)?[A-Za-z][A-Za-z .-]*?\s*\d+:\d+\s+/
+```
+
+Keep prefixes when an app parses references itself.
+
+Consumers currently include:
+
+- `apps/logostype/scripture-text.js`
+- `apps/chronological-bible/app.js`
+- `apps/show-words/index.html`
+- `apps/verse-designer/index.html`
+- `apps/memorize/index.html`
+
+Cache the downloaded text in IndexedDB, with the existing localStorage backup and 15-day TTL. Apps must continue working offline using cached text.
+
+Do not vendor the Scripture file into the repository or add it to service-worker `FILES`. If the source URL or format changes, update all affected consumers and documentation together, then bump their cache versions.
 
 ## Dependency management
 
@@ -72,15 +145,24 @@ node --check apps/<id>/sw.js
 
 # Quick JSON validation of manifests:
 node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8'));console.log('ok')"
+
+# Validate the repository against the base branch (JavaScript syntax, inline
+# scripts, manifests, registry destinations, offline asset lists, and
+# cache-version increases against the base ref):
+python3 scripts/validate.py --base origin/main
 ```
 
-There is no test suite, formatter, or linter configured. Verification means: the server serves every page and manifest with HTTP 200, `node --check` passes on edited JS, and manual browser checks on `localhost` (which counts as secure, so camera/ microphone and service workers work).
+Run the validator before submitting changes. It is dependency-free (Python's standard library plus Node's built-in syntax checking) and the same checks run in CI on pull requests and pushes to `main` via `.github/workflows/validate.yml`.
+
+There is no test suite, formatter, or linter configured. Verification means: the validator passes, the server serves every page and manifest with HTTP 200, `node --check` passes on edited JS, and manual browser checks on `localhost` (which counts as secure, so camera/microphone and service workers work).
 
 ## Common pitfalls
 
 - **Do not edit files by the names `*~`, `*.un~`, `.DS_Store`** — those are editor/OS backups. Never commit them.
+- **Do not put an app's main `index.html` inside a `dist/` or build folder.** It must sit directly in `apps/<id>/`.
+- **Do not keep downloaded content in localStorage.** Scripture text, Songbase libraries, and other runtime downloads belong in IndexedDB (see *Downloaded data and offline storage*).
 - Forgetting to bump `sw.js` `VERSION` after editing an app (see above).
-- `404.html` uses absolute paths (`/acswebapps/`) — they are correct for the GitHub Pages project site but break on other hosts; don't "fix" them to relative paths.
+- `404.html` picks its base path at runtime (see the table above) — keep it absolute, not relative, because GitHub Pages serves the page from arbitrary depths.
 - `assets/main.js`'s card icons fall back to the registry `icon` emoji, then `assets/favicon.svg`, if the icon image 404s — this is intentional.
 - The home page loads Inter from Google Fonts (a deliberate external dependency); everything else is local.
 - The big app files (`apps/show-words/index.html` is ~405 KB) contain large amounts of embedded data and refined interaction code — treat them as production code.
