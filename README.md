@@ -36,7 +36,7 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 | [Memorize](https://atlantachristianstudents.github.io/acswebapps/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
 | [Verse Review](https://atlantachristianstudents.github.io/acswebapps/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
 | [Show Songs](https://atlantachristianstudents.github.io/acswebapps/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
-| [Tuner](https://acswebapps.com/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Hosted in the [standalone Tune repository](https://github.com/zioninzion/tune). | live |
+| [Tune](https://acswebapps.com/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Hosted in the [standalone Tune repository](https://github.com/zioninzion/tune). | live |
 | [Show Words](https://atlantachristianstudents.github.io/acswebapps/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
 | [Songbook](https://atlantachristianstudents.github.io/acswebapps/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
@@ -72,7 +72,7 @@ A few apps bundle or use specialized pieces:
    - **Mac Safari:** File → **Add to Dock**.
 3. Load an app once while online. After the service worker caches it, the app opens without a connection.
 
-Each app has its own manifest and service worker, so apps can be installed independently and keep their own offline cache. The microphone-dependent Tuner app requires a secure context (HTTPS or `localhost`).
+Each app has its own manifest and service worker, so apps can be installed independently and keep their own offline cache. The microphone-dependent Tune app requires a secure context (HTTPS or `localhost`).
 
 ## Requirements
 
@@ -128,7 +128,7 @@ apps/
   songs/                   Songbook catalog, songbooks, and lyrics presentation
 ```
 
-App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. The Tuner is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune); `/tune/` on this site redirects to its GitHub Pages deployment. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
+App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. Tune is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune); `/tune/` on this site redirects to its GitHub Pages deployment. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
 
 
 ## Adding a new app
@@ -140,7 +140,7 @@ App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and
    ```js
    {
      id: "tuner",
-     name: "Tuner",
+     name: "Tune",
      description: "Chromatic instrument tuner using your device microphone.",
      icon: "🎸",          // fallback emoji shown if no icon image exists
      tags: ["Worship", "Music"],
@@ -156,7 +156,7 @@ Statuses are `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming 
 
 The home page has its own `sw.js` (`VERSION` = `adless-home-vN`); bump it when you change `index.html`, `manifest.json`, or anything in the home `SHELL` list (including `assets/`). It deliberately ignores requests under `apps/`.
 
-Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, `"verse-lookup-v20"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/sw.js`; Tuner uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
+Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, `"verse-lookup-v20"`). **Bump it whenever you change an app's HTML, manifest, or cached assets**, otherwise installed devices keep serving the old cached version. Update the cached-file list if the app gains new files. Logos Type uses `CACHE` and `ASSETS` in `apps/logostype/sw.js`; Tune uses `CACHE` and `FILES`. Check each worker for its cache key and asset list.
 
 ## Deploying on GitHub Pages
 

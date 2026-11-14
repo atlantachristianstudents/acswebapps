@@ -3,7 +3,7 @@
 // - Other home-page files and the Inter font are stale-while-revalidate.
 // - Everything under apps/ is left alone: each app has its own service worker and cache.
 // Bump VERSION whenever index.html, manifest.json, sw.js or anything in SHELL changes.
-const VERSION = "adless-home-v27";
+const VERSION = "adless-home-v28";
 const SHELL = [
   "./",
   "index.html",
@@ -12,6 +12,7 @@ const SHELL = [
   "assets/apps.js",
   "assets/main.js",
   "assets/favicon.svg",
+  "tune/icons/icon.svg",
   "assets/icons/icon-192.png",
   "assets/icons/icon-512.png",
   "assets/icons/maskable-512.png",

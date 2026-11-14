@@ -91,10 +91,10 @@ window.APPS = [
   },
   {
     id: "tunes",
-    name: "Tuner",
+    name: "Tune",
     description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
     icon: "🎸",
-    iconUrl: "tune/icons/icon-192.png",
+    iconUrl: "tune/icons/icon.svg",
     tags: ["Worship", "Music"],
     status: "live",
     url: "tune/"
