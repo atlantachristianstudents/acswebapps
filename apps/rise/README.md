@@ -48,3 +48,9 @@ Text fields use consistent rounded borders, a theme-colored caret and selection,
 In settings, swiping up on the panel closes it just like **Close**, discarding unsaved edits. Swiping down leaves the panel still. The viewport does not bounce behind settings; gestures inside the book list, calendar list, and text editors retain their native scrolling and editing behavior.
 
 Closing settings by **Close**, an upward panel swipe, or Escape asks for confirmation when there are unsaved changes, including themes, imported schedules, books, ranges, and calendar edits. Cancel keeps the current draft; confirming discards it. Merely browsing the calendar does not prompt, and **Save settings** closes directly after validation.
+
+The daily-plan calendar’s **Today** button returns to the current month, selects today’s references, and scrolls today into view without changing the plan or its date edits.
+
+The discard confirmation matches the active theme. **Keep editing** preserves the draft; **Discard changes** closes settings without saving. Escape dismisses the confirmation and keeps editing.
+
+The main verse and reference do not show selection or tap highlights during reading gestures. Selection and editing remain available in settings text fields.
