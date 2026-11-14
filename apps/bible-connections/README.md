@@ -9,6 +9,7 @@ An interactive map of Bible cross-references based on the Holy Bible Recovery Ve
 - Choose a book, chapter, and optional verse using the selectors, including on touch screens. The selectors also follow chapter and verse selections on the chart and keyboard navigation; clearing the selection or exploring an arc resets them.
 - Expand results beneath the selection summary to browse chapters or verses grouped by their shortest connection step, starting with the selection at step 0. Expand each step to see its results in Bible order.
 - Set connection depth from 0 to 9 with the Steps selector or number keys.
+- Download the current chart as a PNG after selecting a chapter, verse, or arc. The export reflects the selected connection depth.
 - Use left/right arrows to move chapters and up/down arrows to move verses after selecting a chapter.
 - Verse hover is off by default. Press V to toggle it; turning it off keeps a hover unpinned and preserves an existing pin. Escape or Clear resets the selection.
 - Chapter connections traverse in either direction; verse connections follow outgoing references. Counts include repeated links as described in the app.
