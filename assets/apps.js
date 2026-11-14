@@ -22,6 +22,15 @@ window.APPS = [
     status: "live"
   },
   {
+    id: "chronological-bible",
+    name: "Chronological Bible",
+    description: "Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading.",
+    icon: "📖",
+    iconUrl: "apps/chronological-bible/icons/icon.svg",
+    tags: ["Study", "Reading"],
+    status: "live"
+  },
+  {
     id: "timer",
     name: "Show Time",
     description: "A minimal full-screen timer, clock, and stopwatch. Use keyboard controls and keep a private session history.",

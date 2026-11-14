@@ -3,7 +3,7 @@
 // - Other home-page files and the Inter font are stale-while-revalidate.
 // - Everything under apps/ is left alone: each app has its own service worker and cache.
 // Bump VERSION whenever index.html, manifest.json, sw.js or anything in SHELL changes.
-const VERSION = "acswebapps-home-v34";
+const VERSION = "acswebapps-home-v35";
 const SHELL = [
   "./",
   "index.html",

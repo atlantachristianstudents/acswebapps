@@ -32,6 +32,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | App | What it does | Status |
 | --- | --- | --- |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
+| [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
 | [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://acswebapps.com/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
