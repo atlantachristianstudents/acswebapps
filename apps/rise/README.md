@@ -33,7 +33,7 @@ Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling 
 
 Pressing Enter in settings fields does not save or close settings. Enter in the schedule adds a new line; use **Save settings** to save and return to the verse screen. The Save button remains keyboard accessible.
 
-Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. Changes preview immediately across the verse screen, settings, and browser theme color. **Save settings** remembers the theme on this device; **Close** or Escape restores the saved theme. Dusk and Midnight use dark native controls. The theme picker sits beside verse selection to keep settings compact.
+Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. Changes preview immediately across the verse screen, settings, and browser theme color. **Save settings** remembers the theme on this device; **Close** or Escape restores the saved theme. Dusk and Midnight use dark native controls. A palette icon beside Close cycles through the seven themes, with the current and next theme named in its accessible label and tooltip.
 
 Phone settings use 44px touch targets, shorter mode labels, safe-area spacing, and narrow-screen layouts. When the on-screen keyboard opens, settings prioritize the active editor and keep Close and Save reachable; the normal controls return when the keyboard closes. Book search retains its results while editing, and the range editor hides the book list temporarily.
 
@@ -56,3 +56,5 @@ The discard confirmation matches the active theme. **Keep editing** preserves th
 The main verse and reference do not show selection or tap highlights during reading gestures. Selection and editing remain available in settings text fields.
 
 Press `/` to toggle settings, including when a dropdown has focus. Closing this way confirms unsaved changes. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
+
+**Import** opens a theme-matched dialog for choosing a file or pasting a URL. URL imports accept direct HTTP(S) links to Rise JSON exports or plain-text plans; the source must allow browser cross-origin access. Downloads omit credentials and referrers, time out after 20 seconds, and are limited to 1 MB. Invalid or canceled imports leave the draft intact. Imported plans remain drafts until saved.
