@@ -50,7 +50,7 @@ const SOURCE='https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV',DB='morning-word-script
 let lines=null,byRef=new Map(),byBook=new Map(),books=[];
 const defaults={mode:'shuffle',schedule:'',repeat:true,book:'',books:[],range:'',started:day};let prefs={...defaults};
 try{prefs={...defaults,...JSON.parse(localStorage.getItem(SETTINGS)||'{}')};if((!prefs.books||!prefs.books.length)&&prefs.book)prefs.books=[prefs.book];}catch(_){}
-const APP_VERSION='rise-v16';
+const APP_VERSION='rise-v17';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');
@@ -121,12 +121,30 @@ window.addEventListener('resize',fitVerse);
 if(window.visualViewport)window.visualViewport.addEventListener('resize',fitVerse);
 if(document.fonts)document.fonts.ready.then(fitVerse);
 fitVerse();
-let dailySlides=[],slideIndex=0;
+let dailySlides=[],slideIndex=0,slideAnimation=null,slideTransition=0,slideMoving=false;
+function cancelSlideTransition(){slideTransition++;slideMoving=false;if(slideAnimation){slideAnimation.cancel();slideAnimation=null}}
+
 function renderSlide(){const line=lines[dailySlides[slideIndex]],match=line&&line.match(/^(.*?\d+:\d+)\s+(.+)$/);if(!match)return;
 $('reference').textContent=match[1];$('verse').textContent=match[2].trim();
 fitVerse()}
-function show(indices){dailySlides=indices.filter(i=>lines[i]);slideIndex=0;renderSlide()}
-function moveSlide(offset){const next=slideIndex+offset;if(next<0||next>=dailySlides.length)return;slideIndex=next;renderSlide()}
+function show(indices){cancelSlideTransition();dailySlides=indices.filter(i=>lines[i]);slideIndex=0;renderSlide()}
+async function moveSlide(offset){
+const next=slideIndex+offset;if(slideMoving||next<0||next>=dailySlides.length)return;
+const page=document.querySelector('main');
+if(!page.animate||window.matchMedia('(prefers-reduced-motion: reduce)').matches){slideIndex=next;renderSlide();return}
+slideMoving=true;const transition=++slideTransition,direction=offset>0?-1:1;
+try{
+slideAnimation=page.animate([{transform:'translateY(0)',opacity:1},{transform:'translateY('+direction*40+'px)',opacity:0}],{duration:140,easing:'ease-in',fill:'forwards'});
+await slideAnimation.finished;if(transition!==slideTransition)return;
+slideIndex=next;renderSlide();
+// Fit the new verse while it is hidden, before animating it into view.
+await new Promise(resolve=>requestAnimationFrame(resolve));if(transition!==slideTransition)return;
+slideAnimation.cancel();
+slideAnimation=page.animate([{transform:'translateY('+(-direction*40)+'px)',opacity:0},{transform:'translateY(0)',opacity:1}],{duration:240,easing:'cubic-bezier(.2,.7,.2,1)',fill:'forwards'});
+await slideAnimation.finished;
+}catch(_){/* Cancelling a transition leaves the current verse available. */}
+finally{if(transition===slideTransition){if(slideAnimation)slideAnimation.cancel();slideAnimation=null;slideMoving=false}}
+}
 
 function scheduleIndices(){const rows=prefs.schedule.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(!rows.length)return null;const elapsed=Math.max(0,day-(Number.isInteger(prefs.started)?prefs.started:day));let row=rows[elapsed];if(row===undefined)row=prefs.repeat?rows[elapsed%rows.length]:rows[rows.length-1];const refs=referencesForDay(row);return refs.length&&refs.every(i=>i>=0)?refs:null}
 function rangeIndices(raw){const picked=[];let lastBook='';const bookNames=[...new Set([...books,...bookAliasGroups.flatMap(g=>g.split('|'))])].sort((a,b)=>b.length-a.length);for(const part of raw.split(/[,;]+/).map(x=>x.trim()).filter(Boolean)){let book='',rest=part;for(const candidate of bookNames){if(cleanRef(part).startsWith(cleanRef(candidate)+' ')){book=resolveBook(candidate)||'';rest=part.slice(candidate.length).trim();break}}if(!book)book=lastBook;if(!book)return null;lastBook=book;const m=rest.match(/^(\d+)(?::(\d+))?(?:\s*-\s*(?:(\d+)(?::(\d+))?)?)?$/);if(!m)return null;const startChapter=Number(m[1]),hasStartVerse=!!m[2],startVerse=m[2]?Number(m[2]):1,endChapter=m[3]?(hasStartVerse&&!m[4]?startChapter:Number(m[3])):startChapter,endVerse=m[3]?(hasStartVerse&&!m[4]?Number(m[3]):(m[4]?Number(m[4]):999)):(hasStartVerse?startVerse:999);const bookLines=byBook.get(book)||[];const matches=[];bookLines.forEach(i=>{const ref=lines[i].match(/\d+:(\d+)/),chap=Number((lines[i].match(/\s(\d+):\d+\s/)||[])[1]);if(chap>=startChapter&&chap<=endChapter){const verse=Number(ref&&ref[1]);if((chap!==startChapter||verse>=startVerse)&&(chap!==endChapter||verse<=endVerse))matches.push(i)}});if(!matches.length)return null;picked.push(...matches)}return [...new Set(picked)]}
@@ -135,7 +153,7 @@ function display(){if(!lines)return;if(prefs.mode==='daily'){const custom=schedu
 function updateBookList(){const query=cleanRef($('book-search').value);[...$('books').tBodies[0].rows].forEach(row=>row.hidden=!cleanRef(row.textContent).includes(query));const count=$('books').querySelectorAll('tbody input:checked').length;$('book-count').textContent=books.length?(count?count+' selected':'Whole Bible · no books selected'):'Loading books…'}
 function updateMode(){const mode=$('mode').value;$('schedule').disabled=mode!=='daily';$('range-text').disabled=mode==='daily';$('schedule').setCustomValidity('');$('range-text').setCustomValidity('');$('custom-field').hidden=mode!=='daily';$('book-field').hidden=mode==='daily';$('repeat-label').hidden=mode!=='daily';$('mode-hint').textContent=mode==='daily'?'Plan your own verses, one day at a time.':mode==='shuffle'?'A different verse each day from your selection.':'Read through your selection in Bible order, one verse each day.'}
 function syncForm(){$('mode').value=prefs.mode;$('schedule').value=prefs.schedule;$('repeat').checked=!!prefs.repeat;$('custom-field').hidden=prefs.mode!=='daily';$('book-field').hidden=prefs.mode==='daily';$('repeat-label').hidden=prefs.mode!=='daily';const selected=new Set(prefs.books||[]);[...$('books').querySelectorAll('tbody input')].forEach(o=>o.checked=selected.has(o.value));$('range-text').value=prefs.range||'';$('book-search').value='';updateMode();updateBookList()}
-function setOpen(open){panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();$('mode').focus()}else{syncForm();document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
+function setOpen(open){cancelSlideTransition();panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();$('mode').focus()}else{syncForm();document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
 $('mode').addEventListener('change',updateMode);
 $('book-search').addEventListener('input',updateBookList);$('books').addEventListener('change',updateBookList);$('clear-books').addEventListener('click',()=>{$('books').querySelectorAll('tbody input').forEach(input=>input.checked=false);updateBookList()});$('close-settings').addEventListener('click',()=>setOpen(false));
 $('schedule').addEventListener('input',()=>$('schedule').setCustomValidity(''));$('range-text').addEventListener('input',()=>$('range-text').setCustomValidity(''));
