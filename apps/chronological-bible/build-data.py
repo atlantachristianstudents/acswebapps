@@ -28,13 +28,26 @@ with zipfile.ZipFile(next(base.glob('*.epub'))) as z:
 at=next(i for i,r in enumerate(rows) if r[0]=='Revelation 12:17')+1
 rows.insert(at,['Revelation 12:18',lookup['Revelation 12:18'],rows[at-1][2]])
 for e in eras:e.pop('source')
-# Local chronological adjustment: Satan Cast Out of Heaven, before Genesis 1:2.
+# Local chronological adjustment: Satan Cast Out of Heaven, before Genesis 1:1.
 refs = [f'Ezekiel 28:{n}' for n in range(11, 20)] + [f'Isaiah 14:{n}' for n in range(12, 18)]
 moved = [next(r for r in rows if r[0] == ref) for ref in refs]
 rows = [r for r in rows if r[0] not in refs]
-at = next(i for i, r in enumerate(rows) if r[0] == 'Genesis 1:2')
-for r in moved: r[2] = 0
+at = next(i for i, r in enumerate(rows) if r[0] == 'Genesis 1:1')
+for r in moved: r[2] = 1
 rows[at:at] = moved
+# Give Satan's rebellion its own reading, then begin creation at Genesis 1:1.
+for r in rows:
+ if r not in moved and r[2] >= 1: r[2] += 1
+ if r[0] in {'Genesis 1:1', 'Isaiah 45:18', 'Genesis 2:4'}: r[2] = 2
+eras.insert(1, {'title': "Original Creation and Satan's Rebellion", 'start': 0})
+# Place the closing vision in its own final era, after the writings of John.
+future_refs = {f'Revelation 21:{n}' for n in range(1, 28)} | {f'Revelation 22:{n}' for n in range(1, 6)}
+future = [r for r in rows if r[0] in future_refs]
+rows = [r for r in rows if r[0] not in future_refs]
+future_era = len(eras)
+eras.append({'title': 'Eternity Future', 'start': len(rows)})
+for r in future: r[2] = future_era
+rows.extend(future)
 for i, era in enumerate(eras):
  era['start'] = next(j for j, r in enumerate(rows) if r[2] == i)
 extra=set(lookup)-{r['reference'] for r in order}

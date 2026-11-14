@@ -14,3 +14,4 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}input{font-size:16px}.d
 @media(hover:none) and (pointer:coarse){#passageKeys{display:none}}
 
 .loadstatus{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg);text-align:center;padding:24px}.loadstatus[hidden]{display:none}.loadstatus p{max-width:420px;color:var(--muted);line-height:1.6;font-size:15px}.loadstatus button{border:1px solid var(--line);padding:10px 22px}
+nav button .era-label{min-width:0;padding-top:0;color:inherit;font-size:12px}nav button .section-count{display:block;min-width:0;margin-top:3px;padding:0;color:var(--muted);font-size:9px;font-weight:400;letter-spacing:.2px}
