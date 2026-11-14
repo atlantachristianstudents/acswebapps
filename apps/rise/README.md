@@ -54,3 +54,5 @@ The daily-plan calendar’s **Today** button returns to the current month, selec
 The discard confirmation matches the active theme. **Keep editing** preserves the draft; **Discard changes** closes settings without saving. Escape dismisses the confirmation and keeps editing.
 
 The main verse and reference do not show selection or tap highlights during reading gestures. Selection and editing remain available in settings text fields.
+
+Press `/` to toggle settings, including when a dropdown has focus. Closing this way confirms unsaved changes. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
