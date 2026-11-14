@@ -36,7 +36,7 @@ The Tools filter includes Bible Translation Explorer and Bible Connections. Show
 | [Memorize](https://atlantachristianstudents.github.io/acswebapps/apps/memorize/) | Memorize Bible verses from the Recovery Version or any pasted/imported passage: search by reference, hide words progressively, or recall on a blank page and review missing, changed, and extra words. Saved-verse collection with groups and progress. Optional Test mode locks an attempt behind a passcode. | beta |
 | [Verse Review](https://atlantachristianstudents.github.io/acswebapps/apps/verse-review/) | Practice Bible verses with private, offline spaced reviews using your own text. | beta |
 | [Show Songs](https://atlantachristianstudents.github.io/acswebapps/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
-| [Tune](https://atlantachristianstudents.github.io/acswebapps/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. | live |
+| [Tuner](https://acswebapps.com/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Hosted in the [standalone Tune repository](https://github.com/zioninzion/tune). | live |
 | [Show Words](https://atlantachristianstudents.github.io/acswebapps/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
 | [Songbook](https://atlantachristianstudents.github.io/acswebapps/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
@@ -124,12 +124,11 @@ apps/
   memorize/                Memorization practice with word comparison and PDF import
   verse-review/            Offline Bible verse practice with spaced reviews
   show-songs/              Full-screen hymn numbers and text
-  tune/                    Tuner, metronome, tone generator, and chord detection
   show-words/              Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
 ```
 
-App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
+App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and a `README.md`. They are served directly; no build step is needed. The Tuner is maintained in the standalone [zioninzion/tune repository](https://github.com/zioninzion/tune); `/tune/` on this site redirects to its GitHub Pages deployment. Logos Type also keeps small redirects in `apps/logostype/dist/` for its former URLs and installed copies.
 
 
 ## Adding a new app

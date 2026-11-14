@@ -9,7 +9,7 @@
  *                falls back to apps/<id>/icons/icon-192.png
  *   tags:        categories used for the filter chips
  *   status:      "live" | "beta" | "soon"   ("soon" cards are not clickable)
- *   url:         optional; defaults to "apps/<id>/"
+ *   url:         optional; defaults to "apps/<id>/"; may point to a site redirect or external app
  */
 window.APPS = [
   {
@@ -90,14 +90,14 @@ window.APPS = [
     url: "apps/show-words"
   },
   {
-    id: "tune",
-    name: "Tune",
-    iconUrl: "apps/tune/icons/icon.svg",
+    id: "tunes",
+    name: "Tuner",
     description: "Chromatic instrument tuner using your device microphone. Great for guitars, ukuleles, and vocals.",
     icon: "🎸",
+    iconUrl: "tune/icons/icon-192.png",
     tags: ["Worship", "Music"],
     status: "live",
-    url: "apps/tune"
+    url: "tune/"
   },
   {
     id: "verse-designer",
