@@ -31,6 +31,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 
 | App | What it does | Status |
 | --- | --- | --- |
+| [Rise](https://acswebapps.com/apps/rise/) | Start the day with an offline-friendly verse from the Recovery Version. Install it on your phone’s home screen for a one-tap morning opening. | beta |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
 | [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
@@ -134,7 +135,6 @@ apps/
   verse-review/            Offline Bible verse practice with spaced reviews
   verse-designer/          Verse wallpaper designer with PNG export
   chronological-bible/     Chronological Bible: Recovery Version reader
-  rcv-chronological/       Redirects for former Chronological Bible URLs
   show-songs/              Full-screen hymn numbers and text
   show-words/              Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
