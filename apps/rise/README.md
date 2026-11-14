@@ -34,3 +34,5 @@ Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling 
 Pressing Enter in settings fields does not save or close settings. Enter in the schedule adds a new line; use **Save settings** to save and return to the verse screen. The Save button remains keyboard accessible.
 
 Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. Changes preview immediately across the verse screen, settings, and browser theme color. **Save settings** remembers the theme on this device; **Close** or Escape restores the saved theme. Dusk and Midnight use dark native controls. The theme picker sits beside verse selection to keep settings compact.
+
+Phone settings use 44px touch targets, shorter mode labels, safe-area spacing, and narrow-screen layouts. When the on-screen keyboard opens, settings prioritize the active editor and keep Close and Save reachable; the normal controls return when the keyboard closes. Book search retains its results while editing, and the range editor hides the book list temporarily.

@@ -89,10 +89,32 @@ html{touch-action:pan-x pan-y}
 @media(prefers-color-scheme:dark){:root:not([data-theme]){--bg:#141c24;--text:#e5ecf2;--muted:#acbdcd;--surface:#202c38;--panel:#1a2530;--border:#526477;--accent:#afcee5;--on-accent:#141c24;--selected:#2d455b;--focus:#9dc9ed;color-scheme:dark}}
 .preferences-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px}
 .preferences-row>div{min-width:0;display:flex;flex-direction:column;gap:4px}
+
+/* Phone controls stay readable and reachable, including above the keyboard. */
+#settings{top:var(--screen-top,0px);bottom:auto;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+#settings form{width:100%;max-width:520px}
+#settings select,#settings input[type=text],#settings input[type=search]{min-width:0;min-height:44px;font-size:16px}
+#settings .book-toolbar button,#settings .update-row button{min-height:44px;font-size:13px}
+#settings #books label{min-height:44px;font-size:15px;padding:11px 12px}
+#settings #repeat-label{min-height:44px}
+#settings .actions .hint{min-width:0}
+.preferences-row{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:8px}
+.update-row{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px}
+#update-status{overflow-wrap:anywhere}
+@media(max-width:359px){#settings h1{font-size:20px}#settings form{gap:5px}#settings .settings-group{padding:8px;gap:4px}#settings .actions .hint{font-size:11px}#settings #save-settings{min-width:120px}.quiet-button{padding:8px 10px}#settings .update-row>.hint:not(#update-status){display:none}}
+@media(max-height:420px) and (min-width:600px){#settings form{max-width:850px;grid-template-rows:44px 18px 44px minmax(0,1fr) 44px 44px}}
+html.keyboard-open #settings form{display:flex;gap:6px}
+html.keyboard-open #settings .preferences-row,html.keyboard-open #settings .update-row,html.keyboard-open #settings #repeat-label,html.keyboard-open #custom-field>.hint{display:none}
+html.keyboard-open #settings .settings-group{flex:1;min-height:0;height:auto}
+html.keyboard-open #settings h1{font-size:20px}
+html.keyboard-open #settings .actions{padding-top:6px}
+html.editing-range #book-field>*{display:none}
+html.editing-range #book-field>label[for=range-text],html.editing-range #book-field>#range-text{display:block}
+html.editing-search #book-field>.book-toolbar,html.editing-search #book-field>label[for=range-text],html.editing-search #book-field>#range-text{display:none}
 </style>
 <script>try{const theme=JSON.parse(localStorage.getItem('rise-settings-v1')||'{}').theme;if(['dawn','paper','sage','ocean','rose','dusk','midnight'].includes(theme))document.documentElement.dataset.theme=theme;else document.documentElement.dataset.theme='dawn'}catch(_){document.documentElement.dataset.theme='dawn'}</script>
 <script>if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
-</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1>Daily verse settings</h1><p class="intro">Choose what greets you each morning.</p></div><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving">Close</button></header><div class="preferences-row"><div><label for="mode">Verse selection</label><select id="mode"><option value="daily">Custom daily verses</option><option value="shuffle">Shuffle</option><option value="sequential">Sequential</option></select></div><div><label for="theme">Theme</label><select id="theme"><option value="dawn">Dawn</option><option value="paper">Paper</option><option value="sage">Sage</option><option value="ocean">Ocean</option><option value="rose">Rose</option><option value="dusk">Dusk</option><option value="midnight">Midnight</option></select></div></div><p class="hint" id="mode-hint" aria-live="polite"></p><div id="custom-field" class="settings-group"><label for="schedule">One day per line</label><textarea id="schedule" placeholder="John 3:16&#10;John 3:16-18, 20; Romans 8:28&#10;Romans 8:28"></textarea><p class="hint">One line per day. Example: Jn3:16-18,20; Rom8:28. Short names work: jud, jdg, phm.</p></div><div id="book-field" class="settings-group" hidden><div class="book-toolbar"><label id="books-label">Choose books</label><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p><label for="range-text">Add chapters or verses</label><input id="range-text" type="text" placeholder="John 3, John 3:16-18"><p class="hint">Enter ranges separated by commas, such as Jn3 or Jn3:16-18. Short book names work here too. These are added to any checked books.</p></div><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label><section class="update-row" aria-labelledby="updates-heading"><h2 id="updates-heading">App updates</h2><p class="hint">Save first. An update restarts Rise.</p><button type="button" id="check-update" class="quiet-button">Check for updates</button><p id="update-status" class="hint" role="status" aria-live="polite"></p></section><div class="actions"><span class="hint">Saved on this device</span><button type="button" id="save-settings">Save settings</button></div></form></section><main class="page" tabindex="-1"><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
+</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1>Daily verse settings</h1><p class="intro">Choose what greets you each morning.</p></div><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving">Close</button></header><div class="preferences-row"><div><label for="mode">Verse selection</label><select id="mode"><option value="daily">Daily plan</option><option value="shuffle">Shuffle</option><option value="sequential">Sequential</option></select></div><div><label for="theme">Theme</label><select id="theme"><option value="dawn">Dawn</option><option value="paper">Paper</option><option value="sage">Sage</option><option value="ocean">Ocean</option><option value="rose">Rose</option><option value="dusk">Dusk</option><option value="midnight">Midnight</option></select></div></div><p class="hint" id="mode-hint" aria-live="polite"></p><div id="custom-field" class="settings-group"><label for="schedule">One day per line</label><textarea id="schedule" autocapitalize="off" spellcheck="false" placeholder="John 3:16&#10;John 3:16-18, 20; Romans 8:28&#10;Romans 8:28"></textarea><p class="hint">One line per day. Example: Jn3:16-18,20; Rom8:28. Short names work: jud, jdg, phm.</p></div><div id="book-field" class="settings-group" hidden><div class="book-toolbar"><label id="books-label">Choose books</label><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p><label for="range-text">Add chapters or verses</label><input id="range-text" type="text" enterkeyhint="done" autocapitalize="off" spellcheck="false" placeholder="John 3, John 3:16-18"><p class="hint">Enter ranges separated by commas, such as Jn3 or Jn3:16-18. Short book names work here too. These are added to any checked books.</p></div><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label><section class="update-row" aria-labelledby="updates-heading"><h2 id="updates-heading">App updates</h2><p class="hint">Save first. An update restarts Rise.</p><button type="button" id="check-update" class="quiet-button">Check for updates</button><p id="update-status" class="hint" role="status" aria-live="polite"></p></section><div class="actions"><span class="hint">Saved on this device</span><button type="button" id="save-settings">Save settings</button></div></form></section><main class="page" tabindex="-1"><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
 <script>
 (()=>{'use strict';
 const SOURCE='https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV',DB='morning-word-scripture',STORE='verses',COUNT=31103,SETTINGS='rise-settings-v1',day=Math.floor(Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())/86400000),$=id=>document.getElementById(id),panel=$('settings'),form=$('settings-form');
@@ -103,7 +125,7 @@ const themeNames=['dawn','paper','sage','ocean','rose','dusk','midnight'];
 function applyTheme(name){const theme=themeNames.includes(name)?name:'dawn';document.documentElement.dataset.theme=theme;$('theme').value=theme;document.querySelector('meta[name="theme-color"]').content=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()}
 applyTheme(prefs.theme);
 $('theme').addEventListener('change',()=>applyTheme($('theme').value));
-const APP_VERSION='rise-v23';
+const APP_VERSION='rise-v24';
 function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
 async function checkForUpdates(){
 const button=$('check-update'),status=$('update-status');
@@ -169,6 +191,11 @@ function fitVerse(){
 cancelAnimationFrame(fitFrame);fitFrame=requestAnimationFrame(()=>{
 const viewport=window.visualViewport,height=viewport?viewport.height:window.innerHeight;
 document.body.style.setProperty('--screen-height',height+'px');
+document.body.style.setProperty('--screen-top',(viewport?viewport.offsetTop:0)+'px');
+const focused=document.activeElement,editing=focused&&/^(INPUT|TEXTAREA)$/.test(focused.tagName),keyboard=!!(editing&&height<window.innerHeight*.8);
+document.documentElement.classList.toggle('keyboard-open',keyboard);
+document.documentElement.classList.toggle('editing-range',keyboard&&focused.id==='range-text');
+document.documentElement.classList.toggle('editing-search',keyboard&&focused.id==='book-search');
 const page=document.querySelector('main'),verse=$('verse'),reference=$('reference'),bodyStyle=getComputedStyle(document.body);
 if(dailyIndices.length&&(layoutWidth!==page.clientWidth||layoutHeight!==height)){const anchor=(dailySlides[slideIndex]||[])[0];cancelSlideTransition();dailySlides=groupSlides(dailyIndices);slideIndex=Math.max(0,dailySlides.findIndex(group=>group.includes(anchor)));paintSlide()}
 const availableHeight=Math.max(1,height-parseFloat(bodyStyle.paddingTop)-parseFloat(bodyStyle.paddingBottom)-2);
@@ -180,7 +207,8 @@ if(!fits()){let low=0,high=1;for(let step=0;step<18;step++){const middle=(low+hi
 });
 }
 window.addEventListener('resize',fitVerse);
-if(window.visualViewport)window.visualViewport.addEventListener('resize',fitVerse);
+if(window.visualViewport){window.visualViewport.addEventListener('resize',fitVerse);window.visualViewport.addEventListener('scroll',fitVerse)}
+document.addEventListener('focusin',fitVerse);document.addEventListener('focusout',fitVerse);
 if(document.fonts)document.fonts.ready.then(fitVerse);
 fitVerse();
 let dailyIndices=[],dailySlides=[],layoutWidth=0,layoutHeight=0,slideIndex=0,slideAnimation=null,slideTransition=0,slideMoving=false;
