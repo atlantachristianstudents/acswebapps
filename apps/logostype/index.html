@@ -61,7 +61,7 @@
         max-width: 1280px;
         margin: auto;
         min-height: 100svh;
-        padding: 38px 48px 25px;
+        padding: 38px 48px 64px;
         display: flex;
         flex-direction: column;
       }
@@ -1003,7 +1003,7 @@
       }
       @media (max-width: 700px) {
         .shell {
-          padding: 25px 23px;
+          padding: 25px 23px 64px;
         }
         .brand strong {
           font-size: 25px;
@@ -1900,6 +1900,12 @@
           font-size: 19px;
         }
       }
+
+      /* Floating help button shared by the ACS Web Apps. */
+      .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: var(--text); }
+      .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
+      .acswebapps-help > summary::-webkit-details-marker { display: none; }
+      .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; display: block; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: var(--text); white-space: normal; box-shadow: 0 4px 16px #0002; }
     </style>
     <link rel="stylesheet" href="themes.css" />
   </head>
@@ -2504,5 +2510,6 @@
   flush();
 }());
   </script>
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Logos Type is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</nav></details>
 </body>
 </html>

@@ -283,3 +283,5 @@ Maintainers can view totals at https://atlantachristianstudents.goatcounter.com.
 Navigation: find **← ACS Web Apps** inside **About** to return to the app directory.
 
 About identifies Logos Type as part of the ACS Web Apps project and links to the app directory.
+
+A floating **?** button in the bottom-right corner opens a help panel that identifies Logos Type as part of the ACS Web Apps project, with a link to the app directory. The page keeps extra space at the bottom so the button never covers the footer.

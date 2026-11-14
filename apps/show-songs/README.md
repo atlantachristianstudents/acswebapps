@@ -109,3 +109,5 @@ No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, 
 Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/show-songs/open`, `apps/show-songs/installed-open`, or `apps/show-songs/install`. The self-contained `acswebapps-usage` script in `index.html` must stay in sync with the other apps.
 
 The bottom of the **?** shortcut help says “Show Songs is part of the ACS Web Apps project” as plain text. On mobile screens (up to 767px wide), a separate **Back to ACS Web Apps** button links to the app directory.
+
+A floating **?** button in the bottom-right corner opens a help panel that identifies Show Songs as part of the ACS Web Apps project, with a link to the app directory. The button stays out of the way while a hymn is presented and while the shortcut help is open.

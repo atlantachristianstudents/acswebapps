@@ -225,7 +225,7 @@ Only fixed app and event labels are explicitly sent via GoatCounter's tracking p
 
 When adding an app, copy the `acswebapps-usage` script into its main page, set its fixed folder identifier, document its usage counts, and bump its service-worker cache version. Keep copies synchronized. To change or disable collection, edit the endpoint or remove the script in every app and bump each affected cache version. The app directory itself, presentation-only windows, legacy redirect pages, and the starter template do not emit app events.
 
-App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory.
+App navigation: the optional project link lives inside **About** when available, or the **?** help menu otherwise. It reads “[App Name] is part of the ACS Web Apps project,” with **ACS Web Apps project** linking to the app directory. The help menu is a floating **?** button in the bottom-right corner that opens a small panel above itself; apps that already show the project link elsewhere keep both.
 
 The public name is **ACS Web Apps**. The site is served at the custom domain `https://acswebapps.com/` (the domain in `CNAME`), where the repo root is `/`; the GitHub Pages project site `https://atlantachristianstudents.github.io/acswebapps/` serves the same content one level deeper. `404.html` picks its base path at runtime so the back link works on both. Existing storage keys, cache prefixes, and analytics identifiers remain unchanged for compatibility.
 
