@@ -9,7 +9,7 @@ For development, a date can be previewed without touching the UI or the system c
 
 Swipe down or press `/` to open settings. Rise supports independent Shuffle, Sequential, and Custom plans. Use **＋** to create a plan, choose its type, set its start date (tomorrow by default) and optional end date, then **Save plan**. Each plan saves independently. New plans are enabled as soon as they are saved. Shuffle and Sequential let you set the number of verses per day (default 2), choose books, or enter custom ranges. Custom plans support multiple references per day and can repeat. All settings stay on the device, and downloaded Scripture remains available offline.
 
-The settings calendar previews the plans currently enabled for each date. **Edit plans** opens the plan list; its button changes to **Back to calendar** and prompts before discarding unsaved arrangement edits. The **＋** editor keeps start and end date pickers compact and opens their native calendar popups. Reorder plans with drag and drop or the up/down buttons; rows animate into their new positions, with drag feedback and support for reduced motion; higher rows have higher priority. Toggle plans on or off, edit them with the pencil icon, or delete them with the trash icon after confirmation in a dialog matching the current theme. **Combined** displays verses from every enabled plan in priority order. **Override** displays only the highest enabled plan active that day. Each plan has independent dates, schedule or selection, reading position, and date edits.
+The theme button opens a theme picker with presets, a custom color and font option, and **Surprise me**. Theme changes preview immediately and are stored only when **Save theme** is pressed. The settings calendar previews the plans currently enabled for each date. **Edit plans** opens the plan list; its button changes to **Back to calendar** and prompts before discarding unsaved arrangement edits. The **＋** editor keeps start and end date pickers compact and opens their native calendar popups. Reorder plans with drag and drop or the up/down buttons; rows animate into their new positions, with drag feedback and support for reduced motion; higher rows have higher priority. Toggle plans on or off, edit them with the pencil icon, or delete them with the trash icon after confirmation in a dialog matching the current theme. **Combined** displays verses from every enabled plan in priority order. **Override** displays only the highest enabled plan active that day. Each plan has independent dates, schedule or selection, reading position, and date edits.
 
 Book selection and chapter/verse ranges become available after the Scripture download loads. If it cannot load, settings show a connection message; reconnect and reload. Scrolling the settings keeps your unsaved selections. When no verses are assigned to a day, Rise shows only its centered icon. This includes an empty plan, blank schedule lines, cleared calendar dates, dates before a plan starts, and dates after a non-repeating plan ends.
 
@@ -35,7 +35,7 @@ Reference matching accepts compact forms such as `Jn3:16`, `Rom8:28`, and `1Cor1
 
 Settings use a compact viewport layout with an always-visible Save button. The book list and custom-schedule editor scroll internally; the settings page itself stays in place. Short landscape screens use two columns.
 
-Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling inside the settings book list and schedule editor remain available.
+Pinch-to-zoom and accidental text highlighting are disabled on mobile. Text remains selectable in editable fields. Single-finger verse swipes and scrolling inside the settings book list and schedule editor remain available.
 
 Pressing Enter in settings fields does not save or close settings. Enter in a custom schedule adds a new line. Save controls remain keyboard accessible.
 
@@ -55,9 +55,9 @@ Settings open and close with a short slide and fade independent of keyboard heig
 
 Text fields use consistent rounded borders, a theme-colored caret and selection, and a soft focus ring on mobile. Native text editing and selection handles remain available, with an explicit focus outline in forced-color mode.
 
-In settings, swiping up on the panel closes it just like **Close**, discarding unsaved edits. Swiping down leaves the panel still. The viewport does not bounce behind settings; gestures inside the book list, calendar list, and text editors retain their native scrolling and editing behavior.
+Swiping does not close settings; use **Close** or Escape. The viewport does not bounce behind settings, and the book list, calendar list, and text editors retain their native scrolling and editing behavior.
 
-Closing settings by **Close**, an upward panel swipe, or Escape asks for confirmation when a plan draft or arrangement has unsaved changes. Cancel keeps the current screen; confirming closes it. Browsing the calendar does not prompt.
+Closing settings with **Close** or Escape asks for confirmation when a plan draft or arrangement has unsaved changes. Cancel keeps the current screen; confirming closes it. Browsing the calendar does not prompt.
 
 The plan calendar’s **Today** button returns to the current month, selects today’s references, and scrolls today into view.
 
