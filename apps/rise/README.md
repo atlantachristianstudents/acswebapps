@@ -9,7 +9,7 @@ For development, a date can be previewed without touching the UI or the system c
 
 Swipe down or press `/` to open settings. Rise supports independent Shuffle, Sequential, and Custom plans. Use **＋** to create a plan, choose its type, set its start date (tomorrow by default) and optional end date, then **Save plan**. Each plan saves independently. New plans are enabled as soon as they are saved. Shuffle and Sequential let you set the number of verses per day (default 2), choose books, or enter custom ranges. Custom plans support multiple references per day and can repeat. All settings stay on the device, and downloaded Scripture remains available offline.
 
-The settings calendar previews the plans currently enabled for each date. **Edit plans** opens the plan list; its button changes to **Back to calendar** and prompts before discarding unsaved arrangement edits. The **＋** editor keeps start and end date pickers compact and opens their native calendar popups. Reorder plans with drag and drop or the up/down buttons; higher rows have higher priority. Toggle plans on or off, edit them, or delete them after confirmation. **Combined** displays verses from every enabled plan in priority order. **Override** displays only the highest enabled plan active that day. Each plan has independent dates, schedule or selection, reading position, and date edits.
+The settings calendar previews the plans currently enabled for each date. **Edit plans** opens the plan list; its button changes to **Back to calendar** and prompts before discarding unsaved arrangement edits. The **＋** editor keeps start and end date pickers compact and opens their native calendar popups. Reorder plans with drag and drop or the up/down buttons; rows animate into their new positions, with drag feedback and support for reduced motion; higher rows have higher priority. Toggle plans on or off, edit them, or delete them after confirmation. **Combined** displays verses from every enabled plan in priority order. **Override** displays only the highest enabled plan active that day. Each plan has independent dates, schedule or selection, reading position, and date edits.
 
 Book selection and chapter/verse ranges become available after the Scripture download loads. If it cannot load, settings show a connection message; reconnect and reload. Scrolling the settings keeps your unsaved selections. When no verses are assigned to a day, Rise shows only its centered icon. This includes an empty plan, blank schedule lines, cleared calendar dates, dates before a plan starts, and dates after a non-repeating plan ends.
 
@@ -73,7 +73,7 @@ Every line in a daily plan counts as a day, including blank lines at the beginni
 
 The **?** button that opened the About dialog between the theme icon and **Close** was removed; the About content is no longer shown on the first screen.
 
-The calendar is a read-only overview of the enabled plan arrangement. Edit date overrides from an individual plan’s **Plan calendar**.
+The calendar fits the whole month on one screen, clipping long verse references within each day. Select a day and choose **Preview** to see its verse screen; **Back** returns to the selected calendar date without changing today or the saved plans. The calendar is a read-only overview of the enabled plan arrangement. Edit date overrides from an individual plan’s **Plan calendar**.
 
 Settings no longer have a **?** About button; the main verse screen has no About button.
 
