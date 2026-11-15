@@ -19,7 +19,7 @@ window.APPS = [
     icon: "☀️",
     iconUrl: "apps/rise/icons/icon.svg",
     tags: ["Reading", "Worship"],
-    status: "beta"
+    status: "live"
   },
   {
     id: "bible-connections",

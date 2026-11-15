@@ -6,6 +6,8 @@ Static, offline-capable Bible reader. Serve this folder with any static web serv
 
 The app ships only the chronological ordering (`order.js`); the Recovery Version text is downloaded at runtime from the shared RcV text file (`https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV`, documented in the "Scripture text source — RcV" section of the root `AGENTS.md`) and cached in IndexedDB with a 15-day refresh window, matching the other RcV consumers. The first run needs internet; afterwards the reader works offline from the cache. A stale cache is used if a refresh fails. The text is validated against 31,103 verses before it is cached. Sequence comes from reese-chronological-verse-order.json, with era labels from the local Reese EPUB. All 31,102 supplied references matched; RcV Revelation 12:18 was inserted after 12:17. Study notes are not included. Chronological ordering follows Reese, with local adjustments: Genesis 1:1, Isaiah 45:18, and Genesis 2:4 begin the "Original Creation and Satan’s Rebellion" chapter, followed by Ezekiel 28:11–19 and Isaiah 14:12–17 ("Satan Cast Out of Heaven"); Revelation 21:1–22:5 appears in a final "Eternity Future" chapter after the writings of John.
 
+See [ORDERING.md](ORDERING.md) for the ordering method, known interpretive choices, and review flags. [chronology-audit.csv](chronology-audit.csv) indexes all 31,103 verses by sequence position, era, and available placement provenance. Reese's source files and per-verse explanations were not retained in the repository, so the audit identifies that gap explicitly; the CSV does not claim those explanations are known.
+
 Run `python3 -m http.server 8080 --directory .` from this directory for local use.
 
 ## Passage selection

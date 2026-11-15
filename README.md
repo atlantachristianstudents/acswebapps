@@ -31,7 +31,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 
 | App | What it does | Status |
 | --- | --- | --- |
-| [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | beta |
+| [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
 | [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
