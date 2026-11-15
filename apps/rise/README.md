@@ -73,7 +73,7 @@ Every line in a daily plan counts as a day, including blank lines at the beginni
 
 The **?** button that opened the About dialog between the theme icon and **Close** was removed; the About content is no longer shown on the first screen.
 
-The calendar fits the whole month on one screen, clipping long verse references within each day. Select a day and choose **Preview** to see its verse screen; **Back** returns to the selected calendar date without changing today or the saved plans. The calendar is a read-only overview of the enabled plan arrangement. Edit date overrides from an individual plan’s **Plan calendar**.
+The calendar fits the whole month on one screen and shows the first verse reference for each day, followed by a count when more references are assigned. Below the calendar, the selected date lists all references on one line when they fit, or shows the first reference and a count of the rest. Select a day and choose **Preview** to see its verse screen; **Back** returns to the selected calendar date without changing today or the saved plans. The calendar is a read-only overview of the enabled plan arrangement. Edit date overrides from an individual plan’s **Plan calendar**.
 
 Settings no longer have a **?** About button; the main verse screen has no About button.
 
@@ -99,4 +99,4 @@ The ＋ plan editor includes **Back to calendar**. Unsaved plan edits prompt wit
 
 Saving a new or imported plan immediately adds it to **Edit plans**, including when that page already has unsaved ordering or toggle changes. Those changes are preserved, and the new plan starts switched on.
 
-In the main calendar, **Export** sits beside **Edit plans**. Select one or more saved plans in the themed dialog, then choose **Export selected**. A single plan uses the existing schedule format; multiple plans share one Rise plans JSON file. File and URL import accept these bundles and add their plans as new enabled plans, preserving dates, selections, reading offsets, and calendar edits.
+In the main calendar, **Export** sits beside **Edit plans**. The export dialog shows each plan’s schedule type, reading selection, repeat setting, date range, and override count to help distinguish plans. Select one or more saved plans, then choose **Export selected**. A single plan uses the existing schedule format; multiple plans share one Rise plans JSON file. File and URL import accept these bundles and add their plans as new enabled plans, preserving dates, selections, reading offsets, and calendar edits.
