@@ -80,3 +80,5 @@ Settings no longer have a **?** About button; the main verse screen has no About
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
 
 **Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.
+
+Settings now open directly to the calendar for every plan type. **Edit plan** contains **Shuffle**, **Sequential**, and **Custom** choices. Shuffle uses selected books or ranges; Sequential keeps the Bible jump, date, and reset controls; Custom keeps the line-by-line schedule and repeat option. Changing a sequential start point is a draft until **Save settings**; Close can discard it. Calendar edits override individual dates in any plan type. Import, Export, and Today remain available, and sequential exports preserve reading progress.
