@@ -43,6 +43,11 @@ def main():
                                  worker.read_text(encoding='utf-8'), count=1)
         if count != 1:
             raise ValueError('Missing service-worker cache version')
+        cache_version = re.search(r'big-text-v\d+', version).group(0)
+        updated = re.sub(
+            r'(<script id="acswebapps-updater" data-version=")[^"]*(")',
+            lambda match: match[1] + cache_version + match[2], updated, count=1,
+        )
         atomic_write(page, updated)
         atomic_write(worker, version)
     print('Mappings match' if updated == original else 'Mappings embedded; cache version bumped')

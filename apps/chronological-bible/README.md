@@ -25,3 +25,5 @@ When changing runnable files, update `sw.js`’s cache version and keep its `FIL
 Open `https://acswebapps.com/apps/chronological-bible/`. The former `apps/chronological-bible/dist/` URL redirects here, preserving queries and verse fragments. The About dialog links to ACS Web Apps. A floating **?** button in the bottom-right corner opens a help panel that identifies Chronological Bible as part of the ACS Web Apps project, with a link to the app directory; it stays hidden while the loading screen is up, and small screens keep extra space below the reader so the button never covers the closing text. The original `rcv-chronological` localStorage key and Scripture IndexedDB database are retained across the rename.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
+
+**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

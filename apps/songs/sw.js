@@ -1,8 +1,8 @@
 // Songbook offline cache. Bump VERSION when you replace index.html.
-var VERSION = "songbook-v10";
+var VERSION = "songbook-v11";
 var FILES = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})})); }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
@@ -16,3 +16,6 @@ self.addEventListener("fetch", function (e) {
     return hit || fetch(r).catch(function () { return caches.match("./index.html"); });
   }));
 });
+
+// Manual upgrades requested from this app’s help/About panel.
+self.addEventListener("message",function(event){if(event.data&&event.data.type==="ACS_GET_VERSION"&&event.ports[0])event.ports[0].postMessage({version:VERSION});if(event.data&&event.data.type==="ACS_SKIP_WAITING")event.waitUntil(self.skipWaiting())});

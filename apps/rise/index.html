@@ -246,8 +246,20 @@ main.page ::selection{background:transparent;color:inherit}
   }, { passive: false });
 }());
 </script>
-</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1>Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving">Close</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><div class="mode-switch" role="group" aria-label="Verse selection"><button type="button" id="mode-bible" class="quiet-button" aria-pressed="false">Bible</button><button type="button" id="mode-plan" class="quiet-button" aria-pressed="true">Plan</button></div><input type="hidden" id="mode" value="daily"><p class="hint" id="mode-hint" aria-live="polite" hidden></p><div id="custom-field" class="settings-group"><div class="plan-toolbar"><span id="plan-heading" class="visually-hidden">Daily plan</span><button type="button" id="import-schedule" class="quiet-button">Import</button><button type="button" id="export-schedule" class="quiet-button">Export</button><button type="button" id="toggle-calendar" class="quiet-button">Calendar</button></div><input id="schedule-file" type="file" accept=".json,.txt,application/json,text/plain" hidden><p id="schedule-transfer-status" class="hint" role="status"></p><div id="schedule-editor"><label for="schedule">One day per line</label><textarea id="schedule" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p class="hint">One line per day; blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28. <span id="schedule-count" role="status"></span></p></div><div id="plan-calendar" hidden><div class="calendar-toolbar"><button type="button" id="previous-month" class="quiet-button" aria-label="Previous month">←</button><h2 id="calendar-month" aria-live="polite"></h2><button type="button" id="calendar-today" class="quiet-button">Today</button><button type="button" id="next-month" class="quiet-button" aria-label="Next month">→</button></div><div id="calendar-days" aria-label="Daily verse calendar"></div><label for="calendar-references" id="calendar-date-label">Select a date</label><input id="calendar-references" type="text" placeholder="Jn3:16-18; Rom8:28" autocapitalize="off" spellcheck="false"><div class="calendar-toolbar"><span class="hint">Blank = no verses for this date.</span><button type="button" id="reset-calendar-day" class="quiet-button">Use plan</button></div></div></div><div id="bible-field" class="settings-group" hidden><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Reset to Genesis 1:1</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></div><div id="book-field" class="settings-group" hidden><div class="book-toolbar"><label id="books-label">Choose books</label><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p><label for="range-text">Add chapters or verses</label><input id="range-text" type="text" enterkeyhint="done" autocapitalize="off" spellcheck="false" placeholder="John 3, John 3:16-18"><p class="hint">Enter ranges separated by commas, such as Jn3 or Jn3:16-18. Short book names work here too. These are added to any checked books.</p></div><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label><section class="update-row" aria-labelledby="updates-heading"><h2 id="updates-heading">App updates</h2><p class="hint">Save first. An update restarts Rise.</p><button type="button" id="check-update" class="quiet-button">Check for updates</button><p id="update-status" class="hint" role="status" aria-live="polite"></p></section><div class="actions"><span class="hint">Saved on this device</span><button type="button" id="save-settings">Save settings</button></div></form><dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">Import schedule</h2><button type="button" id="import-file" class="quiet-button">Choose a file</button><p class="hint">Or paste a direct link to a Rise JSON export or plain-text plan.</p><label for="schedule-url">Schedule URL</label><input id="schedule-url" type="url" placeholder="https://example.com/plan.json" autocapitalize="off" autocomplete="off" spellcheck="false" enterkeyhint="go"><p id="import-url-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-import" class="quiet-button">Cancel</button><button type="button" id="load-schedule-url" class="primary-button">Import URL</button></div></dialog><dialog id="discard-dialog" aria-labelledby="discard-title" aria-describedby="discard-description"><h2 id="discard-title">Discard changes?</h2><p id="discard-description">Your settings have unsaved changes. Keep editing or discard them and return to your verses.</p><div class="discard-actions"><button type="button" id="keep-editing" class="quiet-button" autofocus>Keep editing</button><button type="button" id="discard-changes">Discard changes</button></div></dialog></section><main class="page" tabindex="-1"><img id="empty-day-icon" src="icons/icon.svg" width="112" height="112" alt="No verses scheduled for today" hidden><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
-<dialog id="about-dialog" aria-labelledby="about-title" aria-describedby="about-description"><h2 id="about-title">About Rise</h2><p id="about-description">Begin each day with verses from the Recovery Version. Create a daily reading plan, choose a theme, and read offline after downloading Scripture.</p><div class="about-help"><p class="about-help-heading">Controls</p><ul><li><kbd>/</kbd> opens settings</li><li><kbd>↑</kbd> <kbd>↓</kbd> move to the previous or next verse</li><li><kbd>Esc</kbd> closes settings</li></ul><p class="about-help-touch">On a touchscreen, swipe up for the next verse and swipe down to go back; swipe down on the first verse to open settings.</p></div><p>Rise is part of the <a href="../../" target="_blank" rel="noopener">ACS Web Apps project</a>, a collection of ad-free apps built by Atlanta Christian Students.</p><div class="about-actions"><button type="button" id="close-about" class="quiet-button" autofocus>Done</button></div></dialog>
+
+<style id="acswebapps-update-style">
+.acs-update{margin-top:14px;padding-top:12px;border-top:1px solid currentColor;white-space:normal;font:13px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;text-align:left}
+.acs-update [data-acs-update-button]{display:inline-block;min-height:44px;max-width:100%;border:1px solid currentColor;border-radius:8px;padding:8px 12px;background:transparent;color:inherit;font:600 13px system-ui,sans-serif;cursor:pointer;letter-spacing:normal;text-transform:none}
+.acs-update [data-acs-update-button]:disabled{opacity:.55;cursor:wait}
+.acs-update [data-acs-update-button]:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.acs-update p{margin:6px 0 0!important;color:inherit!important;font:12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
+.acs-update-note{opacity:.8}
+[data-acs-update-status]:empty{display:none}
+.update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
+.update-row.acs-update p{margin:0!important}
+</style>
+</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1>Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving">Close</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><div class="mode-switch" role="group" aria-label="Verse selection"><button type="button" id="mode-bible" class="quiet-button" aria-pressed="false">Bible</button><button type="button" id="mode-plan" class="quiet-button" aria-pressed="true">Plan</button></div><input type="hidden" id="mode" value="daily"><p class="hint" id="mode-hint" aria-live="polite" hidden></p><div id="custom-field" class="settings-group"><div class="plan-toolbar"><span id="plan-heading" class="visually-hidden">Daily plan</span><button type="button" id="import-schedule" class="quiet-button">Import</button><button type="button" id="export-schedule" class="quiet-button">Export</button><button type="button" id="toggle-calendar" class="quiet-button">Calendar</button></div><input id="schedule-file" type="file" accept=".json,.txt,application/json,text/plain" hidden><p id="schedule-transfer-status" class="hint" role="status"></p><div id="schedule-editor"><label for="schedule">One day per line</label><textarea id="schedule" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p class="hint">One line per day; blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28. <span id="schedule-count" role="status"></span></p></div><div id="plan-calendar" hidden><div class="calendar-toolbar"><button type="button" id="previous-month" class="quiet-button" aria-label="Previous month">←</button><h2 id="calendar-month" aria-live="polite"></h2><button type="button" id="calendar-today" class="quiet-button">Today</button><button type="button" id="next-month" class="quiet-button" aria-label="Next month">→</button></div><div id="calendar-days" aria-label="Daily verse calendar"></div><label for="calendar-references" id="calendar-date-label">Select a date</label><input id="calendar-references" type="text" placeholder="Jn3:16-18; Rom8:28" autocapitalize="off" spellcheck="false"><div class="calendar-toolbar"><span class="hint">Blank = no verses for this date.</span><button type="button" id="reset-calendar-day" class="quiet-button">Use plan</button></div></div></div><div id="bible-field" class="settings-group" hidden><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Reset to Genesis 1:1</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></div><div id="book-field" class="settings-group" hidden><div class="book-toolbar"><label id="books-label">Choose books</label><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p><label for="range-text">Add chapters or verses</label><input id="range-text" type="text" enterkeyhint="done" autocapitalize="off" spellcheck="false" placeholder="John 3, John 3:16-18"><p class="hint">Enter ranges separated by commas, such as Jn3 or Jn3:16-18. Short book names work here too. These are added to any checked books.</p></div><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label><section class="update-row acs-update" data-acs-update aria-labelledby="updates-heading"><h2 id="updates-heading">App updates</h2><p class="hint">Save first. An update restarts Rise.</p><button type="button" id="check-update" class="quiet-button" data-acs-update-button>Check for updates</button><p id="update-status" class="hint" data-acs-update-status role="status" aria-live="polite"></p></section><div class="actions"><span class="hint">Saved on this device</span><button type="button" id="save-settings">Save settings</button></div></form><dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">Import schedule</h2><button type="button" id="import-file" class="quiet-button">Choose a file</button><p class="hint">Or paste a direct link to a Rise JSON export or plain-text plan.</p><label for="schedule-url">Schedule URL</label><input id="schedule-url" type="url" placeholder="https://example.com/plan.json" autocapitalize="off" autocomplete="off" spellcheck="false" enterkeyhint="go"><p id="import-url-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-import" class="quiet-button">Cancel</button><button type="button" id="load-schedule-url" class="primary-button">Import URL</button></div></dialog><dialog id="discard-dialog" aria-labelledby="discard-title" aria-describedby="discard-description"><h2 id="discard-title">Discard changes?</h2><p id="discard-description">Your settings have unsaved changes. Keep editing or discard them and return to your verses.</p><div class="discard-actions"><button type="button" id="keep-editing" class="quiet-button" autofocus>Keep editing</button><button type="button" id="discard-changes">Discard changes</button></div></dialog></section><main class="page" tabindex="-1"><img id="empty-day-icon" src="icons/icon.svg" width="112" height="112" alt="No verses scheduled for today" hidden><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
+<dialog id="about-dialog" aria-labelledby="about-title" aria-describedby="about-description"><h2 id="about-title">About Rise</h2><p id="about-description">Begin each day with verses from the Recovery Version. Create a daily reading plan, choose a theme, and read offline after downloading Scripture.</p><div class="about-help"><p class="about-help-heading">Controls</p><ul><li><kbd>/</kbd> opens settings</li><li><kbd>↑</kbd> <kbd>↓</kbd> move to the previous or next verse</li><li><kbd>Esc</kbd> closes settings</li></ul><p class="about-help-touch">On a touchscreen, swipe up for the next verse and swipe down to go back; swipe down on the first verse to open settings.</p></div><p>Rise is part of the <a href="../../" target="_blank" rel="noopener">ACS Web Apps project</a>, a collection of ad-free apps built by Atlanta Christian Students.</p><div class="about-actions"><button type="button" id="close-about" class="quiet-button" autofocus>Done</button></div><div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></dialog>
 <dialog id="swipe-popup" aria-labelledby="swipe-popup-title" aria-describedby="swipe-popup-desc"><h2 id="swipe-popup-title">Swipe down to open settings</h2><p id="swipe-popup-desc">On a touchscreen, swipe down on the verse screen to open settings anytime. On a keyboard, press <kbd>/</kbd> or the up or down arrow keys to open settings. Confirm to stop seeing this popup.</p><div class="popup-actions"><button type="button" id="swipe-popup-confirm" class="quiet-button" autofocus>Got it</button></div></dialog>
 <script>
 (()=>{
@@ -301,37 +313,6 @@ function applyTheme(name){
 
 applyTheme(prefs.theme);
 $('theme').addEventListener('click',()=>applyTheme(themeNames[(themeNames.indexOf($('theme').value)+1)%themeNames.length]));
-const APP_VERSION='rise-v47';function workerVersion(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('version timeout'))},5000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data&&e.data.version)};worker.postMessage({type:'GET_VERSION'},[channel.port2])})}
-async function checkForUpdates(){
-const button=$('check-update'),status=$('update-status');
-if(!('serviceWorker'in navigator)||!/^https?:$/.test(location.protocol)){status.textContent='Updates are available when Rise is opened from its website or installed app.';return}
-if(navigator.onLine===false){status.textContent='You’re offline. Connect to the internet and try again.';return}
-button.disabled=true;status.textContent='Checking for updates…';
-let timer,changed,controllerChanged=false;
-const onChange=()=>{controllerChanged=true;if(changed)changed()};
-navigator.serviceWorker.addEventListener('controllerchange',onChange);
-try{
-const registration=await navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});
-await registration.update();
-if(registration.installing||registration.waiting){
-status.textContent='Downloading update…';
-await new Promise((resolve,reject)=>{
-changed=resolve;if(controllerChanged){resolve();return}
-timer=setTimeout(()=>reject(Error('update timeout')),30000);
-const worker=registration.installing||registration.waiting;
-if(worker){const inspect=()=>{if(worker.state==='redundant')reject(Error('installation failed'));else if(worker.state==='installed')worker.postMessage({type:'SKIP_WAITING'})};worker.addEventListener('statechange',inspect);inspect()}
-});
-}
-const worker=navigator.serviceWorker.controller||registration.active;
-if(!worker)throw Error('no active worker');
-const version=await workerVersion(worker);
-if(typeof version!=='string'||!/^rise-v\d+$/.test(version))throw Error('invalid version');
-if(version!==APP_VERSION){status.textContent='Update ready. Restarting Rise…';location.reload();return}
-status.textContent='Rise is up to date.';
-}catch(_){status.textContent='Could not finish checking for updates. Check your connection and try again.'}
-finally{clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',onChange);button.disabled=false}
-}
-$('check-update').addEventListener('click',checkForUpdates);
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function read(){const db=await openDb();return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get('all');r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
 async function write(data){const db=await openDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(data,'all');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
@@ -616,4 +597,96 @@ if(!lines)$('books-hint').textContent='Scripture could not be loaded. Connect to
 <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
-</script></body></html>
+</script>
+<script id="acswebapps-updater" data-version="rise-v48">
+// Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
+(function () {
+  'use strict';
+  const pageVersion = document.currentScript.dataset.version;
+  let busy = false;
+  function report(message) {
+    document.querySelectorAll('[data-acs-update-status]').forEach(node => { node.textContent = message; });
+  }
+  function deadline(task, milliseconds) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error('The update check timed out. Please try again.')), milliseconds);
+      Promise.resolve(task).then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+    });
+  }
+  function activate(worker) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => finish(Error('The update could not finish installing. Please try again.')), 30000);
+      function finish(error) {
+        clearTimeout(timer);
+        worker.removeEventListener('statechange', inspect);
+        if (error) reject(error); else resolve();
+      }
+      function inspect() {
+        if (worker.state === 'redundant') finish(Error('The update did not install. Please try again.'));
+        else if (worker.state === 'activated') finish();
+        else if (worker.state === 'installed') {
+          try { worker.postMessage({ type: 'ACS_SKIP_WAITING' }); } catch (error) { finish(error); }
+        }
+      }
+      worker.addEventListener('statechange', inspect);
+      inspect();
+    });
+  }
+  function versionOf(worker) {
+    return new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => finish(Error('Could not verify the app version. Please try again.')), 5000);
+      function finish(error, value) {
+        clearTimeout(timer);
+        channel.port1.close();
+        if (error) reject(error); else resolve(value);
+      }
+      channel.port1.onmessage = event => {
+        const version = event.data && event.data.version;
+        if (typeof version !== 'string' || !/^.+-v\d+$/.test(version)) finish(Error('The app returned an invalid update version.'));
+        else finish(null, version);
+      };
+      try { worker.postMessage({ type: 'ACS_GET_VERSION' }, [channel.port2]); } catch (error) { finish(error); }
+    });
+  }
+  async function check() {
+    if (busy) return;
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+      report('Updates are available from the website or installed app.'); return;
+    }
+    if (navigator.onLine === false) { report('You’re offline. Connect to the internet and try again.'); return; }
+    busy = true;
+    document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = true; });
+    report('Checking for updates…');
+    try {
+      const registration = await deadline(navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }), 20000);
+      await deadline(registration.update(), 20000);
+      const candidate = registration.installing || registration.waiting;
+      if (candidate) { report('Downloading update…'); await activate(candidate); }
+      const worker = registration.active || navigator.serviceWorker.controller;
+      if (!worker) throw Error('No active app version was found. Please reload and try again.');
+      const version = await versionOf(worker);
+      if (version !== pageVersion) { report('Update ready. Restarting…'); location.reload(); }
+      else report('This app is up to date.');
+    } catch (error) {
+      report(error.message && /update|version|install|reload/i.test(error.message)
+        ? error.message : 'Could not check for updates. Check your connection and try again.');
+    } finally {
+      busy = false;
+      document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = false; });
+    }
+  }
+  // Some apps dismiss help on any click/key. Keep updater interactions inside help.
+  document.addEventListener('pointerdown', event => {
+    if (event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' && event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('click', event => {
+    if (!event.target.closest('[data-acs-update-button]')) return;
+    event.preventDefault(); event.stopPropagation(); check();
+  }, true);
+}());
+</script>
+</body></html>

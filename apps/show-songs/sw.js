@@ -2,7 +2,7 @@
 // - The page itself is network-first, so a new version shows up as soon as you are online.
 // - Icons, manifest and the Google Fonts files are served from cache and refreshed in the background.
 // Bump VERSION to drop old caches.
-var VERSION = 'big-text-v116';
+var VERSION = 'big-text-v117';
 var SHELL = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ var SHELL = [
 self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(VERSION)
-      .then(function (c) { return c.addAll(SHELL); })
+      .then(function (c) { return c.addAll(SHELL.map(function(file){return new Request(file,{cache:"reload"})})); })
       .then(function () { return self.skipWaiting(); })
   );
 });
@@ -65,3 +65,6 @@ self.addEventListener('fetch', function (e) {
     e.respondWith(staleWhileRevalidate(req));
   }
 });
+
+// Manual upgrades requested from this app’s help/About panel.
+self.addEventListener("message",function(event){if(event.data&&event.data.type==="ACS_GET_VERSION"&&event.ports[0])event.ports[0].postMessage({version:VERSION});if(event.data&&event.data.type==="ACS_SKIP_WAITING")event.waitUntil(self.skipWaiting())});

@@ -91,6 +91,18 @@ def update_snapshot(data, directory=APP_DIR, embed=False):
         if count != 1:
             raise ValueError("Could not find the service-worker cache version")
         writes[worker] = updated
+        # The manual updater compares the loaded page with the active worker.
+        # Keep its release marker aligned even for snapshot-only refreshes.
+        version = re.search(r"big-text-v\d+", updated).group(0)
+        page = directory / "index.html"
+        if page in writes or page.exists():
+            html = writes[page] if page in writes else page.read_text(encoding="utf-8")
+            marked = re.sub(
+                r'(<script id="acswebapps-updater" data-version=")[^"]*(")',
+                lambda match: match[1] + version + match[2], html, count=1,
+            )
+            if marked != html:
+                writes[page] = marked
         for path, text in writes.items():
             atomic_write(path, text)
     return bool(writes)

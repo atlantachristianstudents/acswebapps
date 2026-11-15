@@ -44,11 +44,14 @@ class Scripts(HTMLParser):
         super().__init__(convert_charrefs=False)
         self.code = None
         self.blocks = []
+        self.updater_versions = []
 
     def handle_starttag(self, tag, attrs):
         if tag != 'script':
             return
         attrs = dict(attrs)
+        if attrs.get('id') == 'acswebapps-updater':
+            self.updater_versions.append(attrs.get('data-version'))
         kind = attrs.get('type', '').strip().lower()
         if 'src' not in attrs and kind in ('', 'text/javascript', 'application/javascript'):
             self.code = []
@@ -93,12 +96,14 @@ def main():
     files += list((ROOT / 'apps').rglob('*.html'))
     files += list((ROOT / 'apps').rglob('*.js'))
     files += [ROOT / 'sw.js']
+    page_updaters = {}
     for path in sorted(set(files)):
         if path.suffix == '.js':
             check_js(relative(path), path.read_text())
         else:
             scripts = Scripts()
             scripts.feed(path.read_text())
+            page_updaters[path] = scripts.updater_versions
             for index, source in enumerate(scripts.blocks, 1):
                 check_js(f'{relative(path)} inline script {index}', source)
 
@@ -153,6 +158,8 @@ def main():
     for path in [ROOT / 'sw.js'] + sorted((ROOT / 'apps').glob('*/sw.js')):
         try:
             version, assets = worker_config(path.read_text())
+            if path.parent != ROOT and page_updaters.get(path.parent / 'index.html') != [version]:
+                raise ValueError('app updater data-version must match the service-worker cache version')
             cached = {relative(path), relative(path.parent / 'index.html')}
             manifest_name = 'manifest.json' if path.parent == ROOT else 'manifest.webmanifest'
             cached.add(relative(path.parent / manifest_name))

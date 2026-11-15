@@ -48,6 +48,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 
 ## Features
 
+- **Manual updates:** each app’s **?** help or About panel includes **Check for updates**. Save work first; available updates are installed and the app restarts. Offline downloads in IndexedDB remain intact.
+
 - Browser pinch-to-zoom is disabled across the app directory and apps, including separate reading and presentation pages. Single-finger scrolling and app controls remain available.
 
 - **No accounts or ads.** App content and settings stay local; limited usage events go to GoatCounter.

@@ -46,3 +46,5 @@ The help menu identifies Show Time as part of the ACS Web Apps project, with a l
 The time numbers do not show selection highlights or a text caret. Countdown entry by keyboard or the mobile numeric keyboard remains available.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
+
+**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

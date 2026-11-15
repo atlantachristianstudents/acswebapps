@@ -1,11 +1,11 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "timer-v36";
+var VERSION = "timer-v37";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(
-    caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); })
+    caches.open(VERSION).then(function (c) { return c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})})); }).then(function () { return self.skipWaiting(); })
   );
 });
 
@@ -28,3 +28,6 @@ self.addEventListener("fetch", function (e) {
     })
   );
 });
+
+// Manual upgrades requested from this app’s help/About panel.
+self.addEventListener("message",function(event){if(event.data&&event.data.type==="ACS_GET_VERSION"&&event.ports[0])event.ports[0].postMessage({version:VERSION});if(event.data&&event.data.type==="ACS_SKIP_WAITING")event.waitUntil(self.skipWaiting())});

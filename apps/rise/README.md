@@ -27,7 +27,7 @@ On the first visit, a one-time popup explains that swiping down (or pressing the
 
 Use **Check for updates** in settings to manually download and activate the latest app version. Save settings first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
 
-When releasing a Rise update, keep `APP_VERSION` in `index.html` equal to `VERSION` in `sw.js`; the manual updater compares them to detect an upgrade.
+When releasing an update, keep the `acswebapps-updater` script’s `data-version` equal to `VERSION` in `sw.js`. The repository validator checks this.
 
 Verse changes use a smooth vertical slide and fade in the swipe direction. Rapid repeated gestures are ignored during the transition. Devices with reduced motion enabled switch verses immediately.
 
@@ -78,3 +78,5 @@ Settings now open directly to a two-dimensional month grid with weekday headings
 Settings no longer have a **?** About button; the main verse screen has no About button.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
+
+**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

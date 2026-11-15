@@ -57,3 +57,5 @@ The tuners, tone generator, instrument reference notes, and metronome share one 
 ## Detected chords to Chord Studio
 
 In **Key & chords**, **Send to Chord Studio** transfers the retained chord history (up to 20 changes) in playing order, together with the detected key. It opens Chord Studio, resets transpose and capo to zero, and saves the chart on this device. Replacing a nonempty chart requires confirmation; cancel keeps both the chart and detection history. Without a detected key, the chart uses C. Chord rendering treats written roots and slash bass notes as absolute pitches, so importing a non-C key does not transpose the chart twice.
+
+**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

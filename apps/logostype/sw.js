@@ -1,12 +1,12 @@
 // Bump the version whenever a cached app asset changes.
-const CACHE = 'logostype-v286';
+const CACHE = 'logostype-v287';
 const ASSETS = ['./', 'index.html', 'reading.html', 'reading.js', 'dist/index.html', 'dist/reading.html', 'app.js', 'collaborative.js', 'data.js', 'history-store.js', 'replay.js', 'friends-records.js', 'rooms.js', 'race.js',
   'scripture-references.js', 'scripture-text.js', 'vendor/peerjs.min.js',
   'icons/mode-time.svg', 'icons/mode-words.svg', 'icons/mode-verse.svg', 'icons/mode-custom.svg',
   'pwa.js', 'navigation.js', 'themes.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(function(file){return new Request(file,{cache:"reload"})}))));
 });
 
 // New versions activate after existing app windows close, keeping each session consistent.
@@ -33,3 +33,6 @@ self.addEventListener('fetch', event => {
     return cached || fetch(event.request);
   })());
 });
+
+// Manual upgrades requested from this app’s help/About panel.
+self.addEventListener("message",function(event){if(event.data&&event.data.type==="ACS_GET_VERSION"&&event.ports[0])event.ports[0].postMessage({version:CACHE});if(event.data&&event.data.type==="ACS_SKIP_WAITING")event.waitUntil(self.skipWaiting())});

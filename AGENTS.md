@@ -200,3 +200,7 @@ Registered apps include an inline `acswebapps-usage` script in their main `index
 ## Mobile pinch zoom
 
 Active app pages and the home page disable browser pinch-to-zoom using viewport limits and inline `acswebapps-no-pinch` script/style blocks. Keep these blocks self-contained, including in the app template and separate reading or display pages. Preserve single-finger scrolling and existing app-specific controls; do not replace native scrolling with a blanket touch-event blocker.
+
+## Manual app updates
+
+Each app (and the starter template) includes a self-contained `acswebapps-updater` script and a **Check for updates** control inside existing help/About UI. Preserve these copies and the service worker’s `ACS_GET_VERSION` / `ACS_SKIP_WAITING` message handlers. When bumping an app cache version, also update the updater script’s `data-version`; `scripts/validate.py` enforces that they match. Show Songs’ approved scraper and mapping-sync helper update both markers automatically. Never clear IndexedDB or downloaded content during an app-shell upgrade, and do not add floating controls to presentation-only displays.

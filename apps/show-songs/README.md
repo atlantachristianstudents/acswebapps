@@ -113,3 +113,5 @@ The bottom of the **?** shortcut help says “Show Songs is part of the ACS Web 
 The display has no floating help button. Use the existing **?** / **/** keyboard shortcuts for help; the project information and mobile back link remain available there.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
+
+**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

@@ -1,7 +1,7 @@
-const CACHE = 'chronological-bible-v46';
+const CACHE = 'chronological-bible-v47';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'order.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})}))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys
@@ -14,3 +14,6 @@ self.addEventListener('fetch', e => {
       !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
   e.respondWith(caches.open(CACHE).then(c => c.match(e.request)).then(r => r || fetch(e.request)));
 });
+
+// Manual upgrades requested from this app’s help/About panel.
+self.addEventListener("message",function(event){if(event.data&&event.data.type==="ACS_GET_VERSION"&&event.ports[0])event.ports[0].postMessage({version:CACHE});if(event.data&&event.data.type==="ACS_SKIP_WAITING")event.waitUntil(self.skipWaiting())});
