@@ -7,7 +7,7 @@ The app cannot launch itself when a phone wakes, replace the lock screen, or app
 For development, a date can be previewed without touching the UI or the system clock, using browser DevTools only: `RiseTestDate.set("2026-11-17")` to preview a date, `RiseTestDate.advance(3)` to preview N days from today (or `advance()` for tomorrow), `RiseTestDate.today()` (or `RiseTestDate.reset()`) to return to the real date, and `RiseTestDate.status()` to show the active one. The override is never persisted and normal operation is unchanged.
 
 
-Swipe down or press `/` to open settings. Rise supports independent Shuffle, Sequential, and Custom plans. Use **＋** to create a plan, choose its type, set its start date (tomorrow by default) and optional end date, then **Save plan**. Each plan saves independently. New plans stay off until enabled in **Edit plans** and included with **Save changes**. Shuffle and Sequential let you set the number of verses per day (default 2), choose books, or enter custom ranges. Custom plans support multiple references per day and can repeat. All settings stay on the device, and downloaded Scripture remains available offline.
+Swipe down or press `/` to open settings. Rise supports independent Shuffle, Sequential, and Custom plans. Use **＋** to create a plan, choose its type, set its start date (tomorrow by default) and optional end date, then **Save plan**. Each plan saves independently. New plans are enabled as soon as they are saved. Shuffle and Sequential let you set the number of verses per day (default 2), choose books, or enter custom ranges. Custom plans support multiple references per day and can repeat. All settings stay on the device, and downloaded Scripture remains available offline.
 
 The settings calendar previews the plans currently enabled for each date. **Edit plans** opens the plan list; its button changes to **Back to calendar** and prompts before discarding unsaved arrangement edits. The **＋** editor keeps start and end date pickers compact and opens their native calendar popups. Reorder plans with drag and drop or the up/down buttons; higher rows have higher priority. Toggle plans on or off, edit them, or delete them after confirmation. **Combined** displays verses from every enabled plan in priority order. **Override** displays only the highest enabled plan active that day. Each plan has independent dates, schedule or selection, reading position, and date edits.
 
@@ -39,7 +39,7 @@ Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling 
 
 Pressing Enter in settings fields does not save or close settings. Enter in a custom schedule adds a new line. Save controls remain keyboard accessible.
 
-Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. The current theme name appears beside the palette button. Changes preview immediately across the verse screen, settings, and browser theme color, and are saved when you cycle the palette. Dusk and Midnight use dark native controls. A palette icon beside Close cycles through the seven themes, with the current and next theme named in its accessible label and tooltip.
+Choose from seven themes in settings: **Dawn**, **Paper**, **Sage**, **Ocean**, **Rose**, **Dusk**, and **Midnight**. The current theme name appears to the left of the palette button. Changes preview immediately across the verse screen, settings, and browser theme color, and are saved when you cycle the palette. Dusk and Midnight use dark native controls. A palette icon beside Close cycles through the seven themes, with the current and next theme named in its accessible label and tooltip.
 
 Phone settings use 44px touch targets, shorter mode labels, safe-area spacing, and narrow-screen layouts. When the on-screen keyboard opens, settings prioritize the active editor and keep Close and Save reachable; the normal controls return when the keyboard closes. Book search retains its results while editing, and the range editor hides the book list temporarily.
 
@@ -67,7 +67,7 @@ The main verse and reference do not show selection or tap highlights during read
 
 Press `/` to toggle settings, including when a dropdown has focus. You can also press <kbd>/</kbd> or the up or down arrow keys to open settings. The shortcut does not intercept typing in text fields or editors, held-key repeats, composition, or modified keyboard shortcuts.
 
-**Import** opens a theme-matched dialog for choosing a file or pasting a URL. URL imports accept direct HTTP(S) links to Rise JSON exports or plain-text plans; the source must allow browser cross-origin access. Downloads omit credentials and referrers, time out after 20 seconds, and are limited to 1 MB. Invalid or canceled imports leave the current plan intact. Imports create a new plan draft; **Save plan** stores it independently, and it remains off until the arrangement is saved.
+**Import** opens a theme-matched dialog for choosing a file or pasting a URL. URL imports accept direct HTTP(S) links to Rise JSON exports or plain-text plans; the source must allow browser cross-origin access. Downloads omit credentials and referrers, time out after 20 seconds, and are limited to 1 MB. Invalid or canceled imports leave the current plan intact. Imports create a new plan draft; **Save plan** stores it independently, and it is enabled immediately.
 
 Every line in a daily plan counts as a day, including blank lines at the beginning, middle, or end. Blank days display only the centered Rise icon; they do not fall back to a random verse. Clearing a calendar date also creates an icon-only day. Blank days are preserved in file/URL imports and JSON exports, including repeating and entirely blank plans. Text files ending in a newline therefore include a final blank day.
 
@@ -92,3 +92,9 @@ In Shuffle and Sequential, **Custom range** opens a theme-matched dialog for ent
 Empty days display only the centered Rise rays, without a surrounding circle or background tile. The symbol follows the current theme’s accent color and is available offline.
 
 The About dialog places **Done** beside the **About Rise** heading at the top.
+
+Multi-verse Sequential plans advance by the configured daily count: with 2 verses per day, days read verses 1–2, then 3–4. Shuffle uses a stable shuffled selection and advances by the same count, repeating only after all selected verses have been read. Both modes cycle after exhausting the selection. Calendar previews include every verse assigned to the day.
+
+The ＋ plan editor includes **Back to calendar**. Unsaved plan edits prompt with **Keep editing** or **Discard and return** before leaving.
+
+Saving a new or imported plan immediately adds it to **Edit plans**, including when that page already has unsaved ordering or toggle changes. Those changes are preserved, and the new plan starts switched on.
