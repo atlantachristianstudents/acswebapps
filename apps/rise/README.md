@@ -106,3 +106,5 @@ Saving a new or imported plan immediately adds it to **Edit plans**, including w
 The plan editor’s sticky Save bar uses an opaque theme background so scrolling fields do not show through behind its controls.
 
 The plan calendar uses a compact, single-row navigation toolbar. Its navigation and date-editing controls stay in place while the date grid scrolls.
+
+Deleting a plan in **Edit plans** removes it from the draft list. Press **Save changes** to save deletions along with ordering and on/off changes. Discarding changes restores the plans; closing or reloading before saving keeps the saved plans.
