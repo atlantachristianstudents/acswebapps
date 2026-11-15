@@ -90,7 +90,7 @@ window.APPS = [
   {
     id: "big-text",
     name: "Show Songs",
-    description: "Display hymn number or text in full-screen seemlessly.",
+    description: "Display hymn numbers or lyrics full-screen, seamlessly.",
     icon: "🎵",
     iconUrl: "apps/show-songs/icons/icon.svg",
     tags: ["Worship", "Presentation"],
