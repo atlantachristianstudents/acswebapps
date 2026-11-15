@@ -124,7 +124,7 @@ window.APPS = [
     icon: "❝",
     iconUrl: "apps/verse-designer/icons/icon.svg",
     tags: ["Tools", "Worship", "Memory"],
-    status: "beta"
+    status: "live"
   },
   {
     id: "songs",
