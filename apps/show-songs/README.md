@@ -114,4 +114,4 @@ The display has no floating help button. Use the existing **?** / **/** keyboard
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
 
-**Check for updates** is available inside the app’s **?** help or About panel. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.
+Press **Cmd+U** (Mac) or **Ctrl+U** (Windows/Linux) from any mode to check for updates. The shortcut opens the help panel to show update status; there is no update button. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.

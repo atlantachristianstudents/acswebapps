@@ -396,9 +396,6 @@
 
 <style id="acswebapps-update-style">
 .acs-update{margin-top:14px;padding-top:12px;border-top:1px solid currentColor;white-space:normal;font:13px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;text-align:left}
-.acs-update [data-acs-update-button]{display:inline-block;min-height:44px;max-width:100%;border:1px solid currentColor;border-radius:8px;padding:8px 12px;background:transparent;color:inherit;font:600 13px system-ui,sans-serif;cursor:pointer;letter-spacing:normal;text-transform:none}
-.acs-update [data-acs-update-button]:disabled{opacity:.55;cursor:wait}
-.acs-update [data-acs-update-button]:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .acs-update p{margin:6px 0 0!important;color:inherit!important;font:12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
 .acs-update-note{opacity:.8}
 [data-acs-update-status]:empty{display:none}
@@ -4880,13 +4877,14 @@
               ];
           return "<div>" + lines.join("<br>") +
             '<p>Show Songs is part of the ACS Web Apps project.<br>' +
-            '<a id="acswebapps-mobile-back" href="../../">Back to ACS Web Apps</a></p>' + "<div class=\"acs-update\" data-acs-update><button type=\"button\" data-acs-update-button>Check for updates</button><p class=\"acs-update-note\">Save your work first; an update restarts the app.</p><p data-acs-update-status role=\"status\" aria-live=\"polite\"></p></div>" + '</div>';
+            '<a id="acswebapps-mobile-back" href="../../">Back to ACS Web Apps</a></p>' + "<div class=\"acs-update\" data-acs-update><p>" + MOD + "+u checks for updates</p><p class=\"acs-update-note\">Save your work first; an update restarts the app.</p><p data-acs-update-status role=\"status\" aria-live=\"polite\"></p></div>" + '</div>';
         }
         function showHelp() {
           helpEl.innerHTML = helpHtml();
           helpEl.hidden = false;
           helpOpen = true;
         }
+        document.addEventListener("acswebapps-show-update-help", showHelp);
         function hideHelp() {
           helpEl.hidden = true;
           helpOpen = false;
@@ -5591,7 +5589,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v118">
+<script id="acswebapps-updater" data-version="big-text-v119">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -5649,7 +5647,6 @@
     }
     if (navigator.onLine === false) { report('You’re offline. Connect to the internet and try again.'); return; }
     busy = true;
-    document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = true; });
     report('Checking for updates…');
     try {
       const registration = await deadline(navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }), 20000);
@@ -5666,19 +5663,16 @@
         ? error.message : 'Could not check for updates. Check your connection and try again.');
     } finally {
       busy = false;
-      document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = false; });
     }
   }
-  // Some apps dismiss help on any click/key. Keep updater interactions inside help.
-  document.addEventListener('pointerdown', event => {
-    if (event.target.closest('[data-acs-update]')) event.stopPropagation();
-  }, true);
+  // Capture the shortcut before mode-specific handlers or browser View Source.
   document.addEventListener('keydown', event => {
-    if (event.key !== 'Escape' && event.target.closest('[data-acs-update]')) event.stopPropagation();
-  }, true);
-  document.addEventListener('click', event => {
-    if (!event.target.closest('[data-acs-update-button]')) return;
-    event.preventDefault(); event.stopPropagation(); check();
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.isComposing || event.key.toLowerCase() !== 'u') return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (event.repeat || busy) return;
+    document.dispatchEvent(new Event('acswebapps-show-update-help'));
+    check();
   }, true);
 }());
 </script>
