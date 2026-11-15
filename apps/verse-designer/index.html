@@ -5,9 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Verse Designer — ACS Web Apps</title>
   <meta name="description" content="Design beautiful Bible verse wallpapers and shareable images. Custom typography, gradients, and layouts — exported as PNG, entirely offline.">
-  <meta name="theme-color" content="#3b4bf5" />
+  <meta name="theme-color" content="#f4efe5" />
   <meta name="color-scheme" content="light dark" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b4bf5'/%3E%3Cstop offset='1' stop-color='%239b6df2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Georgia, serif' font-size='32' fill='%23fff' text-anchor='middle'%3E%E2%9D%9D%3C/text%3E%3C/svg%3E" />
+  <script>
+    // Apply the saved theme before first paint (no flash). Rise's theme list.
+    try {
+      var t = localStorage.getItem("verse-designer-theme");
+      if (/^(dawn|paper|sage|ocean|rose|dusk|midnight)$/.test(t || "")) document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233b4bf5'/%3E%3Cstop offset='1' stop-color='%239b6df2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Ctext x='32' y='46' font-family='Georgia, serif' font-size='36' font-weight='700' fill='%23fff' text-anchor='middle'%3E%E2%9D%9D%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <script>
     // Offline support: cache the app with sw.js (see README).
@@ -18,25 +25,31 @@
     }
   </script>
   <style>
+    /* Themes copied from the Rise app: dawn is the default light theme and
+       midnight is the dark fallback; dusk/midnight are dark. */
     :root {
-      color-scheme: light dark;
-      --bg: #f7f8fc;
-      --panel: #ffffff;
-      --text: #182033;
-      --muted: #68738a;
-      --border: #e7e9f0;
-      --accent: #3b4bf5;
-      --accent-soft: #eceefc;
+      color-scheme: light;
+      --bg: #f4efe5;
+      --text: #24302b;
+      --muted: #596459;
+      --panel: #fffdf8;        /* surface */
+      --panel-alt: #f9f6ee;    /* inputs */
+      --border: #c9c8bc;
+      --accent: #44584b;
+      --on-accent: #ffffff;
+      --accent-soft: #e8eee4;  /* selected */
+      --focus: #74876a;
     }
+    :root[data-theme="paper"]   { --bg:#fafafa; --text:#24272b; --muted:#555d66; --panel:#ffffff; --panel-alt:#f1f2f3; --border:#c6cbd0; --accent:#3e4b58; --on-accent:#ffffff; --accent-soft:#e0e7ee; --focus:#647d96; }
+    :root[data-theme="sage"]    { --bg:#e8eee5; --text:#253529; --muted:#4c6250; --panel:#f7faf4; --panel-alt:#f0f4eb; --border:#b8c7b5; --accent:#3c5c40; --on-accent:#ffffff; --accent-soft:#d6e5ce; --focus:#587c50; }
+    :root[data-theme="ocean"]   { --bg:#e8f0f4; --text:#243746; --muted:#4c6273; --panel:#f7fbfe; --panel-alt:#eef5f9; --border:#b8cad7; --accent:#315d77; --on-accent:#ffffff; --accent-soft:#d4e5ef; --focus:#4f7e9b; }
+    :root[data-theme="rose"]    { --bg:#f5eae8; --text:#462e34; --muted:#76545d; --panel:#fff8f6; --panel-alt:#faf0ed; --border:#d6bdc1; --accent:#804a5b; --on-accent:#ffffff; --accent-soft:#eed7dd; --focus:#a16678; }
+    :root[data-theme="dusk"]    { --bg:#292634; --text:#eee7f5; --muted:#c4b6d2; --panel:#353040; --panel-alt:#302b3a; --border:#665a74; --accent:#d1b6e7; --on-accent:#292634; --accent-soft:#4c3b5d; --focus:#dbbafa; color-scheme: dark; }
+    :root[data-theme="midnight"]{ --bg:#141c24; --text:#e5ecf2; --muted:#acbdcd; --panel:#202c38; --panel-alt:#1a2530; --border:#526477; --accent:#afcee5; --on-accent:#141c24; --accent-soft:#2d455b; --focus:#9dc9ed; color-scheme: dark; }
     @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0d111b;
-        --panel: #141a29;
-        --text: #edf0fa;
-        --muted: #9ba7bd;
-        --border: #273047;
-        --accent: #7886ff;
-        --accent-soft: #20273f;
+      :root:not([data-theme]) {
+        --bg:#141c24; --text:#e5ecf2; --muted:#acbdcd; --panel:#202c38; --panel-alt:#1a2530; --border:#526477; --accent:#afcee5; --on-accent:#141c24; --accent-soft:#2d455b; --focus:#9dc9ed;
+        color-scheme: dark;
       }
     }
     * { box-sizing: border-box; }
@@ -45,6 +58,7 @@
       background: var(--bg);
       color: var(--text);
       font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
     .topbar {
       position: sticky;
@@ -54,9 +68,15 @@
       align-items: center;
       gap: .75rem;
       padding: .6rem 1rem;
+      padding-top: max(.6rem, env(safe-area-inset-top));
       border-bottom: 1px solid var(--border);
-      background: var(--bg);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
+    .brand { display: flex; align-items: center; gap: .55rem; font-weight: 700; letter-spacing: .01em; }
+    .brand img { width: 26px; height: 26px; border-radius: 7px; display: block; }
+    @media (max-width: 560px) { .brand span:not(.sr) { display: none; } }
     .topbar a {
       display: inline-block;
       padding: .4rem .8rem;
@@ -83,6 +103,50 @@
       transition: all .15s;
       white-space: nowrap;
     }
+    /* Theme settings swatches */
+    .theme-grid { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .theme-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .3rem;
+      padding: .3rem;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: .74rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .theme-swatch .swatch {
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      position: relative;
+      transition: transform .12s;
+    }
+    .theme-swatch .swatch::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      background: var(--dot);
+    }
+    .theme-swatch:hover .swatch { transform: scale(1.08); }
+    .theme-swatch[aria-pressed="true"] {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-soft);
+    }
+    .theme-swatch[aria-pressed="true"] .swatch { border-color: var(--accent); }
+    :root[data-theme="dusk"] .theme-swatch .swatch::after,
+    :root[data-theme="midnight"] .theme-swatch .swatch::after { outline: 1px solid rgba(255,255,255,.25); }
     .adv-toggle[aria-pressed="true"] {
       background: var(--accent-soft);
       border-color: var(--accent);
@@ -96,8 +160,17 @@
       align-items: start;
     }
     @media (max-width: 880px) {
-      main { grid-template-columns: 1fr; }
+      main { grid-template-columns: 1fr; gap: 1rem; padding: 1rem; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
       .preview-col { order: -1; }
+    }
+    @media (max-width: 880px) and (pointer: coarse) {
+      /* Comfortable touch targets for chips, swatches, and buttons. */
+      .chip { padding: .55rem .95rem; font-size: .9rem; }
+      .grads { grid-template-columns: repeat(7, 1fr); gap: .5rem; }
+      .grad { border-width: 2px; }
+      button.primary, button.ghost { min-height: 2.75rem; }
+      input[type="text"], input[type="number"], select, textarea { min-height: 2.6rem; font-size: 16px; }
+      .srlist button { padding: .55rem .7rem; font-size: .9rem; }
     }
     .panel {
       background: var(--panel);
@@ -126,7 +199,7 @@
       padding: .45rem .6rem;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: var(--bg);
+      background: var(--panel-alt);
       color: var(--text);
       font: inherit;
     }
@@ -136,7 +209,7 @@
       padding: .45rem .6rem;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: var(--bg);
+      background: var(--panel-alt);
       color: var(--text);
       font: inherit;
       resize: vertical;
@@ -191,7 +264,7 @@
       border: none;
       border-radius: 8px;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       font: inherit;
       font-weight: 600;
       cursor: pointer;
@@ -242,7 +315,7 @@
       margin: 0;
     }
     /* Phones: preview sticks at the top with a tighter budget so the
-       controls below stay reachable. */
+       controls below stay reachable; the action bar sticks to the bottom. */
     @media (max-width: 880px) {
       .preview-sticky {
         top: .5rem;
@@ -251,8 +324,21 @@
         padding-bottom: .35rem;
         background: var(--bg);
       }
-      #preview { max-height: 34vh; }
+      #preview { max-height: 30vh; }
       .preview-hint { display: none; }
+      .actions {
+        position: sticky;
+        bottom: max(.75rem, env(safe-area-inset-bottom));
+        z-index: 6;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: .6rem 0;
+        border-top: 1px solid var(--border);
+        margin-top: .75rem;
+      }
+      .actions button { flex: 1; min-width: 0; }
+      .actions .primary { flex: 1.6; }
     }
     .hint { font-size: .78rem; color: var(--muted); margin: .4rem 0 0; }
     .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
@@ -273,10 +359,70 @@
       z-index: 10;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    /* Theme settings overlay */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      background: rgba(10, 12, 18, .45);
+    }
+    .settings-overlay[hidden] { display: none; }
+    .settings-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem 1.25rem;
+      width: 100%;
+      max-width: 26rem;
+      max-height: calc(100vh - 2rem);
+      overflow: auto;
+      box-shadow: 0 18px 50px rgba(10, 12, 18, .35);
+    }
+    .settings-card .settings-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-bottom: .25rem;
+    }
+    .settings-card h2 {
+      margin: 0;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    .settings-close { padding: .35rem .8rem; }
+    @media (max-width: 560px) {
+      .settings-overlay { align-items: flex-end; padding: .75rem; }
+      .settings-card { border-radius: 16px; }
+    }
+
     /* Advanced-only controls */
     .adv-only { display: none; }
     body.advanced .adv-only { display: block; }
     body.advanced .adv-inline { display: inline-block; }
+    /* Advanced controls live in their own scrollable region so the rest of
+       the design stays in view while fine-tuning. */
+    .adv-scroll {
+      display: none;
+      max-height: 60vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .55rem .8rem;
+      margin-top: .5rem;
+      scrollbar-width: thin;
+    }
+    body.advanced .adv-scroll { display: block; }
+    @media (max-width: 880px) {
+      .adv-scroll { max-height: 48vh; }
+    }
     /* Verse search results */
     .srlist { max-height: 14em; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: .35rem; }
     .srlist button {
@@ -288,6 +434,13 @@
     .srlist button:hover { background: var(--accent-soft); }
     .srlist b { color: var(--accent); white-space: nowrap; margin-right: .35em; }
     .srlist mark { background: var(--accent-soft); color: var(--accent); border-radius: 2px; }
+    .combine-bar { display: flex; gap: .5rem; align-items: center; margin-bottom: .4rem; flex-wrap: wrap; }
+    .combine-bar .primary { padding: .35rem .8rem; font-size: .82rem; }
+    .combine-bar .ghost { padding: .35rem .8rem; font-size: .82rem; }
+    .srlist button[aria-pressed="true"] {
+      background: var(--accent-soft);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
     .srempty { padding: .4rem .6rem; font-size: .82rem; color: var(--muted); }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
@@ -327,11 +480,11 @@
 </head>
 <body>
   <div class="topbar">
-
-    <span>Verse Designer</span>
+    <span class="brand"><img src="icons/icon.svg" alt="" width="26" height="26"><span>Verse Designer</span></span>
     <span class="spacer"></span>
     <span id="dims" aria-hidden="true"></span>
-    <button type="button" class="adv-toggle" id="advToggle" aria-pressed="false" title="Show extra fine-tuning controls">⚙ Advanced</button>
+    <button type="button" class="adv-toggle" id="advToggle" aria-pressed="false" title="Show extra fine-tuning controls">+ Advanced</button>
+    <button type="button" class="adv-toggle" id="settingsBtn" aria-haspopup="dialog" aria-controls="settings" title="Open theme settings">⚙ Settings</button>
   </div>
 
   <main>
@@ -458,13 +611,12 @@
             <input type="color" id="accentColor" value="#ffffff">
           </label>
         </div>
-        <label class="field"><span class="sr">Auto-fit text</span>
-          <input type="checkbox" id="autoFit" checked>
-          <span style="display:inline;font-size:.82rem;color:var(--muted)">Auto-fit (shrink long verses to fit)</span>
-        </label>
+        <!-- Auto-fit stays on (default true); the control is hidden since it is
+             redundant with the Size slider. -->
+        <input type="checkbox" id="autoFit" checked class="sr" aria-hidden="true" tabindex="-1">
 
         <!-- Advanced typography -->
-        <div class="adv-only">
+        <div class="adv-scroll">
           <label class="field"><span>Letter spacing <span id="lsVal"></span></span>
             <input type="range" id="letterSpacing" min="-5" max="40" step="1" value="0">
           </label>
@@ -483,31 +635,33 @@
               <option value="upper">ALL CAPS</option>
             </select>
           </label>
-          <label class="field"><span>Reference size <span id="rsVal"></span></span>
-            <input type="range" id="refScale" min="20" max="80" step="5" value="42">
-          </label>
           <label class="field"><span class="sr">Uppercase reference</span>
             <input type="checkbox" id="refUpper">
             <span style="display:inline;font-size:.82rem;color:var(--muted)">Uppercase reference</span>
           </label>
         </div>
+        <label class="field" style="margin-top:.7rem"><span>Reference size <span id="rsVal"></span></span>
+          <input type="range" id="refScale" min="20" max="80" step="5" value="42">
+        </label>
       </div>
 
       <!-- Advanced composition panel -->
       <div class="panel adv-only" id="compositionPanel">
         <h2>Composition</h2>
-        <label class="field"><span>Vertical position <span id="vpVal"></span></span>
-          <input type="range" id="vertPos" min="0" max="100" step="1" value="50">
-        </label>
-        <label class="field"><span>Padding <span id="padVal"></span></span>
-          <input type="range" id="padding" min="4" max="20" step="1" value="10">
-        </label>
-        <label class="field"><span>Vignette <span id="vgVal"></span></span>
-          <input type="range" id="vignette" min="0" max="60" step="2" value="18">
-        </label>
-        <label class="field"><span>Film grain <span id="grVal"></span></span>
-          <input type="range" id="grain" min="0" max="20" step="1" value="0">
-        </label>
+        <div class="adv-scroll">
+          <label class="field"><span>Vertical position <span id="vpVal"></span></span>
+            <input type="range" id="vertPos" min="0" max="100" step="1" value="50">
+          </label>
+          <label class="field"><span>Padding <span id="padVal"></span></span>
+            <input type="range" id="padding" min="4" max="20" step="1" value="10">
+          </label>
+          <label class="field"><span>Vignette <span id="vgVal"></span></span>
+            <input type="range" id="vignette" min="0" max="60" step="2" value="18">
+          </label>
+          <label class="field"><span>Film grain <span id="grVal"></span></span>
+            <input type="range" id="grain" min="0" max="20" step="1" value="0">
+          </label>
+        </div>
       </div>
 
       <div class="actions">
@@ -527,6 +681,17 @@
   </main>
 
   <div class="toast" id="toast" role="status"></div>
+
+  <div class="settings-overlay" id="settings" hidden>
+    <div class="settings-card" role="dialog" aria-modal="true" aria-label="Theme settings">
+      <div class="settings-head">
+        <h2>Theme</h2>
+        <button type="button" class="ghost settings-close" id="settingsClose">Close</button>
+      </div>
+      <p class="hint">Swipe, trackpad, or ← → keys to change themes.</p>
+      <div class="theme-grid" id="themeGrid" role="group" aria-label="Color theme"></div>
+    </div>
+  </div>
 
   <script src="scripture-references.js"></script>
   <script>
@@ -1222,66 +1387,148 @@
     }
 
     var searchDeb = null;
-    function renderSearchResults(hits, q, partial) {
+    // ---------- Multi-select verse results ----------
+    // Results can be toggled on and off, then combined into one verse.
+    var selectedHits = {};   // scriptureReferences index -> ref string
+    var itemsRef = [];       // last rendered results for "Select all"
+
+    function combineBar() {
+      var bar = document.createElement("div");
+      bar.className = "combine-bar";
+      var count = Object.keys(selectedHits).length;
+      if (itemsRef.length) {
+        var allBtn = document.createElement("button");
+        allBtn.type = "button";
+        allBtn.className = "ghost";
+        allBtn.textContent = "Select all";
+        allBtn.addEventListener("click", function () {
+          itemsRef.forEach(function (it) { selectedHits[it.i] = it.ref; });
+          refreshResultRows();
+        });
+        bar.appendChild(allBtn);
+      }
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "primary";
+      btn.textContent = count ? "Combine " + count + " verse" + (count > 1 ? "s" : "") : "Combine selected verses";
+      btn.disabled = !count;
+      btn.addEventListener("click", combineSelected);
+      bar.appendChild(btn);
+      if (count) {
+        var clear = document.createElement("button");
+        clear.type = "button";
+        clear.className = "ghost";
+        clear.textContent = "Clear";
+        clear.addEventListener("click", function () {
+          selectedHits = {};
+          refreshResultRows();
+        });
+        bar.appendChild(clear);
+      }
+      return bar;
+    }
+
+    // Re-derive pressed states and the bar from the selection (single source of truth).
+    function refreshResultRows() {
+      var box = $("lkResults");
+      var bar = box.querySelector(".combine-bar");
+      if (bar) bar.replaceWith(combineBar());
+      Array.prototype.forEach.call(box.querySelectorAll(".srlist button"), function (b) {
+        var i = b.dataset.vi;
+        b.setAttribute("aria-pressed", String(Object.prototype.hasOwnProperty.call(selectedHits, i)));
+      });
+    }
+
+    function renderResults(items, q, partial) {
+      itemsRef = items;
       var box = $("lkResults");
       box.hidden = false;
       box.innerHTML = "";
+      box.appendChild(combineBar());
       var list = document.createElement("div");
       list.className = "srlist";
-      hits.forEach(function (h) {
-        var ref = typeof scriptureReferences !== "undefined" ? scriptureReferences[h.i] : "";
+      items.forEach(function (h) {
+        var ref = h.ref || (typeof scriptureReferences !== "undefined" ? scriptureReferences[h.i] : "");
         var b = document.createElement("button");
         b.type = "button";
+        b.dataset.vi = h.i;
         var lab = document.createElement("b");
         lab.textContent = ref || "Verse " + (h.i + 1);
         b.appendChild(lab);
-        // Highlight the search words in the text.
-        var plain = h.text.replace(/\s+/g, " ").trim();
-        var plainLC = plain.toLowerCase();
-        var words = q.toLowerCase().split(/\s+/).filter(Boolean);
-        var frag = document.createDocumentFragment(), pos = 0;
-        while (pos < plain.length) {
-          var idx = -1, wl = 0;
-          for (var w = 0; w < words.length; w++) {
-            var f = plainLC.indexOf(words[w], pos);
-            if (f >= 0 && (idx < 0 || f < idx)) { idx = f; wl = words[w].length; }
+        // Show the verse text; highlight search words when present.
+        var plain = h.text ? h.text.replace(/\s+/g, " ").trim() : "";
+        if (plain) {
+          var plainLC = plain.toLowerCase();
+          var words = q ? q.toLowerCase().split(/\s+/).filter(Boolean) : [];
+          var frag = document.createDocumentFragment(), pos = 0;
+          if (words.length) {
+            while (pos < plain.length) {
+              var idx = -1, wl = 0;
+              for (var w = 0; w < words.length; w++) {
+                var f = plainLC.indexOf(words[w], pos);
+                if (f >= 0 && (idx < 0 || f < idx)) { idx = f; wl = words[w].length; }
+              }
+              if (idx < 0) { frag.appendChild(document.createTextNode(plain.slice(pos))); break; }
+              if (idx > pos) frag.appendChild(document.createTextNode(plain.slice(pos, idx)));
+              var mk = document.createElement("mark");
+              mk.textContent = plain.substr(idx, wl);
+              frag.appendChild(mk);
+              pos = idx + wl;
+            }
+          } else {
+            frag.appendChild(document.createTextNode(plain));
           }
-          if (idx < 0) { frag.appendChild(document.createTextNode(plain.slice(pos))); break; }
-          if (idx > pos) frag.appendChild(document.createTextNode(plain.slice(pos, idx)));
-          var mk = document.createElement("mark");
-          mk.textContent = plain.substr(idx, wl);
-          frag.appendChild(mk);
-          pos = idx + wl;
+          b.appendChild(frag);
         }
-        b.appendChild(frag);
-        b.addEventListener("click", function () { useSearchResult(h.i, ref); });
+        b.setAttribute("aria-pressed", String(Object.prototype.hasOwnProperty.call(selectedHits, h.i)));
+        b.addEventListener("click", function () {
+          if (Object.prototype.hasOwnProperty.call(selectedHits, h.i)) delete selectedHits[h.i];
+          else selectedHits[h.i] = ref;
+          refreshResultRows();
+        });
         list.appendChild(b);
       });
       box.appendChild(list);
-      if (partial) {
+      if (items.length > 1 && !partial) {
         var p = document.createElement("p");
         p.className = "srempty";
-        p.textContent = "Showing the first " + hits.length + " matches — add words to narrow it down.";
+        p.textContent = "Tap verses to select them, then Combine.";
         box.appendChild(p);
+      }
+      if (partial) {
+        var p2 = document.createElement("p");
+        p2.className = "srempty";
+        p2.textContent = "Showing the first " + items.length + " matches — add words to narrow it down.";
+        box.appendChild(p2);
       }
     }
 
-    function useSearchResult(i, ref) {
-      $("lkResults").hidden = true;
-      $("lkSearch").value = "";
-      if (!ref) return;
-      var r = parseRef(ref);
-      var range = findRange(r.book, r.c, r.v, r.v);
-      if (!range) return;
+    function combineSelected() {
+      var idx = Object.keys(selectedHits).map(Number).sort(function (a, b) { return a - b; });
+      if (!idx.length) return;
+      var refs = idx.map(function (i) { return scriptureReferences[i]; });
       loadScriptureText().then(function (lines) {
-        var text = lines.slice(range.first, range.last + 1).join(" ").trim();
-        if (!text) throw new Error("empty");
-        state.verse = text;
-        state.reference = ref;
+        var texts = idx.map(function (i) { return (lines[i] || "").trim(); }).filter(Boolean);
+        if (!texts.length) throw new Error("empty");
+        state.verse = texts.join(" ");
+        if (idx.length === 1) {
+          state.reference = refs[0];
+        } else {
+          // Contiguous verses in one chapter: "John 1:2-4"; otherwise list them.
+          var first = parseRef(refs[0]), last = parseRef(refs[refs.length - 1]);
+          var contiguous = first.book === last.book && first.c === last.c &&
+            idx[idx.length - 1] - idx[0] === idx.length - 1;
+          state.reference = contiguous
+            ? first.book + " " + first.c + ":" + first.v + "-" + last.v
+            : refs.join(", ");
+        }
+        $("lkResults").hidden = true;
+        $("lkSearch").value = "";
+        selectedHits = {};
         syncControls();
         update();
         lookupStatus("");
-        toast("Loaded " + ref);
+        toast("Combined " + idx.length + " verse" + (idx.length > 1 ? "s" : "") + " — " + state.reference);
       }).catch(function () {
         lookupStatus("Could not load verse text — try again when online.");
       });
@@ -1290,6 +1537,7 @@
     function doSearch() {
       var q = $("lkSearch").value.trim();
       if (!q) { $("lkResults").hidden = true; return; }
+      selectedHits = {};
       var rq = refQuery(q);
       if (rq) {
         var range = findRange(rq.book, rq.c, rq.v1, rq.v2);
@@ -1297,16 +1545,14 @@
           lookupStatus(rq.book + " " + rq.c + " has " + verseCount(rq.book, rq.c) + " verses.");
           return;
         }
+        // A range like "John 1:2-3" shows each verse separately so the user
+        // can pick which ones to combine.
+        var items = [];
         loadScriptureText().then(function (lines) {
-          var text = lines.slice(range.first, range.last + 1).join(" ").trim();
-          if (!text) throw new Error("empty");
-          state.verse = text;
-          state.reference = rq.ref;
-          syncControls();
-          update();
-          lookupStatus("");
-          $("lkResults").hidden = true;
-          toast("Loaded " + rq.ref);
+          for (var i = range.first; i <= range.last; i++) {
+            items.push({ i: i, ref: scriptureReferences[i], text: lines[i] });
+          }
+          renderResults(items, null, false);
         }).catch(function () {
           lookupStatus("Could not load verse text — try again when online.");
         });
@@ -1318,7 +1564,10 @@
         var hits = wordSearch(q, lines);
         lookupStatus(hits.length ? hits.length + (hits.length >= SEARCH_LIMIT ? "+" : "") + " verses found" : "No verses containing “" + q + "”.");
         if (!hits.length) { $("lkResults").hidden = true; return; }
-        renderSearchResults(hits, q, hits.length >= SEARCH_LIMIT);
+        var items = hits.map(function (h) {
+          return { i: h.i, ref: scriptureReferences[h.i], text: h.text };
+        });
+        renderResults(items, q, hits.length >= SEARCH_LIMIT);
       }).catch(function () {
         lookupStatus("Search needs the verse text: load a verse once (online) and search again.");
       });
@@ -1625,6 +1874,142 @@
       persist();
     });
 
+    // ---------- Theme settings (palettes copied from the Rise app) ----------
+    var THEMES = [
+      { id: "dawn",     name: "Dawn",     bg: "#f4efe5", accent: "#44584b", dark: false },
+      { id: "paper",    name: "Paper",    bg: "#fafafa", accent: "#3e4b58", dark: false },
+      { id: "sage",     name: "Sage",     bg: "#e8eee5", accent: "#3c5c40", dark: false },
+      { id: "ocean",    name: "Ocean",    bg: "#e8f0f4", accent: "#315d77", dark: false },
+      { id: "rose",     name: "Rose",     bg: "#f5eae8", accent: "#804a5b", dark: false },
+      { id: "dusk",     name: "Dusk",     bg: "#292634", accent: "#d1b6e7", dark: true },
+      { id: "midnight", name: "Midnight", bg: "#141c24", accent: "#afcee5", dark: true }
+    ];
+    var THEME_KEY = "verse-designer-theme";
+    var themeGrid = $("themeGrid");
+
+    function buildThemeGrid() {
+      THEMES.forEach(function (t) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "theme-swatch";
+        b.dataset.theme = t.id;
+        b.textContent = t.name;
+        var dot = document.createElement("span");
+        dot.className = "swatch";
+        dot.setAttribute("aria-hidden", "true");
+        dot.style.background = t.bg;
+        dot.style.setProperty("--dot", t.accent);
+        b.insertBefore(dot, b.firstChild);
+        b.addEventListener("click", function () { applyTheme(t.id, true); });
+        themeGrid.appendChild(b);
+      });
+    }
+
+    function applyTheme(id, save) {
+      var theme = THEMES.find(function (t) { return t.id === id; });
+      if (!theme) {
+        // No saved choice yet: follow the system preference.
+        theme = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ? THEMES[6] : THEMES[0];
+      }
+      document.documentElement.setAttribute("data-theme", theme.id);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", theme.bg);
+      Array.prototype.forEach.call(themeGrid.children, function (b) {
+        b.setAttribute("aria-pressed", String(b.dataset.theme === theme.id));
+      });
+      if (save) {
+        try { localStorage.setItem(THEME_KEY, theme.id); } catch (e) {}
+      }
+    }
+
+    buildThemeGrid();
+
+    // ---------- Settings access: button, swipe, trackpad, arrow keys ----------
+    var settingsEl = $("settings");
+    var settingsOpen = false, settingsCooldown = 0;
+    function setSettings(open) {
+      // A short settle window after opening OR closing keeps the same swipe /
+      // scroll gesture from immediately doing the opposite.
+      if (Date.now() - settingsCooldown < 200) return;
+      if (open === settingsOpen) return;
+      settingsOpen = open;
+      settingsCooldown = Date.now();
+      settingsEl.hidden = !open;
+      $("settingsBtn").setAttribute("aria-expanded", String(open));
+      if (open) {
+        applyTheme(currentThemeId(), false);
+        $("settingsClose").focus({ preventScroll: true });
+      }
+    }
+    function currentThemeId() {
+      return document.documentElement.getAttribute("data-theme") || "dawn";
+    }
+    // Short guard so the gesture that opened the panel can't instantly close it.
+    function settleOk() { return Date.now() - settingsCooldown > 200; }
+    function cycleTheme(dir) {
+      var idx = THEMES.findIndex(function (t) { return t.id === currentThemeId(); });
+      if (idx < 0) idx = 0;
+      var next = THEMES[(idx + dir + THEMES.length) % THEMES.length];
+      applyTheme(next.id, true);
+      toast(next.name + " theme");
+    }
+    $("settingsBtn").addEventListener("click", function () { setSettings(!settingsOpen); });
+    $("settingsClose").addEventListener("click", function () { setSettings(false); });
+    settingsEl.addEventListener("click", function (e) { if (e.target === settingsEl && settleOk()) setSettings(false); });
+
+    // Arrow keys: open settings from the page, cycle themes inside it.
+    document.addEventListener("keydown", function (e) {
+      var t = e.target;
+      var editable = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+      if (e.key === "Escape" && settingsOpen && settleOk()) { setSettings(false); return; }
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        var dir = e.key === "ArrowRight" ? 1 : -1;
+        if (settingsOpen) { e.preventDefault(); cycleTheme(dir); }
+        else if (!editable) { e.preventDefault(); setSettings(true); }
+      }
+    });
+
+    // Horizontal swipe (touch) and trackpad open/close settings.
+    var swipeX = null, swipeY = null;
+    document.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) { swipeX = null; return; }
+      var t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) { swipeX = null; return; }
+      swipeX = e.touches[0].clientX;
+      swipeY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener("touchend", function (e) {
+      if (swipeX === null || !e.changedTouches.length) return;
+      var dx = e.changedTouches[0].clientX - swipeX;
+      var dy = e.changedTouches[0].clientY - swipeY;
+      swipeX = swipeY = null;
+      // Horizontal-dominant swipe of at least 70px.
+      if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2) return;
+      if (settingsOpen) { if (dx < 0 && settleOk()) setSettings(false); return; }
+      if (dx < 0) setSettings(true); // swipe left opens
+    }, { passive: true });
+    document.addEventListener("wheel", function (e) {
+      // Two-finger trackpad horizontal scroll: dominant deltaX.
+      if (Math.abs(e.deltaX) < 40 || Math.abs(e.deltaX) < Math.abs(e.deltaY) * 2) return;
+      if (settingsOpen) { if (settleOk()) setSettings(false); }
+      else {
+        var t = e.target;
+        if (t && t.closest && t.closest(".srlist, .adv-scroll")) return;
+        setSettings(true);
+      }
+    }, { passive: true });
+
+    // Follow system light/dark changes while the user hasn't chosen a theme.
+    if (window.matchMedia) {
+      try {
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+          try { if (!localStorage.getItem(THEME_KEY)) applyTheme(null, false); } catch (e) {}
+        });
+      } catch (e) {}
+    }
+    try { applyTheme(localStorage.getItem(THEME_KEY), false); } catch (e) { applyTheme(null, false); }
+
     $("download").addEventListener("click", function () {
       var btn = this;
       btn.disabled = true;
@@ -1806,7 +2191,7 @@
   </script>
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Verse Designer is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="verse-designer-v20">
+<script id="acswebapps-updater" data-version="verse-designer-v26">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
