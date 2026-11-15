@@ -101,7 +101,7 @@ The ＋ plan editor includes **Back to calendar**. Unsaved plan edits prompt wit
 
 Saving a new or imported plan immediately adds it to **Edit plans**, including when that page already has unsaved ordering or toggle changes. Those changes are preserved, and the new plan starts switched on.
 
-In the main calendar, **Export** sits beside **Edit plans**. The export dialog shows each plan’s schedule type, reading selection, repeat setting, date range, and override count to help distinguish plans. Select one or more saved plans, then choose **Export selected**. A single plan uses the existing schedule format; multiple plans share one Rise plans JSON file. File and URL import accept these bundles and add their plans as new enabled plans, preserving dates, selections, reading offsets, and calendar edits.
+**Export** is available in **Edit plans** and is hidden in the calendar view. The export dialog shows each plan’s schedule type, reading selection, repeat setting, date range, and override count to help distinguish plans. Select one or more saved plans, then choose **Export selected**. A single plan uses the existing schedule format; multiple plans share one Rise plans JSON file. File and URL import accept these bundles and add their plans as new enabled plans, preserving dates, selections, reading offsets, and calendar edits.
 
 The plan editor’s sticky Save bar uses an opaque theme background so scrolling fields do not show through behind its controls.
 
