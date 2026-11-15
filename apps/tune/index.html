@@ -1050,7 +1050,8 @@
     .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
     .acswebapps-help > summary::-webkit-details-marker { display: none; }
     .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
-  </style>
+        #cToStudio:disabled{opacity:.45;cursor:default}
+</style>
 
 <style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
 <script id="acswebapps-no-pinch">
@@ -1271,6 +1272,7 @@
           <div class="trow" style="justify-content: center; margin: 0.8rem 0 1rem">
             <button class="small" id="cPause" aria-pressed="false">Pause</button>
             <button class="small" id="cReset">Reset</button>
+            <button class="small" id="cToStudio" disabled>Send to Chord Studio</button>
           </div>
           <div class="bfield">Chords so far (newest first)</div>
           <div class="chips" id="cHist"><span style="color: var(--muted)">None yet.</span></div>
@@ -1317,6 +1319,7 @@
             <button class="small" id="sCopy">Copy chart</button>
             <button class="small" id="sClear">Clear</button>
           </div>
+          <p id="sImportStatus" class="bfield" role="status"></p>
           <div class="bfield">Transposed chart</div>
           <div class="csout" id="sOut" aria-live="polite"></div>
           <div class="bfield" id="sHint" style="margin-top: 0.6rem">
@@ -1399,6 +1402,28 @@
         recent = [],
         lastF = -1,
         cur = 0;
+
+      /* ---------- shared audio and best-effort mobile routing ---------- */
+      let sharedAudioContext = null, captureSource = null, captureGain = null;
+      function setAudioSessionType(type) {
+        try {
+          const session = navigator.audioSession;
+          if (!session) return false;
+          if (session.type !== type) session.type = type;
+          return true;
+        } catch (_) { return false; }
+      }
+      function getAudioContext() {
+        if (!sharedAudioContext || sharedAudioContext.state === "closed") {
+          sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return sharedAudioContext;
+      }
+      function playbackContext() {
+        const listening = stream && stream.getAudioTracks().some(track => track.readyState === "live");
+        setAudioSessionType(listening ? "play-and-record" : "playback");
+        return getAudioContext();
+      }
 
       /* ---------- navigation ---------- */
       function go(i, setHash = true) {
@@ -1743,8 +1768,12 @@
         cancelAnimationFrame(audioFrame);
         stream && stream.getTracks().forEach((t) => t.stop());
         stream = null;
-        if (ctx) ctx.close().catch(() => {});
+        if (captureSource) captureSource.disconnect();
+        if (captureGain) captureGain.disconnect();
+        if (analyser) analyser.disconnect();
+        captureSource = captureGain = null;
         ctx = null;
+        setAudioSessionType("playback");
         recent = [];
         lastF = -1;
       }
@@ -1765,7 +1794,8 @@
         const generation = ++captureGeneration;
         $("msg").textContent = "";
         try {
-          ctx = new (window.AudioContext || window.webkitAudioContext)();
+          setAudioSessionType("auto");
+          ctx = getAudioContext();
           ctx.onstatechange = () => {
             if (!ctx || !running) return;
             const listening = ctx.state === "running";
@@ -1781,13 +1811,14 @@
             return;
           }
           stream = acquired;
+          setAudioSessionType("play-and-record");
           analyser = ctx.createAnalyser();
           analyser.fftSize = 4096;
           analyser.smoothingTimeConstant = 0.6;
           buf = new Float32Array(analyser.fftSize);
           spec = new Float32Array(analyser.frequencyBinCount);
-          const micSrc = ctx.createMediaStreamSource(stream);
-          const inGain = ctx.createGain();
+          const micSrc = captureSource = ctx.createMediaStreamSource(stream);
+          const inGain = captureGain = ctx.createGain();
           inGain.gain.value = 4; // +12 dB so quiet instruments register
           micSrc.connect(inGain);
           inGain.connect(analyser);
@@ -1863,8 +1894,9 @@
           return NAMES[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1) + " " + (c >= 0 ? "+" : "") + c + "¢";
         }
         function ensureCtx() {
-          if (tctx) return;
-          tctx = new (window.AudioContext || window.webkitAudioContext)();
+          const audio = playbackContext();
+          if (tctx === audio) return;
+          tctx = audio;
           tmaster = tctx.createGain();
           tmaster.gain.value = +T("tmv").value;
           const comp = tctx.createDynamicsCompressor();
@@ -2120,7 +2152,7 @@
         }
         async function toggle() {
           if (!running) {
-            if (!mctx) mctx = new (window.AudioContext || window.webkitAudioContext)();
+            mctx = playbackContext();
             await mctx.resume();
             beatIdx = 0;
             subIdx = 0;
@@ -2467,7 +2499,7 @@
         });
 
         function playRef(n) {
-          if (!rctx) rctx = new (window.AudioContext || window.webkitAudioContext)();
+          rctx = playbackContext();
           rctx.resume();
           const t = rctx.currentTime,
             o = rctx.createOscillator(),
@@ -2729,6 +2761,7 @@
           candN = 0,
           curChord = "",
           hist = [],
+          detectedKey = null,
           idleN = 0;
 
         C("cBars").innerHTML = FLATS.map(
@@ -2819,6 +2852,7 @@
             });
           }
           r.sort((a, b) => b.c - a.c);
+          detectedKey = { root: FLATS.indexOf(r[0].n.split(" ")[0]), label: r[0].n };
           C("cKey").textContent = r[0].n;
           C("cKeySub").textContent =
             "Fit " + Math.max(0, Math.round(r[0].c * 100)) + "%" + (r[0].c - r[1].c < 0.05 ? " · or " + r[1].n : "");
@@ -2831,6 +2865,7 @@
           });
         }
         function renderHist() {
+          C("cToStudio").disabled = !hist.length;
           C("cHist").innerHTML = hist.length
             ? hist
                 .slice()
@@ -2901,6 +2936,7 @@
           candN = 0;
           curChord = "";
           hist = [];
+          detectedKey = null;
           idleN = 0;
           C("cKey").textContent = "–";
           C("cChord").textContent = "–";
@@ -2908,6 +2944,9 @@
           C("cKeySub").textContent = ready ? "Listening… play a song" : "Allow the microphone, then play a song";
           showBars([]);
           renderHist();
+        });
+        C("cToStudio").addEventListener("click", () => {
+          if (hist.length && window.importDetectedChords) window.importDetectedChords(hist.slice(), detectedKey);
         });
       })();
 
@@ -2966,8 +3005,11 @@
           if (!p) return false;
           if (p.suf || p.bass !== null) return true; // "Em", "G/B", "Asus4" — unambiguous
           // bare major chord names: require chord-ish neighbours or start of a chord line
-          const chordish = (w) => w && RE.test(w) && (parseChord(w).suf || parseChord(w).bass !== null);
-          return !/[a-z]/.test(prev || "") && (chordish(next) || prev === undefined);
+          const chordish = (w) => {
+            const chord = w && parseChord(w);
+            return chord && /^(?:m(?:aj)?|maj|dim|aug|sus|add)?[0-9#♯♭b()+\-]*$/.test(chord.suf);
+          };
+          return prev === undefined || chordish(prev) || chordish(next);
         }
 
         function escapeHtml(s) {
@@ -2993,10 +3035,10 @@
               const bare = t.replace(/[(),]/g, "");
               if (isChordToken(bare, toks[i - 2], nextToks[i + 2])) {
                 const p = parseChord(bare);
-                const newRoot = (p.root + keyIdx + shift) % 12;
+                const newRoot = (p.root + shift) % 12;
                 const playRoot = (p.root + shift - capo) % 12;
                 let out1 = label(newRoot, useFlats) + tidy(p.suf);
-                if (p.bass !== null) out1 += "/" + label((p.bass + keyIdx + shift) % 12, useFlats);
+                if (p.bass !== null) out1 += "/" + label((p.bass + shift) % 12, useFlats);
                 let shape = label(playRoot, useFlats) + tidy(p.suf);
                 if (p.bass !== null) shape += "/" + label((p.bass + shift - capo) % 12, true);
                 count++;
@@ -3026,6 +3068,20 @@
           save();
           render();
         }
+        window.importDetectedChords = (chords, key) => {
+          if (!Array.isArray(chords) || !chords.length || chords.some(chord => typeof chord !== "string" || !parseChord(chord))) return false;
+          if (state.text.trim() && !window.confirm("Replace the current Chord Studio chart with the detected chords?")) return false;
+          state = { text: chords.join("  "), key: key && Number.isInteger(key.root) && key.root >= 0 && key.root < 12 ? SHARP[key.root] : "C", shift: 0, capo: 0 };
+          S("sIn").value = state.text;
+          S("sKey").value = state.key;
+          S("sShift").value = "0";
+          S("sCapo").value = "0";
+          save();
+          render();
+          S("sImportStatus").textContent = "Imported " + chords.length + " detected chords in playing order" + (key && key.label ? " · " + key.label : "") + ".";
+          go(6);
+          return true;
+        };
         S("sIn").addEventListener("input", () => update(true));
         ["sKey", "sCapo"].forEach((id) => S(id).addEventListener("change", () => update(false)));
         S("sShift").addEventListener("input", () => {

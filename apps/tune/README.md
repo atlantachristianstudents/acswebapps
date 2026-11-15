@@ -49,3 +49,11 @@ This app is hosted with the rest of ACS Web Apps, in `apps/tune/`, and is live a
 The "← ACS Web Apps" link in the help menu is relative (`../../`), so it resolves to the app directory on the custom domain, to the project site, and only 404s when this folder is hosted on its own.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
+
+## Simultaneous microphone and note playback
+
+The tuners, tone generator, instrument reference notes, and metronome share one AudioContext. Where supported, Tune resets the audio session before opening the microphone, then requests `play-and-record` after capture starts. Playback keeps the microphone active; ending capture releases its nodes and restores the `playback` session without closing active tones. Unsupported audio-session APIs fall back to the browser’s defaults. Speaker routing and volume still depend on the phone and browser and need device testing; Tune does not artificially boost volume or enable voice processing.
+
+## Detected chords to Chord Studio
+
+In **Key & chords**, **Send to Chord Studio** transfers the retained chord history (up to 20 changes) in playing order, together with the detected key. It opens Chord Studio, resets transpose and capo to zero, and saves the chart on this device. Replacing a nonempty chart requires confirmation; cancel keeps both the chart and detection history. Without a detected key, the chart uses C. Chord rendering treats written roots and slash bass notes as absolute pitches, so importing a non-C key does not transpose the chart twice.
