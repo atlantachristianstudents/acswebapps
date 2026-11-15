@@ -1,4 +1,4 @@
-const CACHE = "tunes-v22";
+const CACHE = "tunes-v23";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-192.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})}))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {

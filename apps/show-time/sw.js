@@ -1,7 +1,7 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "timer-v37";
-var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
+var VERSION = "show-time-v39";
+var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-192.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(
@@ -12,7 +12,7 @@ self.addEventListener("install", function (e) {
 self.addEventListener("activate", function (e) {
   e.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(keys.filter(function (k) { return k.startsWith("timer-v") && k !== VERSION; }).map(function (k) { return caches.delete(k); }));
+      return Promise.all(keys.filter(function (k) { return k.startsWith("show-time-v") && k !== VERSION; }).map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
   );
 });

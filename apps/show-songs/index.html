@@ -4959,6 +4959,20 @@
           } catch (err) {}
         }
 
+        // Native fullscreen Escape cannot be cancelled with preventDefault alone.
+        // Capture only Escape where supported; holding Escape remains the browser's exit gesture.
+        document.addEventListener("fullscreenchange", function () {
+          if (!navigator.keyboard) return;
+          try {
+            if (document.fullscreenElement && navigator.keyboard.lock) {
+              var lock = navigator.keyboard.lock(["Escape"]);
+              if (lock && lock.catch) lock.catch(function () {});
+            } else if (!document.fullscreenElement && navigator.keyboard.unlock) {
+              navigator.keyboard.unlock();
+            }
+          } catch (err) {}
+        });
+
         // Arrow keys / buttons: +-1 and +-37, and the next digit typed starts a new number.
         function step(dir) {
           arrowFresh = true;
@@ -5162,7 +5176,7 @@
           if (languageDialog.open) { languageKeydown(e); return; }
           if (e.key === "Escape" && padOn && !searchOpen && !helpOpen) {
             e.preventDefault();
-            setPad(false, true);
+            if (!e.repeat) setPad(false, true);
             return;
           }
           if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.isComposing && e.key === "Enter") {
@@ -5175,6 +5189,12 @@
           if (helpOpen && !e.ctrlKey && !e.metaKey && !e.altKey) {
             e.preventDefault();
             hideHelp();
+            return;
+          }
+
+          if (e.key === "Escape" && document.fullscreenElement) {
+            e.preventDefault();
+            if (!e.repeat) toggleFullscreen();
             return;
           }
 
@@ -5589,7 +5609,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v119">
+<script id="acswebapps-updater" data-version="big-text-v120">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

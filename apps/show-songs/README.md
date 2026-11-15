@@ -29,6 +29,7 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `-` / `+` | Smaller / bigger (with other languages showing, resizes them the opposite way) |
 | `f` | Fill the window again |
 | `Shift+F` | Full screen |
+| `Esc` | Close the click menu first; with it closed, exit full screen |
 | `w` / `Alt+W` | Toggle line wrapping |
 | `h` | Cycle theme (system, black on white, white on black) — remembered |
 | `m` | Show / hide the on-screen buttons (remembered) |
@@ -44,7 +45,7 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `?` / `/` | This shortcut list (in text mode, `Ctrl/Cmd+/`) |
 | `Ctrl/Cmd+\` | Switch number / text mode |
 
-Undo and redo retain up to 500 content and number/text mode changes during the current session, including typing, deletion, arrow navigation, search selections, clears, and mode switches. New edits clear the redo history. Use the **Undo** and **Redo** buttons for mouse control; in text mode, plain `u` and `r` remain typed characters. In number mode, `r` selects Russian. When controls are visible, Esc hides them first; pressing Esc again in text mode returns to number mode. Reloading starts a new history.
+Undo and redo retain up to 500 content and number/text mode changes during the current session, including typing, deletion, arrow navigation, search selections, clears, and mode switches. New edits clear the redo history. Use the **Undo** and **Redo** buttons for mouse control; in text mode, plain `u` and `r` remain typed characters. In number mode, `r` selects Russian. When controls are visible, Esc hides them first. In full screen, the next Esc exits full screen without changing the current number, text, or presentation. Outside full screen, Esc in text mode returns to number mode. Fullscreen menu-first Escape handling uses the browser’s Keyboard Lock API when available and permitted; otherwise the browser may exit full screen immediately. Holding Esc remains the browser’s emergency exit gesture. Reloading starts a new history.
 
 E/K number views start one `+` step larger by default, giving the main number more room above the language panel.
 

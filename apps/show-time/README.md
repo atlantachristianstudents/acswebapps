@@ -1,6 +1,8 @@
 # Show Time
 
-The full and short installed-app names are both **Show Time**.
+The full and short installed-app names are both **Show Time**. The app lives at `apps/show-time/`; the former `apps/timer/` address redirects here. Existing `acswebapps-timer-*` storage keys are preserved so saved settings and history survive the move.
+
+The app directory, browser favicon, installed shortcut, and Apple touch icon use the same display-and-clock logo. PNG install icons match `icons/icon.svg`; maskable and Apple touch icons use a full background so the platform can apply its own shape.
 
 A minimal, full-screen timer, clock, and stopwatch (countdown default: 90 seconds) with light, dark, black-on-white, and white-on-black themes. No dependencies, accounts, or network requests beyond the app's own offline files.
 
@@ -26,7 +28,7 @@ A minimal, full-screen timer, clock, and stopwatch (countdown default: 90 second
 
 Open `index.html` directly or serve this folder on any static host. For installation, open over HTTPS or localhost, then use your browser's Install/Add to Home Screen action. After the first online visit, the service worker caches all required files for offline use. Fullscreen and installation availability vary by browser.
 
-Increment `VERSION` in `sw.js` (currently `timer-v27`) whenever a cached file changes. Only this app's caches are removed during upgrades; local history survives.
+Increment `VERSION` in `sw.js` (currently `show-time-v39`) whenever a cached file changes. Only this app's caches are removed during upgrades; local history survives.
 
 The app icon uses the same presentation-screen shape as Show Words and Show Songs, with a clock face and Show Time’s green palette.
 
@@ -37,7 +39,7 @@ This app reports fixed app/event labels to GoatCounter for visible page opens, o
 
 No entered content, searches, Scripture, lyrics, full URLs, referrers, cookies, or persistent visitor IDs are sent by this code. Like any external request, the analytics service receives the IP address and browser headers. Do Not Track and Global Privacy Control disable reporting. Localhost, file hosting, and automated browsers do not report. Offline/failed events retry in the same tab, with a limit of 100 events retained for seven days in sessionStorage; closing the tab can lose pending counts. Reports use delivery time, so delayed events appear on the day they are sent. Blockers and interrupted requests can cause missing or duplicate counts. Analytics failures never block app functionality.
 
-Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/timer/open`, `apps/timer/installed-open`, or `apps/timer/install`. The self-contained `acswebapps-usage` script in `index.html` must stay in sync with the other apps.
+Maintainers can view totals at https://atlantachristianstudents.goatcounter.com. In its Events view, filter by `apps/show-time/open`, `apps/show-time/installed-open`, or `apps/show-time/install`. The self-contained `acswebapps-usage` script in `index.html` must stay in sync with the other apps.
 
 Navigation: find **← ACS Web Apps** inside the **?** help menu to return to the app directory.
 

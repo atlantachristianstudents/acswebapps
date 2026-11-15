@@ -34,7 +34,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
-| [Show Time](https://acswebapps.com/apps/timer/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
+| [Show Time](https://acswebapps.com/apps/show-time/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
 | [Logos Type](https://acswebapps.com/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
 | [Test](https://acswebapps.com/apps/test/) | Recite memorized text by typing it, whether it's a Bible verse or another passage. Compare your response with the reference to find missing, changed, and extra words. | beta |
@@ -142,7 +142,7 @@ apps/
   show-songs/              Full-screen hymn numbers and text
   show-words/              Verse presenter with external-display support
   songs/                   Songbook catalog, songbooks, and lyrics presentation
-  timer/                   Minimal full-screen timer, clock, and stopwatch
+  show-time/                   Minimal full-screen timer, clock, and stopwatch
   tune/                    Tuner, metronome, tone generator, and chord detection
 ```
 

@@ -1,6 +1,6 @@
 # Tune
 
-The tuning fork icon identifies Tune in the app directory and on installed shortcuts.
+The app directory, browser favicon, installed shortcut, and Apple touch icon use the same tuning fork logo. PNG install icons match `icons/icon.svg`; maskable and Apple touch icons use a full background so the platform can apply its own shape.
 
 Tuner, instrument tuner, audio graph, metronome, tone generator, key/chord detector and chord studio (transposer & capo). No network needed once installed. The app opens without a header; the bottom-right **?** menu links back to ACS Web Apps.
 

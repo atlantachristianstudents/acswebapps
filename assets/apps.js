@@ -40,11 +40,11 @@ window.APPS = [
     status: "live"
   },
   {
-    id: "timer",
+    id: "show-time",
     name: "Show Time",
     description: "A minimal full-screen timer, clock, and stopwatch. Use keyboard controls and keep a private session history.",
     icon: "◷",
-    iconUrl: "apps/timer/icons/icon.svg",
+    iconUrl: "apps/show-time/icons/icon.svg",
     tags: ["Presentation"],
     status: "live"
   },
