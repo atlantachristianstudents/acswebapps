@@ -48,6 +48,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 
 ## Features
 
+- Browser pinch-to-zoom is disabled across the app directory and apps, including separate reading and presentation pages. Single-finger scrolling and app controls remain available.
+
 - **No accounts or ads.** App content and settings stay local; limited usage events go to GoatCounter.
 - **Installable and offline-first.** The home page and apps are PWAs with service workers. Once cached, core features work without a connection. Songbook needs an initial catalog sync; Logos Type races and Scripture downloads need the internet.
 - **Your data stays on your device.** Progress, settings, and saved content live in `localStorage` or IndexedDB. URL imports fetch the source directly — your reference and answers are never uploaded.

@@ -44,3 +44,5 @@ Navigation: find **← ACS Web Apps** inside the **?** help menu to return to th
 The help menu identifies Show Time as part of the ACS Web Apps project, with a link to the app directory.
 
 The time numbers do not show selection highlights or a text caret. Countdown entry by keyboard or the mobile numeric keyboard remains available.
+
+Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.

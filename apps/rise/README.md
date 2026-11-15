@@ -76,3 +76,5 @@ The **?** button that opened the About dialog between the theme icon and **Close
 Settings now open directly to a two-dimensional month grid with weekday headings and each day’s references. The verse-selection dropdown is removed. Tap a date to edit its verses; Import (file or URL), Export, Today, and the line-by-line plan editor remain available. Existing shuffle/sequential preferences continue to supply their dated readings until a daily plan is entered or imported; calendar date overrides apply to those readings too. New installations start with an empty daily plan.
 
 Settings no longer have a **?** About button; the main verse screen has no About button.
+
+Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.

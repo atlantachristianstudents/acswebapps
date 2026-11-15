@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#0a0e11" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
@@ -377,7 +377,23 @@
       }
 
     </style>
-  </head>
+
+<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
+<script id="acswebapps-no-pinch">
+// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+(function () {
+  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
+  document.addEventListener('gesturestart', preventPinch, { passive: false });
+  document.addEventListener('gesturechange', preventPinch, { passive: false });
+  document.addEventListener('touchmove', function (event) {
+    if (event.touches.length > 1) preventPinch(event);
+  }, { passive: false });
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) preventPinch(event);
+  }, { passive: false });
+}());
+</script>
+</head>
   <body>
 
 

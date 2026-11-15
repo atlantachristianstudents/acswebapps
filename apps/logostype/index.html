@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta
       name="description"
       content="Type the Scriptures and read what you typed. Practice on your own or race against friends." />
@@ -1908,7 +1908,23 @@
       .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; display: block; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: var(--text); white-space: normal; box-shadow: 0 4px 16px #0002; }
     </style>
     <link rel="stylesheet" href="themes.css" />
-  </head>
+
+<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
+<script id="acswebapps-no-pinch">
+// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+(function () {
+  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
+  document.addEventListener('gesturestart', preventPinch, { passive: false });
+  document.addEventListener('gesturechange', preventPinch, { passive: false });
+  document.addEventListener('touchmove', function (event) {
+    if (event.touches.length > 1) preventPinch(event);
+  }, { passive: false });
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) preventPinch(event);
+  }, { passive: false });
+}());
+</script>
+</head>
   <body>
     <div class="shell">
       <header>

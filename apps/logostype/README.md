@@ -285,3 +285,5 @@ Navigation: find **← ACS Web Apps** inside **About** to return to the app dire
 About identifies Logos Type as part of the ACS Web Apps project and links to the app directory.
 
 A floating **?** button in the bottom-right corner opens a help panel that identifies Logos Type as part of the ACS Web Apps project, with a link to the app directory. The page keeps extra space at the bottom so the button never covers the footer.
+
+Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.

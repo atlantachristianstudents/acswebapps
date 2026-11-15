@@ -196,3 +196,7 @@ Update docs in the same change when the implementation changes:
 ## Usage analytics
 
 Registered apps include an inline `acswebapps-usage` script in their main `index.html`, with a fixed app-folder identifier and the GoatCounter endpoint. Keep these self-contained copies synchronized; do not add a cross-app runtime asset or CDN script. Only fixed open, installed-open, and supported install event labels may be collected; never send user content, searches, full URLs, or referrers. Preserve opt-out and local-development guards, failure isolation, and bounded per-tab offline queues. Update usage documentation and bump each affected app cache version when changing analytics. New apps should copy the script and set their own folder identifier. Redirect and presentation-only pages must not emit extra opens.
+
+## Mobile pinch zoom
+
+Active app pages and the home page disable browser pinch-to-zoom using viewport limits and inline `acswebapps-no-pinch` script/style blocks. Keep these blocks self-contained, including in the app template and separate reading or display pages. Preserve single-finger scrolling and existing app-specific controls; do not replace native scrolling with a blanket touch-event blocker.

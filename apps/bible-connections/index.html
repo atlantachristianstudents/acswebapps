@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bible Connections</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><title>Bible Connections</title>
 <meta name="description" content="Explore Bible cross-references across chapters and verses with an interactive connection map.">
 <meta name="theme-color" content="#08090d">
 <link rel="manifest" href="manifest.webmanifest">
@@ -11,7 +11,23 @@
     .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
     .acswebapps-help > summary::-webkit-details-marker { display: none; }
     .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
-  </style></head><body>
+  </style>
+<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
+<script id="acswebapps-no-pinch">
+// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+(function () {
+  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
+  document.addEventListener('gesturestart', preventPinch, { passive: false });
+  document.addEventListener('gesturechange', preventPinch, { passive: false });
+  document.addEventListener('touchmove', function (event) {
+    if (event.touches.length > 1) preventPinch(event);
+  }, { passive: false });
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) preventPinch(event);
+  }, { passive: false });
+}());
+</script>
+</head><body>
 
 <h1>Bible Connections</h1>
 <div class="controls"><label>Steps <select id="depth" aria-label="Connection steps"></select></label><label>Book <select id="book" aria-label="Select book"><option value="">Choose book</option></select></label><label>Chapter <select id="chapter" aria-label="Select chapter" disabled><option value="">Chapter</option></select></label><label><input id="verse-mode" type="checkbox"> Verse hover (V)</label><label>Verse <select id="verse" aria-label="Select verse" disabled><option value="">Whole chapter</option></select></label><button id="clear">Clear</button><button id="download" disabled>Download PNG</button><span id="mode">Hover to explore</span></div>

@@ -9,3 +9,5 @@ Open `index.html` or host this folder on a static server. Service worker caching
 Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
 
 The help menu identifies Verse Review as part of the ACS Web Apps project, with a link to the app directory.
+
+Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
