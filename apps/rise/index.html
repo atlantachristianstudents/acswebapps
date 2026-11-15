@@ -45,8 +45,8 @@ body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pan-y}
 html{touch-action:pan-x pan-y}
 #settings{touch-action:pan-y}
 /* Keep settings in the viewport; only the book list and schedule editor scroll. */
-#settings{height:var(--screen-height,100dvh);min-height:0;padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom));overflow:hidden}
-#settings form{height:100%;min-height:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#settings{padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom));overflow:auto}
+#settings form{padding:0;display:flex;flex-direction:column;gap:8px}
 #settings form>*{flex-shrink:0}
 .settings-header{align-items:center;margin:0;gap:10px}
 #settings h1{font-size:23px;margin:0}
@@ -54,7 +54,7 @@ html{touch-action:pan-x pan-y}
 #settings label{margin:0;font-size:13px}
 #settings select,#settings input[type=text],#settings input[type=search]{min-height:40px;padding:8px 10px;border-radius:9px}
 #settings select{flex-shrink:0}
-#settings .settings-group{margin:0;padding:10px;border-radius:12px;gap:6px;min-height:0;flex:1;display:flex;flex-direction:column}
+#settings .settings-group{margin:0;padding:10px;border-radius:12px}
 #settings .settings-group[hidden]{display:none}
 #settings .settings-group>*{flex-shrink:0}
 #settings .hint{font-size:12px;margin:0;line-height:1.4}
@@ -62,7 +62,6 @@ html{touch-action:pan-x pan-y}
 #settings .book-toolbar{margin:0;gap:8px;min-height:36px}
 #settings .book-toolbar button{min-height:36px;padding:6px 10px;font-size:12px}
 #settings input[type=search]{margin:0}
-#books{flex:1;min-height:48px;max-height:none}
 #books th{padding:5px 10px;font-size:10px}
 #settings #books label{padding:10px 12px;font-size:14px;min-height:42px}
 #settings label[for=book-search],#books-hint,#book-field>input[type=text]+.hint{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -91,7 +90,7 @@ html{touch-action:pan-x pan-y}
 .preferences-row>div{min-width:0;display:flex;flex-direction:column;gap:4px}
 
 /* Phone controls stay readable and reachable, including above the keyboard. */
-#settings{top:var(--screen-top,0px);bottom:auto;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+#settings{top:var(--screen-top,0px);height:calc(100% - var(--screen-top,0px));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
 #settings form{width:100%;max-width:520px}
 #settings select,#settings input[type=text],#settings input[type=search]{min-width:0;min-height:44px;font-size:16px}
 #settings .book-toolbar button,#settings .update-row button{min-height:44px;font-size:13px}
