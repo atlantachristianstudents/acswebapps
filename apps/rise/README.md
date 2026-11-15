@@ -13,7 +13,7 @@ Settings open on the plan editor. A segmented control at the top switches betwee
 
 Book selection and chapter/verse ranges become available after the Scripture download loads. If it cannot load, settings show a connection message; reconnect and reload. Scrolling the settings keeps your unsaved selections. When no verses are assigned to a day, Rise shows only its centered icon. This includes an empty plan, blank schedule lines, cleared calendar dates, dates before a plan starts, and dates after a non-repeating plan ends.
 
-Settings include book search, a selected-book count, large tappable book labels, and a sticky **Save settings** button. **Clear selection** restores the whole-Bible book pool; any typed ranges still apply. **Close** or Escape dismisses settings without saving.
+Settings include book search, a selected-book count, large tappable book labels, and a sticky **Save settings** button. **Clear selection** restores the whole-Bible book pool; any typed ranges still apply. **Save selection** saves only the Shuffle or Sequential selection, leaving unsaved custom schedule edits out. The Custom tab has its own **Save schedule** button to save only its schedule and repeat setting. **Close** or Escape dismisses settings without saving.
 
 Saving valid settings returns to the main verse screen immediately. Switching reading modes clears old validation messages and disables inactive reference fields so hidden fields cannot block saving.
 
