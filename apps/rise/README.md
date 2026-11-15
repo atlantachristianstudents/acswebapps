@@ -90,3 +90,5 @@ Saving a changed plan asks whether to start **Today** or **Tomorrow**. Today ref
 In Shuffle and Sequential, **Custom range** opens a theme-matched dialog for entering chapters or verses. Its **Save** button validates the range and applies it to the settings draft; Cancel or Escape leaves the previous range unchanged. Saving an empty range clears it. The current range appears below the button. Use **Save settings** afterward to persist the plan and choose Today or Tomorrow when prompted.
 
 Empty days display only the centered Rise rays, without a surrounding circle or background tile. The symbol follows the current theme’s accent color and is available offline.
+
+The About dialog places **Done** beside the **About Rise** heading at the top.
