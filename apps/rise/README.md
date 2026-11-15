@@ -13,7 +13,9 @@ The theme button opens a theme picker with presets, a custom color and font opti
 
 Book selection and chapter/verse ranges become available after the Scripture download loads. If it cannot load, settings show a connection message; reconnect and reload. Scrolling the settings keeps your unsaved selections. When no verses are assigned to a day, Rise shows only its centered icon. This includes an empty plan, blank schedule lines, cleared calendar dates, dates before a plan starts, and dates after a non-repeating plan ends.
 
-Plan editors include book search and a selected-book count. **Save plan** saves only that plan. **Save changes** in **Edit plans** saves the ordering, enabled switches, and Combined/Override choice. Creating or editing a plan does not save arrangement changes.
+In **Edit plans**, **Import** and **Export** sit together on the left of the plan toolbar.
+
+Shuffle and Sequential editors include a **Choose books** button. It opens a searchable two-dimensional table with a book in each row and chapter buttons across it. Select an entire book or individual chapters, then choose **Use selection**; **Cancel** leaves the selection unchanged. An empty selection uses the whole Bible. Chapter selections use the existing range format and remain compatible with saved plans and exports. **Save plan** saves only that plan. **Save changes** in **Edit plans** saves the ordering, enabled switches, and Combined/Override choice. Its footer shows **Unsaved changes** while those choices differ from the saved arrangement, and **Saved on this device** after saving or reverting them. Creating or editing a plan does not save arrangement changes.
 
 Plan start dates default to tomorrow; an end date is optional. There is no Today/Tomorrow confirmation when saving a plan.
 
