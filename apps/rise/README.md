@@ -25,7 +25,7 @@ Consecutive verses from the same book share a slide when they fit near the norma
 
 On the first visit, a one-time popup explains that swiping down (or pressing the up/down arrow keys or `/`) opens settings. Confirming with **Got it** dismisses it and records the dismissal in localStorage so it does not reappear on later visits.
 
-Use **Check for updates** in settings to manually download and activate the latest app version. Save settings first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
+Use **Check for updates** in the **?** About dialog to manually download and activate the latest app version. Save settings first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
 
 When releasing an update, keep the `acswebapps-updater` script’s `data-version` equal to `VERSION` in `sw.js`. The repository validator checks this.
 
@@ -33,7 +33,7 @@ Verse changes use a smooth vertical slide and fade in the swipe direction. Rapid
 
 Reference matching accepts compact forms such as `Jn3:16`, `Rom8:28`, and `1Cor13:4`, plus unique book-name prefixes. Exact aliases take priority: `jud` means Jude, `jdg` means Judges, and `phm` means Philemon. Ambiguous prefixes need more letters. The same matching works in custom schedules and chapter/verse range settings; shorthand such as `Jn3:16,17-18` keeps the preceding book and chapter.
 
-Settings use a compact viewport layout with always-visible Save and update controls. The book list and custom-schedule editor scroll internally; the settings page itself stays in place. Short landscape screens use two columns.
+Settings use a compact viewport layout with an always-visible Save button. The book list and custom-schedule editor scroll internally; the settings page itself stays in place. Short landscape screens use two columns.
 
 Pinch-to-zoom is disabled across Rise. Single-finger verse swipes and scrolling inside the settings book list and schedule editor remain available.
 
