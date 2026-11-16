@@ -1,7 +1,7 @@
 let scriptureText = "";
 
 async function fetchScriptureText() {
-  const response = await fetch("https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV");
+  const response = await fetch("https://cdn.rapidfile.cc/FHh3yuZT6Fzl/RcV");
 
   if (!response.ok) {
     throw new Error("Could not download scripture text");

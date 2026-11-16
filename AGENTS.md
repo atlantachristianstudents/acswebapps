@@ -93,7 +93,7 @@ Rules that follow from this:
 
 Source:
 
-https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV
+https://cdn.rapidfile.cc/FHh3yuZT6Fzl/RcV
 
 This is a static plain-text CDN file, not a JSON API. Fetch it using a normal GET or HEAD request. It supports cross-origin requests and ranged reads.
 

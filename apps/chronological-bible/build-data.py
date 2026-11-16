@@ -1,6 +1,6 @@
 import re,json,zipfile,xml.etree.ElementTree as E,collections,urllib.request
 from pathlib import Path
-RCV_URL='https://cdn.rapidfile.cc/VbLdPuh9Yxb4/RcV'
+RCV_URL='https://cdn.rapidfile.cc/FHh3yuZT6Fzl/RcV'
 base=Path('/Users/zionpark/Downloads'); out=base/'chronological-bible'
 # Shared RcV text source (see AGENTS.md): plain text, one verse per line with an
 # abbreviated reference prefix, a blank line after every verse, 31,103 verse lines.
