@@ -132,6 +132,7 @@ assets/
   icons/                   Home-page PWA icons (192, 512, maskable, apple-touch)
 apps/
   _template/               Copy this folder to start a new app
+  rise/                    Daily verse plans from the Recovery Version, with offline reading
   bible-connections/       Bible cross-reference explorer with an offline connection map
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
   logostype/               Scripture typing, reading, records, and friend races
