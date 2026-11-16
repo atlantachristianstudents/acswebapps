@@ -55,6 +55,7 @@
     :root[data-theme=dusk]{--bg:#292634;--text:#eee7f5;--muted:#c4b6d2;--surface:#353040;--panel:#302b3a;--border:#665a74;--accent:#d1b6e7;--accent-contrast:#292634;--selected:#4c3b5d;--focus:#dbbafa;color-scheme:dark}
     :root[data-theme=midnight]{--bg:#141c24;--text:#e5ecf2;--muted:#acbdcd;--surface:#202c38;--panel:#1a2530;--border:#526477;--accent:#afcee5;--accent-contrast:#141c24;--selected:#2d455b;--focus:#9dc9ed;color-scheme:dark}
     * { box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
     body {
       margin: 0;
       background: var(--bg);
@@ -153,11 +154,13 @@
       background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
       padding: .25rem;
     }
-    .search-pop button { display: block; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--border); padding: .45rem .4rem; background: none; color: inherit; }
+    .search-pop button { display: block; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--border); padding: .45rem .4rem; background: none; color: inherit; overflow-wrap: anywhere; word-break: break-word; }
     .search-pop button:hover { background: var(--selected); }
-    .search-pop .ref { font-weight: 700; margin-right: .4em; }
+    .search-pop .ref { font-weight: 500; margin-right: .4em; }
     .search-pop .txt { color: var(--muted); font-size: .88rem; }
     .search-pop .hintline { padding: .4rem; color: var(--muted); font-size: .8rem; }
+    .search-pop .scoper { padding: .3rem .4rem; border-bottom: 1px solid var(--border); font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .3rem; }
+    .search-pop .scoper select { font: inherit; font-size: .8rem; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: .15rem .2rem; }
     .search-pop .chapters { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr)); gap: .25rem; padding: .3rem; }
     .search-pop .chapters button { display: block; width: auto; text-align: center; border: 1px solid var(--border); border-radius: 6px; padding: .25rem 0; }
     .search-pop .chapters button:hover { background: var(--selected); }
@@ -242,7 +245,7 @@
 
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Bible Compare is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="bible-compare-v2">
+<script id="acswebapps-updater" data-version="bible-compare-v4">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -913,25 +916,29 @@
 
   // ---------- One-at-a-time background downloads ----------
   var autoDownloading = false;
+  var autoCurrent = null;
+  var autoFailed = {};
   function autoDownloadNext() {
     if (!navigator.onLine) { setTimeout(autoDownloadNext, 30000); return; }
     var next = TRANSLATIONS.filter(function (t) { return !t.primary && !isDownloaded(t.code) && !autoFailed[t.code]; })[0];
-    if (!next) { autoDownloading = false; refreshAddRows(); setStatus(''); return; }
+    if (!next) { autoDownloading = false; autoCurrent = null; refreshAddRows(); setStatus(''); return; }
     autoDownloading = true;
+    autoCurrent = next.code;
     setStatus('Downloading ' + next.short + ' so it works offline…');
     refreshAddRows();
     loadTranslation(next.code).then(function () {
       delete autoFailed[next.code];
+      autoCurrent = null;
       refreshAddRows();
       renderPassage();
       setTimeout(autoDownloadNext, 1500);
     }).catch(function () {
       autoFailed[next.code] = true;
+      autoCurrent = null;
       refreshAddRows();
       setTimeout(autoDownloadNext, 1500);
     });
   }
-  var autoFailed = {};
   function startAutoDownloads() {
     if (!autoDownloading) autoDownloadNext();
   }
@@ -944,7 +951,7 @@
   function downloadState(code) {
     if (code === 'rcv') return rcvText ? 'Loaded' : 'Not loaded yet';
     if (transData[code]) return 'Downloaded ✓';
-    if (autoDownloading && !autoFailed[code]) return 'Downloading…';
+    if (code === autoCurrent) return 'Downloading…';
     if (autoFailed[code]) return 'Download failed';
     return 'Not downloaded';
   }
@@ -1037,6 +1044,24 @@
     }
     return hits.length === 1 ? hits[0] : -1;
   }
+  // Short snippet centered on the first match, with "…" cutoffs at both ends
+  // so results fit narrow screens without horizontal scrolling.
+  function snippet(plain, needle, max) {
+    var words = needle.toLowerCase().split(/\s+/).filter(Boolean);
+    var lower = plain.toLowerCase();
+    var idx = -1, wl = 0;
+    for (var w = 0; w < words.length; w++) {
+      var f = lower.indexOf(words[w]);
+      if (f >= 0 && (idx < 0 || f < idx)) { idx = f; wl = words[w].length; }
+    }
+    if (idx < 0) {
+      return plain.length > max ? plain.slice(0, max - 1) + '…' : plain;
+    }
+    var half = Math.max(8, Math.floor((max - wl) / 2));
+    var start = Math.max(0, idx - half);
+    var end = Math.min(plain.length, idx + wl + half);
+    return (start > 0 ? '…' : '') + plain.slice(start, end) + (end < plain.length ? '…' : '');
+  }
   function addResultButton(container, label, plain, needle, target) {
     var button = document.createElement('button');
     button.type = 'button';
@@ -1053,12 +1078,17 @@
   }
 
   // Word search: every word must appear. Highlights matches in the results.
+  // Default scope is the Recovery Version only; the popup lets the reader
+  // widen it to every downloaded translation.
+  var searchScope = 'rcv';
+  try { searchScope = localStorage.getItem('bible-compare-search-scope') === 'all' ? 'all' : 'rcv'; } catch (_) {}
   function wordSearch(needle) {
     var words = needle.toLowerCase().split(/\s+/).filter(Boolean);
     if (!words.length) return [];
     var results = [];
-    var loaded = ['rcv'].concat(TRANSLATIONS.filter(function (t) { return !t.primary; }).map(function (t) { return t.code; }))
-      .filter(isDownloaded);
+    var loaded = searchScope === 'all'
+      ? ['rcv'].concat(TRANSLATIONS.filter(function (t) { return !t.primary; }).map(function (t) { return t.code; })).filter(isDownloaded)
+      : ['rcv'].filter(isDownloaded);
     var done = false;
     for (var b = 0; b < 66 && !done; b++) {
       for (var c = 1; c <= 150 && !done; c++) {
@@ -1071,7 +1101,7 @@
             var lc = text.toLowerCase().replace(/\//g, ' ');
             var ok = true;
             for (var w = 0; w < words.length; w++) { if (lc.indexOf(words[w]) < 0) { ok = false; break; } }
-            if (ok) {
+            if (ok && results.length < SEARCH_LIMIT) {
               results.push({ book: b, chapter: c, verse: v, code: code, text: text });
               if (results.length >= SEARCH_LIMIT) done = true;
             }
@@ -1106,6 +1136,31 @@
     searchPop.textContent = '';
     if (!needle) { closeSearchPop(); return; }
     searchPop.hidden = false;
+
+    // Scope selector sits at the top of the popup.
+    var scoper = document.createElement('div');
+    scoper.className = 'scoper';
+    var scopeLabel = document.createElement('label');
+    scopeLabel.appendChild(document.createTextNode('Search in '));
+    var scopeSelect = document.createElement('select');
+    scopeSelect.setAttribute('aria-label', 'Translations to search');
+    var rcvOption = document.createElement('option');
+    rcvOption.value = 'rcv';
+    rcvOption.textContent = 'RcV only';
+    var allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'All downloaded';
+    scopeSelect.appendChild(rcvOption);
+    scopeSelect.appendChild(allOption);
+    scopeSelect.value = searchScope;
+    scopeSelect.addEventListener('change', function () {
+      searchScope = scopeSelect.value;
+      try { localStorage.setItem('bible-compare-search-scope', searchScope); } catch (_) {}
+      renderSearchPop();
+    });
+    scopeLabel.appendChild(scopeSelect);
+    scoper.appendChild(scopeLabel);
+    searchPop.appendChild(scoper);
 
     // 1. A full reference ("John 3:16", "Romans 8") gets a direct "go to" row.
     var ref = parseRef(needle);
@@ -1156,13 +1211,18 @@
         var note = document.createElement('div');
         note.className = 'hintline';
         var unloaded = TRANSLATIONS.filter(function (t) { return !t.primary && !isDownloaded(t.code); }).map(function (t) { return t.short; });
-        note.textContent = (results.length >= SEARCH_LIMIT ? 'Showing the first ' + SEARCH_LIMIT + ' matches. ' : '') +
-          (unloaded.length ? 'Download more translations to search them too.' : '');
+        if (searchScope === 'all') {
+          note.textContent = (results.length >= SEARCH_LIMIT ? 'Showing the first ' + SEARCH_LIMIT + ' matches. ' : '') +
+            (unloaded.length ? 'Download more translations to search them too.' : '');
+        } else {
+          note.textContent = (results.length >= SEARCH_LIMIT ? 'Showing the first ' + SEARCH_LIMIT + ' matches. ' : '') +
+            'Searching the Recovery Version only. Switch to "All downloaded" above to search more.';
+        }
         searchPop.appendChild(note);
         results.forEach(function (result) {
           var entry = TRANSLATIONS.filter(function (t) { return t.code === result.code; })[0];
-          var plain = result.text.replace(/\//g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
-          addResultButton(searchPop, SHORT[result.book] + ' ' + result.chapter + ':' + result.verse + ' (' + entry.short + ')', plain, needle, result);
+          var plain = result.text.replace(/\//g, ' ').replace(/\s+/g, ' ').trim();
+          addResultButton(searchPop, SHORT[result.book] + ' ' + result.chapter + ':' + result.verse + ' (' + entry.short + ')', snippet(plain, needle, 90), needle, result);
         });
       }
     }

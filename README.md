@@ -33,6 +33,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | --- | --- | --- |
 | [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
+| [Bible Compare](https://acswebapps.com/apps/bible-compare/) | Read Scripture and compare the same verses side by side across public-domain translations, with the Recovery Version first, difference highlighting, and offline downloads. | beta |
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
 | [Show Time](https://acswebapps.com/apps/show-time/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
