@@ -70,7 +70,9 @@
       border-bottom: 3px solid var(--accent);
     }
     header .row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-    header h1 { font-size: 1rem; margin: 0 .25rem 0 0; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+    header h1 { font-size: 1rem; margin: 0 .5rem 0 0; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+    header .nav { display: inline-flex; align-items: center; gap: .15rem; margin: 0 .35rem; }
+    header .nav button { padding: .25rem .4rem; min-width: 2rem; font-size: 1.05rem; }
     header form { display: flex; gap: .4rem; flex: 1 1 16rem; min-width: 12rem; }
     input[type="text"], input[type="search"] {
       font: inherit; color: var(--text); background: var(--surface);
@@ -90,6 +92,9 @@
     .toolbar .size { display: flex; gap: .2rem; margin-left: auto; }
     .toolbar .size button { padding: .3rem .5rem; }
     .chips { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
+    .navrow { display: flex; align-items: center; gap: .3rem; padding: .35rem .75rem .5rem; flex-wrap: wrap; }
+    .navrow .nav { padding: .25rem .5rem; font-size: .9rem; }
+    .navrow .loc { font-size: .85rem; color: var(--muted); margin: 0 .3rem; white-space: nowrap; }
     .chip {
       border: 1px solid var(--border); background: var(--surface); color: var(--text);
       border-radius: 999px; padding: .25rem .7rem; font-size: .85rem;
@@ -122,6 +127,8 @@
       .cell { border-bottom: 1px solid var(--border); padding: .3rem 0; }
       .verse-cell .tag { display: inline; font-size: .7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-right: .4em; }
       .thead { display: none; }
+      .passage-title { display: none; }
+      .navrow { padding: .3rem .5rem .4rem; }
     }
     dialog {
       border: 1px solid var(--border); border-radius: 12px;
@@ -164,8 +171,9 @@
     .search-pop .chapters { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr)); gap: .25rem; padding: .3rem; }
     .search-pop .chapters button { display: block; width: auto; text-align: center; border: 1px solid var(--border); border-radius: 6px; padding: .25rem 0; }
     .search-pop .chapters button:hover { background: var(--selected); }
-    .size-label { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--muted); }
-    .size-label input { width: 3.5rem; min-height: 0; padding: .25rem .3rem; }
+    .size-label { display: inline-flex; align-items: center; gap: .25rem; font-size: .8rem; color: var(--muted); }
+    .size-label input { width: 3rem; min-height: 0; padding: .25rem .3rem; text-align: center; }
+    .size-label .size-btn { min-width: 0; width: 1.8rem; padding: .25rem 0; font-size: 1rem; line-height: 1; }
     .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--surface, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
     .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
     .acswebapps-help > summary::-webkit-details-marker { display: none; }
@@ -204,16 +212,20 @@
   <header>
     <div class="row">
       <h1>Bible Compare</h1>
-      <button id="prev-btn" type="button" aria-label="Previous chapter">‹</button>
-      <button id="next-btn" type="button" aria-label="Next chapter">›</button>
       <form id="search-form" class="searchbar" role="search">
         <input id="search-input" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Search a reference or words (John 3:16, light)" aria-label="Search a reference or words">
         <div id="search-pop" class="search-pop" hidden></div>
       </form>
-      <label class="size-label">Size <input type="number" id="size-input" min="13" max="26" step="1" aria-label="Text size"></label>
+      <label class="size-label">Size <button type="button" id="size-down" aria-label="Smaller text" class="size-btn">−</button><input type="number" id="size-input" min="13" max="26" step="1" aria-label="Text size"><button type="button" id="size-up" aria-label="Larger text" class="size-btn">+</button></label>
       <button id="theme-btn" type="button" aria-haspopup="dialog" aria-label="Choose a theme">Theme</button>
     </div>
   </header>
+
+  <div class="navrow">
+    <button id="prev-btn" type="button" class="nav" aria-label="Previous chapter">‹ Prev</button>
+    <span class="loc" id="loc" aria-live="polite"></span>
+    <button id="next-btn" type="button" class="nav" aria-label="Next chapter">Next ›</button>
+  </div>
 
   <div class="chips" id="chips" role="group" aria-label="Translations being compared"></div>
 
@@ -245,7 +257,7 @@
 
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Bible Compare is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="bible-compare-v4">
+<script id="acswebapps-updater" data-version="bible-compare-v6">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -541,6 +553,26 @@
       });
     });
   }
+  // Which downloads already exist in IndexedDB — read the key list once at
+  // boot so the dialog shows "Downloaded ✓" instantly, without loading texts.
+  var storedKeys = {};
+  function loadStoredKeys() {
+    return openDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('data', 'readonly');
+        var req = tx.objectStore('data').getAllKeys();
+        req.onsuccess = function () {
+          (req.result || []).forEach(function (key) {
+            if (String(key).indexOf('trans:') === 0) storedKeys[key] = true;
+          });
+          resolve();
+        };
+        req.onerror = function () { reject(req.error); };
+        tx.oncomplete = function () { db.close(); };
+        tx.onerror = function () { db.close(); reject(tx.error); };
+      });
+    });
+  }
 
   // ---------- RcV loading (IndexedDB first, 15-day TTL, localStorage backup) ----------
   function parseRcv(text) {
@@ -651,6 +683,7 @@
         var parsed = validateBooks(safeParse(text.replace(/^\uFEFF/, '')));
         if (!parsed) throw new Error(entry.short + ' downloaded in an unexpected format; it was not saved.');
         transData[code] = parsed;
+        storedKeys['trans:' + code] = true;
         idbPut('trans:' + code, text).catch(function () {});
         return parsed;
       });
@@ -661,6 +694,10 @@
   }
   function isDownloaded(code) {
     return code === 'rcv' ? !!rcvText : !!transData[code];
+  }
+  // Stored in IndexedDB (even if not loaded into memory this session).
+  function isStored(code) {
+    return code === 'rcv' ? !!rcvText : !!(transData[code] || storedKeys['trans:' + code]);
   }
 
   // ---------- Reference parsing ----------
@@ -754,6 +791,7 @@
   var statusEl = document.getElementById('status');
   var gridEl = document.getElementById('grid');
   var titleEl = document.getElementById('passage-title');
+  var locEl = document.getElementById('loc');
   var chipsEl = document.getElementById('chips');
 
   function setStatus(message, isError) {
@@ -825,6 +863,7 @@
 
   function renderPassage() {
     titleEl.textContent = passageLabel();
+    if (locEl) locEl.textContent = passageLabel();
     var loaded = state.active.filter(isDownloaded);
     if (!loaded.length) { gridEl.textContent = ''; return; }
 
@@ -920,7 +959,7 @@
   var autoFailed = {};
   function autoDownloadNext() {
     if (!navigator.onLine) { setTimeout(autoDownloadNext, 30000); return; }
-    var next = TRANSLATIONS.filter(function (t) { return !t.primary && !isDownloaded(t.code) && !autoFailed[t.code]; })[0];
+    var next = TRANSLATIONS.filter(function (t) { return !t.primary && !isStored(t.code) && !autoFailed[t.code]; })[0];
     if (!next) { autoDownloading = false; autoCurrent = null; refreshAddRows(); setStatus(''); return; }
     autoDownloading = true;
     autoCurrent = next.code;
@@ -950,7 +989,7 @@
 
   function downloadState(code) {
     if (code === 'rcv') return rcvText ? 'Loaded' : 'Not loaded yet';
-    if (transData[code]) return 'Downloaded ✓';
+    if (isStored(code)) return 'Downloaded ✓';
     if (code === autoCurrent) return 'Downloading…';
     if (autoFailed[code]) return 'Download failed';
     return 'Not downloaded';
@@ -977,7 +1016,7 @@
       stateCell.dataset.state = entry.code;
       stateCell.className = 'state';
       stateCell.textContent = downloadState(entry.code);
-      if (isDownloaded(entry.code)) stateCell.classList.add('done');
+      if (isStored(entry.code)) stateCell.classList.add('done');
       var actionCell = document.createElement('td');
       if (!entry.primary) {
         var button = document.createElement('button');
@@ -1244,6 +1283,14 @@
     fontSize = applyFontSize(Number(sizeInput.value) || fontSize);
     sizeInput.value = String(fontSize);
   });
+  document.getElementById('size-down').addEventListener('click', function () {
+    fontSize = applyFontSize(fontSize - 1);
+    sizeInput.value = String(fontSize);
+  });
+  document.getElementById('size-up').addEventListener('click', function () {
+    fontSize = applyFontSize(fontSize + 1);
+    sizeInput.value = String(fontSize);
+  });
 
   // ---------- Events ----------
   document.getElementById('prev-btn').addEventListener('click', function () {
@@ -1335,7 +1382,19 @@
 
   renderChips();
   setStatus('Loading the Recovery Version…');
-  loadRcv().then(function (downloaded) {
+  loadStoredKeys().catch(function () {}).then(function () {
+    renderPassage();
+    // Reload active translations that are already stored — instant, from
+    // IndexedDB, with no network needed.
+    return Promise.all(state.active.filter(function (code) {
+      return code !== 'rcv' && storedKeys['trans:' + code] && !transData[code];
+    }).map(function (code) {
+      return loadTranslation(code).then(function () { return true; }).catch(function () { return false; });
+    }));
+  }).then(function (restored) {
+    if (restored && restored.some(Boolean)) { setStatus(''); renderPassage(); }
+    return loadRcv();
+  }).then(function (downloaded) {
     setStatus('');
     renderPassage();
     if (navigator.onLine !== false) {
