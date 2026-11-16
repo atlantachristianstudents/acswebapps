@@ -665,6 +665,10 @@ if(!lines||!raw.trim())return raw.trim()?null:[];
 const result=[];let lastPoint=null;
 const point=(text,context,side,startPoint)=>{
 let value=text.trim(),book=context&&context.book,explicitBook=false;
+if(side==='end'){
+const bookOnly=resolveBook(value);
+if(bookOnly){const indices=byBook.get(bookOnly);if(!indices||!indices.length)return null;return {book:bookOnly,chapter:null,verse:null,index:indices[indices.length-1],explicitBook:true}}
+}
 const prefix=value.match(/^((?:[1-3]\s*)?[A-Za-z][A-Za-z .-]*?)\s*(?=\d)/);
 if(prefix){book=resolveBook(prefix[1]);if(!book)return null;explicitBook=true;value=value.slice(prefix[0].length).trim()}
 if(!book)return null;
@@ -745,7 +749,7 @@ function biblePool(){return lines?(selectionPool()||[]):[]}
 function updateBibleProgress(){const status=$('bible-progress');if(!lines){status.textContent='Loading Scripture…';return}const pool=biblePool();if(!pool.length){status.textContent='Choose valid books or ranges.';return}const offset=Math.max(0,day-draftBibleStarted),part=verseParts(readingIndices(pool,'sequential',day,draftBibleStarted,$('verses-per-day').value,editorPlanDraft?editorPlanDraft.bibleOffset||0:0)[0]);status.textContent=part?'Day '+(offset+1)+' of '+Math.ceil(pool.length/readingCount(pool,$('verses-per-day').value))+' · today: '+part.book+' '+part.chapter+':'+part.verse:''}
 function updateRangeSummary(){const range=$('range-text').value.trim();$('range-summary').textContent=range;$('range-summary').title=range;$('range-summary').hidden=!range;$('custom-range').setAttribute('aria-label',range?'Custom range: '+range:'Custom range')}
 function openCustomRange(){const input=$('custom-range-input');input.value=$('range-text').value;input.setCustomValidity('');$('custom-range-dialog').showModal()}
-function saveCustomRange(){const input=$('custom-range-input'),range=input.value.trim();if(range&&(!lines||!rangeIndices(range))){input.setCustomValidity(lines?'Enter valid ranges, such as Jn3 or Rom8:28-30.':'Wait for Scripture to load before adding a range.');input.reportValidity();return}const changed=range!==$('range-text').value.trim();$('range-text').value=range;updateRangeSummary();updateBookList();$('custom-range-dialog').close();if(changed)selectionChanged()}
+function saveCustomRange(){const input=$('custom-range-input'),range=input.value.trim();if(range&&(!lines||!rangeIndices(range))){input.setCustomValidity(lines?'Enter valid ranges, such as Jn3, Rom8:28-30, or 1John5:20-Rev.':'Wait for Scripture to load before adding a range.');input.reportValidity();return}const changed=range!==$('range-text').value.trim();$('range-text').value=range;updateRangeSummary();updateBookList();$('custom-range-dialog').close();if(changed)selectionChanged()}
 $('custom-range').addEventListener('click',openCustomRange);
 $('save-custom-range').addEventListener('click',saveCustomRange);
 $('cancel-custom-range').addEventListener('click',()=>$('custom-range-dialog').close());
@@ -876,7 +880,7 @@ if(!lines)$('books-hint').textContent='Scripture could not be loaded. Connect to
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
 </script>
-<script id="acswebapps-updater" data-version="rise-v90">
+<script id="acswebapps-updater" data-version="rise-v91">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
