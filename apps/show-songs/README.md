@@ -94,7 +94,7 @@ Language-number views (including selected languages and both E/K variants), wrap
 
 In B/K/C/S/R number views, Present uses the selected hymnal’s exact number. Burmese, Korean, and Chinese use bundled book numbers. Spanish 2nd resolves its English cross-reference to linked Spanish text, because the bundled Spanish book uses different numbering; the current library has no Russian lyrics, so Russian Present reports that lyrics are unavailable. Numbers without an English cross-reference still navigate and can present when their book contains text; other-language references show `-`.
 
-Presentation wrapping prefers punctuation boundaries (commas, semicolons, colons, and sentence endings), preserving existing lyric line breaks. Clauses that exceed the available width still wrap at words. This applies to stanza, full-song, and guitar views.
+Presentation wrapping prefers punctuation boundaries (commas, semicolons, colons, and sentence endings), preserving existing lyric line breaks. Clauses that exceed the available width still wrap at words. In full-song view, wrapped rows reserve their full height so the following lyric line stays below them. This applies to stanza, full-song, and guitar views.
 
 The presentation sidebar has a compact × exit icon; its tooltip shows the Space shortcut.
 
