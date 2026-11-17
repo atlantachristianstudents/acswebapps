@@ -192,7 +192,7 @@
   #presLogo.has { display: none; }
   #present:fullscreen #presLogo.has { display: block; }
   #present:-webkit-full-screen #presLogo.has { display: block; }
-  :fullscreen #bodyLogo { display: none; }
+  #present:fullscreen ~ #bodyLogo { display: none; }
   #logoNote, #olNote { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
   @media (pointer: coarse) { .applogo { bottom: calc(76px + env(safe-area-inset-bottom)); } }
   .scopehint { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
@@ -571,7 +571,7 @@
     <tr><td><kbd>R</kbd></td><td>Copy the reference of every verse on screen (including those added with <kbd>N</kbd> / <kbd>B</kbd>)</td></tr>
     <tr><td><kbd>F</kbd></td><td>Fill the presentation area with the verse (largest size that fits)</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>F</kbd></td><td>Toggle true full screen from anywhere (in presentation, the browser’s <kbd>Esc</kbd> leaves full screen but stays in presentation mode)</td></tr>
-    <tr><td><kbd>Enter</kbd> <kbd>Esc</kbd></td><td>Exit, returning to the results with the cursor on the verse you were last viewing (if that verse is not in the results, on the last one from the results you viewed). A selection of several verses is kept as it was</td></tr>
+    <tr><td><kbd>Enter</kbd> <kbd>Esc</kbd></td><td>Exit present mode (Enter keeps full screen), returning to the results with the cursor on the verse you were last viewing (if that verse is not in the results, on the last one from the results you viewed). A selection of several verses is kept as it was</td></tr>
   </tbody></table>
 
   <h3>Touch screens</h3>
@@ -3248,7 +3248,7 @@
       if (r.top < 0 || r.bottom > window.innerHeight) moved.scrollIntoView({ block: "center" });
     }
   }
-  function closePresent() {
+  function closePresent(keepFullscreen) {
     if (!presenting) return;
     pronOff();
     sbsClose(false);
@@ -3269,7 +3269,7 @@
     $("present").hidden = true;
     extLeave();
     var wasFull = !!document.fullscreenElement;
-    if (wasFull && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    if (wasFull && !keepFullscreen && document.exitFullscreen) document.exitFullscreen().catch(function () {});
     restorePresState();
     // leaving true full screen is asynchronous and makes the browser drop focus: restore again once it has finished
     presRestore = true;
@@ -3279,11 +3279,12 @@
   function toggleFullscreen() {
     if (document.fullscreenElement) { if (document.exitFullscreen) document.exitFullscreen().catch(function () {}); }
     else {
-      var target = presenting ? $("present") : document.documentElement;
+      var target = document.documentElement;
       if (target.requestFullscreen) target.requestFullscreen().catch(function () {});
     }
   }
-  // Shift+F is a page-wide fullscreen shortcut; presentation mode only changes what gets fullscreened.
+  // Keep fullscreen on the page so Enter can close presentation without leaving fullscreen.
+  // Shift+F is a page-wide fullscreen shortcut.
   window.addEventListener("keydown", function (e) {
     if (!e.shiftKey || e.key.toLowerCase() !== "f" || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
     e.preventDefault();
@@ -4114,7 +4115,7 @@
     if ("uUyYiI".indexOf(k) > -1 && k.length === 1) { if (!e.repeat) markPresent(k === "u" || k === "U" ? "u" : k === "y" || k === "Y" ? "h" : "i"); return; }
     if (k === "p" || k === "P") { if (pronAlive()) pronOff(); else pronStart(); return; }
     if (pronAlive() && pronKey(e, k)) return;
-    if (k === "Enter" || k === "Escape") { if (!e.repeat) closePresent(); }
+    if (k === "Enter" || k === "Escape") { if (!e.repeat) closePresent(k === "Enter"); }
     else if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") stepSearched(1);
     else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp") stepSearched(-1);
     else if (k === "+" || k === "=") resizePresent(1);
@@ -5337,7 +5338,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v46">
+<script id="acswebapps-updater" data-version="verse-lookup-v47">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
