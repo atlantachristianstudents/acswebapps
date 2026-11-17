@@ -393,7 +393,7 @@
   <div id="results"></div>
 </main>
 
-<div id="present" hidden=""><img class="applogo" id="presLogo" alt=""><div class="pref" id="pref"></div><div class="ptext" id="ptext"><div id="pinner"></div></div><div class="pcount" id="pcount"></div>
+<div id="present" hidden=""><img class="applogo" id="presLogo" alt=""><div class="pref" id="pref"></div><div class="ptext" id="ptext"><div id="pinner" dir="auto"></div></div><div class="pcount" id="pcount"></div>
   <div class="pctl" id="pctl">
     <button type="button" data-a="prev" aria-label="Previous verse">‹</button>
     <button type="button" data-a="next" aria-label="Next verse">›</button>
@@ -598,6 +598,8 @@
 
   <h3>Versions</h3>
   <p>Drag translation buttons or side-by-side rows to reorder translations and their number shortcuts. Removing a translation asks for confirmation. Choose several text files at once, or use <strong>Add version</strong> later; each becomes a numbered version. Press <kbd>1</kbd>–<kbd>9</kbd> (or <kbd>0</kbd> for the tenth version) while on a verse or in presentation mode to switch version, or click a version button at the top (touch: the <strong>Ver</strong> button in presentation mode). When a lookup returns a single verse, it is shown in the current version on top with the other versions listed below it. Otherwise the same verses stay on screen, with their selection, in the new version. Digits typed in the text box still type normally. Word searches run in the version you’re viewing.</p>
+
+  <p>Greek SBLGNT and THGNT (New Testament), followed by Hebrew Leningrad Codex and Aleppo Codex (Old Testament), also load for this session. Hebrew editions retain their source chapter and verse numbering, which can differ from English editions; missing verses appear as unavailable. These are verse texts without a critical apparatus. Use the version buttons for versions beyond the tenth, or drag them earlier to assign a number shortcut.</p>
 
   <h3>Your text file</h3>
   <p>Choose your text file once; this browser remembers it. Use “Save a copy with the text built in” to download a standalone page with the text included. Each line should look like <code>Gen. 1:1 In the beginning…</code></p>
@@ -2261,7 +2263,7 @@
           var vn = (k > 0 && e.ch !== g[k - 1].ch && !noChap[e.bi]) ? e.ch + ":" + e.v : String(e.v);
           d.dataset.vnum = vn; a.textContent = vn;
         } else a.textContent = refOf(e);
-        var p = document.createElement("p"); p.className = "text";
+        var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
         if (r.textMode) highlight(p, e.text, r.terms); else p.textContent = e.text;
         d.appendChild(a); d.appendChild(p); host.appendChild(d);
         if (g.length > 1) host.appendChild(document.createTextNode(" "));
@@ -2463,23 +2465,29 @@
   }
   // Beblia text is held in memory only: never persist it or include it in exports.
   var TEMP_TRANSLATIONS = [
-    ["NIV", "NIV", 31102], ["KJV", "KJ", 31102], ["ESV", "ESV", 31103],
-    ["NLT", "NLT", 31101], ["NKJV", "NKJ", 31102], ["CSB", "CSB", 31103], ["NASB", "NASB", 31102]
+    ["NIV", "EnglishNIV", 31102], ["KJV", "EnglishKJ", 31102], ["ESV", "EnglishESV", 31103],
+    ["NLT", "EnglishNLT", 31101], ["NKJV", "EnglishNKJ", 31102], ["CSB", "EnglishCSB", 31103], ["NASB", "EnglishNASB", 31102],
+    // Additional fields: first book, book count, chapter count, empty verse count.
+    ["SBLGNT", "GreekSBLGNT", 7943, 40, 27, 260, 0],
+    ["THGNT", "GreekTHGNT", 7955, 40, 27, 260, 26],
+    ["Leningrad Codex", "HebrewLeningradCodex", 23319, 1, 39, 930, 1],
+    ["Aleppo Codex", "HebrewAleppoCodex", 22995, 1, 39, 929, 0]
   ];
   var tempGeneration = 0, tempMessage = "", tempLoading = false;
   var BEBLIA_SOURCE = "https://raw.githubusercontent.com/Beblia/Holy-Bible-XML-Format/61622da8959f66266a977e50effd9534e9093384/";
 
-  function parseBeblia(xml, expectedCount) {
+  function parseBeblia(xml, spec) {
     var doc = new DOMParser().parseFromString(xml, "application/xml");
     if (doc.querySelector("parsererror") || !doc.documentElement || doc.documentElement.tagName !== "bible") {
       throw new Error("Invalid Bible XML; the source format may have changed.");
     }
     var books = doc.querySelectorAll("bible > testament > book"), lines = [], seen = {};
-    var chapters = 0;
-    if (books.length !== BOOKS.length) throw new Error("Incomplete Bible: expected 66 books.");
+    var chapters = 0, entries = 0, empty = 0;
+    var firstBook = (spec[3] || 1) - 1, bookCount = spec[4] || 66;
+    if (books.length !== bookCount) throw new Error("Incomplete Bible: unexpected book count.");
     Array.prototype.forEach.call(books, function (book) {
       var bi = Number(book.getAttribute("number")) - 1;
-      if (!Number.isInteger(bi) || !BOOKS[bi] || seen[bi]) throw new Error("Invalid Bible book numbering.");
+      if (!Number.isInteger(bi) || !BOOKS[bi] || bi < firstBook || bi >= firstBook + bookCount || seen[bi]) throw new Error("Invalid Bible book numbering.");
       seen[bi] = true;
       var seenChapters = {};
       Array.prototype.forEach.call(book.children, function (chapter) {
@@ -2489,13 +2497,15 @@
         Array.prototype.forEach.call(chapter.children, function (verse) {
           var v = Number(verse.getAttribute("number"));
           var text = verse.textContent.replace(/\s+/g, " ").trim();
-          if (verse.tagName !== "verse" || !Number.isInteger(v) || v < 1 || seenVerses[v] || !text) throw new Error("Invalid Bible verse.");
-          seenVerses[v] = true;
+          if (verse.tagName !== "verse" || !Number.isInteger(v) || v < 1 || seenVerses[v]) throw new Error("Invalid Bible verse.");
+          seenVerses[v] = true; entries++;
+          // Critical editions can leave omitted verse numbers empty. Do not invent text.
+          if (!text) { empty++; return; }
           lines.push(BOOKS[bi][1] + " " + ch + ":" + v + " " + text);
         });
       });
     });
-    if (chapters !== 1189 || lines.length !== expectedCount) throw new Error("Incomplete Bible; the source verse count has changed.");
+    if (chapters !== (spec[5] || 1189) || entries !== spec[2] || empty !== (spec[6] || 0)) throw new Error("Incomplete Bible; the source verse count has changed.");
     return lines.join("\n");
   }
 
@@ -2511,14 +2521,14 @@
         renderInfo();
         var controller = new AbortController();
         var timeout = setTimeout(function () { controller.abort(); }, 30000);
-        return fetch(BEBLIA_SOURCE + "English" + spec[1] + "Bible.xml", { cache: "no-store", signal: controller.signal })
+        return fetch(BEBLIA_SOURCE + spec[1] + "Bible.xml", { cache: "no-store", signal: controller.signal })
           .then(function (response) {
             if (!response.ok) throw new Error("HTTP " + response.status);
             return response.text();
           })
           .then(function (xml) {
             if (generation !== tempGeneration) return;
-            var text = parseBeblia(xml, spec[2]);
+            var text = parseBeblia(xml, spec);
             loadVersions([{ name: spec[0] + ".txt", text: text }], false, false, true);
           })
           .catch(function (err) { failed.push(spec[0]); console.warn("Could not load " + spec[0] + ":", err); })
@@ -2593,7 +2603,7 @@
           d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname;
           d.dataset.bi = it.bi; d.dataset.ch = it.ch; d.dataset.v = it.v; d.dataset.vnum = vn;
           var a = document.createElement("div"); a.className = "ref"; a.textContent = vn;
-          var p = document.createElement("p"); p.className = "text";
+          var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
           if (lastTerms && e) highlight(p, txt, lastTerms); else p.textContent = txt;
           d.appendChild(a); d.appendChild(p); body.appendChild(d); body.appendChild(document.createTextNode(" "));
         });
@@ -2607,7 +2617,7 @@
       d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname;
       d.dataset.bi = bi; d.dataset.ch = ch; d.dataset.v = v;
       var a = document.createElement("div"); a.className = "ref"; a.textContent = ref + tag;
-      var p = document.createElement("p"); p.className = "text";
+      var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
       if (lastTerms && e) highlight(p, txt, lastTerms); else p.textContent = txt;
       d.appendChild(a); d.appendChild(p); box.appendChild(d);
     });
@@ -2928,7 +2938,7 @@
     d.dataset.copy = ref + " " + text; d.dataset.ref = ref; d.dataset.text = text;
     d.dataset.bi = bi; d.dataset.ch = ch; d.dataset.v = n; d.dataset.vnum = String(n);
     var a = document.createElement("div"); a.className = "ref"; a.textContent = String(n);
-    var p = document.createElement("p"); p.className = "text";
+    var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
     if (lastTerms) highlight(p, text, lastTerms); else p.textContent = text;
     d.appendChild(a); d.appendChild(p);
     return d;
@@ -3075,7 +3085,7 @@
       x.dataset.copy = ref + " " + e.text; x.dataset.ref = ref; x.dataset.text = e.text;
       x.dataset.bi = np.bi; x.dataset.ch = np.ch; x.dataset.v = np.v;
       var a = document.createElement("div"); a.className = "ref"; a.textContent = ref;
-      var p = document.createElement("p"); p.className = "text";
+      var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
       if (lastTerms) highlight(p, e.text, lastTerms); else p.textContent = e.text;
       x.appendChild(a); x.appendChild(p);
       return x;
@@ -4123,7 +4133,7 @@
       enableVersionDrag(card, ver);
       var n = document.createElement("div"); n.className = "sbsname"; n.textContent = (i + 1) + ": " + ver.name.replace(/\.[^.]+$/, "");
       var r = document.createElement("div"); r.className = "sbsref"; r.textContent = refOfV(ver, bi, ch, vs);
-      var t = document.createElement("div"); t.className = "sbstext"; t.textContent = e ? e.text : "(not in this version)";
+      var t = document.createElement("div"); t.className = "sbstext"; t.dir = "auto"; t.textContent = e ? e.text : "(not in this version)";
       var lab = document.createElement("div"); lab.className = "sbslabel"; lab.appendChild(n); lab.appendChild(r);
       card.appendChild(lab); card.appendChild(t); sbsGrid.appendChild(card);
     });
@@ -5619,7 +5629,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v54">
+<script id="acswebapps-updater" data-version="verse-lookup-v55">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
