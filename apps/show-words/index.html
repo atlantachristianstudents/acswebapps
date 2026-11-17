@@ -88,9 +88,14 @@
   #sbs { position: fixed; inset: 0; z-index: 120; background: var(--bg); color: var(--text); overflow: auto; padding: 3vmin 4vmin 5vmin; text-align: left; }
   #sbs .sbshead { position: sticky; top: -3vmin; z-index: 1; display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 1vmin 0 12px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
   #sbs .sbstitle { flex: 1; min-width: 0; font-weight: 700; color: var(--accent); font-size: clamp(18px, 3vmin, 32px); }
-  #sbs .sbshint { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+  #sbs .sbshint { color: var(--muted); font-size: .85rem; min-width: 0; }
   #sbs .sbsgrid { display: block; margin-top: 4px; }
   #sbs .sbscard { display: grid; grid-template-columns: minmax(130px, 22%) 1fr; gap: 4px 24px; align-items: baseline; padding: 14px 10px; border-bottom: 1px solid var(--border); border-left: 4px solid transparent; }
+  #sbs .sbscard { cursor: pointer; }
+  #sbs .sbscard:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  #sbs.filling .sbscard { padding-block: 6px; }
+  #sbs.filling .sbsname { font-size: clamp(10px, calc(var(--sbs-fs) * .75), .95rem); }
+  #sbs.filling .sbsref { font-size: clamp(10px, calc(var(--sbs-fs) * .65), .85rem); }
   #sbs .sbscard:last-child { border-bottom: 0; }
   #sbs .sbscard.cur { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
   #sbs .sbslabel { min-width: 0; }
@@ -548,7 +553,7 @@
     <tr><td><kbd>U</kbd> <kbd>Y</kbd> <kbd>I</kbd></td><td>In presentation mode, underline (<kbd>U</kbd>), highlight (<kbd>Y</kbd>) or make invisible (<kbd>I</kbd>: the words are covered, and clicking a cover reveals that word) the words you have selected with the mouse, or the word under the pronunciation cursor (<kbd>P</kbd>); press the same key again to take it off. Marks stay while you move between slides and come back when you return to them</td></tr>
     <tr><td>Cog → Import outline (or <kbd>I</kbd> with the cog open)</td><td>Choose a PDF or text outline (points ending “—Rom. 1:1; 2:3” or citing verses in parentheses). The verses of each point, and the Scripture Reading, are put in the search box as parts separated by <kbd>|</kbd>; press <kbd>Enter</kbd> to select the first verse, then <kbd>Enter</kbd> to present one slide per part or <kbd>Space</kbd> for scrolling slides. <em>v.</em> / <em>vv.</em> and a bare <em>2:7</em> take their book or chapter from the verse before, so check those.</td></tr>
     <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to select the first verse, then <kbd>Enter</kbd> for fitted slides or <kbd>Space</kbd> for scrolling slides (Left/Right or <kbd>H</kbd>/<kbd>L</kbd> switches groups); arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a period straight after a comma or semicolon holds that part back until the next press: <kbd>rom 3:4,.5 | heb 2:4</kbd> shows Rom. 3:4, then 3:4–5 on the next press, with the text size unchanged; <kbd>rom 3:4, 5</kbd> shows both at once) (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
-    <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>←</kbd><kbd>↓</kbd><kbd>↑</kbd><kbd>→</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>−</kbd> change the text size (<kbd>0</kbd> resets)</td></tr>
+    <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row with the selected version first; click a row or press <kbd>1</kbd>–<kbd>9</kbd> / <kbd>0</kbd> (tenth version) to select it; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>←</kbd><kbd>↓</kbd><kbd>↑</kbd><kbd>→</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>−</kbd> change the text size (<kbd>Backspace</kbd> resets comparison text size); <kbd>F</kbd> fits all comparison rows to the screen, and pressing it again restores the previous size</td></tr>
     <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word (the first fully visible word in scroll presentation) is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>Present the current verse, maximized in the window (<kbd>Shift</kbd>+<kbd>F</kbd> for true full screen). If two or more verses are selected, only those are cycled through</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>O</kbd></td><td>Toggle presentation context (remembered). Scroll mode opens the selected verse within its full chapter. In scroll mode, <kbd>N</kbd> / <kbd>B</kbd> move to the next / previous chapter (B lands on the last verse); hold Shift to add the chapter while keeping your place.</td></tr>
@@ -565,7 +570,7 @@
     <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last verse listed</td></tr>
     <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Make the text larger / smaller (your size is remembered next time)</td></tr>
     <tr><td><kbd>O</kbd></td><td>Show the whole chapter of the selected verse, with that verse still selected; press <kbd>O</kbd> again to go back</td></tr>
-    <tr><td><kbd>S</kbd></td><td>Compare the verse in every loaded version, one per row; <kbd>S</kbd> or <kbd>Esc</kbd> returns to the presentation</td></tr>
+    <tr><td><kbd>S</kbd></td><td>Compare the verse in every loaded version, selected version first; click a row or use <kbd>1</kbd>–<kbd>9</kbd> / <kbd>0</kbd> to select a version; <kbd>S</kbd> or <kbd>Esc</kbd> returns to the presentation</td></tr>
     <tr><td><kbd>P</kbd></td><td>Pronunciation of words, as above (arrows / <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move between words)</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the verse on screen as plain text; <kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd> copies it with formatting (reference in bold, in the page’s font); <kbd>Shift</kbd>+<kbd>C</kbd> copies in the reading-friendly format (all verses shown, as one passage under a single heading)</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the reference of every verse on screen (including those added with <kbd>N</kbd> / <kbd>B</kbd>)</td></tr>
@@ -2435,19 +2440,100 @@
     if (!v) return;
     cur = i; data = v.data; labels = v.labels; noChap = v.noChap; flat = v.flat; count = v.count;
   }
-  function addVersion(text, name) {
+  function addVersion(text, name, temporary) {
     var prev = versions.length ? cur : 0;
     var n = parseText(text);   // parseText writes the globals; capture them, then restore the active version
     if (!n) { if (versions.length) activate(prev); return 0; }
-    versions.push({ name: name, greek: isGreekText(text), text: text, data: data, labels: labels, noChap: noChap, flat: flat, count: count });
+    versions.push({ name: name, temporary: !!temporary, greek: isGreekText(text), text: text, data: data, labels: labels, noChap: noChap, flat: flat, count: count });
     activate(versions.length === 1 ? 0 : prev);
     return n;
   }
   function saveVersions() {
     kv("readwrite", function (s) {
-      return s.put(versions.map(function (v) { return { name: v.name, text: v.text }; }), "versions");
+      return s.put(versions.filter(function (v) { return !v.temporary; }).map(function (v) { return { name: v.name, text: v.text }; }), "versions");
     }).catch(function () {});
   }
+  // Beblia text is held in memory only: never persist it or include it in exports.
+  var TEMP_TRANSLATIONS = [
+    ["NIV", "NIV", 31102], ["KJV", "KJ", 31102], ["ESV", "ESV", 31103],
+    ["NLT", "NLT", 31101], ["NKJV", "NKJ", 31102], ["CSB", "CSB", 31103], ["NASB", "NASB", 31102]
+  ];
+  var tempGeneration = 0, tempMessage = "", tempLoading = false;
+  var BEBLIA_SOURCE = "https://raw.githubusercontent.com/Beblia/Holy-Bible-XML-Format/61622da8959f66266a977e50effd9534e9093384/";
+
+  function parseBeblia(xml, expectedCount) {
+    var doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror") || !doc.documentElement || doc.documentElement.tagName !== "bible") {
+      throw new Error("Invalid Bible XML; the source format may have changed.");
+    }
+    var books = doc.querySelectorAll("bible > testament > book"), lines = [], seen = {};
+    var chapters = 0;
+    if (books.length !== BOOKS.length) throw new Error("Incomplete Bible: expected 66 books.");
+    Array.prototype.forEach.call(books, function (book) {
+      var bi = Number(book.getAttribute("number")) - 1;
+      if (!Number.isInteger(bi) || !BOOKS[bi] || seen[bi]) throw new Error("Invalid Bible book numbering.");
+      seen[bi] = true;
+      var seenChapters = {};
+      Array.prototype.forEach.call(book.children, function (chapter) {
+        var ch = Number(chapter.getAttribute("number")), seenVerses = {};
+        if (chapter.tagName !== "chapter" || !Number.isInteger(ch) || ch < 1 || seenChapters[ch]) throw new Error("Invalid Bible chapter.");
+        seenChapters[ch] = true; chapters++;
+        Array.prototype.forEach.call(chapter.children, function (verse) {
+          var v = Number(verse.getAttribute("number"));
+          var text = verse.textContent.replace(/\s+/g, " ").trim();
+          if (verse.tagName !== "verse" || !Number.isInteger(v) || v < 1 || seenVerses[v] || !text) throw new Error("Invalid Bible verse.");
+          seenVerses[v] = true;
+          lines.push(BOOKS[bi][1] + " " + ch + ":" + v + " " + text);
+        });
+      });
+    });
+    if (chapters !== 1189 || lines.length !== expectedCount) throw new Error("Incomplete Bible; the source verse count has changed.");
+    return lines.join("\n");
+  }
+
+  function loadTemporaryVersions() {
+    if (embeddedMode || tempLoading) return Promise.resolve();
+    var generation = tempGeneration, failed = [];
+    tempLoading = true;
+    var chain = Promise.resolve();
+    TEMP_TRANSLATIONS.forEach(function (spec) {
+      chain = chain.then(function () {
+        if (generation !== tempGeneration || versions.some(function (v) { return v.name.replace(/\.[^.]+$/, "") === spec[0]; })) return;
+        tempMessage = "Loading " + spec[0] + " for this session…";
+        renderInfo();
+        var controller = new AbortController();
+        var timeout = setTimeout(function () { controller.abort(); }, 30000);
+        return fetch(BEBLIA_SOURCE + "English" + spec[1] + "Bible.xml", { cache: "no-store", signal: controller.signal })
+          .then(function (response) {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            return response.text();
+          })
+          .then(function (xml) {
+            if (generation !== tempGeneration) return;
+            var text = parseBeblia(xml, spec[2]);
+            loadVersions([{ name: spec[0] + ".txt", text: text }], false, false, true);
+          })
+          .catch(function (err) { failed.push(spec[0]); console.warn("Could not load " + spec[0] + ":", err); })
+          .then(function () { clearTimeout(timeout); });
+      });
+    });
+    return chain.then(function () {
+      tempLoading = false;
+      if (generation !== tempGeneration) return;
+      tempMessage = failed.length ? "Could not load " + failed.join(", ") + ". Connect to the internet and retry." : "";
+      renderInfo();
+    });
+  }
+
+  function orderDefaultVersions() {
+    var active = versions[cur], order = ["RcV"].concat(TEMP_TRANSLATIONS.map(function (t) { return t[0]; }));
+    versions.sort(function (a, b) {
+      var ai = order.indexOf(a.name.replace(/\.[^.]+$/, "")), bi = order.indexOf(b.name.replace(/\.[^.]+$/, ""));
+      return (ai < 0 ? order.length : ai) - (bi < 0 ? order.length : bi);
+    });
+    activate(versions.indexOf(active));
+  }
+
   function updateVersionUI() { $("pVer").hidden = versions.length < 2; }
 
   // label for a run of verses in one particular version
@@ -2552,7 +2638,17 @@
   }
   function setVersion(i) {
     if (versions.length < 2 || !versions[i]) return;
-    if (i !== cur) { activate(i); refreshVersionView(); renderInfo(); }
+    if (i !== cur) {
+      var source = sbsEl && sbsSrc ? { bi: +sbsSrc.dataset.bi, ch: +sbsSrc.dataset.ch, v: +sbsSrc.dataset.v } : null;
+      activate(i); refreshVersionView(); renderInfo();
+      if (sbsEl) {
+        if (source) {
+          sbsSrc = verses().filter(function (v) { return +v.dataset.bi === source.bi && +v.dataset.ch === source.ch && +v.dataset.v === source.v; })[0] || sbsSrc;
+          sbsPrev = sbsSrc;
+        }
+        sbsRefresh();
+      }
+    }
     flashVersion();
   }
   function removeVersion(i) {
@@ -2563,6 +2659,7 @@
     saveVersions(); refreshVersionView(); renderInfo(); updateVersionUI();
   }
   function clearAll() {
+    tempGeneration++; tempMessage = "";
     kv("readwrite", function (s) { return s.delete("versions"); }).catch(function () {});
     kv("readwrite", function (s) { return s.delete("bible"); }).catch(function () {});
     chapSaved = null;
@@ -2583,7 +2680,7 @@
       var b = document.createElement("button");
       b.type = "button"; b.className = "vchip" + (i === cur ? " on" : "");
       b.textContent = (i + 1) + " " + v.name.replace(/\.[^.]+$/, "");
-      b.title = v.name + " \u2014 " + v.count.toLocaleString() + " verses (press " + (i + 1) + ")";
+      b.title = v.name + (v.temporary ? " (this session only)" : "") + " \u2014 " + v.count.toLocaleString() + " verses (press " + (i + 1) + ")";
       b.onclick = function () { setVersion(i); };
       g.appendChild(b);
       if (!embeddedMode) {
@@ -2596,6 +2693,16 @@
       info.appendChild(g);
     });
     if (embeddedMode) return;
+    if (tempMessage) {
+      var note = document.createElement("span");
+      note.setAttribute("role", "status"); note.textContent = " " + tempMessage;
+      info.appendChild(note);
+      if (!tempLoading) {
+        var retry = document.createElement("button");
+        retry.type = "button"; retry.className = "link"; retry.textContent = "Retry translations";
+        retry.onclick = loadTemporaryVersions; info.appendChild(retry);
+      }
+    }
     function link(label, fn) {
       info.appendChild(document.createTextNode(" \u00b7 "));
       var l = document.createElement("button");
@@ -2609,7 +2716,7 @@
 
   function exportCopy() {
     var tag = "<" + 'script type="application/json" id="embedded">' +
-      JSON.stringify({ versions: versions.map(function (v) { return { name: v.name, text: v.text }; }) }).replace(/</g, "\\u003c") +
+      JSON.stringify({ versions: versions.filter(function (v) { return !v.temporary; }).map(function (v) { return { name: v.name, text: v.text }; }) }).replace(/</g, "\\u003c") +
       "</" + "script>";
     var html = SRC.replace("<!--" + "EMBED-->", function () { return tag; });
     var a = document.createElement("a");
@@ -2619,17 +2726,20 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   }
 
-  function loadVersions(list, save, embedded) {
+  function loadVersions(list, save, embedded, temporary) {
     var added = 0, bad = [];
-    list.forEach(function (it) { if (addVersion(it.text, it.name)) added++; else bad.push(it.name); });
+    list.forEach(function (it) { if (addVersion(it.text, it.name, temporary)) added++; else bad.push(it.name); });
     var st = $("status");
     if (!versions.length) {
       st.textContent = "No verses recognized. Lines should look like: Gen. 1:1 In the beginning...";
       st.className = "error";
       return;
     }
-    st.textContent = bad.length ? "No verses recognized in: " + bad.join(", ") : "";
-    st.className = bad.length ? "error" : "";
+    if (temporary) orderDefaultVersions();
+    if (!temporary) {
+      st.textContent = bad.length ? "No verses recognized in: " + bad.join(", ") : "";
+      st.className = bad.length ? "error" : "";
+    }
     embeddedMode = !!embedded;
     if (save && added) saveVersions();
     renderInfo(); updateVersionUI();
@@ -3829,25 +3939,45 @@
   // ---- S: every loaded version of a verse side by side; S (or Esc) again goes back ----
   var sbsEl = null, sbsPrev = null, sbsFs = 0, sbsSrc = null, sbsStray = null, sbsTitle = null, sbsGrid = null;   // sbsFs: chosen text size in px, 0 = automatic
   try { sbsFs = parseFloat(localStorage.getItem("lsm_sbsfs")) || 0; } catch (e) {}
+  var sbsFilling = false;
   function sbsApplySize() {
     if (!sbsEl) return;
-    if (sbsFs) sbsEl.style.setProperty("--sbs-fs", sbsFs + "px"); else sbsEl.style.removeProperty("--sbs-fs");
+    sbsEl.classList.toggle("filling", sbsFilling);
+    if (sbsFilling) {
+      // Fit all comparison rows, including their labels and the header, in the viewport.
+      var lo = 10, hi = 120;
+      sbsEl.scrollTop = 0;
+      while (hi - lo > 0.25) {
+        var mid = (lo + hi) / 2;
+        sbsEl.style.setProperty("--sbs-fs", mid + "px");
+        if (sbsEl.scrollHeight <= sbsEl.clientHeight && sbsEl.scrollWidth <= sbsEl.clientWidth) lo = mid;
+        else hi = mid;
+      }
+      sbsEl.style.setProperty("--sbs-fs", lo + "px");
+    } else if (sbsFs) sbsEl.style.setProperty("--sbs-fs", sbsFs + "px");
+    else sbsEl.style.removeProperty("--sbs-fs");
+  }
+  function sbsToggleFill() {
+    if (!sbsEl) return;
+    sbsFilling = !sbsFilling;
+    sbsApplySize();
   }
   function sbsResize(dir) {   // dir: 1 bigger, -1 smaller, 0 back to automatic
     if (!sbsEl) return;
     if (!dir) sbsFs = 0;
     else {
-      var t = sbsEl.querySelector(".sbstext"), cur = sbsFs || (t ? parseFloat(getComputedStyle(t).fontSize) : 20);
+      var t = sbsEl.querySelector(".sbstext"), cur = (!sbsFilling && sbsFs) || (t ? parseFloat(getComputedStyle(t).fontSize) : 20);
       if (!cur || isNaN(cur)) cur = 20;
       sbsFs = Math.max(10, Math.min(120, Math.round(cur * (dir > 0 ? 1.12 : 1 / 1.12) * 10) / 10));
     }
+    sbsFilling = false;
     sbsApplySize();
     try { if (sbsFs) localStorage.setItem("lsm_sbsfs", String(sbsFs)); else localStorage.removeItem("lsm_sbsfs"); } catch (e) {}
   }
   function sbsClose(refocus) {
     if (!sbsEl) return;
     if (sbsEl.parentNode) sbsEl.parentNode.removeChild(sbsEl);
-    sbsEl = null;
+    sbsEl = null; sbsFilling = false;
     if (refocus && !presenting && sbsPrev && document.contains(sbsPrev)) {
       try { sbsPrev.focus({ preventScroll: true }); } catch (e) { sbsPrev.focus(); }
     }
@@ -3857,16 +3987,23 @@
   function sbsFill(bi, ch, vs) {
     sbsTitle.textContent = refOf({ bi: bi, ch: ch, v: vs });
     sbsGrid.innerHTML = "";
-    versions.forEach(function (ver, i) {
+    var order = [cur];
+    versions.forEach(function (ver, i) { if (i !== cur) order.push(i); });
+    order.forEach(function (i) {
+      var ver = versions[i];
       var e = ver.data[bi] && ver.data[bi][ch] && ver.data[bi][ch][vs];
       var card = document.createElement("div"); card.className = "sbscard" + (i === cur ? " cur" : "");
+      card.dataset.vi = i; card.tabIndex = 0;
+      card.setAttribute("role", "button"); card.setAttribute("aria-pressed", i === cur ? "true" : "false");
+      card.setAttribute("aria-label", "Select " + ver.name.replace(/\.[^.]+$/, ""));
+      card.onclick = function () { setVersion(i); };
       var n = document.createElement("div"); n.className = "sbsname"; n.textContent = (i + 1) + ": " + ver.name.replace(/\.[^.]+$/, "");
       var r = document.createElement("div"); r.className = "sbsref"; r.textContent = refOfV(ver, bi, ch, vs);
       var t = document.createElement("div"); t.className = "sbstext"; t.textContent = e ? e.text : "(not in this version)";
       var lab = document.createElement("div"); lab.className = "sbslabel"; lab.appendChild(n); lab.appendChild(r);
       card.appendChild(lab); card.appendChild(t); sbsGrid.appendChild(card);
     });
-    if (sbsEl) sbsEl.scrollTop = 0;
+    if (sbsEl) { sbsEl.scrollTop = 0; sbsApplySize(); }
   }
   // the verse the comparison currently shows
   function sbsCoords() {
@@ -3908,7 +4045,7 @@
     el.id = "sbs"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Versions side by side");
     var head = document.createElement("div"); head.className = "sbshead";
     var title = document.createElement("div"); title.className = "sbstitle"; title.textContent = refOf({ bi: bi, ch: ch, v: vs });
-    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
+    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "Click / 1–0 version \u00b7 F fill \u00b7 B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
     var sz = document.createElement("div"); sz.className = "sbssize";
     [["\u2212", -1, "Smaller text"], ["+", 1, "Larger text"]].forEach(function (b) {
       var btn = document.createElement("button"); btn.type = "button"; btn.textContent = b[0]; btn.setAttribute("aria-label", b[2]);
@@ -4033,13 +4170,20 @@
   // while the comparison is open it owns the keyboard
   document.addEventListener("keydown", function (e) {
     if (!sbsEl) return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.key === "Tab") return;
+    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.tagName === "BUTTON") return;
     e.preventDefault(); e.stopImmediatePropagation();
     var k = e.key, lk = k.toLowerCase();
+    if (/^[0-9]$/.test(k)) { if (!e.repeat) setVersion(k === "0" ? 9 : +k - 1); return; }
+    if ((k === "Enter" || k === " ") && e.target && e.target.dataset.vi !== undefined) {
+      if (!e.repeat) { setVersion(+e.target.dataset.vi); sbsGrid.querySelector(".cur").focus(); }
+      return;
+    }
+    if (lk === "f") { if (!e.repeat) sbsToggleFill(); return; }
     if (lk === "s" || k === "Escape") { if (!e.repeat) sbsClose(true); return; }
     if (k === "+" || k === "=") { sbsResize(1); return; }
     if (k === "-" || k === "_") { sbsResize(-1); return; }
-    if (k === "0") { sbsResize(0); return; }
+    if (k === "Backspace") { sbsResize(0); return; }
     if (lk === "n" || lk === "b") { sbsBible(lk === "n" ? 1 : -1); return; }
     var mv = VIM.hasOwnProperty(lk) ? VIM[lk] : k;
     if (mv === "ArrowRight" || mv === "ArrowDown") { sbsSearched(1); return; }
@@ -4136,9 +4280,10 @@
 
   document.addEventListener("fullscreenchange", function () {
     if (!presenting && presRestore) { restorePresState(); setTimeout(restorePresState, 50); }
+    if (sbsEl && sbsFilling) sbsApplySize();
     if (presenting) fitPresent();   // leaving real full screen (e.g. Esc) keeps the window-sized presentation
   });
-  window.addEventListener("resize", function () { if (presenting) fitPresent(); });
+  window.addEventListener("resize", function () { if (presenting) fitPresent(); if (sbsEl && sbsFilling) sbsApplySize(); });
 
   // ---- touch: action bar, presentation buttons, swipe ----
   function updateBar() {
@@ -5247,7 +5392,8 @@
             return fromNetwork();
           });
       })
-      .catch(function (err) { console.warn("Reading stored versions failed:", err); return fromNetwork(); });
+      .catch(function (err) { console.warn("Reading stored versions failed:", err); return fromNetwork(); })
+      .then(loadTemporaryVersions);
   }
 })();
 </script>  <script id="acswebapps-usage">
@@ -5338,7 +5484,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v47">
+<script id="acswebapps-updater" data-version="verse-lookup-v49">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

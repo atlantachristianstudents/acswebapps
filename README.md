@@ -42,7 +42,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [Verse Review](https://acswebapps.com/apps/verse-review/) | Create Bible verse flashcards to practice memorizing Scripture, then review each card on a spaced schedule. Private and offline-friendly. | beta |
 | [Show Songs](https://acswebapps.com/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Also maintained in the standalone [Tune repository](https://github.com/zioninzion/tune). | live |
-| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, and a downloadable Recovery Version. | live |
+| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, a downloadable Recovery Version, and seven session-only English translations. | live |
 | [Songbook](https://acswebapps.com/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
 Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (listed but not yet available).

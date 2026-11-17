@@ -3,9 +3,9 @@
 set -eu
 
 cd -- "${0:A:h}"
-url='http://localhost:8000'
+url='http://localhost:1440'
 
-python3 -m http.server 8000 --bind 127.0.0.1 &
+python3 -m http.server 1440 --bind 127.0.0.1 &
 server_pid=$!
 trap 'kill "$server_pid" 2>/dev/null || true' EXIT
 trap 'exit 130' INT
