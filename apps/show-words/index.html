@@ -549,7 +549,7 @@
     <tr><td>Cog → Import outline (or <kbd>I</kbd> with the cog open)</td><td>Choose a PDF or text outline (points ending “—Rom. 1:1; 2:3” or citing verses in parentheses). The verses of each point, and the Scripture Reading, are put in the search box as parts separated by <kbd>|</kbd>; press <kbd>Enter</kbd> to select the first verse, then <kbd>Enter</kbd> to present one slide per part or <kbd>Space</kbd> for scrolling slides. <em>v.</em> / <em>vv.</em> and a bare <em>2:7</em> take their book or chapter from the verse before, so check those.</td></tr>
     <tr><td><kbd>|</kbd></td><td>Separate parts with a vertical bar, e.g. <kbd>eph 1:9-10; gen 1:26 | rev 4:11 | rev 22:1</kbd>, and press <kbd>Enter</kbd> to select the first verse, then <kbd>Enter</kbd> for fitted slides or <kbd>Space</kbd> for scrolling slides (Left/Right or <kbd>H</kbd>/<kbd>L</kbd> switches groups); arrows or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between slides, and a slide of one verse or one run of verses can be extended with <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>B</kbd> A part can lean on the one before it: <kbd>eph 1:5 | 6 | 5:3 | 7</kbd> reads as Eph. 1:5, 1:6, 5:3, 5:7 (a period straight after a comma or semicolon holds that part back until the next press: <kbd>rom 3:4,.5 | heb 2:4</kbd> shows Rom. 3:4, then 3:4–5 on the next press, with the text size unchanged; <kbd>rom 3:4, 5</kbd> shows both at once) (a bare number is a verse in the last chapter shown; after a whole chapter it is a chapter; a book name starts afresh). In any reference a period works like a colon (<kbd>3.16</kbd> = <kbd>3:16</kbd>), and <kbd>3:4, 5:3</kbd> means 3:4; 5:3 while <kbd>3:4, 5</kbd> means verses 3:4 and 3:5.</td></tr>
     <tr><td><kbd>S</kbd></td><td>Show the current verse in every loaded version, one per row; press <kbd>S</kbd> (or <kbd>Esc</kbd>) again to go back; <kbd>B</kbd> / <kbd>N</kbd> show the previous / next verse in the Bible, <kbd>←</kbd><kbd>↓</kbd><kbd>↑</kbd><kbd>→</kbd> or <kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> move between the searched verses (<kbd>PgUp</kbd> / <kbd>PgDn</kbd> scroll); <kbd>+</kbd> / <kbd>−</kbd> change the text size (<kbd>0</kbd> resets)</td></tr>
-    <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
+    <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word (the first fully visible word in scroll presentation) is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>Present the current verse, maximized in the window (<kbd>Shift</kbd>+<kbd>F</kbd> for true full screen). If two or more verses are selected, only those are cycled through</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>O</kbd></td><td>Toggle presentation context (remembered). Scroll mode opens the selected verse within its full chapter. In scroll mode, <kbd>N</kbd> / <kbd>B</kbd> move to the next / previous chapter (B lands on the last verse); hold Shift to add the chapter while keeping your place.</td></tr>
     <tr><td><kbd>Space</kbd></td><td>Open a scrollable presentation of the search results (or selected verses). Scroll with the mouse, touch, arrows, Space or Page Up/Down; press Esc to close.</td></tr>
@@ -4966,13 +4966,26 @@
     if (!words.length) { container.innerHTML = saved; return false; }
     pron.ref = verseEl ? verseEl.dataset.ref : (presenting && presVerse() ? presVerse().dataset.ref : "");
     pron.on = true; pron.host = container; pron.saved = saved; pron.verse = verseEl; pron.words = words;
-    pron.idx = startAt < 0 ? words.length - 1 : startAt;
+    pron.idx = startAt < 0 ? words.length - 1 : 0;
+    if (startAt === "visible") {
+      var box = $("ptext"), bounds = box.getBoundingClientRect();
+      var top = Math.max(0, bounds.top + box.clientTop), left = Math.max(0, bounds.left + box.clientLeft);
+      var bottom = Math.min(window.innerHeight, bounds.top + box.clientTop + box.clientHeight);
+      var right = Math.min(window.innerWidth, bounds.left + box.clientLeft + box.clientWidth);
+      for (var i = 0; i < words.length; i++) {
+        var r = words[i].getBoundingClientRect();
+        if (r.width && r.height && r.top >= top && r.bottom <= bottom && r.left >= left && r.right <= right) {
+          pron.idx = i;
+          break;
+        }
+      }
+    } else pron.idx = startAt < 0 ? words.length - 1 : startAt;
     pronShow();
     return true;
   }
   function pronStart(v) {
     var ok = false;
-    if (presenting) ok = pronBegin($("pinner"), null, 0);
+    if (presenting) ok = pronBegin($("pinner"), null, scrollPresent ? "visible" : 0);
     else {
       var af = document.activeElement;
       v = v || (af && af.classList && af.classList.contains("verse") ? af : verses().filter(function (x) { return x.classList.contains("sel"); })[0]);
@@ -5324,7 +5337,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v45">
+<script id="acswebapps-updater" data-version="verse-lookup-v46">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

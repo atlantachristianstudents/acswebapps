@@ -740,7 +740,15 @@
           return searchIndex.filter(function (song) {
             return words.every(function (word) { return song.text.indexOf(word) >= 0 || song.number === word; });
           }).sort(function (a, b) {
-            function rank(song) { return song.number === normalized ? 0 : song.heading.indexOf(normalized) === 0 ? 1 : song.heading.indexOf(normalized) >= 0 ? 2 : 3; }
+            function rank(song) {
+              if (song.number === normalized) return 0;
+              if (song.heading === normalized) return 1;
+              if (song.heading.indexOf(normalized) === 0) return 2;
+              if (song.heading.indexOf(normalized) >= 0) return 3;
+              if (words.every(function (word) { return song.heading.indexOf(word) >= 0; })) return 4;
+              if (song.text.indexOf(normalized) >= 0) return 5;
+              return 6;
+            }
             return rank(a) - rank(b) || (Number(a.number) || Infinity) - (Number(b.number) || Infinity) || a.title.localeCompare(b.title);
           });
         }
@@ -5700,7 +5708,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v137">
+<script id="acswebapps-updater" data-version="big-text-v138">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
