@@ -21,6 +21,7 @@ Open the address once while online; the app caches itself. After that it works w
 - In side-by-side comparison (**S**), the selected translation appears first. Click a translation row or press **1–9** (**0** selects the tenth version) to select it. Number shortcuts use the original version numbers, even when the rows move. **F** fits all comparison rows to the screen; press it again to restore the previous size. Fill refits when the verse, selected translation, or window size changes. **Backspace** resets comparison text size.
 - Enter exits present mode while keeping browser full screen active. Shift+F toggles full screen.
 - In scroll presentation, Shift+B / Shift+N adds the previous / next chapter while keeping the visible verse at the same screen position, including when expanding a regular scrolling verse view. Scrollbar space is reserved to keep line wrapping steady.
+- Exiting scroll presentation returns the cursor to the most recent first fully visible verse. Chapter context retains the last matching result when the visible verse is outside the search results; existing multi-verse selections are preserved.
 - In scroll presentation, turning on pronunciation starts at the first fully visible word in the text area. Pronunciation mode takes priority for arrow keys and H/J/K/L (including Shift); these keys move the pronunciation cursor, and the view scrolls as needed to keep the current word visible.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 

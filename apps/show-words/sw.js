@@ -1,5 +1,5 @@
 // Verse Lookup offline cache. Bump VERSION when you replace index.html.
-var VERSION = "verse-lookup-v49";
+var VERSION = "verse-lookup-v50";
 var FILES = ["./", "./index.html", "./display.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})})); }).then(function () { return self.skipWaiting(); }));

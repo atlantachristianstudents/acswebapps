@@ -3264,6 +3264,31 @@
     }
     // not in the results at all: presCursor stays on the last in-results verse shown
   }
+  // Scrolling changes the reading position without changing pi. Track the first
+  // fully visible row, retaining the last in-results position in chapter context.
+  function trackScrollPresCursor() {
+    if (!presenting || !scrollPresent || slideMode || sbsEl) return;
+    var box = $("ptext"), bounds = box.getBoundingClientRect();
+    var top = Math.max(0, bounds.top + box.clientTop), bottom = Math.min(window.innerHeight, top + box.clientHeight);
+    var rows = $("pinner").querySelectorAll(".scrollverse[data-pos]");
+    for (var i = 0; i < rows.length; i++) {
+      var rect = rows[i].getBoundingClientRect();
+      if (rect.top < top - 0.5) continue;
+      if (rect.bottom > bottom + 0.5) break;
+      if (rows[i].dataset.resultIndex !== undefined) {
+        presCursor = +rows[i].dataset.resultIndex;
+      } else {
+        var pos = rows[i].dataset.pos, all = verses();
+        for (var k = 0; k < all.length; k++) {
+          var d = all[k].dataset;
+          if (d.bi + ":" + d.ch + ":" + d.v === pos) { presCursor = k; break; }
+        }
+      }
+      return;
+    }
+  }
+  $("ptext").addEventListener("scroll", trackScrollPresCursor, { passive: true });
+
   function renderPresent() { renderPresent0(); applyMarks(); }
   function renderPresent0() {
     pronOff();
@@ -3272,9 +3297,10 @@
     if (scrollPresent) {
       var pin = $("pinner");
       pin.textContent = "";
-      presList().forEach(function (v) {
+      presList().forEach(function (v, i) {
         var row = document.createElement("div"); row.className = "scrollverse";
         row.dataset.pos = v.dataset.bi + ":" + v.dataset.ch + ":" + v.dataset.v;
+        row.dataset.resultIndex = presIdx[i];
         var ref = document.createElement("span"); ref.className = "scrollref";
         ref.textContent = v.dataset.ref + (v.dataset.ver ? " · " + v.dataset.ver : "");
         row.appendChild(ref);
@@ -3318,6 +3344,7 @@
     };
     presIdx = presSubset ? sel : list.map(function (v, k) { return k; });
     pi = Math.max(0, presIdx.indexOf(i));
+    presCursor = presIdx[pi];
     presStray = null; presExt = null;
     presenting = true;
     scrollPresent = !!scroll;
@@ -3331,6 +3358,7 @@
     if (scrollPresent && !contextPresent && $("pinner").children[pi]) {
       $("ptext").scrollTop = $("pinner").children[pi].offsetTop - $("pinner").offsetTop;
     }
+    trackScrollPresCursor();
   }
   var presSaved = null, presRestore = false;
   // put the cursor, selection and scroll back exactly as they were before presenting
@@ -3360,6 +3388,7 @@
   }
   function closePresent(keepFullscreen) {
     if (!presenting) return;
+    trackScrollPresCursor();
     pronOff();
     sbsClose(false);
     // the cursor follows the presentation: it lands on the verse last shown (or, if that one is not
@@ -5484,7 +5513,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v49">
+<script id="acswebapps-updater" data-version="verse-lookup-v50">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
