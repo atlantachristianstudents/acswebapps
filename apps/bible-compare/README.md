@@ -4,7 +4,8 @@ Read Scripture and compare verses side by side across Bible translations, with t
 
 ## Features
 
-- One search box does everything: type a reference (`John 3:16`), a book name (`John` — pick a chapter from the list), or words (`light`) and results appear live below it. Clicking a result opens the passage.
+- Two modes: **Read** (chapters side by side across translations, as before) and **Compare** (pick individual verses from the search results and see each translation stacked under the verse reference, one verse per block).
+- One search box does everything: type a reference (`John 3:16`), a book name (`John` — pick a chapter from the list), or words (`light`) and results appear live below it. Clicking a result opens the passage (Read) or adds it to the comparison (Compare).
 - Word search defaults to the Recovery Version only; a "Search in" selector at the top of the results widens it to every downloaded translation.
 - ‹ › buttons move between chapters; arrow keys work too.
 - RcV is always the first translation; add more translations to compare verses side by side, aligned by verse reference (verses missing from one translation show "—").
