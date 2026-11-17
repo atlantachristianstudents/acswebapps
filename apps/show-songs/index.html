@@ -40,6 +40,8 @@
         --bg: #e9edef;
         --fg: #0c1317;
         --hint: #56646c;
+        --controls-height: 64px;
+        --controls-gap: 4px;
         --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
         --font-utility: "IBM Plex Mono", ui-monospace, Menlo, monospace;
       }
@@ -99,34 +101,43 @@
       }
       /* Click the display, use m, or use a touch screen to reveal controls. */
       #pad {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 6px;
+        z-index: 21;
+        box-sizing: border-box;
+        padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left));
+        background: var(--bg);
         display: flex;
-        gap: 6px;
-        height: 104px;
-        max-height: 30vh;
+        gap: 3px;
+        height: auto;
+        max-height: min(var(--controls-height), 30vh);
         flex: 0 0 auto;
         flex-wrap: wrap;
         align-content: flex-start;
-        margin-top: 8px;
+        margin-top: var(--controls-gap);
         overflow: auto;
+        scrollbar-width: thin;
         -webkit-overflow-scrolling: touch;
       }
       #pad {
         -webkit-tap-highlight-color: transparent;
       }
       body.has-pad #stage {
-        height: calc(100% - min(104px, 30vh) - 8px);
+        height: calc(100% - min(var(--controls-height), 30vh) - var(--controls-gap));
       }
       #pad button, #presentation button {
         flex: 0 0 auto;
-        min-width: 44px;
-        min-height: 44px;
-        padding: 0 12px;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0 6px;
         border: 1px solid var(--hint);
-        border-radius: 8px;
+        border-radius: 4px;
         background: transparent;
         color: var(--fg);
-        font: 400 12px var(--font-utility);
-        letter-spacing: 0.08em;
+        font: 400 11px/1.2 var(--font-utility);
+        letter-spacing: 0.02em;
         text-transform: uppercase;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
@@ -156,6 +167,9 @@
         background: var(--bg);
         color: var(--fg);
         font-family: Arial, sans-serif;
+      }
+      body.has-pad #presentation {
+        padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + min(var(--controls-height), 30vh) + var(--controls-gap));
       }
       #presentation header, #presentation footer {
         display: flex;
@@ -222,13 +236,15 @@
       #presentation-numbers dt { font: 11px/1.5 var(--font-utility); color: var(--hint); overflow-wrap: anywhere; }
       #presentation-numbers dd { margin: 0 0 18px; font-size: clamp(36px, 5vw, 68px); font-weight: 700; overflow-wrap: anywhere; }
       #presentation-numbers dd:first-of-type { font-size: clamp(52px, 7vw, 96px); }
-      #presentation-refs[data-songbase="true"] dt,
-      #presentation-refs[data-songbase="true"] dd { white-space: nowrap; overflow-wrap: normal; }
+      #presentation-refs:not([data-title="true"]) dd,
+      #presentation-refs[data-compact="true"] dt { white-space: nowrap; overflow-wrap: normal; min-width: 0; }
       #presentation-refs[data-compact="true"] { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; column-gap: 10px; }
       #presentation-refs[data-compact="true"] dt,
       #presentation-refs[data-compact="true"] dd,
       #presentation-refs[data-compact="true"] dd:first-of-type { font-size: clamp(36px, 4.5vw, 60px); }
       #presentation-refs[data-compact="true"] dd { margin-bottom: 12px; }
+      #presentation-refs[data-title="true"] dd,
+      #presentation-refs[data-title="true"] dd:first-of-type { font-size: clamp(16px, 2vw, 22px); line-height: 1.35; }
       #presentation-capo { font: 13px/1.5 var(--font-utility); overflow-wrap: anywhere; margin: 0 0 16px; }
       .lyric-line, .guitar-line { display: flow-root; white-space: pre-wrap; }
       .lyric-phrase { display: inline-block; max-width: 100%; vertical-align: bottom; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -236,11 +252,15 @@
       .guitar-chord { position: absolute; top: 0; left: 0; font: 600 0.6em/1.2 var(--font-utility); white-space: nowrap; }
       #presentation-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; overflow-anchor: none; padding: 0; }
       #presentation-lyrics { box-sizing: border-box; flex: 0 0 auto; margin: auto; text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; width: 100%; }
+      /* Prefer breaks between punctuation-delimited phrases. If a phrase is
+         itself too wide, balance its internal word wrapping. */
+      #presentation-lyrics .lyric-line, #presentation-lyrics .guitar-line { text-wrap: balance; }
+      #presentation-lyrics .lyric-phrase { text-wrap: balance; }
       #presentation-lyrics[data-full-song="true"] { text-align: left; white-space: normal; column-gap: clamp(12px, 2vw, 32px); column-fill: balance; }
       #presentation-lyrics .song-section { display: inline-block; width: 100%; vertical-align: top; break-inside: avoid; break-inside: avoid-column; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.5em; }
       #presentation-lyrics .song-section:last-child { margin-bottom: 0; }
       #presentation-lyrics .song-part { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; column-gap: 2ch; break-inside: avoid; white-space: normal; margin-bottom: 0.5em; }
-      #presentation-lyrics .song-part-label { color: var(--hint); font-size: 0.65em; font-weight: 400; white-space: nowrap; }
+      #presentation-lyrics .song-part-label { color: var(--hint); font-size: 0.65em; font-weight: 400; white-space: nowrap; text-align: left; }
       /* Use normal block flow so wrapped rows contribute their entire height.
          Baseline alignment and nested flex layout are unreliable in CSS columns. */
       #presentation-lyrics .song-part-text { display: flow-root; min-width: 0; white-space: normal; }
@@ -461,9 +481,9 @@
         aria-label="Number to display"></textarea>
     </main>
     <nav id="pad" aria-label="On-screen controls" hidden>
-      <button type="button" data-act="hide">Hide controls</button>
+      <button type="button" data-act="hide" aria-label="Hide controls" title="Hide controls">Hide</button>
       <button type="button" data-act="search" aria-label="Search hymns" title="Search hymns"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
-      <button type="button" data-act="edit" data-for="editing">Enter text / number</button>
+      <button type="button" data-act="edit" data-for="editing" aria-label="Enter text / number" title="Enter text / number">Edit</button>
       <button type="button" data-act="digit0" data-for="num">0</button>
       <button type="button" data-act="digit1" data-for="num">1</button>
       <button type="button" data-act="digit2" data-for="num">2</button>
@@ -502,21 +522,21 @@
       <button type="button" data-act="text" data-for="num">Text</button>
       <button type="button" data-act="num" data-for="text">123</button>
       <button type="button" data-act="copy" data-for="editing">Copy</button>
-      <button type="button" data-for="presentation" data-act="prevSlide">Previous slide</button>
-      <button type="button" data-for="presentation" data-act="nextSlide">Next slide</button>
-      <button type="button" data-for="presentation" data-act="firstSlide">First slide</button>
-      <button type="button" data-for="presentation" data-act="lastSlide">Last slide</button>
-      <button type="button" data-for="presentation" data-act="prevStanza">Previous stanza</button>
-      <button type="button" data-for="presentation" data-act="nextStanza">Next stanza</button>
-      <button type="button" data-for="presentation" data-act="prevChorus">Previous chorus</button>
-      <button type="button" data-for="presentation" data-act="nextChorus">Next chorus</button>
-      <button type="button" data-for="presentation" data-act="song">Full song / slide</button>
-      <button type="button" data-for="presentation" data-act="repeatChorus" data-toggle>Repeat chorus</button>
+      <button type="button" data-for="presentation" data-act="prevSlide" aria-label="Previous slide" title="Previous slide">◀ Slide</button>
+      <button type="button" data-for="presentation" data-act="nextSlide" aria-label="Next slide" title="Next slide">Slide ▶</button>
+      <button type="button" data-for="presentation" data-act="firstSlide" aria-label="First slide" title="First slide">First</button>
+      <button type="button" data-for="presentation" data-act="lastSlide" aria-label="Last slide" title="Last slide">Last</button>
+      <button type="button" data-for="presentation" data-act="prevStanza" aria-label="Previous stanza" title="Previous stanza">◀ Stanza</button>
+      <button type="button" data-for="presentation" data-act="nextStanza" aria-label="Next stanza" title="Next stanza">Stanza ▶</button>
+      <button type="button" data-for="presentation" data-act="prevChorus" aria-label="Previous chorus" title="Previous chorus">◀ Chorus</button>
+      <button type="button" data-for="presentation" data-act="nextChorus" aria-label="Next chorus" title="Next chorus">Chorus ▶</button>
+      <button type="button" data-for="presentation" data-act="song" aria-label="Full song / slide" title="Full song / slide">Song / slide</button>
+      <button type="button" data-for="presentation" data-act="repeatChorus" data-toggle aria-label="Repeat chorus" title="Repeat chorus">Repeat C</button>
       <button type="button" data-for="presentation" data-act="guitar" data-toggle>Guitar</button>
       <button type="button" data-for="presentation" data-act="bold">Bold</button>
-      <button type="button" data-for="presentation" data-act="numbers">Show / hide numbers</button>
+      <button type="button" data-for="presentation" data-act="numbers" aria-label="Show / hide numbers" title="Show / hide numbers">Numbers</button>
       <button type="button" data-for="presentation" data-act="languages">Languages</button>
-      <button type="button" data-for="presentation" data-act="sidebar">Show / hide sidebar</button>
+      <button type="button" data-for="presentation" data-act="sidebar" aria-label="Show / hide sidebar" title="Show / hide sidebar">Sidebar</button>
       <button type="button" data-for="presentation" data-act="exit">Exit presentation</button>
       <button type="button" data-act="help" aria-label="Shortcuts">?</button>
     </nav>
@@ -638,7 +658,7 @@
         var arrowFresh = false; // next digit starts a new number after navigation or presentation
         // Start fresh after number navigation or exiting presentation; otherwise append.
         function digitBase() {
-          var b = arrowFresh ? "" : value;
+          var b = arrowFresh || selectedLibrarySong ? "" : value;
           arrowFresh = false;
           return b;
         }
@@ -733,14 +753,24 @@
             setValue(song.number);
             focusInput();
             if (presentImmediately) startPresentation();
-          } else startPresentation(songsById[song.id]);
+          } else {
+            showLibrarySongTitle(songsById[song.id]);
+            focusInput();
+            if (presentImmediately) startPresentation(selectedLibrarySong);
+          }
+        }
+
+        function showLibrarySongTitle(song) {
+          if (!song) return;
+          if (textMode) setMode(false);
+          setValue(song.title, false, song);
         }
 
         function updateHymnSearch() {
           searchMatches = findHymns(searchInput.value);
           searchResults.textContent = "";
           var shown = searchMatches.slice(0, 40);
-          searchStatus.textContent = !searchInput.value.trim() ? "Search all " + songbaseData.songs.length.toLocaleString() + " songs in every language. Enter selects the first match; Esc closes search." : !searchMatches.length ? "No matching hymns." : searchMatches.length + " matches" + (searchMatches.length > shown.length ? " · showing first 40; type more to narrow" : "") + " · ↑ / ↓ to browse, Enter to select";
+          searchStatus.textContent = !searchInput.value.trim() ? "Search all " + songbaseData.songs.length.toLocaleString() + " songs in every language. Enter selects the first match or closes an empty search; Esc closes search." : !searchMatches.length ? "No matching hymns." : searchMatches.length + " matches" + (searchMatches.length > shown.length ? " · showing first 40; type more to narrow" : "") + " · ↑ / ↓ to browse, Enter to select";
           shown.forEach(function (song) {
             var button = document.createElement("button");
             button.type = "button";
@@ -779,7 +809,8 @@
             if (song) chooseSearchHymn(song, true);
           } else if (e.key === "Enter" && e.target === searchInput) {
             e.preventDefault();
-            if (searchMatches.length) chooseSearchHymn(searchMatches[0]);
+            if (!searchInput.value.trim()) closeHymnSearch();
+            else if (searchMatches.length) chooseSearchHymn(searchMatches[0]);
           } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             var buttons = Array.prototype.slice.call(searchResults.querySelectorAll("button"));
             if (!buttons.length) return;
@@ -803,11 +834,13 @@
         var presentationPrev = document.getElementById("presentation-prev");
         var presentationNext = document.getElementById("presentation-next");
         var presenting = false, presentationNumber = "", presentationSlides = [], presentationIndex = 0;
+        var presentationAlignment = ""; // Empty preserves the default for each view.
         var presentationBold = false;
         var presentationGuitar = false;
         var presentationFullSong = false;
         var presentationRepeatChorus = false;
         var presentationFocus = null;
+        var selectedLibrarySong = null; // Retain the source while its title is displayed.
         var presentationSong = null, presentationVersions = [], presentationLibrarySong = false;
         var presentationScale = 1; // keep the chosen size across stanza changes.
 
@@ -899,21 +932,39 @@
           });
         }
 
-        function fitSongbaseNumber() {
+        function fitPresentationNumbers() {
           var refs = document.getElementById("presentation-refs");
-          if (refs.getAttribute("data-songbase") !== "true" || !refs.clientWidth) return;
+          if (!refs.clientWidth || refs.getAttribute("data-title") === "true") return;
+          var compact = refs.getAttribute("data-compact") === "true";
           var width = refs.clientWidth;
-          Array.prototype.forEach.call(refs.children, function (element) {
-            element.style.fontSize = "";
-            var low = 1, high = parseFloat(window.getComputedStyle(element).fontSize), best = low;
-            for (var i = 0; i < 12; i++) {
-              var size = (low + high) / 2;
-              element.style.fontSize = size + "px";
-              if (element.scrollWidth <= width) { best = size; low = size; }
-              else high = size;
+          var gap = compact ? parseFloat(window.getComputedStyle(refs).columnGap) || 0 : 0;
+          var children = Array.prototype.slice.call(refs.children);
+          // Restore CSS sizes first so widening the sidebar can grow numbers again.
+          children.forEach(function (element) { element.style.fontSize = ""; });
+          var range = document.createRange();
+          for (var index = 0; index < children.length; index += compact ? children.length : 2) {
+            // Compact rows share grid columns: reserve the widest label and
+            // widest number, even when they occur on different rows.
+            var group = compact ? children : children.slice(index + 1, index + 2);
+            var sizes = group.map(function (element) { return parseFloat(window.getComputedStyle(element).fontSize); });
+            var low = 0, high = 1, best = 0;
+            for (var iteration = 0; iteration < 14; iteration++) {
+              var scale = (low + high) / 2;
+              var labelWidth = 0, numberWidth = 0;
+              group.forEach(function (element, item) {
+                element.style.fontSize = Math.max(1, sizes[item] * scale) + "px";
+                range.selectNodeContents(element);
+                var textWidth = range.getBoundingClientRect().width;
+                if (compact && item % 2 === 0) labelWidth = Math.max(labelWidth, textWidth);
+                else numberWidth = Math.max(numberWidth, textWidth);
+              });
+              if (labelWidth + gap + numberWidth <= width) { best = scale; low = scale; }
+              else high = scale;
             }
-            element.style.fontSize = best + "px";
-          });
+            group.forEach(function (element, item) {
+              element.style.fontSize = Math.max(1, sizes[item] * best) + "px";
+            });
+          }
         }
 
         function presentationFits(width, height) {
@@ -958,7 +1009,7 @@
         function fitPresentation() {
           if (!presenting) return;
           presentationScale = Math.min(1, presentationScale);
-          fitSongbaseNumber();
+          fitPresentationNumbers();
           // Measure without scrollbars changing the width during the search.
           presentationBody.style.overflow = "hidden";
           var width = presentationBody.clientWidth, height = presentationBody.clientHeight;
@@ -1000,6 +1051,14 @@
           renderPresentation();
         }
 
+        function togglePresentationAlignment() {
+          var current = presentationAlignment || (presentationFullSong ? "left" : "center");
+          presentationAlignment = current === "left" ? "center" : "left";
+          presentationLyrics.style.textAlign = presentationAlignment;
+          saveSettings();
+          fitPresentation();
+        }
+
         function togglePresentationBold() {
           presentationBold = !presentationBold;
           presentationLyrics.style.fontWeight = presentationBold ? "700" : "400";
@@ -1036,7 +1095,7 @@
         }
 
         function lyricPhrases(line) {
-          // Keep clauses together when they fit; long clauses still wrap at words.
+          // Keep punctuation-delimited clauses together; balance words only when a clause must wrap.
           // Ignore punctuation inside chord annotations and apostrophes in words.
           return line.match(/(?:\[[^\]\n]*\]|[^,;:.!?，；：。！？…])+[,;:.!?，；：。！？…]*(?:["”’»)]*(?=\s|$))?|[,;:.!?，；：。！？…]+/g) || [line];
         }
@@ -1046,7 +1105,7 @@
             var row = document.createElement("div");
             row.className = presentationGuitar ? "guitar-line" : "lyric-line";
             lyricPhrases(line).forEach(function (phrase, index) {
-              // Put spaces between inline blocks so the browser can break there.
+              // Preserve spaces between phrases so the browser can break there.
               var leading = phrase.match(/^\s+/);
               if (index && leading) {
                 row.appendChild(document.createTextNode(leading[0]));
@@ -1178,8 +1237,7 @@
           var sidebar = document.getElementById("presentation-numbers");
           sidebar.hidden = !sidebar.hidden;
           saveSettings();
-          if (sidebar.hidden) presentation.focus({ preventScroll: true });
-          else document.getElementById("presentation-exit").focus({ preventScroll: true });
+          presentation.focus({ preventScroll: true });
           fitPresentation();
         }
 
@@ -1198,9 +1256,9 @@
           var refs = [mainNumberRef()].concat(currentRefs() || []);
           var englishNumber = presentationSong && englishNumbersById[presentationSong.id];
           var isSongbase = presentationLibrarySong && !(Number(englishNumber) >= 1 && Number(englishNumber) <= 1348);
-          list.setAttribute("data-songbase", isSongbase ? "true" : "false");
-          if (presentationLibrarySong && !mainLanguage) refs = isSongbase
-            ? [{ label: "Songbase", num: String(presentationSong.id) }]
+          list.setAttribute("data-title", isSongbase ? "true" : "false");
+          if (presentationLibrarySong && (!mainLanguage || isSongbase)) refs = isSongbase
+            ? [{ label: "Title", num: presentationSong.title }]
             : [{ label: "English", num: englishNumber }];
           refs.forEach(function (ref) {
             var label = document.createElement("dt");
@@ -1216,6 +1274,7 @@
         }
 
         function startPresentation(librarySong) {
+          if (!librarySong && selectedLibrarySong && !textMode && value === selectedLibrarySong.title) librarySong = selectedLibrarySong;
           if (!librarySong && (textMode || !value)) return;
           var selectedVersions = !librarySong && mainLanguage ? mainLanguageSongs() : null;
           if (selectedVersions && !selectedVersions.length) { flash("No " + mainLanguage + " lyrics available for hymn " + value); return; }
@@ -1236,8 +1295,7 @@
           input.blur();
           renderPresentationRefs();
           selectHymnVersion();
-          if (document.getElementById("presentation-numbers").hidden) presentation.focus({ preventScroll: true });
-          else document.getElementById("presentation-exit").focus();
+          presentation.focus({ preventScroll: true });
         }
 
         var languageDialog = document.getElementById("song-languages");
@@ -1322,6 +1380,10 @@
           presenting = false;
           presentation.hidden = true;
           stage.inert = false;
+          var englishNumber = presentationSong && englishNumbersById[presentationSong.id];
+          if (presentationLibrarySong && !(Number(englishNumber) >= 1 && Number(englishNumber) <= 1348)) {
+            showLibrarySongTitle(presentationSong);
+          }
           document.body.insertBefore(pad, stage.nextSibling);
           syncPad();
           if (presentationFocus && presentationFocus.isConnected) presentationFocus.focus({ preventScroll: true });
@@ -1424,6 +1486,7 @@
               textMode: textMode, wrapOn: wrapOn, langOn: langOn,
               picked: { c: !!picked.c, k: !!picked.k, s: !!picked.s, b: !!picked.b },
               mainLanguage: mainLanguage, engOn: engOn, engAlt: engAlt, engRussian: engRussian,
+              presentationAlignment: presentationAlignment,
               presentationBold: presentationBold, presentationGuitar: presentationGuitar,
               presentationRepeatChorus: presentationRepeatChorus, presentationFullSong: presentationFullSong,
               sidebarHidden: document.getElementById("presentation-numbers").hidden,
@@ -1447,6 +1510,8 @@
           mainLanguage = Object.keys(QUICK).some(function (key) { return QUICK[key] === settings.mainLanguage; }) ? settings.mainLanguage : "";
           if (mainLanguage) { engOn = true; engAlt = false; langOn = false; }
           QUICK_ORDER.forEach(function (key) { picked[key] = !!(settings.picked && settings.picked[key] === true); });
+          presentationAlignment = settings.presentationAlignment === "left" || settings.presentationAlignment === "center" ? settings.presentationAlignment : "";
+          presentationLyrics.style.textAlign = presentationAlignment;
           presentationBold = flag("presentationBold", false);
           presentationGuitar = flag("presentationGuitar", false);
           presentationRepeatChorus = flag("presentationRepeatChorus", false);
@@ -4401,7 +4466,7 @@
         }
 
         function currentRefs() {
-          if (textMode || !value) return null;
+          if (textMode || selectedLibrarySong || !value) return null;
           var n = currentEnglishNumber();
           if (!mainLanguage && !(n >= 1 && n <= 1348)) return null;
           var cells = (XREF[n] || "").split(","),
@@ -4670,7 +4735,7 @@
           if (!value) return;
           var refs = currentRefs();
           var panel = refs ? panelLayout(refs) : null;
-          var showEng = engOn && !textMode;
+          var showEng = engOn && !textMode && !selectedLibrarySong;
           var engLabelH = 0;
           var res = showEng
             ? function (S) {
@@ -4771,11 +4836,13 @@
           scheduleDraw();
         }
 
-        function setValue(v, skipHistory) {
-          var nextValue = textMode ? String(v).replace(/\r\n?/g, "\n").replace(/\t/g, "") : (mainLanguage === "Chinese" && /^s/i.test(String(v)) ? "s" : "") + String(v).replace(/\D/g, "");
+        function setValue(v, skipHistory, librarySong) {
+          // A selected library title is a display value, not editable text.
+          var nextValue = librarySong ? librarySong.title : textMode ? String(v).replace(/\r\n?/g, "\n").replace(/\t/g, "") : (mainLanguage === "Chinese" && /^s/i.test(String(v)) ? "s" : "") + String(v).replace(/\D/g, "");
           input.setAttribute("inputmode", textMode || mainLanguage === "Chinese" ? "text" : "numeric");
           if (!skipHistory && nextValue !== value) rememberEdit();
           value = nextValue;
+          selectedLibrarySong = librarySong || null;
           if (input.value !== value) {
             input.value = value;
             try {
@@ -4790,7 +4857,7 @@
 
         // Digits keep a fixed height (from "0"); text uses its own ink so descenders fit.
         function inkV(m, z) {
-          var s = textMode ? m : z;
+          var s = textMode || selectedLibrarySong ? m : z;
           return { asc: s.actualBoundingBoxAscent, desc: s.actualBoundingBoxDescent };
         }
 
@@ -4848,7 +4915,7 @@
             ? [
                 "<strong>Hymn presentation</strong>",
                 searchHelp,
-                "space exits to the hymn number (esc does not exit)",
+                "space exits to the hymn number or song title (esc does not exit)",
                 "1–9 jump to a stanza" + d + "c next chorus" + d + "shift+c previous chorus",
                 "s next stanza" + d + "shift+s previous stanza" + d + "cycles wrap around",
                 "k / &larr; / &uarr; / page up previous slide" + d + "j / &rarr; / &darr; / page down next slide",
@@ -4857,6 +4924,7 @@
                 "l available song languages" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
                 "t next lyrics version (when available)",
                 "n show / hide hymn and language numbers" + d + "b toggle bold lyrics",
+                "shift+j toggle lyrics left / center alignment",
                 "click a numbered slide or c in the sidebar to jump directly",
                 "enter toggles full song / current slide" + d + "tab show / hide entire left sidebar",
                 "? / / shortcuts" + d + "any key closes this help without changing the slide",
@@ -4872,7 +4940,7 @@
                 "any key closes this",
               ]
             : [
-                "Type numbers &middot; backspace deletes &middot; enter clears &middot; u undo &middot; " +
+                "Type numbers &middot; backspace deletes &middot; enter searches &middot; u undo &middot; " +
                   MOD +
                   "+z undo" + d + MOD + "+shift+z / " + MOD + "+y redo",
                 "&larr; / &rarr; &plusmn;1" + d + "&uarr; / &darr; &plusmn;37" + d + "next digit then starts over",
@@ -4911,7 +4979,7 @@
         }
 
         function historyState() {
-          return { value: value, text: textMode, mainLanguage: mainLanguage, engOn: engOn, engAlt: engAlt };
+          return { value: value, text: textMode, librarySong: selectedLibrarySong, mainLanguage: mainLanguage, engOn: engOn, engAlt: engAlt };
         }
         function rememberEdit() {
           undoHistory.push(historyState());
@@ -4932,7 +5000,7 @@
           resetSize();
           mainLanguage = state.mainLanguage || "";
           engOn = !!state.engOn; engAlt = !!state.engAlt;
-          setValue(state.value, true);
+          setValue(state.value, true, state.librarySong);
           saveSettings();
           flash(message);
         }
@@ -5144,7 +5212,7 @@
             var entered = window.prompt(textMode ? "Text to display" : "Number to display", value);
             if (entered !== null) { arrowFresh = false; setValue(entered); }
           },
-          delete: function () { arrowFresh = false; setValue(value.slice(0, -1)); },
+          delete: function () { arrowFresh = false; setValue(selectedLibrarySong && !textMode ? "" : value.slice(0, -1)); },
           newline: function () { setValue(value + "\n"); },
           prevSlide: function () { movePresentation(-1); },
           nextSlide: function () { movePresentation(1); },
@@ -5220,7 +5288,7 @@
 
           if (presenting) {
             if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
-            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrRtT ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
+            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrRtTjJ ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
             if (e.key === "Tab") {
               e.preventDefault();
               if (!e.repeat) togglePresentationSidebar();
@@ -5242,6 +5310,7 @@
             else if ((e.key === "t" || e.key === "T") && !e.repeat) cycleHymnVersion();
             else if ((e.key === "n" || e.key === "N") && !e.repeat) togglePresentationNumbers();
             else if ((e.key === "b" || e.key === "B") && !e.repeat) togglePresentationBold();
+            else if ((e.key === "j" || e.key === "J") && e.shiftKey) { if (!e.repeat) togglePresentationAlignment(); }
             else if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === "j" || e.key === "J") movePresentation(1);
             else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp" || e.key === "k" || e.key === "K") movePresentation(-1);
             else if (e.key === "Home" || ((e.key === "h" || e.key === "H") && !e.shiftKey)) { presentationFullSong = false; presentationIndex = 0; renderPresentation(); }
@@ -5296,7 +5365,7 @@
           if (e.key === "Enter") {
             e.preventDefault();
             if (textMode) setValue(value + "\n");
-            else clearAll(); // number mode: Enter clears
+            else openHymnSearch(); // number mode: Enter opens search
             return;
           }
           if (textMode) {
@@ -5305,7 +5374,7 @@
               setMode(false);
             } else if (e.key === "Backspace") {
               e.preventDefault();
-              setValue(value.slice(0, -1));
+              setValue(selectedLibrarySong && !textMode ? "" : value.slice(0, -1));
             } else if (e.key.length === 1) {
               e.preventDefault();
               setValue(value + e.key);
@@ -5390,7 +5459,7 @@
           } else if (e.key === "Backspace") {
             e.preventDefault();
             arrowFresh = false;
-            setValue(value.slice(0, -1));
+            setValue(selectedLibrarySong && !textMode ? "" : value.slice(0, -1));
           }
         });
 
@@ -5417,12 +5486,12 @@
           if (t === "insertLineBreak" || t === "insertParagraph") {
             if (e.cancelable) {
               e.preventDefault();
-              clearAll();
+              openHymnSearch();
             }
           } else if (t === "deleteContentBackward") {
             if (e.cancelable) {
               e.preventDefault();
-              setValue(value.slice(0, -1));
+              setValue(selectedLibrarySong && !textMode ? "" : value.slice(0, -1));
             }
           } else if (t === "insertText" || t === "insertFromPaste" || t === "insertFromDrop") {
             if (e.cancelable) {
@@ -5440,7 +5509,8 @@
             return;
           }
           if (e && (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph")) {
-            clearAll();
+            input.value = value;
+            openHymnSearch();
             return;
           }
           var cur = input.value;
@@ -5454,6 +5524,7 @@
           while (j < maxj && cur.charAt(cur.length - 1 - j) === synced.charAt(synced.length - 1 - j)) j++;
           var removed = synced.length - i - j;
           var added = digitsOf(cur.slice(i, cur.length - j));
+          if (selectedLibrarySong && !added && removed !== 1) { input.value = value; return; }
           // Digits always go on the end. A real backspace removes exactly one character; a bigger
           // removal is the keyboard resetting its buffer (Enter, commit), so it is ignored.
           if (/^s/.test(added)) { arrowFresh = false; setValue(added); }
@@ -5629,7 +5700,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v125">
+<script id="acswebapps-updater" data-version="big-text-v137">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

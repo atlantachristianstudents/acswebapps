@@ -22,8 +22,7 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `0-9` | Type the number (number mode) |
 | `←` / `→` | Hymn number -1 / +1 |
 | `↑` / `↓` | Hymn number -37 / +37 |
-| `Backspace` | Delete (number mode) / clear (text mode via Enter) |
-| `Enter` | Clear (number mode) / new line (text mode) |
+| `Backspace` | Delete the last character, or clear a selected non-hymnal title |
 | `u` / `Ctrl/Cmd+Z` | Undo the previous content or number/text mode change |
 | `Ctrl/Cmd+Shift+Z` / `Ctrl/Cmd+Y` | Redo (also available through the Redo button) |
 | `-` / `+` | Smaller / bigger (with other languages showing, resizes them the opposite way) |
@@ -34,6 +33,7 @@ Press `?` (or `/`) in number mode to see the list in-app.
 | `h` | Cycle theme (system, black on white, white on black) — remembered |
 | `m` | Show / hide the on-screen buttons (remembered) |
 | `t` | Text mode (any characters); `Esc` or `Ctrl/Cmd+\` back to numbers |
+| `Enter` | Open song search in number mode without clearing the current number or song title; press Enter again with a blank query or cancel to return to the same display. In text mode, insert a new line. |
 | `Cmd/Ctrl+Enter` | Open hymn search from any mode; search titles and lyrics, use arrows to browse, Enter or click to select, Esc to cancel |
 | `Space` | When number mode is empty, open hymn search. Otherwise, present the current hymn from stanza 1; Space exits to the unchanged number; `1`–`9` jumps to a stanza, `c` / `Shift+C` cycles choruses forward / backward, `s` / `Shift+S` cycles stanzas forward / backward from the current slide |
 | `l` | All other languages for the number; always includes Chinese and both Spanish editions (`-` for missing matches) |
@@ -49,7 +49,7 @@ Undo and redo retain up to 500 content and number/text mode changes during the c
 
 E/K number views start one `+` step larger by default, giving the main number more room above the language panel.
 
-Click or tap any non-interactive area to toggle the on-screen controls. **Hide controls** or **Esc** also dismisses them; click a blank area again to bring them back. Buttons and other interactive elements keep their own actions. The magnifying-glass button opens hymn search. Their visibility is remembered, and touch screens show them by default. The scrollable toolbar sits at the bottom of the screen in number, text, and presentation modes and includes number entry, text/number editing, search, sizing, language views, and presentation actions (slide/stanza/chorus navigation, full song, bold, numbers, sidebar, fit, fullscreen, and exit). Presentation buttons share the number-mode controls’ font, uppercase labels, borders, and sizing. The presentation sidebar also lets you select individual stanzas and hymn versions.
+Click or tap any non-interactive area to toggle the on-screen controls. **Hide controls** or **Esc** also dismisses them; click a blank area again to bring them back. Buttons and other interactive elements keep their own actions. The magnifying-glass button opens hymn search. Their visibility is remembered, and touch screens show them by default. The compact, scrollable toolbar uses 28px buttons, short labels with full hover descriptions, and a 64px height limit at the bottom of the screen in number, text, and presentation modes and includes number entry, text/number editing, search, sizing, language views, and presentation actions (slide/stanza/chorus navigation, full song, bold, numbers, sidebar, fit, fullscreen, and exit). Presentation buttons share the number-mode controls’ font, uppercase labels, borders, and sizing. The presentation sidebar also lets you select individual stanzas and hymn versions.
 
 ## Notes
 - The other-language table is embedded in the page (`XREF`, 1348 rows); it is the site's own cross-reference of English hymn numbers.
@@ -72,7 +72,7 @@ The full embedded Songbase snapshot supplies all 1,348 English hymn numbers usin
 
 ### Hymn text search
 
-In empty number mode, press **Space** to search titles and lyrics across all 9,362 imported songs in 19 language categories. **Cmd+Enter** (Mac) / **Ctrl+Enter** opens search from number, text, presentation, or shortcut views. Search supports non-Latin scripts and ignores chords, accents, apostrophes, case, and punctuation; multiple words can match anywhere in the title or lyrics. Exact English hymn numbers and title matches rank first. Results include language and songbook numbers where available. Up to 40 results are shown; type more to narrow the list. Use arrows and Enter, or click a result, to display its hymn number. Press **Space** while a result is focused to present it immediately, including songs in the English hymnal. Spaces in the search field still enter search text. Selecting an English hymnal result returns to number mode; **Space** then presents it. Other songs open directly in presentation mode, and exiting returns to the previous display. Songs outside the English hymnal (1–1348) show **Songbase** on one line and their Songbase ID on the next; both lines fit the sidebar without wrapping, including after resizing. **Esc** or the close button cancels without changing the previous text, hymn, slide, or language selections. Search works offline and from `file://`; the full Songbase snapshot is embedded in the page.
+In number mode, press **Enter** (or **Space** when empty) to search titles and lyrics across all 9,362 imported songs in 19 language categories. **Cmd+Enter** (Mac) / **Ctrl+Enter** opens search from number, text, presentation, or shortcut views. Search supports non-Latin scripts and ignores chords, accents, apostrophes, case, and punctuation; multiple words can match anywhere in the title or lyrics. Exact English hymn numbers and title matches rank first. Results include language and songbook numbers where available. Up to 40 results are shown; type more to narrow the list. Use arrows and Enter, or click a result, to display its hymn number or, for non-hymnal songs, its title. Press **Space** while a result is focused to present it immediately, including songs in the English hymnal. Spaces in the search field still enter search text. Selecting an English hymnal result returns to number mode; **Space** then presents it. Other songs display their title in number mode; **Space** opens their lyrics. Exiting presentation returns to that title. Songs outside the English hymnal (1–1348) also show their title in the presentation sidebar, wrapping long titles as needed. **Esc** or the close button cancels without changing the previous text, hymn, slide, or language selections. Search works offline and from `file://`; the full Songbase snapshot is embedded in the page.
 
 ### Full Songbase source snapshot
 
@@ -118,3 +118,15 @@ Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and t
 Press **Cmd+U** (Mac) or **Ctrl+U** (Windows/Linux) from any mode to check for updates. The shortcut opens the help panel to show update status; there is no update button. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.
 
 Full-song view uses normal block flow for lyric rows so long lines wrap to their full height without overlapping the next line in multi-column or fullscreen layouts. Fitting checks that opening lyric rows remain inside the visible columns and resets the lyric scroll position after fitting, including after resizing or toggling chords.
+
+In presentation mode, **Shift+J** toggles only the lyrics between left and center alignment in both slide and full-song views. The choice is remembered; hymn numbers and sidebar controls keep their alignment. Plain **J** still advances to the next slide.
+
+Presentation lyrics prefer wrapping at punctuation, keeping each clause together when it fits. If a clause is too long for the available width, its words wrap into balanced lines instead of leaving a short trailing line. This applies to slide and full-song views, including guitar chords. Browsers without balanced text wrapping use normal word wrapping.
+
+Entering presentation mode or showing its sidebar keeps focus on the presentation rather than automatically highlighting the close (×) button.
+
+Selecting a non-hymnal search result displays its title instead of a hymn number. Press Space or use the presentation control to show its lyrics; Space on a focused search result still presents immediately. The presentation sidebar shows the title, and leaving presentation returns to that song’s title rather than the previously displayed hymn number. Titles remain in number mode: typing a digit replaces the title with a new hymn number; letters do not edit the title.
+
+Presentation sidebar numbers stay on one line and shrink to fit the available width. Compact rows fit their label and number together (for example, **E/K 1151** and **C s216**). Non-hymnal sidebar titles use a smaller 16–22px font and wrap normally.
+
+Click controls are fixed near the bottom edge with a 6px bottom margin in regular and presentation views, with device safe-area spacing on phones. The display reserves room above the toolbar.
