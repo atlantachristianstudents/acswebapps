@@ -117,4 +117,4 @@ Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and t
 
 Press **Cmd+U** (Mac) or **Ctrl+U** (Windows/Linux) from any mode to check for updates. The shortcut opens the help panel to show update status; there is no update button. Save your work first; the app checks for a newer version, downloads and activates it, and restarts when needed. Status messages cover offline use, failures, and an already-current app. Downloaded content in IndexedDB is preserved.
 
-Full-song fitting checks that opening lyric rows remain inside the visible columns and resets the lyric scroll position after fitting, including after resizing or toggling chords.
+Full-song view uses normal block flow for lyric rows so long lines wrap to their full height without overlapping the next line in multi-column or fullscreen layouts. Fitting checks that opening lyric rows remain inside the visible columns and resets the lyric scroll position after fitting, including after resizing or toggling chords.

@@ -239,11 +239,13 @@
       #presentation-lyrics[data-full-song="true"] { text-align: left; white-space: normal; column-gap: clamp(12px, 2vw, 32px); column-fill: balance; }
       #presentation-lyrics .song-section { display: inline-block; width: 100%; vertical-align: top; break-inside: avoid; break-inside: avoid-column; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.5em; }
       #presentation-lyrics .song-section:last-child { margin-bottom: 0; }
-      #presentation-lyrics .song-part { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; column-gap: 2ch; break-inside: avoid; white-space: normal; margin-bottom: 0.5em; }
+      #presentation-lyrics .song-part { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; column-gap: 2ch; break-inside: avoid; white-space: normal; margin-bottom: 0.5em; }
       #presentation-lyrics .song-part-label { color: var(--hint); font-size: 0.65em; font-weight: 400; white-space: nowrap; }
-      /* Keep wrapped lyric rows at their full height inside balanced columns. */
-      #presentation-lyrics .song-part-text { display: flex; flex-direction: column; min-width: 0; white-space: pre-wrap; }
-      #presentation-lyrics .song-part-text > div { flex: 0 0 auto; break-inside: avoid; }
+      /* Use normal block flow so wrapped rows contribute their entire height.
+         Baseline alignment and nested flex layout are unreliable in CSS columns. */
+      #presentation-lyrics .song-part-text { display: flow-root; min-width: 0; white-space: normal; }
+      #presentation-lyrics .song-part-text > div { break-inside: avoid; }
+      #presentation-lyrics .song-part-label { padding-top: 0.35em; }
       #presentation-lyrics .song-part:last-child { margin-bottom: 0; }
       @media (max-width: 600px) {
         #presentation { padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); }
@@ -5627,7 +5629,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v124">
+<script id="acswebapps-updater" data-version="big-text-v125">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
