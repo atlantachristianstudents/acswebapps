@@ -86,7 +86,7 @@
   .verse.copied .ref::after { content: " \00b7  Copied"; color: var(--muted); font-weight: 400; }
   /* side-by-side comparison of every loaded version (S) */
   #sbs { position: fixed; inset: 0; z-index: 120; background: var(--bg); color: var(--text); overflow: auto; padding: 3vmin 4vmin 5vmin; text-align: left; }
-  #sbs .sbshead { position: sticky; top: -3vmin; z-index: 1; display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 1vmin 0 12px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
+  #sbs .sbshead { flex-wrap: wrap; position: sticky; top: -3vmin; z-index: 1; display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 1vmin 0 12px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
   #sbs .sbstitle { flex: 1; min-width: 0; font-weight: 700; color: var(--accent); font-size: clamp(18px, 3vmin, 32px); }
   #sbs .sbshint { color: var(--muted); font-size: .85rem; min-width: 0; }
   #sbs .sbsgrid { display: block; margin-top: 4px; }
@@ -171,6 +171,14 @@
   #goto .ggrid button { padding: 8px 6px; min-height: 38px; font-size: .9rem; font-weight: 400; text-align: center; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; }
   #goto .ggrid button.on { background: var(--accent); color: var(--on-accent, var(--bg)); border-color: var(--accent); }
   #goto .gnote { color: var(--muted); font-size: .8rem; margin: 8px 0 0; }
+  #translationConfirm { width: min(420px, calc(100vw - 40px)); box-sizing: border-box; padding: 24px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 48px rgba(0,0,0,.3); }
+  #translationConfirm::backdrop { background: rgba(0,0,0,.5); }
+  #translationConfirm h2 { margin: 0 0 12px; font-size: 1.2rem; }
+  #translationConfirm p { margin: 0 0 24px; }
+  #translationConfirm .actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  #translationConfirm .remove { background: var(--accent); color: var(--on-accent, var(--bg)); border-color: var(--accent); }
+  .version-dragging { opacity: .45; }
+  .version-drop { outline: 2px dashed var(--accent); outline-offset: -2px; }
   #info .vgroup { display: inline-flex; margin: 2px 6px 2px 0; }
   #info .vchip { padding: 3px 12px; min-height: 30px; font-size: .85rem; font-weight: 400; background: none; color: var(--accent); border: 1px solid var(--border); border-radius: 999px 0 0 999px; }
   #info .vchip.on { background: var(--accent); color: var(--on-accent, var(--bg)); }
@@ -589,7 +597,7 @@
   <p>Click a verse to select it, <kbd>Shift</kbd>+click to select a range, <kbd>Ctrl/Cmd</kbd>+click to add or remove one, double-click to present.</p>
 
   <h3>Versions</h3>
-  <p>Choose several text files at once, or use <strong>Add version</strong> later; each becomes a numbered version. Press <kbd>1</kbd>–<kbd>9</kbd> while on a verse or in presentation mode to switch version, or click a version button at the top (touch: the <strong>Ver</strong> button in presentation mode). When a lookup returns a single verse, it is shown in the current version on top with the other versions listed below it. Otherwise the same verses stay on screen, with their selection, in the new version. Digits typed in the text box still type normally. Word searches run in the version you’re viewing.</p>
+  <p>Drag translation buttons or side-by-side rows to reorder translations and their number shortcuts. Removing a translation asks for confirmation. Choose several text files at once, or use <strong>Add version</strong> later; each becomes a numbered version. Press <kbd>1</kbd>–<kbd>9</kbd> (or <kbd>0</kbd> for the tenth version) while on a verse or in presentation mode to switch version, or click a version button at the top (touch: the <strong>Ver</strong> button in presentation mode). When a lookup returns a single verse, it is shown in the current version on top with the other versions listed below it. Otherwise the same verses stay on screen, with their selection, in the new version. Digits typed in the text box still type normally. Word searches run in the version you’re viewing.</p>
 
   <h3>Your text file</h3>
   <p>Choose your text file once; this browser remembers it. Use “Save a copy with the text built in” to download a standalone page with the text included. Each line should look like <code>Gen. 1:1 In the beginning…</code></p>
@@ -2651,12 +2659,95 @@
     }
     flashVersion();
   }
+  var versionDrag = null, versionsReordered = false;
+  function moveVersion(from, to) {
+    if (from === to || !versions[from] || !versions[to]) return;
+    var active = versions[cur];
+    var source = sbsEl && sbsSrc ? { bi: +sbsSrc.dataset.bi, ch: +sbsSrc.dataset.ch, v: +sbsSrc.dataset.v } : null;
+    versions.splice(to, 0, versions.splice(from, 1)[0]);
+    versionsReordered = true;
+    activate(versions.indexOf(active));
+    saveVersions(); refreshVersionView(); renderInfo();
+    if (sbsEl) {
+      if (source) {
+        sbsSrc = verses().filter(function (v) { return +v.dataset.bi === source.bi && +v.dataset.ch === source.ch && +v.dataset.v === source.v; })[0] || sbsSrc;
+        sbsPrev = sbsSrc;
+      }
+      sbsRefresh();
+    }
+    flashVersion();
+  }
+  function enableVersionDrag(el, ver) {
+    el.draggable = true;
+    el.addEventListener("dragstart", function (e) {
+      versionDrag = ver;
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", ver.name);
+      el.classList.add("version-dragging");
+      e.stopPropagation();
+    });
+    el.addEventListener("dragover", function (e) {
+      if (!versionDrag || versionDrag === ver) return;
+      e.preventDefault(); e.stopPropagation();
+      e.dataTransfer.dropEffect = "move";
+      el.classList.add("version-drop");
+    });
+    el.addEventListener("dragleave", function () { el.classList.remove("version-drop"); });
+    el.addEventListener("dragend", function () {
+      versionDrag = null;
+      document.querySelectorAll(".version-dragging, .version-drop").forEach(function (node) {
+        node.classList.remove("version-dragging", "version-drop");
+      });
+    });
+    el.addEventListener("drop", function (e) {
+      if (!versionDrag) return;
+      e.preventDefault(); e.stopPropagation();
+      var from = versions.indexOf(versionDrag), to = versions.indexOf(ver);
+      versionDrag = null;
+      el.classList.remove("version-drop");
+      moveVersion(from, to);
+    });
+  }
+  var translationConfirm = null;
+  // Keep app shortcuts out of the modal; native dialog handles focus, Tab and Escape.
+  window.addEventListener("keydown", function (e) {
+    if (translationConfirm && translationConfirm.open) e.stopImmediatePropagation();
+  }, true);
+  function confirmTranslationRemoval(message, remove) {
+    if (translationConfirm) return;
+    var dialog = document.createElement("dialog"); dialog.id = "translationConfirm";
+    dialog.setAttribute("aria-labelledby", "translationConfirmTitle");
+    dialog.setAttribute("aria-describedby", "translationConfirmMessage");
+    var title = document.createElement("h2"); title.id = "translationConfirmTitle"; title.textContent = "Remove translation?";
+    var text = document.createElement("p"); text.id = "translationConfirmMessage"; text.textContent = message;
+    var actions = document.createElement("div"); actions.className = "actions";
+    var cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel"; cancel.autofocus = true;
+    var accept = document.createElement("button"); accept.type = "button"; accept.className = "remove"; accept.textContent = "Remove";
+    cancel.onclick = function () { dialog.close(); };
+    accept.onclick = function () { dialog.close("remove"); };
+    actions.appendChild(cancel); actions.appendChild(accept);
+    dialog.appendChild(title); dialog.appendChild(text); dialog.appendChild(actions);
+    dialog.addEventListener("close", function () {
+      var confirmed = dialog.returnValue === "remove";
+      translationConfirm = null; dialog.remove();
+      if (confirmed) remove();
+    });
+    translationConfirm = dialog;
+    (document.fullscreenElement || document.body).appendChild(dialog);
+    dialog.showModal();
+  }
   function removeVersion(i) {
-    versions.splice(i, 1);
-    if (!versions.length) { clearAll(); return; }
-    var n = i < cur ? cur - 1 : Math.min(cur, versions.length - 1);
-    activate(n);
-    saveVersions(); refreshVersionView(); renderInfo(); updateVersionUI();
+    var version = versions[i];
+    if (!version) return;
+    confirmTranslationRemoval('Remove translation "' + version.name.replace(/\.[^.]+$/, "") + '"?', function () {
+      var index = versions.indexOf(version);
+      if (index < 0) return;
+      versions.splice(index, 1);
+      if (!versions.length) { clearAll(); return; }
+      var n = index < cur ? cur - 1 : Math.min(cur, versions.length - 1);
+      activate(n);
+      saveVersions(); refreshVersionView(); renderInfo(); updateVersionUI();
+    });
   }
   function clearAll() {
     tempGeneration++; tempMessage = "";
@@ -2682,6 +2773,8 @@
       b.textContent = (i + 1) + " " + v.name.replace(/\.[^.]+$/, "");
       b.title = v.name + (v.temporary ? " (this session only)" : "") + " \u2014 " + v.count.toLocaleString() + " verses (press " + (i + 1) + ")";
       b.onclick = function () { setVersion(i); };
+      enableVersionDrag(b, v);
+      b.title += " — drag to reorder";
       g.appendChild(b);
       if (!embeddedMode) {
         var x = document.createElement("button");
@@ -2710,7 +2803,7 @@
       info.appendChild(l);
     }
     link("Add version", function () { $("addFile").click(); });
-    link("Remove all", clearAll);
+    link("Remove all", function () { confirmTranslationRemoval("Remove all translations?", clearAll); });
     link("Save a copy with the text built in", exportCopy);
   }
 
@@ -2735,7 +2828,7 @@
       st.className = "error";
       return;
     }
-    if (temporary) orderDefaultVersions();
+    if (temporary && !versionsReordered) orderDefaultVersions();
     if (!temporary) {
       st.textContent = bad.length ? "No verses recognized in: " + bad.join(", ") : "";
       st.className = bad.length ? "error" : "";
@@ -4026,6 +4119,8 @@
       card.setAttribute("role", "button"); card.setAttribute("aria-pressed", i === cur ? "true" : "false");
       card.setAttribute("aria-label", "Select " + ver.name.replace(/\.[^.]+$/, ""));
       card.onclick = function () { setVersion(i); };
+      card.title = "Drag to reorder translations";
+      enableVersionDrag(card, ver);
       var n = document.createElement("div"); n.className = "sbsname"; n.textContent = (i + 1) + ": " + ver.name.replace(/\.[^.]+$/, "");
       var r = document.createElement("div"); r.className = "sbsref"; r.textContent = refOfV(ver, bi, ch, vs);
       var t = document.createElement("div"); t.className = "sbstext"; t.textContent = e ? e.text : "(not in this version)";
@@ -4041,6 +4136,11 @@
     return { bi: +sbsSrc.dataset.bi, ch: +sbsSrc.dataset.ch, v: +sbsSrc.dataset.v };
   }
   function sbsRefresh() { var c = sbsCoords(); sbsFill(c.bi, c.ch, c.v); }
+  function sbsBibleHubUrl() {
+    var c = sbsCoords();
+    var book = c.bi === 21 ? "songs" : BOOKS[c.bi][0].toLowerCase().replace(/ /g, "_");
+    return "https://biblehub.com/parallel/" + book + "/" + c.ch + "-" + c.v + ".htm";
+  }
   // arrows / h j k l: previous / next searched verse
   function sbsSearched(dir) {
     if (presenting) stepSearched(dir);
@@ -4074,7 +4174,11 @@
     el.id = "sbs"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Versions side by side");
     var head = document.createElement("div"); head.className = "sbshead";
     var title = document.createElement("div"); title.className = "sbstitle"; title.textContent = refOf({ bi: bi, ch: ch, v: vs });
-    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "Click / 1–0 version \u00b7 F fill \u00b7 B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
+    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "Click / 1–0 version \u00b7 H BibleHub \u00b7 F fill \u00b7 B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
+    var hub = document.createElement("button"); hub.type = "button"; hub.textContent = "BibleHub \u2197";
+    hub.setAttribute("aria-label", "Open current verse on BibleHub (new tab)");
+    hub.title = "Open current verse on BibleHub (new tab; H)";
+    hub.addEventListener("click", function () { window.open(sbsBibleHubUrl(), "_blank", "noopener,noreferrer"); });
     var sz = document.createElement("div"); sz.className = "sbssize";
     [["\u2212", -1, "Smaller text"], ["+", 1, "Larger text"]].forEach(function (b) {
       var btn = document.createElement("button"); btn.type = "button"; btn.textContent = b[0]; btn.setAttribute("aria-label", b[2]);
@@ -4083,7 +4187,7 @@
     });
     var x = document.createElement("button"); x.type = "button"; x.textContent = "\u00d7"; x.setAttribute("aria-label", "Close comparison");
     x.addEventListener("click", function () { sbsClose(true); });
-    head.appendChild(title); head.appendChild(hint); head.appendChild(sz); head.appendChild(x);
+    head.appendChild(title); head.appendChild(hint); head.appendChild(hub); head.appendChild(sz); head.appendChild(x);
     var grid = document.createElement("div"); grid.className = "sbsgrid";
     sbsTitle = title; sbsGrid = grid; sbsEl = el;
     sbsFill(bi, ch, vs);
@@ -4208,6 +4312,7 @@
       if (!e.repeat) { setVersion(+e.target.dataset.vi); sbsGrid.querySelector(".cur").focus(); }
       return;
     }
+    if (lk === "h") { if (!e.repeat) window.open(sbsBibleHubUrl(), "_blank", "noopener,noreferrer"); return; }
     if (lk === "f") { if (!e.repeat) sbsToggleFill(); return; }
     if (lk === "s" || k === "Escape") { if (!e.repeat) sbsClose(true); return; }
     if (k === "+" || k === "=") { sbsResize(1); return; }
@@ -5257,10 +5362,11 @@
 
   // number keys switch version (not while typing in a field)
   document.addEventListener("keydown", function (e) {
-    if (!/^[1-9]$/.test(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!/^[0-9]$/.test(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = e.target && e.target.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA") return;
-    if (versions.length > 1 && versions[+e.key - 1]) { e.preventDefault(); setVersion(+e.key - 1); }
+    var versionIndex = e.key === "0" ? 9 : +e.key - 1;
+    if (versions.length > 1 && versions[versionIndex]) { e.preventDefault(); setVersion(versionIndex); }
   });
 
   // "/" jumps to the text box from anywhere on the page
@@ -5513,7 +5619,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v50">
+<script id="acswebapps-updater" data-version="verse-lookup-v54">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
