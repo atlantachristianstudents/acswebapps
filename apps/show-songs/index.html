@@ -234,7 +234,7 @@
       .lyric-phrase { display: inline-block; max-width: 100%; vertical-align: bottom; white-space: pre-wrap; overflow-wrap: anywhere; }
       .guitar-token { display: inline-block; position: relative; padding-top: 0.8em; min-width: var(--chord-width); max-width: 100%; vertical-align: bottom; }
       .guitar-chord { position: absolute; top: 0; left: 0; font: 600 0.6em/1.2 var(--font-utility); white-space: nowrap; }
-      #presentation-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 0; }
+      #presentation-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; overflow-anchor: none; padding: 0; }
       #presentation-lyrics { box-sizing: border-box; flex: 0 0 auto; margin: auto; text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; width: 100%; }
       #presentation-lyrics[data-full-song="true"] { text-align: left; white-space: normal; column-gap: clamp(12px, 2vw, 32px); column-fill: balance; }
       #presentation-lyrics .song-section { display: inline-block; width: 100%; vertical-align: top; break-inside: avoid; break-inside: avoid-column; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.5em; }
@@ -925,11 +925,23 @@
             // Column fragmentation can paint an oversized stanza across its neighbor
             // without increasing scrollWidth. Check the actual stanza rectangles too.
             var bounds = presentationLyrics.getBoundingClientRect();
+            // Check lyric rows as well: internal layout can put the opening lines
+            // above the column even when its section's outer box appears to fit.
+            var rows = presentationLyrics.querySelectorAll(".lyric-line, .guitar-line");
+            for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+              var fragments = rows[rowIndex].getClientRects();
+              for (var fragmentIndex = 0; fragmentIndex < fragments.length; fragmentIndex++) {
+                var fragment = fragments[fragmentIndex];
+                if (fragment.top < bounds.top - 1 || fragment.left < bounds.left - 1 ||
+                    fragment.right > bounds.right + 1 || fragment.bottom > bounds.top + height + 1) return false;
+              }
+            }
             var sections = presentationLyrics.querySelectorAll(".song-section");
             var rectangles = [];
             for (var sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
               var rect = sections[sectionIndex].getBoundingClientRect();
-              if (rect.right > bounds.right + 1 || rect.bottom > bounds.top + height + 1) return false;
+              if (rect.top < bounds.top - 1 || rect.left < bounds.left - 1 ||
+                  rect.right > bounds.right + 1 || rect.bottom > bounds.top + height + 1) return false;
               for (var otherIndex = 0; otherIndex < rectangles.length; otherIndex++) {
                 var other = rectangles[otherIndex];
                 if (Math.min(rect.right, other.right) - Math.max(rect.left, other.left) > 1 &&
@@ -973,6 +985,10 @@
             finalSize = Math.max(1, finalSize * 0.95);
             presentationLyrics.style.fontSize = finalSize + "px";
           }
+          // The trial sizes can overflow while fitting. Always show the beginning
+          // after the final layout, including when resizing or toggling chords.
+          presentationBody.scrollTop = 0;
+          presentationBody.scrollLeft = 0;
           syncPad();
         }
 
@@ -5611,7 +5627,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v123">
+<script id="acswebapps-updater" data-version="big-text-v124">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
