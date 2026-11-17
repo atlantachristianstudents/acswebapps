@@ -22,6 +22,15 @@ window.APPS = [
     status: "live"
   },
   {
+    id: "bible-compare",
+    name: "Bible Compare",
+    description: "Read Scripture and compare the same verses side by side across translations, with the Recovery Version first. Downloads work offline.",
+    icon: "⇄",
+    iconUrl: "apps/bible-compare/icons/icon.svg",
+    tags: ["Study", "Reading", "Tools"],
+    status: "beta"
+  },
+  {
     id: "bible-connections",
     name: "Bible Connections",
     description: "Explore Bible cross-references in an interactive map. Trace connections between chapters and verses, entirely offline.",
