@@ -85,9 +85,10 @@
             id="theme-toggle"
             class="icon-btn"
             type="button"
-            aria-label="Toggle dark mode"
-            aria-pressed="false"
-            title="Toggle dark mode">
+            aria-label="Theme picker"
+            aria-haspopup="dialog"
+            aria-controls="theme-dialog"
+            title="Choose a theme">
             ◐
           </button>
         </nav>
@@ -174,5 +175,25 @@
         addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
       }
     </script>
+
+    <dialog id="theme-dialog" aria-labelledby="theme-dialog-title">
+      <h2 id="theme-dialog-title">Choose a theme</h2>
+      <p class="hint">Preview themes here. Changes are saved when you press Save theme.</p>
+      <div id="theme-presets" aria-label="Preset themes">
+        <button type="button" data-theme-choice="light"><span class="theme-swatch" style="--swatch-bg:#f7f8fc;--swatch-accent:#3b4bf5"></span>Light</button>
+        <button type="button" data-theme-choice="dark"><span class="theme-swatch" style="--swatch-bg:#0d111b;--swatch-accent:#7886ff"></span>Dark</button>
+        <button type="button" data-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button>
+        <button type="button" data-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button>
+        <button type="button" data-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button>
+        <button type="button" data-theme-choice="ocean"><span class="theme-swatch" style="--swatch-bg:#e8f0f4;--swatch-accent:#315d77"></span>Ocean</button>
+        <button type="button" data-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button>
+        <button type="button" data-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button>
+        <button type="button" data-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button>
+      </div>
+      <div class="theme-dialog-actions">
+        <span id="theme-name" class="theme-name" aria-hidden="true">Light</span>
+        <button type="button" id="save-theme" class="primary">Save theme</button>
+      </div>
+    </dialog>
   </body>
 </html>
