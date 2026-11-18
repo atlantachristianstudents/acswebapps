@@ -17,7 +17,7 @@ In **Edit plans**, **Import** and **Export** sit together on the left of the pla
 
 Shuffle and Sequential editors include a **Choose books** button. It opens a searchable grid of books. Choose a book to open its chapter grid, with **The entire book** above the individual chapters. **All books** returns to the book grid so you can add more books or chapters. Choose **Use selection** to apply; **Cancel** leaves the selection unchanged. An empty selection uses the whole Bible. Chapter selections use the existing range format and remain compatible with saved plans and exports. **Save plan** saves only that plan. **Save changes** in **Edit plans** saves the ordering, enabled switches, and Combined/Override choice. Its footer shows **Unsaved changes** while those choices differ from the saved arrangement, and **Saved on this device** after saving or reverting them. Creating or editing a plan does not save arrangement changes.
 
-Plan start dates default to tomorrow; an end date is optional. There is no Today/Tomorrow confirmation when saving a plan.
+Plan start dates default to tomorrow; an end date is optional. Editing the start date moves the reading schedule to that date, and the plan calendar opens to the edited date. Date-specific overrides stay on their original dates and apply within the plan’s date range. There is no Today/Tomorrow confirmation when saving a plan.
 
 Mobile installation uses local 192px and 512px PNG icons with an opaque background and safe padding, plus a 180px Apple touch icon for iOS. If an existing Home Screen shortcut still shows the old icon after updating, remove that shortcut and add Rise to the Home Screen again.
 
