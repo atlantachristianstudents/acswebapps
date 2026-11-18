@@ -4,7 +4,9 @@
 
 GitHub Pages serves `/apps/define/` at the custom domain and `/acswebapps/apps/define/` on the project-site fallback. The frontend uses relative URLs. Full static lookup requires the generated `data/releases/manifest.json` and all files in its named release directory at the app’s same-origin URL. Upload the version directory first and publish the manifest last. Serve compressed files as bytes without HTTP content encoding. Keep an earlier version directory available while existing tabs may still have its manifest.
 
-The old `/apps/open-dict/` page redirects to `/apps/define/` and carries over entry query parameters and links. The repository’s branch-based Pages checkout keeps generated artifacts out of Git. Use an artifact-aware static deployment or a same-origin dictionary service to make that data available in production. A bare Pages checkout exposes the bundled starter and identifies it as such. Neither the Python API nor the database runs on GitHub Pages.
+The old `/apps/open-dict/` page redirects to `/apps/define/` and carries over entry query parameters and links. The [Pages workflow](../../../.github/workflows/deploy-pages.yml) stages the tracked site, downloads the pinned Define archive from GitHub Releases, verifies its SHA-256, and adds its `data/releases/` files. Set the Pages source to **GitHub Actions** to publish this artifact. A bare Pages checkout exposes the bundled starter. Neither the Python API nor the database runs on GitHub Pages.
+
+For a new release, package `data/releases/manifest.json`, the version directory, and the source notices into a `.tar` with paths relative to `apps/define/`. Include any earlier version directories that active sessions still use. Upload it as `define-<version>.tar` to the `define-<version>` GitHub release, then update `DEFINE_RELEASE` and `DEFINE_SHA256` in the Pages workflow. After deployment, confirm the public manifest returns HTTP 200 and check for editions under **Offline → Check for data packs**.
 
 ## PostgreSQL
 

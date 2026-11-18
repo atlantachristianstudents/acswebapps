@@ -26,6 +26,7 @@ Then open [the full local app](http://127.0.0.1:8766/). For a small development 
 - Open **Advanced search** to filter by source, part of speech, spelling, definition, subject, or usage label. Filter results depend on the selected dataset’s coverage.
 - Switch **Scholarly mode** on an entry to see both sources, fuller relations, and sense IDs. **Sense link** addresses an individual source sense. Use **Compare** for side-by-side sources and evidence.
 - Open **Sources** for versions, licenses, and attribution. Listen to the licensed starter recordings for *bank*, *apple*, and *serendipity*. Other Wiktionary audio records link to the relevant Commons file and its terms. IPA and examples appear wherever present in the selected data.
+- Open the floating **?** for the theme setting, project links, and **Check for updates**.
 - Open **Offline** to find installation instructions, check for published packs, and download an edition. The starter works once the app shell finishes caching. See [Offline](docs/OFFLINE.md).
 
 ## Read-only API

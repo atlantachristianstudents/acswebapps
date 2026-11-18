@@ -78,13 +78,12 @@
     .suggestions{position:absolute;left:0;right:0;top:100%;z-index:4;background:var(--surface);box-shadow:0 8px 24px #112e4033;border:1px solid var(--control);border-radius:8px;padding:.25rem;margin:.4rem 0 0;list-style:none}
     .suggestions li{padding:.65rem .8rem;display:flex;justify-content:space-between;gap:.8rem;cursor:pointer;overflow-wrap:anywhere}
     .suggestions li:hover,.suggestions [aria-selected=true]{background:var(--soft)}
-    .transparent{background:none}
     fieldset{border:0;margin:0;padding:0;min-width:0}
     .filters{margin-top:.8rem;padding:1rem;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
     .filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr));gap:.75rem}
     .filter-grid label,.compare-form label{display:grid;gap:.3rem;font-size:.85rem;font-weight:650}
     .filters .inline{margin-top:.8rem}
-    #content{min-height:47vh;padding:2.25rem 0 3rem}
+    #content{min-height:47vh;padding:2.25rem 0 calc(4rem + env(safe-area-inset-bottom))}
     #content:focus{outline:none}
     .audio-player{display:grid;gap:.28rem;margin:1rem 0 .25rem}
     .audio-player audio{max-width:100%}
@@ -164,9 +163,15 @@
     .pack-list p{margin:.45rem 0}
     .pack-list .panel h3{font-size:1.03rem;margin-bottom:.35rem}
     meter,progress{display:block;width:min(100%,32rem);height:1.35rem;accent-color:var(--accent)}
-    footer{border-top:1px solid var(--line);padding:1.35rem 0;color:var(--muted);font-size:.83rem}
-    footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem 1rem}
-    footer p{margin:0}
+    .help-toggle,.help-dialog{position:fixed;right:calc(.75rem + env(safe-area-inset-right))}
+    .help-toggle{bottom:calc(.75rem + env(safe-area-inset-bottom));z-index:5;width:44px;padding:0;border-radius:50%;font-size:1.25rem;box-shadow:0 3px 12px #112e4026}
+    .help-dialog{inset:auto calc(.75rem + env(safe-area-inset-right)) calc(.75rem + env(safe-area-inset-bottom)) auto;
+      width:min(22rem,calc(100% - 1.5rem - env(safe-area-inset-right) - env(safe-area-inset-left)));max-height:calc(100% - 1.5rem);
+      margin:0;padding:1rem;overflow:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px}
+    .help-dialog::backdrop{background:rgba(10,25,30,.35)}
+    .help-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.7rem}
+    .help-heading h2{margin:0;font:700 1.25rem var(--serif)}
+    .help-dialog .acs-update{border-color:var(--line)}
     .source-evidence{white-space:pre-wrap;max-height:24rem;overflow:auto;padding:.6rem;background:var(--soft)}
     .code{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:.8rem}
     .status:not(:empty){padding:.5rem 0;color:var(--muted)}
@@ -215,8 +220,6 @@
 .acs-update p{margin:6px 0 0!important;color:inherit!important;font:12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
 .acs-update-note{opacity:.8}
 [data-acs-update-status]:empty{display:none}
-.update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
-.update-row.acs-update p{margin:0!important}
 </style>
 </head>
 <body>
@@ -289,18 +292,28 @@
     <p class="quick-footer"><a id="quick-entry">Open full entry</a></p>
   </dialog>
 
-  <footer><div class="wrap">
-    <p>Define · <a href="../../">ACS Web Apps</a></p>
+  <button id="help-toggle" class="button help-toggle" type="button" aria-label="Help and settings"
+    aria-haspopup="dialog" aria-controls="help-dialog" hidden>?</button>
+  <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+    <div class="help-heading">
+      <h2 id="help-title">About Define</h2>
+      <form method="dialog"><button class="button" type="submit" autofocus>Close</button></form>
+    </div>
+    <p>Define is part of the <a href="../../">ACS Web Apps project</a>.</p>
     <div class="inline">
       <a href="#sources">Methods and licenses</a>
-      <button id="theme" type="button" class="button transparent">Theme: system</button>
+      <button id="theme" type="button" class="button">Theme: system</button>
     </div>
-  </div></footer>
+    <div class="acs-update" data-acs-update>
+      <button type="button" data-acs-update-button>Check for updates</button>
+      <p role="status" data-acs-update-status></p>
+    </div>
+  </dialog>
   <script src="data/fixtures/starter.js"></script>
   <script src="dictionary.js"></script>
   <script src="sounds/catalog.js"></script>
   <script src="index.js"></script>
-<script id="acswebapps-updater" data-version="define-v10">
+<script id="acswebapps-updater" data-version="define-v12">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
