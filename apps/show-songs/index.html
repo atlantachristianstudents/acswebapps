@@ -4909,67 +4909,66 @@
         })();
 
         function updateHint() {
-          // The empty screen only points to the shortcut list (? opens it).
-          hint.textContent = textMode ? "Press " + MOD + " + ? to see shortcuts" : "Type ? or / to see shortcuts";
+          hint.textContent = textMode ? "Press " + MOD + "+/ to see shortcuts" : "Type ? or / to see shortcuts";
           hint.style.visibility = "";
           hint.hidden = value.length > 0;
         }
 
         function helpHtml() {
           var d = " &middot; ";
-          var searchHelp = MOD + "+enter search hymns by title or lyrics";
+          var searchHelp = MOD + "+enter search songs by title or lyrics";
+          var editHelp = MOD + "+backspace or " + MOD + "+delete clear" + d + MOD + "+c copy";
+          var historyHelp = MOD + "+z undo" + d + MOD + "+shift+z or " + MOD + "+y redo";
+          var displayHelp = MOD + "+- smaller" + d + MOD + "+= or " + MOD + "++ bigger" + d + MOD + "+f fill" + d + "alt+w wrap";
+          var homeHelp = MOD + "+&larr; back to ACS Web Apps";
           var lines = presenting
             ? [
                 "<strong>Hymn presentation</strong>",
                 searchHelp,
-                "space exits to the hymn number or song title (esc does not exit)",
+                "space exits to the hymn number or song title",
                 "1–9 jump to a stanza" + d + "c next chorus" + d + "shift+c previous chorus",
                 "s next stanza" + d + "shift+s previous stanza" + d + "cycles wrap around",
                 "k / &larr; / &uarr; / page up previous slide" + d + "j / &rarr; / &darr; / page down next slide",
                 "h / home first slide" + d + "shift+h / end last slide",
-                "- smaller" + d + "= / + bigger" + d + "0 / f fit lyrics to the screen" + d + "shift+f full screen",
-                "l available song languages" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
+                "- smaller" + d + "= or + bigger" + d + "0 or f fit lyrics to the screen" + d + "shift+f toggle full screen",
+                "l open language list" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
+                "in the language list, arrows or j/k browse, enter selects, l or esc closes",
                 "t next lyrics version (when available)",
                 "n show / hide hymn and language numbers" + d + "b toggle bold lyrics",
                 "shift+j toggle lyrics left / center alignment",
                 "click a numbered slide or c in the sidebar to jump directly",
                 "enter toggles full song / current slide" + d + "tab show / hide entire left sidebar",
-                "? / / shortcuts" + d + "any key closes this help without changing the slide",
+                "esc hides controls or exits full screen",
               ]
             : textMode
             ? [
-                "Type anything &middot; enter new line &middot; backspace deletes",
+                "<strong>Text mode</strong>",
+                "Type anything" + d + "enter new line" + d + "backspace deletes",
                 searchHelp,
-                MOD + "+delete clears" + d + MOD + "+z undo" + d + MOD + "+shift+z / " + MOD + "+y redo" + d + MOD + "+c copies",
-                MOD + " + - / + size" + d + MOD + "+f fill" + d + "alt+w wrap",
-                MOD + "+\\ or esc number mode" + d + MOD + "+← back to ACS Web Apps",
-                "switch to numbers, then press space to present a hymn",
-                "any key closes this",
+                editHelp,
+                historyHelp,
+                displayHelp,
+                MOD + "+\\ switch to number mode" + d + homeHelp,
+                "esc hides controls, exits full screen, or returns to number mode",
               ]
             : [
-                "Type numbers &middot; backspace deletes &middot; enter searches &middot; u undo &middot; " +
-                  MOD +
-                  "+z undo" + d + MOD + "+shift+z / " + MOD + "+y redo",
-                "&larr; / &rarr; &plusmn;1" + d + "&uarr; / &darr; &plusmn;37" + d + "next digit then starts over",
-                "space presents the current hymn; when empty, space opens text search",
+                "<strong>Number mode</strong>",
+                "Type digits" + d + "backspace deletes" + d + "u undo",
+                "&larr; −1" + d + "&rarr; +1" + d + "&uarr; +37" + d + "&darr; −37" + d + "the next digit starts a new number",
+                "enter opens search" + d + "space presents the current song or opens search when empty",
                 searchHelp,
-                "? inside presentation shows its shortcuts",
-                "- / + size (with other languages showing, they resize the opposite way)",
-                "f fill" +
-                  d +
-                  "shift+f full screen" +
-                  d +
-                  "w wrap" +
-                  d +
-                  "h theme" +
-                  d +
-                  "m buttons" +
-                  d +
-                  "t text mode",
-                "l all languages" + d + "b k c s r main: Burmese, Korean, Chinese, Spanish 2nd, Russian (input uses the main language)" + d + "e english + korean with Russian" + d + "a same without Russian" + d + "shift+e Enjoyer Korean below",
-                MOD + "+← back to ACS Web Apps",
-                "any key closes this",
+                editHelp,
+                historyHelp,
+                "- smaller" + d + "= or + bigger" + d + "other language numbers resize in the opposite direction",
+                displayHelp,
+                "f fill" + d + "shift+f toggle full screen" + d + "w wrap" + d + "h cycle theme" + d + "m toggle controls",
+                "t or " + MOD + "+\\ switch to text mode" + d + homeHelp,
+                "l toggle all languages" + d + "select main language with b (Burmese), k (Korean), c (Chinese), s (Spanish 2nd), or r (Russian)",
+                "input uses the main language's numbers" + d + "in Chinese mode, s starts a supplementary number",
+                "e English + Korean with Russian" + d + "a English + Korean without Russian" + d + "shift+e English + Korean with Enjoyer Korean below",
+                "esc hides controls or exits full screen",
               ];
+          lines.push((textMode && !presenting ? MOD + "+/ or " + MOD + "+?" : "? or /") + " opens shortcuts" + d + "press a key without cmd, ctrl or alt to close");
           return "<div>" + lines.join("<br>") +
             '<p>Show Songs is part of the ACS Web Apps project.<br>' +
             '<a id="acswebapps-mobile-back" href="../../">Back to ACS Web Apps</a></p>' + "<div class=\"acs-update\" data-acs-update><p>" + MOD + "+u checks for updates</p><p class=\"acs-update-note\">Save your work first; an update restarts the app.</p><p data-acs-update-status role=\"status\" aria-live=\"polite\"></p></div>" + '</div>';
@@ -5707,7 +5706,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v141">
+<script id="acswebapps-updater" data-version="big-text-v142">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
