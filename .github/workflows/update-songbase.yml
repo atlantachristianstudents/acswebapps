@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
   pages: write
 
@@ -41,15 +42,24 @@ jobs:
             git pull --rebase origin "$DEFAULT_BRANCH"
             git push origin "HEAD:$DEFAULT_BRANCH"
           fi
-      # GITHUB_TOKEN pushes do not trigger the branch-based Pages build automatically.
+      # GITHUB_TOKEN pushes do not trigger Pages publication automatically.
       # Also retry publication after a prior run committed successfully but its build failed.
       - name: Publish the current revision on GitHub Pages when needed
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           revision=$(git rev-parse HEAD)
-          published=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.commit')
-          build_status=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.status')
-          if [ "$published" != "$revision" ] || [ "$build_status" = "errored" ]; then
-            gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')" = "workflow" ]; then
+            run=$(gh run list --workflow deploy-pages.yml --branch "$DEFAULT_BRANCH" --commit "$revision" \
+              --limit 1 --json status,conclusion --jq '.[] | if .status == "completed" then .conclusion else .status end')
+            case "$run" in
+              success|queued|in_progress|pending|requested|waiting) ;;
+              *) gh workflow run deploy-pages.yml --ref "$DEFAULT_BRANCH" ;;
+            esac
+          else
+            published=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.commit')
+            build_status=$(gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" --jq '.status')
+            if [ "$published" != "$revision" ] || [ "$build_status" = "errored" ]; then
+              gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
+            fi
           fi
