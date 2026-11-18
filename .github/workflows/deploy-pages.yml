@@ -1,0 +1,48 @@
+name: Deploy ACS Web Apps to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: acswebapps-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Assemble static site and verified Define release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFINE_RELEASE: define-english-2026-11-18-r2
+          DEFINE_SHA256: 68c77fb6d43d8d96167282b49981af2f9622e44f472f73f6e3a6543cbf96c9c3
+        run: |
+          set -euo pipefail
+          site="$RUNNER_TEMP/site"
+          archive="$RUNNER_TEMP/$DEFINE_RELEASE.tar"
+          mkdir -p "$site"
+          git archive HEAD | tar -xf - -C "$site"
+          gh release download "$DEFINE_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern "$DEFINE_RELEASE.tar" --output "$archive"
+          printf '%s  %s\n' "$DEFINE_SHA256" "$archive" | sha256sum --check
+          tar -xf "$archive" -C "$site/apps/define" --wildcards 'data/releases/*'
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/site
+          include-hidden-files: true
+      - name: Publish site
+        id: deployment
+        uses: actions/deploy-pages@v5

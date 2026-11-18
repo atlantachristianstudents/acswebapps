@@ -10,7 +10,8 @@
 - [x] Server-rendered entries and configurable XML sitemaps on the API-backed edition
 - [x] Make complete imports the default for API and Compose, add resumable ingestion, and expose corpus coverage in the app.
 - [x] Enable full static lookup from release shards and exhaustive prefix paging.
-- [ ] Publish the full release artifacts to the production app origin. The current public Pages endpoint has no release manifest.
+- [x] Package the full offline editions and search index with source notices, verify checksums, and upload the archive to GitHub Releases.
+- [ ] Enable the Pages workflow and verify the production release. The current public Pages endpoint has no release manifest.
 
 ## Lexical sources and editorial work
 

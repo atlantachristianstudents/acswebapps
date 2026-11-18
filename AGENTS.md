@@ -12,7 +12,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 
 - HTML5, CSS3, vanilla JavaScript (classic scripts, no modules, no transpilers)
 - Web APIs: Service Worker, Web App Manifest, localStorage, IndexedDB, Web Audio, getUserMedia, BroadcastChannel/Presentation API (verses external display)
-- GitHub Pages (deploy from branch; `.nojekyll` required — see below)
+- GitHub Pages (Actions deploy the tracked static site and the separate Define release; keep `.nojekyll`)
 
 ## Important directories and files
 
@@ -24,6 +24,7 @@ The home page (`index.html`) renders an app directory from a registry; each app 
 | `sw.js` | Home-page service worker (`SHELL` list, `VERSION` `acswebapps-home-vN`). Must not handle `apps/` requests. |
 | `CNAME` | Custom domain for GitHub Pages: `acswebapps.com`. The repo root is served at `/` there — see *Custom domain and base paths*. |
 | `.github/workflows/update-songbase.yml` | Six-hourly Songbase refresh for Show Songs; uses Python standard library, commits changed snapshots, requests a Pages rebuild. |
+| `.github/workflows/deploy-pages.yml` | Stages the tracked static site and the checksum-pinned Define release archive for GitHub Pages. |
 | `.github/workflows/validate.yml` | Runs `scripts/validate.py` on pull requests and pushes to `main`. No build step. |
 | `.nojekyll` | **Required.** Keeps GitHub Pages from running Jekyll (which would exclude `apps/_template/`). Never delete it. |
 | `assets/apps.js` | **App registry.** One object per app in `window.APPS`. Fields documented in the file's header comment. |

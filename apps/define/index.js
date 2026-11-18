@@ -27,6 +27,12 @@
   let lookupRequest = 0, lookupTrigger;
   let scholarly = preference("mode") === "scholarly";
 
+  const helpToggle = document.querySelector("#help-toggle");
+  const helpDialog = document.querySelector("#help-dialog");
+  helpToggle.addEventListener("click", () => helpDialog.showModal());
+  helpDialog.querySelector('a[href="#sources"]').addEventListener("click", () => helpDialog.close());
+  helpToggle.hidden = false;
+
   function preference(name, value) {
     try {
       if (value !== undefined) localStorage.setItem("open-dict:" + name, value);
@@ -563,17 +569,6 @@
         ...(source.noticeText || []).map((notice, index) => detail(index ? "Princeton WordNet notice" : "License notice",
           element("p", "code", notice)))));
     }
-    const updater = element("div", "acs-update");
-    updater.dataset.acsUpdate = "";
-    const check = element("button", "", "Check for updates");
-    check.type = "button";
-    check.dataset.acsUpdateButton = "";
-    const updateStatus = element("p");
-    updateStatus.dataset.acsUpdateStatus = "";
-    updateStatus.setAttribute("role", "status");
-    updater.append(check, updateStatus);
-    page.append(detail("About Define", element("p", "", "Define is part of the ",
-      link("ACS Web Apps project", "../../"), "."), updater));
     return page;
   }
 

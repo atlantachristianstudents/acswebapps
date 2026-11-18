@@ -68,7 +68,7 @@ Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build
 
 A few apps bundle or use specialized pieces:
 
-- **Define** uses a bundled starter collection on GitHub Pages. The app directory contains the optional dictionary API, database imports, and offline pack tooling. See the [Define README](apps/define/README.md).
+- **Define** bundles a starter collection and supports full static lookup and downloadable editions when the Pages deployment includes its data release. See the [Define README](apps/define/README.md).
 
 - **Test** bundles PDF.js (with fonts and character maps) for private, offline PDF text import.
 - **Logos Type** bundles PeerJS for friend races and downloads Scripture from a public API, caching it locally.
@@ -129,6 +129,7 @@ CONTRIBUTING.md            Backlog, reviews, validation, and release policy
 scripts/validate.py        Dependency-free repository and cache-version checks
 .github/workflows/
   update-songbase.yml       Refresh Show Songs’s Songbase data every six hours
+  deploy-pages.yml          Publish the static site with Define’s verified release
   validate.yml              Validate PRs and main without a build step
 assets/
   apps.js                  App registry — edit this to add or list apps
@@ -184,16 +185,15 @@ Every app's `sw.js` has a cache-version string, usually `VERSION` (for example, 
 
 ## Deploying on GitHub Pages
 
-1. Push these files to the branch Pages deploys from (`main` of [atlantachristianstudents/acswebapps](https://github.com/atlantachristianstudents/acswebapps)).
-2. In the repo, go to **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save.
-4. After a minute the site is live at <https://acswebapps.com/>.
+1. In **Settings → Pages → Build and deployment**, set the source to **GitHub Actions** and retain the `acswebapps.com` custom domain.
+2. Push to `main` or run **Deploy ACS Web Apps to Pages** manually from `main`. The workflow stages the tracked static site and adds the verified Define data release from GitHub Releases. The release archive stays outside Git. See [Define deployment](apps/define/docs/DEPLOYMENT.md).
+3. After the deploy job succeeds, open <https://acswebapps.com/> and verify the app that changed.
 
 `.nojekyll` must stay in the repo root so GitHub Pages serves files as-is (Jekyll would otherwise exclude folders such as `apps/_template/`).
 
-The custom domain comes from the `CNAME` file at the repo root (`acswebapps.com`). GitHub Pages serves the repo root at `/` on that domain, so `404.html` selects its base path at runtime rather than hardcoding `/acswebapps/`. Keep DNS pointed at GitHub Pages (an `A` record to `185.199.108–111.153.153` or a `CNAME` to `*.github.io`), and keep the **Enforce HTTPS** setting on so installed apps get a secure context for the microphone and service workers.
+Configure the custom domain `acswebapps.com` in Pages settings and keep the root `CNAME` in sync. GitHub Pages serves the site at `/` on that domain, so `404.html` selects its base path at runtime. Keep DNS pointed at GitHub Pages (an `A` record to `185.199.108–111.153.153` or a `CNAME` to `*.github.io`), and keep the **Enforce HTTPS** setting on so installed apps get a secure context for the microphone and service workers.
 
-Show Songs’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The workflow requests a [Pages rebuild](https://docs.github.com/en/rest/pages/pages#request-a-github-pages-build) after bot commits, since those pushes do not trigger the branch-based build automatically. Keep Actions enabled and permit the workflow’s `contents: write` and `pages: write` permissions; protected branches must allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
+Show Songs’s `Update Songbase library` workflow runs at 00:17, 06:17, 12:17, and 18:17 UTC (GitHub may delay scheduled runs). It can also be run manually in **Actions → Update Songbase library → Run workflow**. Python’s standard library downloads and validates the full Songbase snapshot, updates both the archive and embedded offline copy, bumps the app cache version, and commits only actual song/book changes. The updater explicitly triggers the Pages workflow after bot commits and still requests a branch rebuild on sites using branch deployment. Keep Actions enabled and protected branches configured to allow these bot updates. No separate secret is needed for an unprotected branch. Each app launch checks the published snapshot and persists it in IndexedDB without interrupting a presentation.
 
 ## Troubleshooting
 
