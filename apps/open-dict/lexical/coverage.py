@@ -7,6 +7,11 @@ REJECTION_REASONS = ("invalid_headwords", "duplicate_entry_records", "entries_wi
                      "entries_without_marked_definitions")
 
 
+def missing_files(directory, files):
+    return sum(not (directory / file["path"]).is_file() or
+               (directory / file["path"]).stat().st_size != file["bytes"] for file in files)
+
+
 def count_relations(counts, value):
     relations = value.get("relations", {})
     for target in ("synonym", "antonym"):
@@ -29,7 +34,7 @@ def count_sense(counts, sense):
 
 
 def report_coverage(store, packs):
-    from .store import coverage_scope
+    from .store import audited_release, coverage_scope
 
     metadata = store.release_metadata()
     result = {"coverage": coverage_scope(metadata), "installed": store.report(), "sources": {},
@@ -75,10 +80,13 @@ def report_coverage(store, packs):
             result["warnings"].append(f"{source}: lexical and searchable counts differ")
         if info.get("fixture") or info.get("subset"):
             result["warnings"].append(f"{source}: only a subset is active")
+        elif not audited_release(info):
+            result["warnings"].append(f"{source}: active release has no matching verified import audit")
         reasons = {k: info.get("report", {}).get(k, 0) for k in REJECTION_REASONS}
+        status = "fixture" if info.get("fixture") else "subset" if info.get("subset") else "active"
         result["sources"][source] = {**dict(counts), "version": info["version"], "checksum": info["checksum"],
                                      "license": info["license"], "completed_at": info.get("completedAt"),
-                                     "status": "subset" if info.get("subset") else "active",
+                                     "status": status,
                                      "import": info.get("report", {}), "rejected": sum(reasons.values()),
                                      "rejection_reasons": reasons}
     result["retrievable_headwords"] = store.query("""
@@ -100,16 +108,23 @@ def report_coverage(store, packs):
         installed = {source: (info["checksum"], info["version"]) for source, info in metadata.items()}
         if exported != installed:
             result["warnings"].append("The pack manifest represents a different active source snapshot")
+        aliases = data.get("online", {}).get("aliases")
+        if aliases is None:
+            result["warnings"].append("The pack manifest has no static search form index")
+        else:
+            missing = missing_files(packs, aliases)
+            if missing:
+                result["warnings"].append(f"Static search: {missing} missing or truncated form index files")
         for name, edition in data["editions"].items():
             if name in {"Complete English", "Scholarly Research"} and any(
                     edition.get(field, result["installed"][field]) != result["installed"][field]
                     for field in ("headwords", "lexemes", "senses")):
                 result["warnings"].append(f"{name}: pack and database counts differ")
-            missing = sum(not (packs / file["path"]).is_file() or (packs / file["path"]).stat().st_size != file["bytes"]
-                          for file in edition["files"])
+            missing = missing_files(packs, edition["files"])
             if missing:
                 result["warnings"].append(f"{name}: {missing} missing or truncated pack files")
         result["offline"] = {"release": data["release"], "coverage": data.get("coverage", "unclassified"),
+            "static_form_index_rows": None if aliases is None else sum(file["entries"] for file in aliases),
             "sources": {name: {"version": info["version"], "license": info["license"]}
                         for name, info in data["sources"].items()},
             "editions": {name: {**{k: v for k, v in edition.items() if k != "files"},

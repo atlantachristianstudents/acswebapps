@@ -9,6 +9,11 @@
   const filterFields = document.querySelector("#filters");
   const filterToggle = document.querySelector("#filter-toggle");
   const status = document.querySelector("#status");
+  const quickLookup = document.querySelector("#quick-lookup");
+  const quickWord = document.querySelector("#quick-word");
+  const quickDefinitions = document.querySelector("#quick-definitions");
+  const quickEntry = document.querySelector("#quick-entry");
+  const quickClose = quickLookup?.querySelector("button");
   const positions = {
     adj:"adjective", adv:"adverb", noun:"noun", verb:"verb", name:"proper name", prep:"preposition",
     pron:"pronoun", conj:"conjunction", intj:"interjection", num:"numeral", det:"determiner"
@@ -19,6 +24,7 @@
   let renderVersion = 0;
   let suggestionVersion = 0, suggestions = [], activeSuggestion = -1, suggestTimer;
   let goToContent = false, installController;
+  let lookupRequest = 0, lookupTrigger;
   let scholarly = preference("mode") === "scholarly";
 
   function preference(name, value) {
@@ -63,6 +69,24 @@
   const sourceName = id => (adapter.sourceInfo[id] || starter.sourceInfo[id])?.name || id;
   const posName = pos => positions[pos] || pos;
   const showStatus = message => { status.textContent = message; };
+
+  function quickWordLink(word) {
+    const anchor = link(word, hash(word), "lookup-word");
+    anchor.setAttribute("aria-haspopup", "dialog");
+    anchor.draggable = false;
+    return anchor;
+  }
+
+  function linkedWords(text) {
+    const parts = document.createDocumentFragment();
+    let end = 0;
+    for (const match of text.matchAll(/[\p{L}\p{N}][\p{L}\p{M}\p{N}]*(?:['’‘‐‑–-][\p{L}\p{N}][\p{L}\p{M}\p{N}]*)*/gu)) {
+      parts.append(text.slice(end, match.index), quickWordLink(match[0]));
+      end = match.index + match[0].length;
+    }
+    parts.append(text.slice(end));
+    return parts;
+  }
 
   async function copy(text, feedback) {
     try {
@@ -179,7 +203,7 @@
   });
 
   document.addEventListener("keydown", event => {
-    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey ||
+    if (quickLookup?.open || event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey ||
         event.target.closest("input, textarea, select, [contenteditable]")) return;
     event.preventDefault();
     search.focus();
@@ -191,7 +215,17 @@
     if (!target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0 ||
         target.getAttribute("href") === "#content") return;
     event.preventDefault();
+    if (target.classList.contains("lookup-word") && typeof quickLookup?.showModal === "function") {
+      showQuickDefinition(target);
+      return;
+    }
+    if (quickLookup?.open) quickLookup.close();
     go(target.getAttribute("href"));
+  });
+
+  quickLookup?.addEventListener("close", () => {
+    if (lookupTrigger?.isConnected) lookupTrigger.focus({preventScroll:true});
+    lookupTrigger = null;
   });
 
   const theme = document.querySelector("#theme");
@@ -239,6 +273,53 @@
     throw error;
   }
 
+  async function showQuickDefinition(anchor) {
+    const request = ++lookupRequest;
+    const word = anchor.textContent;
+    quickWord.textContent = word;
+    quickEntry.href = hash(word);
+    if (!quickLookup.open) {
+      lookupTrigger = anchor;
+      quickLookup.showModal();
+    }
+    quickClose.focus();
+    quickDefinitions.textContent = "Looking up “" + word + "”…";
+
+    try {
+      let record = await queryAdapter("lookup", word);
+      let related = [];
+      if (!record) {
+        const results = await queryAdapter("search", word, {limit:8, suggest:true});
+        related = results.filter(item => item.kind === "form" || item.kind === "variant");
+        if (related.length === 1) record = await queryAdapter("lookup", related[0].word);
+      }
+      if (!quickLookup.open || request !== lookupRequest) return;
+      if (!record) {
+        quickDefinitions.replaceChildren(element("p", "", "No exact entry in " + adapter.name + "."));
+        if (related.length) {
+          quickDefinitions.append(element("ul", "", ...related.map(item => element("li", "",
+            quickWordLink(item.word), " · " + kinds[item.kind]))));
+        }
+        return;
+      }
+
+      const list = element("ol", "sense-list");
+      for (const group of record.groups) {
+        const caption = posName(group.pos) + " · " + sourceName(group.source);
+        for (const sense of group.senses.slice(0, 3 - list.childElementCount)) {
+          list.append(element("li", "", element("p", "definition", linkedWords(sense.definition)),
+            element("p", "meta", caption)));
+        }
+        if (list.childElementCount === 3) break;
+      }
+      const note = related[0] ? element("p", "meta", kinds[related[0].kind] + " of ", quickWordLink(record.word)) : null;
+      quickDefinitions.replaceChildren(...[note, list].filter(Boolean));
+      quickEntry.href = hash(record.word);
+    } catch (_) {
+      if (quickLookup.open && request === lookupRequest) quickDefinitions.textContent = "Lookup unavailable. Try again.";
+    }
+  }
+
   function modeButton() {
     const control = button("Scholarly mode", () => {
       scholarly = !scholarly;
@@ -260,7 +341,7 @@
       visible.forEach((term, index) => {
         if (index) group.append(" · ");
         group.append(wordLink(term.word, term.sense));
-        if (expanded && term.qualifier) group.append(" (" + term.qualifier + ")");
+        if (expanded && term.qualifier) group.append(" (", linkedWords(term.qualifier), ")");
       });
       if (visible.length < terms.length) group.append(" · " + (terms.length - visible.length) + " more in source");
       box.append(group);
@@ -269,7 +350,7 @@
   }
 
   function labels(items) {
-    return element("div", "label-list", ...[...new Set(items)].map(item => element("span", "label", item)));
+    return element("div", "label-list", ...[...new Set(items)].map(item => element("span", "label", linkedWords(item))));
   }
 
   function detail(title, ...body) {
@@ -283,11 +364,12 @@
     const tags = [...(sense.labels || []), ...(scholarly ? sense.domains || [] : [])];
     if (tags.length) item.append(labels(scholarly ? tags : tags.slice(0, 7)));
     if (scholarly && !sense.parent && sense.glossPath?.length) {
-      item.append(element("p", "meta", sense.glossPath.join(" › ")));
+      item.append(element("p", "meta", linkedWords(sense.glossPath.join(" › "))));
     }
-    item.append(element("p", "definition", sense.definition));
+    item.append(element("p", "definition", linkedWords(sense.definition)));
     for (const example of (sense.examples || []).slice(0, scholarly ? undefined : 2)) {
-      item.append(element("blockquote", "example", example.text, example.ref ? element("cite", "", example.ref) : null));
+      item.append(element("blockquote", "example", linkedWords(example.text),
+        example.ref ? element("cite", "", linkedWords(example.ref)) : null));
     }
     item.append(renderRelations(sense.relations, scholarly));
     item.append(element("div", "sense-actions",
@@ -325,7 +407,9 @@
     card.id = "lexeme-" + group.id;
     card.tabIndex = -1;
     if (group.historical) card.append(element("p", "meta", "Historical dictionary · 1913"));
-    if (scholarly && group.sourceHeader) card.append(detail("Source headword line", element("p", "", group.sourceHeader)));
+    if (scholarly && group.sourceHeader) {
+      card.append(detail("Source headword line", element("p", "", linkedWords(group.sourceHeader))));
+    }
     const sounds = (group.pronunciations || []).filter(sound => sound.ipa);
     const unique = [...new Set(sounds.map(sound => sound.ipa))];
     if (unique.length) card.append(element("p", "ipa", unique.slice(0, scholarly ? 8 : 3).join("  ·  ")));
@@ -339,7 +423,7 @@
       card.append(detail("Pronunciations and variants", element("ul", "pronunciations", ...rows)));
     }
     card.append(senseTree(group, selected));
-    if (group.etymology) card.append(detail("Etymology", element("p", "", group.etymology)));
+    if (group.etymology) card.append(detail("Etymology", element("p", "", linkedWords(group.etymology))));
     if (group.forms?.length) {
       card.append(detail("Forms and spellings", element("div", "inline", ...group.forms.slice(0, 100).map(form => {
         const node = wordLink(form.word);
@@ -381,7 +465,7 @@
     const ipa = entry.pronunciations?.find(sound => sound.ipa)?.ipa;
     const daily = element("section", "daily", element("h2", "", "Word of the day"),
       element("h3", "", wordLink(featured.word)), element("p", "ipa", posName(entry.pos), ipa ? " · " + ipa : ""),
-      element("p", "definition", entry.senses[0].definition),
+      element("p", "definition", linkedWords(entry.senses[0].definition)),
       link("Read the entry →", hash(featured.word), "daily-link"),
       element("p", "meta", sourceName(entry.source)));
     const explore = element("section", "explore", element("h2", "", "Compare words"),
@@ -658,7 +742,11 @@
     goToContent = false;
   }
 
-  window.addEventListener("hashchange", () => { closeSuggestions(); render(); });
+  window.addEventListener("hashchange", () => {
+    if (quickLookup?.open) quickLookup.close();
+    closeSuggestions();
+    render();
+  });
   const sourceFilter = document.querySelector("#source-filter");
   function updateSourceOptions() {
     sourceFilter.replaceChildren(new Option("Any", ""),

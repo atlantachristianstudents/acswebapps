@@ -137,6 +137,8 @@ class DictionaryTests(unittest.TestCase):
         with connect(self.database) as store:
             original = store.lookup("bank")
             manifest = portable(store, directory, "portable-v1")
+        self.assertEqual(manifest["coverage"], "starter")
+        self.assertEqual(manifest["edition"], "Development dictionary")
         archive = directory / manifest["path"]
         self.assertEqual(sha256(archive), manifest["sha256"])
         content = gzip.decompress(archive.read_bytes())

@@ -22,6 +22,7 @@ Then open [the full local app](http://127.0.0.1:8766/). For a small development 
 ## Use the dictionary
 
 - Press **/** to focus search. Use the arrow keys and Enter to choose an autocomplete match. Search also recognizes available inflected forms and alternate spellings.
+- Select any word in a definition, example, or etymology to see a quick definition without leaving the entry. Press Escape to return to the word, or choose **Open full entry** to see the rest of its senses. Quick definitions use the installed data when offline.
 - Open **Advanced search** to filter by source, part of speech, spelling, definition, subject, or usage label. Filter results depend on the selected dataset’s coverage.
 - Switch **Scholarly mode** on an entry to see both sources, fuller relations, and sense IDs. **Sense link** addresses an individual source sense. Use **Compare** for side-by-side sources and evidence.
 - Open **Sources** for versions, licenses, and attribution. Listen to the licensed starter recordings for *bank*, *apple*, and *serendipity*. Other Wiktionary audio records link to the relevant Commons file and its terms. IPA and examples appear wherever present in the selected data.

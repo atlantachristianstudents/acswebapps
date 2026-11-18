@@ -18,25 +18,34 @@ def sources():
     return data
 
 
+def audited_release(metadata):
+    report = metadata.get("report", {})
+    return bool(metadata.get("completedAt") and report.get("senses") and metadata.get("sha256") and
+                metadata.get("checksum") == metadata["sha256"] and
+                all(report.get(field) == value for field, value in metadata.get("baseline", {}).items()))
+
+
 def coverage_scope(metadata):
     if not metadata:
         return "empty"
     if all(item.get("fixture") for item in metadata.values()):
         return "starter"
-    if not SOURCES.issubset(metadata) or any(item.get("subset") or item.get("fixture") for item in metadata.values()):
+    if not SOURCES.issubset(metadata) or not all(
+            not item.get("subset") and not item.get("fixture") and audited_release(item)
+            for item in metadata.values()):
         return "partial"
     return "full"
 
 
 @contextmanager
-def connect(database, read_only=False):
+def connect(database, read_only=False, *, statement_timeout="20s"):
     postgres = str(database).startswith(("postgresql://", "postgres://"))
     if postgres:
         import psycopg
         connection = psycopg.connect(database, connect_timeout=5)
         if read_only:
             connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-        connection.execute("SET statement_timeout = '20s'")
+        connection.execute("SELECT set_config('statement_timeout', %s, false)", (statement_timeout,))
     else:
         source = Path(database).resolve().as_uri() + "?mode=ro" if read_only else database
         connection = sqlite3.connect(source, uri=read_only)

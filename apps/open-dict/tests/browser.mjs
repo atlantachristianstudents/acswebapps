@@ -77,6 +77,12 @@ async function navigate(hash = "") {
   await send("Page.navigate", {url:base + hash});
 }
 
+async function pressKey(key, code) {
+  for (const type of ["keyDown", "keyUp"]) {
+    await send("Input.dispatchKeyEvent", {type, key, code:key, windowsVirtualKeyCode:code});
+  }
+}
+
 try {
   await send("Page.enable");
   await send("Runtime.enable");
@@ -97,6 +103,10 @@ try {
     worker.postMessage({type:'ACS_GET_VERSION'}, [channel.port2]);
   })`, "matching app shell and service worker");
   assert.equal(await evaluate("navigator.serviceWorker.controller.scriptURL"), base + "sw.js");
+  if (!(await evaluate("Boolean(document.querySelector('.daily .lookup-word'))"))) {
+    await send("Page.reload", {ignoreCache:false});
+    await waitFor("Boolean(document.querySelector('.daily .lookup-word'))", "clickable words in the updated shell");
+  }
 
   if (full) {
     await waitFor("document.querySelector('#coverage-status')?.innerText.includes('Full published dictionary')", "full static data");
@@ -123,6 +133,34 @@ try {
     await click("Scholarly mode");
     await waitFor("document.querySelector('[data-mode]').getAttribute('aria-pressed') === 'false'", "simple mode");
   }
+  const bankHash = await evaluate("location.hash");
+  assert.equal(await evaluate(`(() => {
+    const words = [...document.querySelectorAll('#content .definition .lookup-word')];
+    const take = words.find(node => node.textContent === 'take');
+    take?.focus();
+    return Boolean(take && take === document.activeElement);
+  })()`), true);
+  await pressKey("Enter", 13);
+  await waitFor(`document.querySelector('#quick-lookup').open &&
+    document.querySelector('#quick-word').textContent === 'take' &&
+    Boolean(document.querySelector('#quick-definitions .definition .lookup-word'))`, "keyboard quick definition");
+  assert.equal(await evaluate("location.hash"), bankHash);
+  assert.equal(await evaluate("document.querySelector('.word-title').textContent"), "bank");
+  const nextWord = await evaluate(`(() => {
+    const next = document.querySelector('#quick-definitions .definition .lookup-word');
+    const word = next.textContent;
+    next.click();
+    return word;
+  })()`);
+  await waitFor(`document.querySelector('#quick-word').textContent === ${JSON.stringify(nextWord)} &&
+    !document.querySelector('#quick-definitions').textContent.startsWith('Looking up')`, "nested quick definition");
+  await pressKey("Escape", 27);
+  await waitFor(`!document.querySelector('#quick-lookup').open &&
+    document.activeElement.matches('#content .lookup-word') &&
+    document.activeElement.textContent === 'take'`, "return focus to the selected word");
+  assert.equal(await evaluate(`Boolean(document.querySelector('#content blockquote.example .lookup-word')) &&
+    [...document.querySelectorAll('#content details')].some(node =>
+      node.querySelector('summary')?.textContent === 'Etymology' && node.querySelector('.lookup-word'))`), true);
   const sense = await evaluate("document.querySelector('.sense-actions a').getAttribute('href')");
   await navigate(sense);
   await waitFor("Boolean(document.querySelector('.sense-list .selected'))", "sense permalink");
@@ -132,6 +170,8 @@ try {
     Boolean(document.querySelector('.sense-list .selected'))`, "scholarly mode preserves sense");
   await navigate("#compare=affect&with=effect");
   await waitFor("document.querySelectorAll('.compare-grid > section').length === 2", "word comparison");
+  assert.equal(await evaluate(`[...document.querySelectorAll('.compare-grid > section')].every(node =>
+    node.querySelector('.definition .lookup-word'))`), true);
   await send("Page.getNavigationHistory").then(async history => {
     const entry = history.entries[history.currentIndex - 1];
     await send("Page.navigateToHistoryEntry", {entryId:entry.id});
@@ -144,6 +184,11 @@ try {
   await navigate("#word=colour");
   await waitFor("document.querySelector('.word-title')?.textContent === 'colour'", "mobile entry");
   assert.equal(await evaluate("document.documentElement.scrollWidth <= window.innerWidth"), true);
+  await evaluate("document.querySelector('#content .definition .lookup-word').click()");
+  await waitFor("document.querySelector('#quick-lookup').open", "mobile quick definition");
+  assert.equal(await evaluate("document.querySelector('#quick-lookup').getBoundingClientRect().width < window.innerWidth"), true);
+  await click("Close", "#quick-lookup button");
+  await waitFor("!document.querySelector('#quick-lookup').open", "close mobile definition");
   await send("Emulation.clearDeviceMetricsOverride");
   await navigate("#offline");
   await waitFor("document.querySelector('.section-title')?.textContent === 'Offline dictionary'", "offline controls");
@@ -182,6 +227,15 @@ try {
   await waitFor(`document.querySelector('.word-title')?.textContent === 'bank' &&
     document.querySelector('.entry-heading').innerText.includes('Complete English')`, "disconnected launch and lookup");
   assert.equal(await evaluate("fetch('data/releases/manifest.json',{cache:'no-store'}).then(()=>false,()=>true)"), true);
+  await click("take", "#content .definition .lookup-word");
+  await waitFor(`document.querySelector('#quick-word').textContent === 'take' &&
+    Boolean(document.querySelector('#quick-definitions .definition'))`, "quick definition from the installed pack");
+  await click("Open full entry", "#quick-entry");
+  await waitFor(`!document.querySelector('#quick-lookup').open &&
+    document.querySelector('.word-title')?.textContent === 'take' &&
+    document.querySelector('.entry-heading').innerText.includes('Complete English')`, "open the offline full entry");
+  await navigate("#word=bank");
+  await waitFor("document.querySelector('.word-title')?.textContent === 'bank'", "return to the offline entry");
   assert.equal(await evaluate("[...document.querySelectorAll('summary')].some(node=>node.textContent==='Etymology')"), true);
   await evaluate("document.querySelector('audio').load()");
   await waitFor("document.querySelector('audio').duration > 0", "offline sourced pronunciation decodes");
@@ -206,7 +260,7 @@ try {
     const image = await send("Page.captureScreenshot", {format:"png"});
     await writeFile(process.env.OPEN_DICT_SCREENSHOT, Buffer.from(image.data,"base64"));
   }
-  console.log("Browser passed homepage, keyboard autocomplete, sense links, scholarly mode, comparison, history, mobile layout, pack integrity and disconnected lookup.");
+  console.log("Browser passed homepage, keyboard autocomplete, quick definitions, sense links, scholarly mode, comparison, history, mobile layout, pack integrity and disconnected lookup.");
 } finally {
   await send("Network.emulateNetworkConditions", {offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(() => {});
   socket.close();

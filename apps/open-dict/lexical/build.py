@@ -102,6 +102,10 @@ def available_capacity(directory, needed):
 
 
 def check_import(store, source, version, report):
+    if source in {"wiktionary", "oewn"}:
+        exclusions = report["missing_definitions"] + report["duplicate_source_senses"] + report["rejected_senses"]
+        if report["source_senses_read"] != report["senses"] + exclusions:
+            raise ValueError(f"Source senses do not reconcile with stored senses and exclusions for {source}")
     for table, metric in (("source_records", "archived_records"), ("lexemes", "lexemes"), ("senses", "senses")):
         count = store.query(f"SELECT count(*) FROM {table} WHERE source=? AND version=?", (source, version)).fetchone()[0]
         if count != report[metric] or (table != "source_records" and not count):
@@ -383,8 +387,10 @@ def portable(store, directory, version):
         with database.open("rb") as data, compressed.open("wb") as file:
             with gzip.GzipFile(filename="", fileobj=file, mode="wb", mtime=0) as writer:
                 shutil.copyfileobj(data, writer)
-        result = {"schema": SCHEMA, "release": version, "date": date.today().isoformat(),
-                  "edition": "Complete English", "format": "sqlite3+gzip", "path": output.name,
+        coverage = coverage_scope(source_info)
+        result = {"schema": SCHEMA, "release": version, "date": date.today().isoformat(), "coverage": coverage,
+                  "edition": "Complete English" if coverage == "full" else "Development dictionary",
+                  "format": "sqlite3+gzip", "path": output.name,
                   "bytes": compressed.stat().st_size, "installedBytes": database.stat().st_size,
                   "sha256": sha256(compressed), "counts": counts,
                   "sources": {name: public_source(source) for name, source in source_info.items()}}
@@ -472,6 +478,7 @@ def main():
     sqlite = commands.add_parser("portable")
     sqlite.add_argument("directory", type=Path)
     sqlite.add_argument("--id", required=True)
+    sqlite.add_argument("--allow-partial", action="store_true", help="Build a fixture database explicitly")
     sample = commands.add_parser("fixture")
     sample.add_argument("--words", required=True)
     sample.add_argument("--wiktionary-words")
@@ -487,7 +494,7 @@ def main():
     if not args.db.startswith(("postgresql://", "postgres://")):
         Path(args.db).parent.mkdir(parents=True, exist_ok=True)
     read_only = args.command in {"report", "coverage", "release", "portable", "fixture"}
-    with connect(args.db, read_only=read_only) as store:
+    with connect(args.db, read_only=read_only, statement_timeout="0") as store:
         if not read_only:
             store.initialize()
         if args.command in {"import", "import-all"} and not store.postgres:
@@ -522,14 +529,15 @@ def main():
         elif args.command == "reindex":
             store.rebuild_indexes()
             result = store.report()
-        elif args.command == "release":
+        elif args.command in {"release", "portable"}:
             if not store.postgres:
                 store.query("PRAGMA cache_size=-131072")
             if not args.allow_partial and coverage_scope(store.release_metadata()) != "full":
                 parser.error("Complete packs require a full import. Use --allow-partial for development fixtures.")
-            result = release(store, args.directory, args.id, read_words(args.essential_words), args.scholarly)
-        elif args.command == "portable":
-            result = portable(store, args.directory, args.id)
+            if args.command == "release":
+                result = release(store, args.directory, args.id, read_words(args.essential_words), args.scholarly)
+            else:
+                result = portable(store, args.directory, args.id)
         elif args.command == "fixture":
             result = fixture(store, read_words(args.words), args.output, read_words(args.wiktionary_words))
         elif args.command == "seed":

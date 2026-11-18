@@ -5,6 +5,7 @@
 - [x] ACS Web Apps directory registration, relative routes, and scoped application cache
 - [x] Authentic starter lookup with separate Wiktionary etymologies and WordNet synsets
 - [x] Word comparison, source and license inspection, keyboard autocomplete, and shareable sense links
+- [x] Click-to-define links in dictionary prose with keyboard and offline support
 - [x] Relational schema, SQLite FTS5, PostgreSQL trigram and full-text indexes, and read-only API
 - [x] Server-rendered entries and configurable XML sitemaps on the API-backed edition
 - [x] Make complete imports the default for API and Compose, add resumable ingestion, and expose corpus coverage in the app.
