@@ -332,6 +332,10 @@
 .acs-update p{margin:6px 0 0!important;color:inherit!important;font:12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
 .acs-update-note{opacity:.8}
 [data-acs-update-status]:empty{display:none}
+#updateShortcutStatus { position: fixed; left: 50%; bottom: 5vh; transform: translateX(-50%); z-index: 500;
+  box-sizing: border-box; width: max-content; max-width: 90vw; margin: 0; padding: 8px 16px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);
+  box-shadow: 0 6px 20px rgba(0,0,0,.3); font: 600 16px/1.4 system-ui,sans-serif; text-align: center; pointer-events: none; }
 .update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
 .update-row.acs-update p{margin:0!important}
 </style>
@@ -494,7 +498,7 @@
 
 <div id="help" hidden="" role="dialog" aria-modal="true" aria-label="How to use this page">
 <div class="panel">
-  <div class="top"><h2>How to use this page</h2><button type="button" id="helpClose">Close</button></div><div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div>
+  <div class="top"><h2>How to use this page</h2><button type="button" id="helpClose">Close</button></div><div class="acs-update" data-acs-update><button type="button" data-acs-update-button aria-keyshortcuts="Meta+U">Check for updates</button><p class="acs-update-note">Press <kbd>⌘</kbd>+<kbd>U</kbd> to check from anywhere. Save your work first. An update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div>
   <p>Show Words is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</p>
 
   <h3>Look up verses by reference</h3>
@@ -550,7 +554,7 @@
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>A</kbd></td><td>Select all listed verses</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the selected verses (or the current one) as plain text</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the <strong>r</strong>eference of every verse shown (e.g. John 3:16–18; Romans 8:28); also works in the presentation and the version comparison</td></tr>
-    <tr><td><kbd>X</kbd></td><td>Open the current verse’s original-language text analysis on BibleHub in a new tab. Works from a selected search result, presentation, or side-by-side comparison.</td></tr>
+    <tr><td><kbd>X</kbd></td><td>Open the selected verse’s original-language text analysis on BibleHub in a new tab. Also works in side-by-side comparison.</td></tr>
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd></td><td>Copy with formatting: reference in bold, in the page’s font (pastes as rich text; plain text where that isn’t supported)</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>C</kbd></td><td>Copy in a reading-friendly format: verses that follow one another become one flowing passage under a single heading (e.g. John 3:16–18) with small verse numbers inline; separate verses get their own heading</td></tr>
     <tr><td><kbd>O</kbd></td><td>Show the whole chapter of the selected verse, with that verse still selected; press <kbd>O</kbd> again to go back</td></tr>
@@ -581,6 +585,7 @@
     <tr><td><kbd>O</kbd></td><td>Show the whole chapter of the selected verse, with that verse still selected; press <kbd>O</kbd> again to go back</td></tr>
     <tr><td><kbd>S</kbd></td><td>Compare the verse in every loaded version, selected version first; click a row or use <kbd>1</kbd>–<kbd>9</kbd> / <kbd>0</kbd> to select a version; <kbd>S</kbd> or <kbd>Esc</kbd> returns to the presentation</td></tr>
     <tr><td><kbd>P</kbd></td><td>Pronunciation of words, as above (arrows / <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> move between words)</td></tr>
+    <tr><td><kbd>X</kbd></td><td>Open the verse on BibleHub. Uses the pronunciation cursor’s verse when active, or the first visible verse when scrolling.</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the verse on screen as plain text; <kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd> copies it with formatting (reference in bold, in the page’s font); <kbd>Shift</kbd>+<kbd>C</kbd> copies in the reading-friendly format (all verses shown, as one passage under a single heading)</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the reference of every verse on screen (including those added with <kbd>N</kbd> / <kbd>B</kbd>)</td></tr>
     <tr><td><kbd>F</kbd></td><td>Fill the presentation area with the verse (largest size that fits)</td></tr>
@@ -608,6 +613,7 @@
 </div>
 
 <div id="pron" hidden=""><div class="pr1" id="pr1"></div><div class="pr2" id="pr2"></div></div>
+<p id="updateShortcutStatus" data-acs-update-status role="status" hidden></p>
 
 <!--EMBED-->
 <script>
@@ -3368,14 +3374,14 @@
     }
     // not in the results at all: presCursor stays on the last in-results verse shown
   }
-  function firstVisibleScrollVerse() {
+  function firstVisibleScrollVerse(fullyVisible) {
     var box = $("ptext"), bounds = box.getBoundingClientRect();
     var top = Math.max(0, bounds.top + box.clientTop), bottom = Math.min(window.innerHeight, top + box.clientHeight);
-    var rows = $("pinner").querySelectorAll(".scrollverse[data-pos]");
+    var rows = $("pinner").querySelectorAll(".scrollverse[data-pos], .pverse[data-pos]");
     for (var i = 0; i < rows.length; i++) {
       var rect = rows[i].getBoundingClientRect();
-      if (rect.top < top - 0.5) continue;
-      if (rect.bottom > bottom + 0.5) break;
+      if (rect.bottom <= top || (fullyVisible && rect.top < top - 0.5)) continue;
+      if (rect.top >= bottom || (fullyVisible && rect.bottom > bottom + 0.5)) break;
       return rows[i];
     }
     return null;
@@ -3384,7 +3390,7 @@
   // fully visible row, retaining the last in-results position in chapter context.
   function trackScrollPresCursor() {
     if (!presenting || !scrollPresent || slideMode || sbsEl) return;
-    var row = firstVisibleScrollVerse();
+    var row = firstVisibleScrollVerse(true);
     if (!row) return;
     if (row.dataset.resultIndex !== undefined) {
       presCursor = +row.dataset.resultIndex;
@@ -3781,15 +3787,16 @@
     el.textContent = "";
     if (runs.length === 1) {
       var run = runs[0], its = run.map(itemOf);
-      if (run.length > 1) fillRun(el, its); else el.textContent = its[0].text;
+      fillRun(el, its);
       return run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
     }
     runs.forEach(function (run) {
       var its = run.map(itemOf);
       var h = document.createElement("div"); h.className = "pslh";
+      h.dataset.pos = [run[0].bi, run[0].ch, run[0].v].join(":");
       h.textContent = run.length > 1 ? rangeAny(run[0], run[run.length - 1]) : its[0].ref;
       var pp = document.createElement("div"); pp.className = "pslp";
-      if (run.length > 1) fillRun(pp, its); else pp.textContent = its[0].text;
+      fillRun(pp, its);
       el.appendChild(h); el.appendChild(pp);
     });
     return "";
@@ -3820,11 +3827,18 @@
   function fillRun(el, items) {   // verses with small superscript numbers, flowing on
     var prevI = null;
     items.forEach(function (it, k) {
-      var n = !prevI ? it.v : (prevI.bi !== it.bi ? it.ref : (prevI.ch !== it.ch && !noChap[it.bi] ? it.ch + ":" + it.v : it.v));
+      var verse = document.createElement("span");
+      verse.className = "pverse";
+      verse.dataset.pos = [it.bi, it.ch, it.v].join(":");
+      if (items.length > 1) {
+        var n = !prevI ? it.v : (prevI.bi !== it.bi ? it.ref : (prevI.ch !== it.ch && !noChap[it.bi] ? it.ch + ":" + it.v : it.v));
+        var sp = document.createElement("sup"); sp.className = "pv"; sp.textContent = String(n);
+        verse.appendChild(sp);
+      }
+      verse.appendChild(document.createTextNode((items.length > 1 ? "\u00a0" : "") + it.text));
+      el.appendChild(verse);
+      if (k < items.length - 1) el.appendChild(document.createTextNode(" "));
       prevI = it;
-      var sp = document.createElement("sup"); sp.className = "pv"; sp.textContent = String(n);
-      el.appendChild(sp);
-      el.appendChild(document.createTextNode("\u00a0" + it.text + (k < items.length - 1 ? " " : "")));
     });
   }
   // N / B: the verse next to a slide that holds a single verse or a single run of verses
@@ -4327,12 +4341,14 @@
     var coords;
     if (sbsEl) coords = sbsCoords();
     else if (presenting) {
-      var row = scrollPresent && firstVisibleScrollVerse();
-      var verse = presVerse();
-      if (row) {
-        var pos = row.dataset.pos.split(":");
+      var shown = pronAlive() ? pron.words[pron.idx].closest("[data-pos]") : scrollPresent && firstVisibleScrollVerse(false);
+      if (shown) {
+        var pos = shown.dataset.pos.split(":");
         coords = { bi: pos[0], ch: pos[1], v: pos[2] };
-      } else if (verse) coords = verse.dataset;
+      } else {
+        var verse = presVerse();
+        if (verse) coords = verse.dataset;
+      }
     } else {
       var result = t && t.closest && t.closest("#results .verse");
       if (result) coords = result.dataset;
@@ -5661,7 +5677,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v56">
+<script id="acswebapps-updater" data-version="verse-lookup-v57">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -5749,6 +5765,18 @@
   document.addEventListener('click', event => {
     if (!event.target.closest('[data-acs-update-button]')) return;
     event.preventDefault(); event.stopPropagation(); check();
+  }, true);
+  const shortcutStatus = document.getElementById('updateShortcutStatus');
+  let hideStatus;
+  window.addEventListener('keydown', event => {
+    if (!event.metaKey || event.altKey || event.ctrlKey || event.shiftKey || event.isComposing || event.key.toLowerCase() !== 'u') return;
+    event.preventDefault(); event.stopPropagation();
+    if (event.repeat || busy) return;
+    clearTimeout(hideStatus);
+    shortcutStatus.hidden = !document.getElementById('help').hidden;
+    check().finally(() => {
+      hideStatus = setTimeout(() => { shortcutStatus.hidden = true; }, 5000);
+    });
   }, true);
 }());
 </script>
