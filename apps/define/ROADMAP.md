@@ -6,6 +6,7 @@
 - [x] Authentic starter lookup with separate Wiktionary etymologies and WordNet synsets
 - [x] Word comparison, source and license inspection, keyboard autocomplete, and shareable sense links
 - [x] Click-to-define links in dictionary prose with keyboard and offline support
+- [x] Open autocomplete results by touch even when the search input loses focus during the tap. Verified in Chromium’s mobile emulation.
 - [x] Relational schema, SQLite FTS5, PostgreSQL trigram and full-text indexes, and read-only API
 - [x] Server-rendered entries and configurable XML sitemaps on the API-backed edition
 - [x] Make complete imports the default for API and Compose, add resumable ingestion, and expose corpus coverage in the app.
@@ -30,6 +31,8 @@
 - [x] Scoped PWA shell and chunked, checksum-verified IndexedDB pack downloads
 - [x] Essential and Complete exports with measured transfer sizes, atomic activation, and retention of the previous working edition
 - [x] Install the full combined Complete pack in Chromium and verify disconnected lookup and corrupt replacement recovery.
+- [x] Verify service-worker pack installation and preservation of the previous pack using simulated Background Fetch completion in Chromium.
+- [ ] Verify browser-managed background pack transfers end to end on a Background Fetch-capable device.
 - [ ] Publish and test full-sized packs on iOS, iPadOS, Android, and other desktop browsers. Compare IndexedDB performance and storage with other browser persistence options.
 - [x] Export Scholarly Research packs with licensed source excerpts and Wiktionary quotation citations.
 - [x] Export portable normalized SQLite databases with FTS indexes and verified manifests.

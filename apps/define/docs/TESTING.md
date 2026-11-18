@@ -17,7 +17,9 @@ python3 -m lexical.build --db .local/dev.sqlite release .local/test-releases --a
   --essential-words data/fixtures/wiktionary-headwords.txt
 ```
 
-Use a fresh, dedicated Chromium profile started with `--remote-debugging-port=8767` and a loopback-only debugging address. Run `node tests/browser.mjs http://127.0.0.1:8765/apps/define/` from the app directory with Node 22 or newer. It checks keyboard autocomplete, sense links, mode switching, history, a phone-sized layout, verified pack installation, a corrupted replacement, and lookup after network disconnection and HTTP cache clearing. Change the release ID or use a fresh profile when re-running installation checks.
+Use a fresh, dedicated Chromium profile started with `--remote-debugging-port=8767` and a loopback-only debugging address. Run `node tests/browser.mjs http://127.0.0.1:8765/apps/define/` from the app directory with Node 22 or newer. It checks keyboard autocomplete, tapping a suggestion when the keyboard loses focus, sense links, mode switching, history, a phone-sized layout, verified pack installation, a corrupted replacement, and lookup after network disconnection and HTTP cache clearing. Change the release ID or use a fresh profile when re-running installation checks.
+
+Use `OPEN_DICT_BACKGROUND_BROWSER=1` with a Chromium profile that permits Background Fetch to exercise the browser-managed transfer. The test leaves Define after the download starts, then returns to check the installed pack and disconnected lookup.
 
 The benchmark measures warm database calls without HTTP or UI rendering. Treat its sample size and selected query mix as part of every reported result. Verify touch installation, storage pressure, and screen-reader behavior on the target platforms before claiming broad compatibility.
 

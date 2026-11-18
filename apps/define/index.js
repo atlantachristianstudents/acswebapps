@@ -22,7 +22,7 @@
     suggestion:"Suggested spelling", filter:"Matches filters"};
   let offline, online, published, adapter = starter;
   let renderVersion = 0;
-  let suggestionVersion = 0, suggestions = [], activeSuggestion = -1, suggestTimer;
+  let suggestionVersion = 0, suggestions = [], activeSuggestion = -1, suggestTimer, suggestionPointer;
   let goToContent = false, installController;
   let lookupRequest = 0, lookupTrigger;
   let scholarly = preference("mode") === "scholarly";
@@ -133,6 +133,7 @@
   function closeSuggestions() {
     suggestionVersion++;
     clearTimeout(suggestTimer);
+    suggestionPointer = undefined;
     suggestionList.hidden = true;
     suggestionList.replaceChildren();
     search.setAttribute("aria-expanded", "false");
@@ -166,7 +167,22 @@
         option.id = "suggestion-" + index;
         option.setAttribute("role", "option");
         option.setAttribute("aria-selected", "false");
-        option.addEventListener("pointerdown", event => event.preventDefault());
+        option.addEventListener("pointerdown", event => {
+          if (!event.isPrimary || event.button !== 0) return;
+          event.preventDefault();
+          if (event.pointerType !== "mouse") suggestionPointer = event.pointerId;
+        });
+        option.addEventListener("pointerup", event => {
+          if (event.pointerId !== suggestionPointer) return;
+          suggestionPointer = undefined;
+          if (option.contains(document.elementFromPoint(event.clientX, event.clientY))) chooseSuggestion(item);
+          else if (document.activeElement !== search) closeSuggestions();
+        });
+        option.addEventListener("pointercancel", event => {
+          if (event.pointerId !== suggestionPointer) return;
+          suggestionPointer = undefined;
+          if (document.activeElement !== search) closeSuggestions();
+        });
         option.addEventListener("click", () => chooseSuggestion(item));
         return option;
       }));
@@ -178,7 +194,9 @@
 
   search.addEventListener("input", queueSuggestions);
   search.addEventListener("focus", queueSuggestions);
-  search.addEventListener("blur", closeSuggestions);
+  search.addEventListener("blur", () => {
+    if (suggestionPointer === undefined) closeSuggestions();
+  });
   search.addEventListener("keydown", event => {
     if (event.key === "Escape") { closeSuggestions(); return; }
     if (!suggestions.length && event.key === "ArrowDown") { queueSuggestions(); return; }
@@ -572,6 +590,35 @@
     return page;
   }
 
+  async function backgroundRegistration() {
+    if (!("BackgroundFetchManager" in window) || !navigator.locks || !navigator.serviceWorker) return null;
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration?.active || !registration.backgroundFetch) return null;
+    const supported = await new Promise(resolve => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => finish(false), 1000);
+      function finish(value) {
+        clearTimeout(timer);
+        channel.port1.close();
+        resolve(value);
+      }
+      channel.port1.onmessage = event => finish(event.data?.backgroundPacks === true);
+      try { registration.active.postMessage({type:"ACS_GET_VERSION"}, [channel.port2]); }
+      catch (_) { finish(false); }
+    });
+    return supported ? registration : null;
+  }
+
+  async function rememberInstalledPack() {
+    offline = await dictionary.offlineAdapter();
+    if (offline) preference("pack-installation", JSON.stringify({
+      edition:offline.edition, release:offline.release, installedAt:Date.now()
+    }));
+    adapter = availableAdapters()[0];
+    updateCoverage();
+    updateSourceOptions();
+  }
+
   function offlinePage() {
     const page = heading("Offline dictionary", "The starter collection works offline after the app finishes caching.");
     let previous;
@@ -591,17 +638,102 @@
     const cancel = button("Cancel download", () => installController?.abort());
     cancel.hidden = true;
     const check = button("Check for data packs", load);
-    page.append(state, check, list, progress, cancel, message,
+    const backgroundMessage = element("p", "status");
+    backgroundMessage.setAttribute("role", "status");
+    const backgroundCancel = button("Cancel background download", async () => {
+      try { await transfer?.abort(); }
+      catch (_) { backgroundMessage.textContent = "Use the browser’s download controls to cancel."; }
+    });
+    backgroundCancel.hidden = backgroundMessage.hidden = true;
+    let transfer, timer, missingSince, starting = false, backgroundBusy = false;
+    const support = backgroundRegistration().catch(() => null);
+    page.append(state, check, list, progress, cancel, message, backgroundMessage, backgroundCancel,
       detail("Install the app", element("p", "", "In Safari on iPhone or iPad, open Share and choose Add to Home Screen. In supported desktop or Android browsers, use Install in the browser menu."),
         element("p", "", "Browser storage can be cleared by the device. Open this page to download a pack again.")));
     if (installController) message.textContent = "A pack download is already running in this tab.";
+    support.then(registration => { if (registration) watchBackground(registration); });
+
+    function setBackgroundMessage(value) {
+      backgroundMessage.hidden = !value;
+      if (backgroundMessage.textContent !== value) backgroundMessage.textContent = value;
+    }
+
+    async function watchBackground(registration) {
+      clearTimeout(timer);
+      if (!page.isConnected || starting) return;
+      try {
+        const job = await dictionary.backgroundJob(registration.scope);
+        const manager = registration.backgroundFetch;
+        transfer = job?.phase === "downloading" ? await manager.get(job.id) : null;
+        backgroundCancel.hidden = !transfer || Boolean(transfer.result);
+        if (!job) {
+          backgroundBusy = false;
+          return;
+        }
+        const working = job.phase === "installing" || job.phase === "downloading";
+        const lock = dictionary.backgroundLock(registration.scope);
+        const held = working && !transfer && (await navigator.locks.query()).held.some(item => item.name === lock);
+        missingSince = working && !transfer && !held ? missingSince || Date.now() : null;
+        const interrupted = missingSince && Date.now() - missingSince >= 8000;
+        backgroundBusy = working && !interrupted;
+        if (interrupted) setBackgroundMessage("The background download was interrupted. You can try again.");
+        else if (transfer && !transfer.result) {
+          const percent = Math.min(100, Math.floor(transfer.downloaded / transfer.downloadTotal * 100));
+          setBackgroundMessage("Downloading " + job.edition + " in the background · " + percent + "%");
+        } else if (working) setBackgroundMessage("Preparing " + job.edition + " for offline search…");
+        else if (job.phase === "cancelled") setBackgroundMessage("Background download cancelled.");
+        else if (job.phase === "failed") setBackgroundMessage(job.error);
+        else if (job.phase === "installed" && offline?.edition === job.edition) {
+          setBackgroundMessage(job.edition + " is ready for offline use.");
+        }
+        if (working && !interrupted) timer = setTimeout(() => watchBackground(registration), 1500);
+      } catch (_) {
+        setBackgroundMessage("Could not read the background download status.");
+      }
+    }
+
+    async function startBackground(registration, manifest, edition) {
+      if (starting || installController) return;
+      starting = true;
+      setBackgroundMessage("Starting background download…");
+      let started = false;
+      try {
+        const scope = registration.scope;
+        const manager = registration.backgroundFetch;
+        await navigator.locks.request(dictionary.backgroundLock(scope), {ifAvailable:true}, async lock => {
+          const current = await dictionary.backgroundJob(scope);
+          if (!lock || (current?.phase === "downloading" && await manager.get(current.id))) return;
+          const info = manifest.editions[edition];
+          await dictionary.checkPackSpace(info, info.bytes);
+          const id = "define-pack:" + crypto.randomUUID();
+          await dictionary.backgroundJob(scope, {id, edition, manifest, phase:"downloading"});
+          try {
+            await manager.fetch(id, info.files.map(file =>
+              new Request(new URL("data/releases/" + file.path, scope), {cache:"no-store"})),
+              {title:"Define · " + edition, downloadTotal:info.bytes});
+            started = true;
+          } catch (_) {
+            const error = "The browser declined the background download. You can use Download while Define is open.";
+            await dictionary.backgroundJob(scope, {id, edition, phase:"failed", error});
+          }
+        });
+        if (started) navigator.storage?.persist?.().catch(() => {});
+      } catch (error) {
+        setBackgroundMessage(error.message);
+        return;
+      } finally {
+        starting = false;
+      }
+      missingSince = null;
+      watchBackground(registration);
+    }
 
     async function load() {
       check.disabled = true;
       list.replaceChildren();
       message.textContent = "Checking available packs…";
       try {
-        const manifest = await dictionary.manifest();
+        const [manifest, registration] = await Promise.all([dictionary.manifest(), support]);
         if (!Object.keys(manifest.editions).length) {
           message.textContent = "No packs are published at this address.";
           return;
@@ -614,7 +746,8 @@
           list.append(element("section", "panel", element("h3", "", edition),
             element("p", "meta", info.headwords.toLocaleString() + " headwords · " +
               (info.bytes < 1024 * 1024 ? Math.ceil(info.bytes / 1024) + " KiB" : size + " MiB") + " download"),
-            download));
+            element("div", "inline", download, registration && !installed
+              ? button("Download in background", () => startBackground(registration, manifest, edition)) : null)));
         }
         message.textContent = "Release " + manifest.release;
       } catch (error) {
@@ -626,7 +759,11 @@
     }
 
     async function install(manifest, edition) {
-      if (installController) return;
+      if (installController || starting) return;
+      if (backgroundBusy) {
+        message.textContent = "Wait for the background download to finish or cancel it first.";
+        return;
+      }
       installController = new AbortController();
       const downloads = [...list.querySelectorAll("button")];
       downloads.forEach(control => { control.disabled = true; });
@@ -639,12 +776,7 @@
           progress.value = count;
           message.textContent = "Installed " + count.toLocaleString() + " of " + max.toLocaleString() + " headwords.";
         }, installController.signal);
-        offline = await dictionary.offlineAdapter();
-        if (offline) preference("pack-installation", JSON.stringify({
-          edition:offline.edition, release:offline.release, installedAt:Date.now()
-        }));
-        adapter = availableAdapters()[0];
-        updateCoverage();
+        await rememberInstalledPack();
         showStatus(edition + " is ready for offline use.");
         if (location.hash === "#offline") {
           installController = null;
@@ -754,6 +886,14 @@
   if (/^https?:$/.test(location.protocol)) {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js", {scope:"./", updateViaCache:"none"}).catch(() => {});
+      navigator.serviceWorker.addEventListener("message", async event => {
+        if (event.data?.type !== "DEFINE_BACKGROUND_PACK" || event.data.phase !== "installed") return;
+        try {
+          await rememberInstalledPack();
+          showStatus(event.data.edition + " is ready for offline use.");
+          if (location.hash === "#offline" && !installController) render();
+        } catch (_) {}
+      });
     }
     Promise.all([
       dictionary.offlineAdapter().catch(() => null),

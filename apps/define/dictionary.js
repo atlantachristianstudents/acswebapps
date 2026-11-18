@@ -364,6 +364,27 @@
     return validManifest(await request(RELEASES));
   }
 
+  async function backgroundJob(scope, job) {
+    const db = await openDatabase();
+    const transaction = db.transaction("meta", job ? "readwrite" : "readonly");
+    const meta = transaction.objectStore("meta");
+    const name = "background-pack:" + scope;
+    if (!job) return result(meta.get(name));
+    const finished = complete(transaction);
+    meta.put(job, name);
+    await finished;
+  }
+
+  const backgroundLock = scope => "define-background-pack:" + scope;
+
+  async function checkPackSpace(pack, extra = 0) {
+    const estimate = await navigator.storage?.estimate?.().catch(() => null);
+    const decodedBytes = pack.files.reduce((sum, file) => sum + file.decodedBytes, 0);
+    if (estimate?.quota && estimate.quota - (estimate.usage || 0) < decodedBytes + extra) {
+      throw Error("There is insufficient browser storage for this pack.");
+    }
+  }
+
   async function unpack(response, file) {
     if (!response.ok || !response.body) throw Error("A pack file could not be downloaded.");
     const reader = response.body.getReader();
@@ -449,7 +470,8 @@
     return active;
   }
 
-  async function installPack(data, edition, progress, signal) {
+  async function installPack(data, edition, progress, signal,
+    fetchFile = (file, signal) => fetch("data/releases/" + file.path, { cache: "no-store", signal })) {
     validManifest(data);
     if (!globalThis.crypto?.subtle || !globalThis.DecompressionStream) {
       throw Error("Verified downloads require a recent browser and a secure connection.");
@@ -461,14 +483,10 @@
     const start = await beginStage(db, slot);
     let count = 0;
     try {
-      const estimate = await navigator.storage?.estimate?.().catch(() => null);
-      const decodedBytes = pack.files.reduce((sum, file) => sum + file.decodedBytes, 0);
-      if (estimate?.quota && estimate.quota - (estimate.usage || 0) < decodedBytes) {
-        throw Error("There is insufficient browser storage for this pack.");
-      }
-      await navigator.storage?.persist?.().catch(() => {});
+      await checkPackSpace(pack);
+      if (typeof document !== "undefined") await navigator.storage?.persist?.().catch(() => {});
       for (const file of pack.files) {
-        const records = await unpack(await fetch("data/releases/" + file.path, { cache: "no-store", signal }), file);
+        const records = await unpack(await fetchFile(file, signal), file);
         if (records.length !== file.entries || records.some(record => !validateRecord(record, data.sources))) {
           throw Error("A pack file contained invalid dictionary records.");
         }
@@ -519,5 +537,6 @@
     }
   }
 
-  window.OpenDictionary = { key, starterAdapter, apiAdapter, publishedAdapter, offlineAdapter, manifest, installPack, presentationOrder };
+  globalThis.OpenDictionary = { key, starterAdapter, apiAdapter, publishedAdapter, offlineAdapter, manifest,
+    installPack, presentationOrder, backgroundJob, backgroundLock, checkPackSpace };
 })();

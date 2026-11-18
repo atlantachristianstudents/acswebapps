@@ -1,5 +1,7 @@
 // Cache the app shell. Downloaded packs live exclusively in IndexedDB.
-const VERSION = "define-v13";
+importScripts("dictionary.js");
+
+const VERSION = "define-v14";
 const SCOPE = new URL(self.registration.scope);
 const PREFIX = "define:" + SCOPE.pathname + ":";
 const CACHE = PREFIX + VERSION;
@@ -50,6 +52,62 @@ self.addEventListener("fetch", event => {
 });
 
 self.addEventListener("message", event => {
-  if (event.data?.type === "ACS_GET_VERSION" && event.ports[0]) event.ports[0].postMessage({ version: VERSION });
+  if (event.data?.type === "ACS_GET_VERSION" && event.ports[0]) {
+    event.ports[0].postMessage({ version: VERSION, backgroundPacks: true });
+  }
   if (event.data?.type === "ACS_SKIP_WAITING") event.waitUntil(self.skipWaiting());
+});
+
+async function finishBackgroundPack(event) {
+  const registration = event.registration;
+  const dictionary = self.OpenDictionary;
+  await navigator.locks.request(dictionary.backgroundLock(SCOPE.href), async () => {
+    const job = await dictionary.backgroundJob(SCOPE.href);
+    if (job?.id !== registration.id || job.phase !== "downloading") return;
+    const { id, edition, manifest } = job;
+    const status = { id, edition };
+    if (event.type === "backgroundfetchsuccess") {
+      try {
+        await dictionary.backgroundJob(SCOPE.href, { ...status, phase:"installing" });
+        const records = new Map((await registration.matchAll()).map(record => [record.request.url, record]));
+        await dictionary.installPack(manifest, edition, () => {}, undefined, async file => {
+          const url = new URL("data/releases/" + file.path, SCOPE).href;
+          const record = records.get(url);
+          if (!record) throw Error("A file is missing from the background download.");
+          return record.responseReady;
+        });
+        status.phase = "installed";
+      } catch (error) {
+        status.phase = "failed";
+        status.error = error.message;
+      }
+    } else {
+      status.phase = event.type === "backgroundfetchabort" ? "cancelled" : "failed";
+      if (status.phase === "failed") {
+        status.error = registration.failureReason === "quota-exceeded"
+          ? "There is insufficient browser storage for this pack." : "The browser could not finish downloading the pack.";
+      }
+    }
+    await dictionary.backgroundJob(SCOPE.href, status);
+    for (const client of await self.clients.matchAll({type:"window"})) {
+      client.postMessage({type:"DEFINE_BACKGROUND_PACK", ...status});
+    }
+  });
+}
+
+for (const type of ["backgroundfetchsuccess", "backgroundfetchfail", "backgroundfetchabort"]) {
+  self.addEventListener(type, event => {
+    if (event.registration.id.startsWith("define-pack:")) event.waitUntil(finishBackgroundPack(event));
+  });
+}
+
+self.addEventListener("backgroundfetchclick", event => {
+  if (!event.registration.id.startsWith("define-pack:")) return;
+  event.waitUntil((async () => {
+    const url = new URL("#offline", SCOPE).href;
+    const clients = await self.clients.matchAll({type:"window"});
+    const existing = clients.find(client => client.url === url);
+    if (existing) await existing.focus();
+    else await self.clients.openWindow(url);
+  })());
 });

@@ -6,6 +6,7 @@ import { setTimeout as delay } from "node:timers/promises";
 const base = process.argv[2] || "http://127.0.0.1:8765/apps/define/";
 const devtools = process.argv[3] || "http://127.0.0.1:8767";
 const full = process.env.OPEN_DICT_FULL_BROWSER === "1";
+const background = process.env.OPEN_DICT_BACKGROUND_BROWSER === "1";
 const tab = await fetch(devtools + "/json/new?about:blank", { method:"PUT" }).then(response => response.json());
 const socket = new WebSocket(tab.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
@@ -48,8 +49,8 @@ function send(method, params = {}) {
   });
 }
 
-async function evaluate(expression) {
-  const reply = await send("Runtime.evaluate", {expression,returnByValue:true,awaitPromise:true});
+async function evaluate(expression, userGesture = false) {
+  const reply = await send("Runtime.evaluate", {expression,returnByValue:true,awaitPromise:true,userGesture});
   if (reply.exceptionDetails) throw Error(reply.exceptionDetails.exception?.description || reply.exceptionDetails.text);
   return reply.result.value;
 }
@@ -129,6 +130,27 @@ try {
   assert.equal(await evaluate("document.querySelector('#search').getAttribute('aria-activedescendant')"), "suggestion-0");
   await evaluate(`document.querySelector('#search').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);
   await waitFor("document.querySelector('.word-title')?.textContent === 'bank'", "keyboard lookup");
+  await navigate("#home");
+  await waitFor("Boolean(document.querySelector('.daily'))", "home before touch lookup");
+  await send("Emulation.setDeviceMetricsOverride", {width:390,height:844,deviceScaleFactor:2,mobile:true});
+  await send("Emulation.setTouchEmulationEnabled", {enabled:true});
+  await evaluate(`(() => {
+    const input = document.querySelector('#search');
+    input.focus();
+    input.value = 'bank';
+    input.dispatchEvent(new Event('input', {bubbles:true}));
+  })()`);
+  await waitFor("document.querySelector('#suggestion-0 strong')?.textContent === 'bank'", "touch autocomplete");
+  const point = await evaluate(`(() => {
+    const {left, top, width, height} = document.querySelector('#suggestion-0 strong').getBoundingClientRect();
+    return {x:left + width / 2, y:top + height / 2};
+  })()`);
+  await send("Input.dispatchTouchEvent", {type:"touchStart",touchPoints:[point]});
+  await evaluate("document.querySelector('#search').blur()");
+  await send("Input.dispatchTouchEvent", {type:"touchEnd",touchPoints:[]});
+  await waitFor("document.querySelector('.word-title')?.textContent === 'bank'", "suggestion tap after focus loss");
+  await send("Emulation.setTouchEmulationEnabled", {enabled:false});
+  await send("Emulation.clearDeviceMetricsOverride");
   if (await evaluate("document.querySelector('[data-mode]').getAttribute('aria-pressed') === 'true'")) {
     await click("Scholarly mode");
     await waitFor("document.querySelector('[data-mode]').getAttribute('aria-pressed') === 'false'", "simple mode");
@@ -204,8 +226,17 @@ try {
     const started = Date.now();
     assert.equal(await evaluate(`(() => {
       const card=[...document.querySelectorAll('.pack-list section')].find(node => node.querySelector('h3').textContent === 'Complete English');
-      card?.querySelector('button')?.click();return Boolean(card);
-    })()`), true);
+      const target=[...card.querySelectorAll('button')].find(node => node.textContent ===
+        ${JSON.stringify(background ? "Download in background" : "Download")});
+      target?.click();return Boolean(target);
+    })()`, true), true);
+    if (background) {
+      const job = "OpenDictionary.backgroundJob(new URL('./', location.href).href)";
+      await waitFor(`${job}.then(job => job?.phase === 'downloading')`, "browser-managed transfer");
+      await send("Page.navigate", {url:"about:blank"});
+      await delay(1500);
+      await navigate("#offline");
+    }
     await waitFor(active, "verified pack installation", full ? 600000 : 15000);
     if (full) {
       const installed = await evaluate("navigator.storage.estimate().then(data => data.usage)");
@@ -226,6 +257,8 @@ try {
   await send("Page.reload", {ignoreCache:false});
   await waitFor(`document.querySelector('.word-title')?.textContent === 'bank' &&
     document.querySelector('.entry-heading').innerText.includes('Complete English')`, "disconnected launch and lookup");
+  assert.equal(await evaluate(`[...document.querySelectorAll('.source-label')]
+    .some(node => node.textContent.includes('Wiktionary'))`), true);
   assert.equal(await evaluate("fetch('data/releases/manifest.json',{cache:'no-store'}).then(()=>false,()=>true)"), true);
   await click("take", "#content .definition .lookup-word");
   await waitFor(`document.querySelector('#quick-word').textContent === 'take' &&
@@ -260,7 +293,7 @@ try {
     const image = await send("Page.captureScreenshot", {format:"png"});
     await writeFile(process.env.OPEN_DICT_SCREENSHOT, Buffer.from(image.data,"base64"));
   }
-  console.log("Browser passed homepage, keyboard autocomplete, quick definitions, sense links, scholarly mode, comparison, history, mobile layout, pack integrity and disconnected lookup.");
+  console.log("Browser passed homepage, keyboard and touch autocomplete, quick definitions, sense links, scholarly mode, comparison, history, mobile layout, pack integrity and disconnected lookup.");
 } finally {
   await send("Network.emulateNetworkConditions", {offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1}).catch(() => {});
   socket.close();
