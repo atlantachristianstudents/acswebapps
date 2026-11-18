@@ -1,5 +1,5 @@
 // Cache the app shell. Downloaded packs live exclusively in IndexedDB.
-const VERSION = "define-v10";
+const VERSION = "define-v11";
 const SCOPE = new URL(self.registration.scope);
 const PREFIX = "define:" + SCOPE.pathname + ":";
 const CACHE = PREFIX + VERSION;

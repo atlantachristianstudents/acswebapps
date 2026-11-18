@@ -12,6 +12,10 @@
   const search = document.getElementById("search");
   const empty = document.getElementById("empty");
   const themeToggle = document.getElementById("theme-toggle");
+  const installedDirectory = navigator.standalone === true ||
+    window.matchMedia("(display-mode: standalone), (display-mode: minimal-ui)").matches;
+  const appsPath = new URL("apps/", location.href).pathname;
+  const launchKey = "acswebapps-directory-launch";
   let activeTags = [];
 
   /* ---------- footer year ---------- */
@@ -175,6 +179,23 @@
       node.href = app.url || "apps/" + app.id + "/";
       node.target = "_blank";
       node.rel = "noopener";
+      const url = new URL(node.href);
+      const appPath = url.pathname.slice(appsPath.length);
+      if (installedDirectory && url.origin === location.origin && url.pathname.startsWith(appsPath) &&
+          /^[^/]+(?:\/(?:index\.html)?)?$/.test(appPath)) {
+        // Use the directory URL even for registry entries without a trailing slash.
+        const folder = appsPath + appPath.split("/")[0] + "/";
+        if (!appPath.endsWith("/index.html")) url.pathname = folder;
+        node.href = url.href;
+        node.target = "_self";
+        node.addEventListener("click", (event) => {
+          if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+              event.shiftKey || event.altKey) return;
+          try { sessionStorage.setItem(launchKey, folder); } catch (error) {}
+          event.preventDefault();
+          location.assign(node.href);
+        });
+      }
     }
 
     const top = el("div", "card-top");

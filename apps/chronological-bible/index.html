@@ -26,6 +26,37 @@
 .update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
 .update-row.acs-update p{margin:0!important}
 </style>
+<style id="acswebapps-directory-home-style">
+#acswebapps-directory-home {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 32;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #80848a;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .18);
+  font: 600 13px/1 system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer !important;
+}
+@media (prefers-color-scheme: dark) {
+  #acswebapps-directory-home { background: #20242b; color: #f8fafc; }
+}
+#acswebapps-directory-home:hover { text-decoration: underline; }
+#acswebapps-directory-home:focus-visible { outline: 2px solid #527dff; outline-offset: 3px; }
+:fullscreen #acswebapps-directory-home { display: none; }
+:-webkit-full-screen #acswebapps-directory-home { display: none; }
+body:has(.loadstatus:not([hidden])) #acswebapps-directory-home { z-index: 61; }
+</style>
 </head><body>
 <aside id="sidebar"><a class="brand" href="#" id="home"><span class="mark">c.</span><span>Chronological Bible<small>RECOVERY VERSION</small></span></a><button id="close" class="mobile" aria-label="Close navigation">×</button><div class="navtabs"><button id="timelineTab" class="active">Timeline</button><button id="savedTab">Bookmarked <span id="savedCount">0</span></button></div><p class="eyebrow" id="navlabel">THE BIBLICAL STORY</p><nav id="eras" aria-label="Reading timeline"></nav><div class="sidebarfoot"><p>Scripture, in the flow of history.</p><button id="about">About this reading order ↗</button></div></aside>
 <div class="main"><header><button id="menu" class="mobile" aria-label="Open navigation">☰</button><div class="crumb">THE BIBLICAL STORY <span>/</span> <b id="eraCrumb"></b></div><div class="tools"><button id="searchOpen" aria-label="Search Scripture">⌕ <span>Search</span> <kbd>/</kbd></button><button id="settingsOpen" aria-label="Settings and keyboard shortcuts">? <span>Settings</span></button></div></header><main id="reader"><div class="intro"><p class="eyebrow" id="eraNumber"></p><h1 id="title"></h1><p id="subtitle"></p></div><div class="readingmeta"><span id="range"></span><button id="bookmark"><svg class="bookmark-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg> Bookmark verse</button></div><article id="verses"></article><div class="readingend"><span class="endline"></span><span>CONTINUE THE STORY</span><span class="endline"></span></div><div class="paging"><button id="previous">← Previous</button><span id="pageLabel"></span><button id="next">Next reading →</button></div><footer><span>RECOVERY VERSION</span><span id="progress"></span></footer></main></div>
@@ -120,7 +151,7 @@
   </script>
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Chronological Bible is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="chronological-bible-v47">
+<script id="acswebapps-updater" data-version="chronological-bible-v48">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -209,6 +240,31 @@
     if (!event.target.closest('[data-acs-update-button]')) return;
     event.preventDefault(); event.stopPropagation(); check();
   }, true);
+}());
+</script>
+<script id="acswebapps-directory-navigation">
+// Keep this self-contained so an app can also be hosted on its own.
+(function () {
+  "use strict";
+  if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
+
+  const folder = new URL("./", location.href).pathname;
+  try {
+    if (sessionStorage.getItem("acswebapps-directory-launch") !== folder) return;
+  } catch (error) {
+    return;
+  }
+
+  const home = document.createElement("a");
+  home.id = "acswebapps-directory-home";
+  home.href = "../../";
+  home.textContent = "← Home";
+  home.setAttribute("aria-label", "Back to ACS Web Apps home");
+  // Preserve Enter activation when the app has document-wide keyboard shortcuts.
+  home.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.stopPropagation();
+  });
+  document.body.appendChild(home);
 }());
 </script>
 </body></html>

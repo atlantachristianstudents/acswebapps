@@ -19,9 +19,7 @@ Copy this folder to `apps/<app-id>/` to start a new ACS Web Apps app (see the ro
 6. Register the app in `assets/apps.js` (add an entry with `status: "beta"` or `"live"`).
 7. Keep everything self-contained: relative paths only, and never link files outside this folder except the optional `← ACS Web Apps` back link (`../../`).
 
-Navigation: find **← ACS Web Apps** inside the **?** help menu at the bottom right to return to the app directory.
-
-The help menu identifies App Name as part of the ACS Web Apps project, with a link to the app directory.
+The floating **← Home** link appears when the installed ACS Web Apps directory launches the app. Keep the inline directory navigation script and style in the main page. The **?** help menu identifies App Name as part of the ACS Web Apps project and links to the directory from any launch.
 
 Browser pinch-to-zoom is disabled. Single-finger scrolling, input editing, and the app’s own controls remain available.
 

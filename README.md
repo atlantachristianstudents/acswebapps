@@ -84,6 +84,8 @@ A few apps bundle or use specialized pieces:
    - **Mac Safari:** File → **Add to Dock**.
 3. Load an app once while online. After the service worker caches it, the app opens without a connection.
 
+Open a card from the installed **ACS Web Apps** directory to use it in the same window. The floating **← Home** link returns you to the directory. Apps opened from their own installed icons omit the floating link.
+
 Each app has its own manifest and service worker, so apps can be installed independently and keep their own offline cache. The microphone-dependent Tune app requires a secure context (HTTPS or `localhost`).
 
 ## Requirements

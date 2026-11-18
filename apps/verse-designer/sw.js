@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "verse-designer-v26";
+var VERSION = "verse-designer-v27";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "scripture-references.js"];
 
 self.addEventListener("install", function (e) {
@@ -12,7 +12,7 @@ self.addEventListener("install", function (e) {
 self.addEventListener("activate", function (e) {
   e.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(keys.filter(function (k) { return k !== VERSION; }).map(function (k) { return caches.delete(k); }));
+      return Promise.all(keys.filter(function (k) { return k.startsWith("verse-designer-v") && k !== VERSION; }).map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
   );
 });

@@ -218,6 +218,36 @@
 .update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
 .update-row.acs-update p{margin:0!important}
 </style>
+<style id="acswebapps-directory-home-style">
+#acswebapps-directory-home {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 32;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #80848a;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .18);
+  font: 600 13px/1 system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer !important;
+}
+@media (prefers-color-scheme: dark) {
+  #acswebapps-directory-home { background: #20242b; color: #f8fafc; }
+}
+#acswebapps-directory-home:hover { text-decoration: underline; }
+#acswebapps-directory-home:focus-visible { outline: 2px solid #527dff; outline-offset: 3px; }
+:fullscreen #acswebapps-directory-home { display: none; }
+:-webkit-full-screen #acswebapps-directory-home { display: none; }
+</style>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -300,7 +330,7 @@
   <script src="dictionary.js"></script>
   <script src="sounds/catalog.js"></script>
   <script src="index.js"></script>
-<script id="acswebapps-updater" data-version="define-v10">
+<script id="acswebapps-updater" data-version="define-v11">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -476,6 +506,31 @@
   });
   open();
   flush();
+}());
+</script>
+<script id="acswebapps-directory-navigation">
+// Keep this self-contained so an app can also be hosted on its own.
+(function () {
+  "use strict";
+  if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
+
+  const folder = new URL("./", location.href).pathname;
+  try {
+    if (sessionStorage.getItem("acswebapps-directory-launch") !== folder) return;
+  } catch (error) {
+    return;
+  }
+
+  const home = document.createElement("a");
+  home.id = "acswebapps-directory-home";
+  home.href = "../../";
+  home.textContent = "← Home";
+  home.setAttribute("aria-label", "Back to ACS Web Apps home");
+  // Preserve Enter activation when the app has document-wide keyboard shortcuts.
+  home.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.stopPropagation();
+  });
+  document.body.appendChild(home);
 }());
 </script>
 </body>

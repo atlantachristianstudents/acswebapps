@@ -558,6 +558,36 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
 .update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
 .update-row.acs-update p{margin:0!important}
 </style>
+<style id="acswebapps-directory-home-style">
+#acswebapps-directory-home {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 32;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #80848a;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .18);
+  font: 600 13px/1 system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer !important;
+}
+@media (prefers-color-scheme: dark) {
+  #acswebapps-directory-home { background: #20242b; color: #f8fafc; }
+}
+#acswebapps-directory-home:hover { text-decoration: underline; }
+#acswebapps-directory-home:focus-visible { outline: 2px solid #527dff; outline-offset: 3px; }
+:fullscreen #acswebapps-directory-home { display: none; }
+:-webkit-full-screen #acswebapps-directory-home { display: none; }
+</style>
 </head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1 id="settings-title" tabindex="-1">Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving" title="Close settings">×</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><input type="hidden" id="mode" value="sequential"><div id="custom-field" class="settings-group"><div class="plan-toolbar" id="calendar-plan-actions">
   <button type="button" id="calendar-new-plan" class="quiet-button" aria-label="New plan">＋</button>
   <button type="button" id="manage-plans" class="quiet-button">Edit plans</button>
@@ -1869,7 +1899,7 @@ load();
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
 </script>
-<script id="acswebapps-updater" data-version="rise-v99">
+<script id="acswebapps-updater" data-version="rise-v100">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -1958,6 +1988,31 @@ load();
     if (!event.target.closest('[data-acs-update-button]')) return;
     event.preventDefault(); event.stopPropagation(); check();
   }, true);
+}());
+</script>
+<script id="acswebapps-directory-navigation">
+// Keep this self-contained so an app can also be hosted on its own.
+(function () {
+  "use strict";
+  if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
+
+  const folder = new URL("./", location.href).pathname;
+  try {
+    if (sessionStorage.getItem("acswebapps-directory-launch") !== folder) return;
+  } catch (error) {
+    return;
+  }
+
+  const home = document.createElement("a");
+  home.id = "acswebapps-directory-home";
+  home.href = "../../";
+  home.textContent = "← Home";
+  home.setAttribute("aria-label", "Back to ACS Web Apps home");
+  // Preserve Enter activation when the app has document-wide keyboard shortcuts.
+  home.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.stopPropagation();
+  });
+  document.body.appendChild(home);
 }());
 </script>
 </body></html>
