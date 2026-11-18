@@ -550,6 +550,7 @@
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>A</kbd></td><td>Select all listed verses</td></tr>
     <tr><td><kbd>C</kbd></td><td>Copy the selected verses (or the current one) as plain text</td></tr>
     <tr><td><kbd>R</kbd></td><td>Copy the <strong>r</strong>eference of every verse shown (e.g. John 3:16–18; Romans 8:28); also works in the presentation and the version comparison</td></tr>
+    <tr><td><kbd>X</kbd></td><td>Open the current verse’s original-language text analysis on BibleHub in a new tab. Works from a selected search result, presentation, or side-by-side comparison.</td></tr>
     <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>C</kbd></td><td>Copy with formatting: reference in bold, in the page’s font (pastes as rich text; plain text where that isn’t supported)</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>C</kbd></td><td>Copy in a reading-friendly format: verses that follow one another become one flowing passage under a single heading (e.g. John 3:16–18) with small verse numbers inline; separate verses get their own heading</td></tr>
     <tr><td><kbd>O</kbd></td><td>Show the whole chapter of the selected verse, with that verse still selected; press <kbd>O</kbd> again to go back</td></tr>
@@ -3367,10 +3368,7 @@
     }
     // not in the results at all: presCursor stays on the last in-results verse shown
   }
-  // Scrolling changes the reading position without changing pi. Track the first
-  // fully visible row, retaining the last in-results position in chapter context.
-  function trackScrollPresCursor() {
-    if (!presenting || !scrollPresent || slideMode || sbsEl) return;
+  function firstVisibleScrollVerse() {
     var box = $("ptext"), bounds = box.getBoundingClientRect();
     var top = Math.max(0, bounds.top + box.clientTop), bottom = Math.min(window.innerHeight, top + box.clientHeight);
     var rows = $("pinner").querySelectorAll(".scrollverse[data-pos]");
@@ -3378,16 +3376,24 @@
       var rect = rows[i].getBoundingClientRect();
       if (rect.top < top - 0.5) continue;
       if (rect.bottom > bottom + 0.5) break;
-      if (rows[i].dataset.resultIndex !== undefined) {
-        presCursor = +rows[i].dataset.resultIndex;
-      } else {
-        var pos = rows[i].dataset.pos, all = verses();
-        for (var k = 0; k < all.length; k++) {
-          var d = all[k].dataset;
-          if (d.bi + ":" + d.ch + ":" + d.v === pos) { presCursor = k; break; }
-        }
-      }
+      return rows[i];
+    }
+    return null;
+  }
+  // Scrolling changes the reading position without changing pi. Track the first
+  // fully visible row, retaining the last in-results position in chapter context.
+  function trackScrollPresCursor() {
+    if (!presenting || !scrollPresent || slideMode || sbsEl) return;
+    var row = firstVisibleScrollVerse();
+    if (!row) return;
+    if (row.dataset.resultIndex !== undefined) {
+      presCursor = +row.dataset.resultIndex;
       return;
+    }
+    var pos = row.dataset.pos, all = verses();
+    for (var k = 0; k < all.length; k++) {
+      var d = all[k].dataset;
+      if (d.bi + ":" + d.ch + ":" + d.v === pos) { presCursor = k; break; }
     }
   }
   $("ptext").addEventListener("scroll", trackScrollPresCursor, { passive: true });
@@ -4146,10 +4152,12 @@
     return { bi: +sbsSrc.dataset.bi, ch: +sbsSrc.dataset.ch, v: +sbsSrc.dataset.v };
   }
   function sbsRefresh() { var c = sbsCoords(); sbsFill(c.bi, c.ch, c.v); }
-  function sbsBibleHubUrl() {
-    var c = sbsCoords();
-    var book = c.bi === 21 ? "songs" : BOOKS[c.bi][0].toLowerCase().replace(/ /g, "_");
-    return "https://biblehub.com/parallel/" + book + "/" + c.ch + "-" + c.v + ".htm";
+  function openBibleHub(page, coords) {
+    var name = BOOKS[+coords.bi][0];
+    var book = name === "Song of Solomon" ? "songs" : name.toLowerCase().replace(/ /g, "_");
+    // BibleHub's Greek analysis includes RcV Revelation 12:18 at the end of 12:17.
+    var verse = page === "text" && book === "revelation" && +coords.ch === 12 && +coords.v === 18 ? 17 : coords.v;
+    window.open("https://biblehub.com/" + page + "/" + book + "/" + coords.ch + "-" + verse + ".htm", "_blank", "noopener,noreferrer");
   }
   // arrows / h j k l: previous / next searched verse
   function sbsSearched(dir) {
@@ -4184,11 +4192,11 @@
     el.id = "sbs"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Versions side by side");
     var head = document.createElement("div"); head.className = "sbshead";
     var title = document.createElement("div"); title.className = "sbstitle"; title.textContent = refOf({ bi: bi, ch: ch, v: vs });
-    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "Click / 1–0 version \u00b7 H BibleHub \u00b7 F fill \u00b7 B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
+    var hint = document.createElement("div"); hint.className = "sbshint"; hint.textContent = "Click / 1–0 version \u00b7 H BibleHub \u00b7 X original text \u00b7 F fill \u00b7 B / N Bible \u00b7 arrows searched \u00b7 + / \u2212 size \u00b7 S or Esc to go back";
     var hub = document.createElement("button"); hub.type = "button"; hub.textContent = "BibleHub \u2197";
     hub.setAttribute("aria-label", "Open current verse on BibleHub (new tab)");
     hub.title = "Open current verse on BibleHub (new tab; H)";
-    hub.addEventListener("click", function () { window.open(sbsBibleHubUrl(), "_blank", "noopener,noreferrer"); });
+    hub.addEventListener("click", function () { openBibleHub("parallel", sbsCoords()); });
     var sz = document.createElement("div"); sz.className = "sbssize";
     [["\u2212", -1, "Smaller text"], ["+", 1, "Larger text"]].forEach(function (b) {
       var btn = document.createElement("button"); btn.type = "button"; btn.textContent = b[0]; btn.setAttribute("aria-label", b[2]);
@@ -4310,6 +4318,30 @@
     if (!e.repeat) toggleContextPresent();
   }, true);
 
+  document.addEventListener("keydown", function (e) {
+    if (e.key.toLowerCase() !== "x" || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (helpOpen || !$("goto").hidden || !$("scope").hidden || !$("cSheet").hidden) return;
+    var t = e.target, tag = t && t.tagName;
+    // Presentation and comparison can leave focus on the background search box.
+    if (!presenting && !sbsEl && (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable))) return;
+    var coords;
+    if (sbsEl) coords = sbsCoords();
+    else if (presenting) {
+      var row = scrollPresent && firstVisibleScrollVerse();
+      var verse = presVerse();
+      if (row) {
+        var pos = row.dataset.pos.split(":");
+        coords = { bi: pos[0], ch: pos[1], v: pos[2] };
+      } else if (verse) coords = verse.dataset;
+    } else {
+      var result = t && t.closest && t.closest("#results .verse");
+      if (result) coords = result.dataset;
+    }
+    if (!coords || !BOOKS[+coords.bi]) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (!e.repeat) openBibleHub("text", coords);
+  }, true);
+
   // while the comparison is open it owns the keyboard
   document.addEventListener("keydown", function (e) {
     if (!sbsEl) return;
@@ -4322,7 +4354,7 @@
       if (!e.repeat) { setVersion(+e.target.dataset.vi); sbsGrid.querySelector(".cur").focus(); }
       return;
     }
-    if (lk === "h") { if (!e.repeat) window.open(sbsBibleHubUrl(), "_blank", "noopener,noreferrer"); return; }
+    if (lk === "h") { if (!e.repeat) openBibleHub("parallel", sbsCoords()); return; }
     if (lk === "f") { if (!e.repeat) sbsToggleFill(); return; }
     if (lk === "s" || k === "Escape") { if (!e.repeat) sbsClose(true); return; }
     if (k === "+" || k === "=") { sbsResize(1); return; }
@@ -5629,7 +5661,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v55">
+<script id="acswebapps-updater" data-version="verse-lookup-v56">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

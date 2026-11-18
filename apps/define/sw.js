@@ -1,7 +1,7 @@
 // Cache the app shell. Downloaded packs live exclusively in IndexedDB.
-const VERSION = "open-dict-v9";
+const VERSION = "define-v10";
 const SCOPE = new URL(self.registration.scope);
-const PREFIX = "open-dict:" + SCOPE.pathname + ":";
+const PREFIX = "define:" + SCOPE.pathname + ":";
 const CACHE = PREFIX + VERSION;
 const FILES = ["./", "index.html", "dictionary.js", "index.js", "manifest.webmanifest", "icons/icon.svg",
     "icons/icon-192.png", "icons/icon-512.png", "data/fixtures/starter.js",

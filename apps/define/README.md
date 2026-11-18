@@ -1,14 +1,14 @@
-# Open Dictionary
+# Define
 
-Open Dictionary is a free English reference built from English Wiktionary, Open English WordNet, and the 1913 Webster historical transcription. It preserves the sources’ independent senses, parts of speech, homographs, glosses, and available examples, pronunciations, etymologies, and relations. The bundled starter has **225 headwords, 598 source entries, and 3,844 source senses**.
+Define is a free English reference built from English Wiktionary, Open English WordNet, and the 1913 Webster historical transcription. It preserves the sources’ independent senses, parts of speech, homographs, glosses, and available examples, pronunciations, etymologies, and relations. The bundled starter has **225 headwords, 598 source entries, and 3,844 source senses**.
 
-The ACS Web Apps route is [`/apps/open-dict/`](https://acswebapps.com/apps/open-dict/). Static hosts can serve full dictionary lookup and search directly from published release shards. The Python API also serves the same UI with SQLite or PostgreSQL search and server-rendered entries. The page identifies its active data source and explicitly labels starter coverage.
+The ACS Web Apps route is [`/apps/define/`](https://acswebapps.com/apps/define/). Static hosts can serve full dictionary lookup and search directly from published release shards. The Python API also serves the same UI with SQLite or PostgreSQL search and server-rendered entries. The page identifies its active data source and explicitly labels starter coverage.
 
 ## Run locally
 
-From the ACS Web Apps repository root, run `python3 -m http.server 8765 --bind 127.0.0.1` and open [Open Dictionary](http://127.0.0.1:8765/apps/open-dict/). The starter also opens directly from `apps/open-dict/index.html`. For local service workers and installed data, use a loopback HTTP address or HTTPS.
+From the ACS Web Apps repository root, run `python3 -m http.server 8765 --bind 127.0.0.1` and open [Define](http://127.0.0.1:8765/apps/define/). The starter also opens directly from `apps/define/index.html`. For local service workers and installed data, use a loopback HTTP address or HTTPS.
 
-For a complete local deployment, run these commands from `apps/open-dict` with Python 3.9+ and SQLite FTS5.
+For a complete local deployment, run these commands from `apps/define` with Python 3.9+ and SQLite FTS5.
 
 ```sh
 python3 -m lexical.build download .local/raw

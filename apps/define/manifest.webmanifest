@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Open Dictionary",
-  "short_name": "Dictionary",
+  "name": "Define",
+  "short_name": "Define",
   "description": "An open English dictionary with inspectable sources and offline lookup.",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-"""Same-origin Open Dictionary website and read-only API."""
+"""Same-origin Define website and read-only API."""
 import argparse
 from collections import OrderedDict
 from html import escape
@@ -252,7 +252,7 @@ class Handler(BaseHTTPRequestHandler):
             markup.append(f'<section class="lexeme"><h2>{escape(group["pos"])}</h2><p>{source_name}</p>'
                           f'{context}<ol class="sense-list">{definitions}</ol></section>')
         excerpt = escape(record["groups"][0]["senses"][0]["definition"][:160], quote=True)
-        meta = [f'<meta property="og:title" content="{title} · Open Dictionary">',
+        meta = [f'<meta property="og:title" content="{title} · Define">',
                 f'<meta property="og:description" content="{excerpt}">']
         if canonical:
             meta += [f'<link rel="canonical" href="{canonical}">', f'<meta property="og:url" content="{canonical}">']
@@ -260,8 +260,8 @@ class Handler(BaseHTTPRequestHandler):
             meta.append('<meta name="robots" content="noindex">')
         source = source.replace("<!-- ENTRY_HTML -->", "".join(markup))
         source = re.sub(r'  <meta property="og:description" [^>]*>\n', '', source, count=1)
-        source = source.replace("<title>Open Dictionary</title>", f"<title>{title} · Open Dictionary</title>", 1)
-        source = source.replace('<meta property="og:title" content="Open Dictionary">', "".join(meta), 1)
+        source = source.replace("<title>Define</title>", f"<title>{title} · Define</title>", 1)
+        source = source.replace('<meta property="og:title" content="Define">', "".join(meta), 1)
         return self.send_body(200, source.encode(), "text/html; charset=utf-8", "no-cache")
 
     def sitemap(self, params):
@@ -308,7 +308,7 @@ def main():
     if scope != "full" and not args.allow_partial:
         parser.error(f"Dictionary data are {scope}. Run lexical.build import-all or use --allow-partial for development")
     with DictionaryServer((args.host, args.port), args.db, args.mount, args.canonical) as server:
-        print(f"Open Dictionary at http://{args.host}:{args.port}{args.mount}", flush=True)
+        print(f"Define at http://{args.host}:{args.port}{args.mount}", flush=True)
         server.serve_forever()
 
 

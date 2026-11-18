@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 
-const base = process.argv[2] || "http://127.0.0.1:8765/apps/open-dict/";
+const base = process.argv[2] || "http://127.0.0.1:8765/apps/define/";
 const devtools = process.argv[3] || "http://127.0.0.1:8767";
 const full = process.env.OPEN_DICT_FULL_BROWSER === "1";
 const tab = await fetch(devtools + "/json/new?about:blank", { method:"PUT" }).then(response => response.json());

@@ -1,8 +1,8 @@
-# Open Dictionary roadmap
+# Define roadmap
 
-## Integrated beta
+## ACS Web Apps release
 
-- [x] ACS Web Apps directory registration, relative routes, and scoped application cache
+- [x] Live ACS Web Apps directory listing as Define, with relative routes and a scoped application cache
 - [x] Authentic starter lookup with separate Wiktionary etymologies and WordNet synsets
 - [x] Word comparison, source and license inspection, keyboard autocomplete, and shareable sense links
 - [x] Click-to-define links in dictionary prose with keyboard and offline support

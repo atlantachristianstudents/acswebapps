@@ -111,7 +111,7 @@
     const url = new URL(hash(word), location.href);
     url.search = "";
     if (navigator.share && /^https?:$/.test(url.protocol)) {
-      try { await navigator.share({title:word + " · Open Dictionary", url:url.href}); return; }
+      try { await navigator.share({title:word + " · Define", url:url.href}); return; }
       catch (error) { if (error.name === "AbortError") return; }
     }
     await copy(url.href, "Word link copied.");
@@ -380,7 +380,7 @@
       item.append(detail("Sense provenance",
         element("p", "meta", sourceName(group.source) + " · " + group.version + " · Source-imported"),
         ids.length ? element("p", "code", ids.join(" · ")) : null,
-        element("p", "code", "Open Dictionary ID " + sense.id)));
+        element("p", "code", "Define ID " + sense.id)));
     }
     return item;
   }
@@ -572,7 +572,7 @@
     updateStatus.dataset.acsUpdateStatus = "";
     updateStatus.setAttribute("role", "status");
     updater.append(check, updateStatus);
-    page.append(detail("About Open Dictionary", element("p", "", "Open Dictionary is part of the ",
+    page.append(detail("About Define", element("p", "", "Define is part of the ",
       link("ACS Web Apps project", "../../"), "."), updater));
     return page;
   }
@@ -687,7 +687,7 @@
       if (anchor.dataset.nav === pageName) anchor.setAttribute("aria-current", "page");
       else anchor.removeAttribute("aria-current");
     });
-    document.title = word ? word + " · Open Dictionary" : "Open Dictionary";
+    document.title = word ? word + " · Define" : "Define";
     const currentFilters = {};
     Array.from(filterFields.elements).filter(control => control.name).forEach(control => {
       control.value = advanced ? (params.get(control.name) || "").slice(0, 80) : "";

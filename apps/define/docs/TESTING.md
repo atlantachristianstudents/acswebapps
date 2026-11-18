@@ -1,6 +1,6 @@
 # Testing
 
-Run the app tests from `apps/open-dict` and the parent validator from the repository root.
+Run the app tests from `apps/define` and the parent validator from the repository root.
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -17,7 +17,7 @@ python3 -m lexical.build --db .local/dev.sqlite release .local/test-releases --a
   --essential-words data/fixtures/wiktionary-headwords.txt
 ```
 
-Use a fresh, dedicated Chromium profile started with `--remote-debugging-port=8767` and a loopback-only debugging address. Run `node tests/browser.mjs http://127.0.0.1:8765/apps/open-dict/` from the app directory with Node 22 or newer. It checks keyboard autocomplete, sense links, mode switching, history, a phone-sized layout, verified pack installation, a corrupted replacement, and lookup after network disconnection and HTTP cache clearing. Change the release ID or use a fresh profile when re-running installation checks.
+Use a fresh, dedicated Chromium profile started with `--remote-debugging-port=8767` and a loopback-only debugging address. Run `node tests/browser.mjs http://127.0.0.1:8765/apps/define/` from the app directory with Node 22 or newer. It checks keyboard autocomplete, sense links, mode switching, history, a phone-sized layout, verified pack installation, a corrupted replacement, and lookup after network disconnection and HTTP cache clearing. Change the release ID or use a fresh profile when re-running installation checks.
 
 The benchmark measures warm database calls without HTTP or UI rendering. Treat its sample size and selected query mix as part of every reported result. Verify touch installation, storage pressure, and screen-reader behavior on the target platforms before claiming broad compatibility.
 
@@ -47,4 +47,4 @@ Chromium installed the full Complete English pack in 243.9 seconds from a loopba
 
 Run `python3 -m tests.coverage_api .local/full.sqlite http://127.0.0.1:8766/` against a fresh API process to compare requested and reservoir-sampled headwords with the active database. It also checks exact ranking, sense identity, and indexed prefix paging. The Wiktionary regression fixture is a small CC BY-SA field selection from the pinned archive.
 
-To check the full static release and install it in Chromium, serve the locally generated release files under the app’s route on a loopback static server and run `OPEN_DICT_FULL_BROWSER=1 node tests/browser.mjs http://127.0.0.1:8765/apps/open-dict/`. The full test reuses an installed Complete pack for the same release. Use a fresh browser profile to verify and measure a new installation. The test exercises a rare word online before installation, prefix pagination, corrupt update recovery, and a long rare word after network disconnection. See the [coverage audit](VOCABULARY_COVERAGE.md) for the results of the current full release.
+To check the full static release and install it in Chromium, serve the locally generated release files under the app’s route on a loopback static server and run `OPEN_DICT_FULL_BROWSER=1 node tests/browser.mjs http://127.0.0.1:8765/apps/define/`. The full test reuses an installed Complete pack for the same release. Use a fresh browser profile to verify and measure a new installation. The test exercises a rare word online before installation, prefix pagination, corrupt update recovery, and a long rare word after network disconnection. See the [coverage audit](VOCABULARY_COVERAGE.md) for the results of the current full release.

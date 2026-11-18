@@ -1,6 +1,6 @@
 # Ingestion and releases
 
-Run these commands from `apps/open-dict`. Use the default SQLite file `.local/full.sqlite`, set `OPEN_DICT_DATABASE_URL` for a dedicated PostgreSQL database, or pass `--db` before the subcommand.
+Run these commands from `apps/define`. Use the default SQLite file `.local/full.sqlite`, set `OPEN_DICT_DATABASE_URL` for a dedicated PostgreSQL database, or pass `--db` before the subcommand.
 
 ```sh
 python3 -m lexical.build download .local/raw

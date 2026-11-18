@@ -1,6 +1,6 @@
 # Architecture
 
-The static shell is served directly from `apps/open-dict/index.html`. It uses vanilla JavaScript, system typography, and app-local assets. GitHub Pages presents the bundled starter. The local and self-hosted editions can mount the same shell and an API on one origin.
+The static shell is served directly from `apps/define/index.html`. It uses vanilla JavaScript, system typography, and app-local assets. GitHub Pages presents the bundled starter. The local and self-hosted editions can mount the same shell and an API on one origin.
 
 ```mermaid
 flowchart LR
@@ -12,7 +12,7 @@ flowchart LR
     D --> P[Versioned browser packs]
     D --> F[Attributed starter selection]
     P --> B[(Browser IndexedDB)]
-    A --> UI[Open Dictionary UI]
+    A --> UI[Define UI]
     B --> UI
     F --> UI
 ```

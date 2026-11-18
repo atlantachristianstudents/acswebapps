@@ -99,4 +99,4 @@ The decoded byte count measures the data before storage indexes. Chromium instal
 
 The static lookup index contains 1,079,578 distinct published inflection and variant rows whose targets have entries. With only a static server, Chromium successfully looked up *syzygy* before pack installation and browsed two successive prefix pages. The coverage command reported all 1,421,262 keys eligible for lookup and zero warnings.
 
-The generated artifacts are local under `apps/open-dict/data/releases/` and excluded from Git. The public Pages origin still needs the updated app and those artifacts published together. The production check in this audit saw the bundled coverage described above.
+The generated artifacts are local under `apps/define/data/releases/` and excluded from Git. The public Pages origin still needs the updated app and those artifacts published together. The production check in this audit saw the bundled coverage described above.

@@ -31,7 +31,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 
 | App | What it does | Status |
 | --- | --- | --- |
-| [Open Dictionary](https://acswebapps.com/apps/open-dict/) | Look up English definitions by source, compare words, and read available pronunciations and etymologies. The starter collection works offline. | beta |
+| [Define](https://acswebapps.com/apps/define/) | Look up English definitions by source, compare words, and read available pronunciations and etymologies. The starter works offline, and the complete pack enables full offline lookup when available. | live |
 | [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Bible Compare](https://acswebapps.com/apps/bible-compare/) | Read Scripture and compare the same verses across public-domain translations, with the Recovery Version first, difference highlighting, offline downloads, and a Compare mode that stacks selected verses one under another. | beta |
@@ -43,7 +43,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [Verse Review](https://acswebapps.com/apps/verse-review/) | Create Bible verse flashcards to practice memorizing Scripture, then review each card on a spaced schedule. Private and offline-friendly. | beta |
 | [Show Songs](https://acswebapps.com/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Also maintained in the standalone [Tune repository](https://github.com/zioninzion/tune). | live |
-| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, a downloadable Recovery Version, and session-only editions in English (seven), Greek (SBLGNT and THGNT), and Hebrew (Leningrad and Aleppo). | live |
+| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, a downloadable Recovery Version, and session-only editions in English (seven), Greek (SBLGNT and THGNT), and Hebrew (Leningrad and Aleppo). Press X to open the current verse’s original-language analysis on BibleHub. | live |
 | [Songbook](https://acswebapps.com/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
 Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (listed but not yet available).
@@ -68,7 +68,7 @@ Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build
 
 A few apps bundle or use specialized pieces:
 
-- **Open Dictionary** uses a bundled starter collection on GitHub Pages. The app directory contains the optional dictionary API, database imports, and offline pack tooling. See the [Open Dictionary README](apps/open-dict/README.md).
+- **Define** uses a bundled starter collection on GitHub Pages. The app directory contains the optional dictionary API, database imports, and offline pack tooling. See the [Define README](apps/define/README.md).
 
 - **Test** bundles PDF.js (with fonts and character maps) for private, offline PDF text import.
 - **Logos Type** bundles PeerJS for friend races and downloads Scripture from a public API, caching it locally.
@@ -222,7 +222,7 @@ Contributions to the home page should keep it dependency-free and accessible (ke
 
 ## License
 
-See the repository on GitHub for project licensing details. Open Dictionary’s app code has its own [MIT License](apps/open-dict/LICENSE), with separate [terms for the lexical sources](apps/open-dict/docs/LICENSING.md).
+See the repository on GitHub for project licensing details. Define’s app code has its own [MIT License](apps/define/LICENSE), with separate [terms for the lexical sources](apps/define/docs/LICENSING.md).
 
 
 ## App usage analytics

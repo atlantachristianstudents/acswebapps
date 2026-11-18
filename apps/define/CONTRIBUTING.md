@@ -1,4 +1,4 @@
-# Contributing to Open Dictionary
+# Contributing to Define
 
 Use the parent repository’s issue and pull request workflow. Include an example headword and link to the source entry for any lexical issue. For a proposed match between senses, include both source IDs or permalinks, the sense boundary you reviewed, and your evidence for equivalence or disagreement.
 

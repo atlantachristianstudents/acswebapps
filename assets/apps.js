@@ -13,13 +13,13 @@
  */
 window.APPS = [
   {
-    id: "open-dict",
-    name: "Open Dictionary",
-    description: "Look up English words, trace their origins, and inspect source-backed definitions. The starter collection works offline.",
+    id: "define",
+    name: "Define",
+    description: "Look up English words, trace their origins, and explore source-backed definitions. The starter works offline, and the complete pack enables full offline lookup when available.",
     icon: "📖",
-    iconUrl: "apps/open-dict/icons/icon.svg",
+    iconUrl: "apps/define/icons/icon.svg",
     tags: ["Reading", "Study", "Tools"],
-    status: "beta"
+    status: "live"
   },
   {
     id: "rise",
