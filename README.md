@@ -58,6 +58,7 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 - **Installable and offline-first.** The home page and apps are PWAs with service workers. Once cached, core features work without a connection. Songbook needs an initial catalog sync; Logos Type races and Scripture downloads need the internet.
 - **Your data stays on your device.** Progress, settings, and saved content live in `localStorage` or IndexedDB. URL imports fetch the source directly — your reference and answers are never uploaded.
 - **Fast to browse.** Search the app directory (press `/` or `?`), filter by category, hide beta apps, and switch between light and dark themes. The choice is remembered.
+- **Compact view.** Toggle Compact view beside the Apps heading for an icon grid with a Beta badge on each beta app. The directory remembers your layout.
 - **Keyboard- and screen-reader-friendly.** Cards, filters, dialogs, and presentation controls are operable without a mouse.
 - **Portable by design.** Every app folder can be copied out and hosted on its own static site. The home page is driven by a small registry, `assets/apps.js`.
 - **No build step.** Edit a file, reload, and it is live. There is no bundler, transpiler, or npm install.

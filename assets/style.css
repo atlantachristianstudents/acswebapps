@@ -330,6 +330,22 @@ button {
   letter-spacing: -.045em;
 }
 
+.apps-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.apps-heading-row h2 {
+  margin: 0;
+}
+
+.view-toggle {
+  min-height: 44px;
+}
+
 /* Search and filters */
 
 .tools {
@@ -374,7 +390,8 @@ button {
   color: var(--accent);
 }
 
-.chip.active {
+.chip.active,
+.view-toggle[aria-pressed="true"] {
   background: var(--accent);
   border-color: var(--accent);
   color: white;
@@ -581,6 +598,53 @@ a.card:hover {
 .badge.soon {
   background: var(--neutral-bg);
   color: var(--neutral-text);
+}
+
+/* Compact view */
+
+.grid.compact {
+  grid-template-columns: repeat(auto-fill, 4.5rem);
+  gap: .75rem;
+}
+
+.compact .card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+.compact .card-icon img,
+.compact .card-icon-emoji {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.compact .badge.beta {
+  position: absolute;
+  top: .15rem;
+  right: .15rem;
+  padding: .05rem .35rem;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.compact .card h3,
+.compact .badge.soon {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.compact .card p,
+.compact .card-tags,
+.compact .badge.live {
+  display: none;
 }
 
 /* Empty state */

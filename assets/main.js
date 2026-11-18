@@ -1,5 +1,5 @@
 /*
- * ACS Web Apps — home page behaviour: theme toggle, tag filters, search, app cards.
+ * ACS Web Apps — home page behaviour: theme, layout, filters, search, app cards.
  * The app registry itself lives in apps.js (window.APPS).
  */
 (function () {
@@ -144,6 +144,28 @@
     });
   }
 
+  /* ---------- directory layout ---------- */
+  const compactToggle = document.getElementById("compact-view");
+  const layoutKey = "acswebapps-layout";
+
+  if (compactToggle) {
+    let compact = false;
+    try { compact = localStorage.getItem(layoutKey) === "compact"; } catch (e) {}
+
+    function applyLayout() {
+      grid.classList.toggle("compact", compact);
+      compactToggle.setAttribute("aria-pressed", String(compact));
+    }
+
+    applyLayout();
+    compactToggle.hidden = false;
+    compactToggle.addEventListener("click", () => {
+      compact = !compact;
+      applyLayout();
+      try { localStorage.setItem(layoutKey, compact ? "compact" : "cards"); } catch (e) {}
+    });
+  }
+
   /* ---------- cards ---------- */
   const STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
   const STATUS_ORDER = { live: 0, beta: 1, soon: 2 };
@@ -200,6 +222,7 @@
 
     const top = el("div", "card-top");
     const icon = el("span", "card-icon");
+    icon.title = app.name;
     const img = document.createElement("img");
     img.src = app.iconUrl || "apps/" + app.id + "/icons/icon-192.png";
     img.alt = "";
