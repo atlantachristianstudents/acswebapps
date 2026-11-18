@@ -749,6 +749,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var searchStatus = document.getElementById("hymn-search-status");
         var searchOpen = false, searchIndex = null, searchMatches = [];
 
+        function formatLanguageName(name) {
+          return name.replace(/(^|[\s/-])(\p{L})/gu, function (match) { return match.toUpperCase(); });
+        }
+
         function normalizeHymnSearch(text) {
           return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’']/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
         }
@@ -814,7 +818,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             var button = document.createElement("button");
             button.type = "button";
             button.setAttribute("data-song-id", String(song.id));
-            button.textContent = song.title + " · " + song.lang + (song.refs.length ? " · " + song.refs.map(function (ref) { return ref.label + " " + ref.num; }).join(" / ") : " · Song " + song.id);
+            button.textContent = song.title + " · " + formatLanguageName(song.lang) + (song.refs.length ? " · " + song.refs.map(function (ref) { return ref.label + " " + ref.num; }).join(" / ") : " · Song " + song.id);
             button.addEventListener("click", function () { chooseSearchHymn(song); });
             searchResults.appendChild(button);
           });
@@ -1261,7 +1265,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           if (!presentationSlides.length) presentationSlides = [{ text: "No lyrics available.", label: "Hymn " + presentationNumber }];
           presentationIndex = 0;
           buildPresentationSlideNav();
-          document.getElementById("presentation-title").textContent = (presentationLibrarySong ? presentationSong.lang : presentationNumber) + " · " + song.title;
+          document.getElementById("presentation-title").textContent = (presentationLibrarySong ? formatLanguageName(presentationSong.lang) : presentationNumber) + " · " + song.title;
           renderPresentation();
         }
 
@@ -1380,7 +1384,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           songs.forEach(function (song) {
             var button = document.createElement("button");
             button.type = "button";
-            button.textContent = song.lang + " · " + song.title;
+            button.textContent = formatLanguageName(song.lang) + " · " + song.title;
             button.setAttribute("aria-pressed", String(song.id === presentationSong.id));
             button.addEventListener("click", function () {
               closeSongLanguages();
@@ -5738,7 +5742,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v144">
+<script id="acswebapps-updater" data-version="big-text-v145">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
