@@ -246,7 +246,7 @@
       #presentation-refs[data-title="true"] dd,
       #presentation-refs[data-title="true"] dd:first-of-type { font-size: clamp(16px, 2vw, 22px); line-height: 1.35; }
       #presentation-capo { font: 13px/1.5 var(--font-utility); overflow-wrap: anywhere; margin: 0 0 16px; }
-      .lyric-line, .guitar-line { display: flow-root; white-space: pre-wrap; }
+      .lyric-line, .guitar-line { display: flow-root; box-sizing: border-box; padding-left: 1em; text-indent: -1em; white-space: pre-wrap; }
       .lyric-phrase { display: inline-block; max-width: 100%; vertical-align: bottom; white-space: pre-wrap; overflow-wrap: anywhere; }
       .guitar-token { display: inline-block; position: relative; padding-top: 0.8em; min-width: var(--chord-width); max-width: 100%; vertical-align: bottom; }
       .guitar-chord { position: absolute; top: 0; left: 0; font: 600 0.6em/1.2 var(--font-utility); white-space: nowrap; }
@@ -5708,7 +5708,7 @@
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v138">
+<script id="acswebapps-updater" data-version="big-text-v139">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
