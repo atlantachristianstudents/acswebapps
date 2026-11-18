@@ -26,7 +26,12 @@ body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pan-y}
 #settings .settings-group>label:first-child{margin-top:0}
 .book-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}.book-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
 #selection-summary{display:inline-flex;align-items:center;gap:6px;margin:6px 0 14px;padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font:13px/1.4 system-ui,sans-serif;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#selection-summary[hidden]{display:none}.plan-dates{display:flex;align-items:center;gap:12px;margin:10px 0 14px}.plan-date-field{display:flex;align-items:center;gap:6px;flex:1 1 145px}.plan-dates label{margin:0!important;font-size:12px;color:var(--muted);white-space:nowrap}.plan-dates input[type=date]{width:auto;min-width:110px;min-height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);padding:5px 8px;font:13px system-ui,sans-serif;accent-color:var(--accent)}#schedule-editor{padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--panel)}.plan-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);text-align:left;touch-action:pan-y}.plan-row-info{display:grid;flex:1;min-width:0}.plan-row-info small{color:var(--muted)}.plan-row button{padding:6px 9px}.plan-row input{width:20px;height:20px}#plans-list{padding:0;list-style:none}#plan-display-mode{display:flex;gap:16px;border:0;padding:0;margin:16px 0}#plan-display-mode label{display:flex;align-items:center;gap:6px;margin:0}#plan-display-mode input{width:18px;height:18px}
+#selection-summary[hidden]{display:none}
+.plan-row {text-align:left;touch-action:pan-y}
+.plan-row-info {display:grid;min-width:0}
+.plan-row-info small {color:var(--muted)}
+#plans-list {padding:0;list-style:none}
+#plan-display-mode input {width:18px;height:18px}
 #settings .book-toolbar label{margin:0}
 #settings button{cursor:pointer;font:600 14px system-ui,sans-serif;min-height:44px}
 .quiet-button{border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--accent);padding:8px 12px}
@@ -102,7 +107,7 @@ html{touch-action:pan-x pan-y}
 .preferences-row{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:8px}
 .update-row{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px}
 #update-status{overflow-wrap:anywhere}
-@media(max-width:359px){.plan-dates{gap:8px}.plan-date-field{flex-basis:100%}.plan-dates input[type=date]{flex:1;min-width:0}#settings h1{font-size:20px}#settings form{gap:5px}#settings .settings-group{padding:8px;gap:4px}#settings .actions .hint{font-size:11px}#settings #save-settings{min-width:120px}.quiet-button{padding:8px 10px}#settings .update-row>.hint:not(#update-status){display:none}}
+@media(max-width:359px){#settings h1{font-size:20px}#settings form{gap:5px}#settings .settings-group{padding:8px;gap:4px}#settings .actions .hint{font-size:11px}#settings #save-settings{min-width:120px}.quiet-button{padding:8px 10px}#settings .update-row>.hint:not(#update-status){display:none}}
 @media(max-height:420px) and (min-width:600px){#settings form{max-width:850px;grid-template-rows:44px 18px 44px minmax(0,1fr) 44px 44px}}
 html.keyboard-open #settings form{display:flex;gap:6px}
 html.keyboard-open #settings .preferences-row,html.keyboard-open #settings .update-row,html.keyboard-open #custom-field>.hint{display:none}
@@ -315,7 +320,7 @@ html.plan-calendar-view #settings #calendar-days .calendar-day{min-height:48px}
 html.plan-calendar-view #plan-calendar>.calendar-toolbar:first-child{grid-template-columns:auto 36px minmax(0,1fr) auto 36px;gap:4px}
 html.plan-calendar-view #settings #plan-calendar>.calendar-toolbar:first-child button{min-height:36px;padding:4px 6px}
 html.plan-calendar-view #settings #calendar-month{font-size:12px}
-html.plan-calendar-view #settings #calendar-references{min-height:36px;padding:6px 8px}
+html.plan-calendar-view #settings #calendar-references{min-height:44px;padding:6px 8px}
 html.plan-calendar-view #settings .actions{flex-shrink:0;padding-top:6px}
 /* Plan management and editing share one scroll region above the save bar. */
 html:is(.manager-view,.plan-editing) #settings {
@@ -323,15 +328,15 @@ html:is(.manager-view,.plan-editing) #settings {
 }
 html:is(.manager-view,.plan-editing) #settings form {
   display:flex;flex-direction:column;align-items:stretch;
-  width:100%;max-width:760px;height:100%;min-height:0;gap:8px;
+  width:100%;max-width:760px;height:100%;min-height:0;gap:5px;
 }
 html.plan-editing:not(.plan-calendar-view) #settings form {max-width:1060px}
 html:is(.manager-view,.plan-editing) #settings .settings-header h1 {
-  font-family:var(--app-font,Georgia,serif);font-size:clamp(24px,4vw,34px);
+  font-family:var(--app-font,Georgia,serif);font-size:clamp(22px,4vw,30px);
 }
 html:is(.manager-view,.plan-editing) #settings #custom-field {
   display:block;flex:1;min-height:0;overflow:auto;
-  padding:3px 4px 12px;border:0;background:transparent;border-radius:0;
+  padding:3px 4px 8px;border:0;background:transparent;border-radius:0;
   scroll-padding:12px;overscroll-behavior:contain;
 }
 html.plan-calendar-view #settings #custom-field {
@@ -339,7 +344,7 @@ html.plan-calendar-view #settings #custom-field {
 }
 html:is(.manager-view,.plan-editing) #settings .actions {
   position:static;display:flex;flex:none;justify-content:space-between;
-  margin:0;padding:8px 0 0;border-top:1px solid var(--border);
+  margin:0;padding:5px 0 0;border-top:1px solid var(--border);
 }
 #settings .actions [hidden],#settings #calendar-plan-actions[hidden] {display:none}
 html.manager-view #settings .actions .hint {max-width:none}
@@ -354,37 +359,39 @@ html:is(.manager-view,.plan-editing) #settings #close-settings {min-width:44px}
 #settings :is(#plans-manager,#schedule-editor) :is(h2,legend) {
   font:600 15px/1.4 system-ui,sans-serif;color:var(--text);
 }
-#settings #plans-manager h2 {margin:18px 0 4px}
-.plans-navigation,.plan-transfer {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#settings #plans-manager h2 {margin:10px 0 2px}
+#plans-manager,.editor-fields {container-type:inline-size}
+.plans-navigation,.plan-transfer {display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .plans-navigation {justify-content:space-between}
-.plans-navigation button,.plan-transfer button {border-radius:10px;padding:8px 12px}
+.plans-navigation button {border-radius:9px;padding:6px 8px}
+#settings #plans-manager .plans-navigation button {padding-inline:5px;font-size:13px}
 #settings #back-to-calendar,#settings #back-to-plans {border-color:transparent;padding-left:4px}
-.plan-transfer {margin:10px 0 14px}
+.plan-transfer {margin-inline-start:auto}
 #settings :is(#schedule-transfer-status,#plans-status,#editor-notice):not(:empty) {margin:8px 0}
 #settings .plan-section {
-  min-width:0;margin:0;padding:14px;border:1px solid var(--border);
+  min-width:0;margin:0;padding:8px 10px 10px;border:1px solid var(--border);
   border-radius:14px;background:var(--panel);
 }
 .plan-section legend {padding:0 5px;margin-left:-5px}
-#settings #plan-display-mode {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#settings #plan-display-mode {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 #settings #plan-display-mode label {
-  display:flex;align-items:start;gap:8px;min-height:44px;padding:9px;
+  display:flex;align-items:start;gap:6px;min-height:44px;padding:6px;
   color:var(--text);border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;
 }
 #settings #plan-display-mode label:has(:checked) {outline:1px solid var(--accent);outline-offset:-1px;background:var(--selected)}
 #plan-display-mode small,.plan-mode-switch span {display:block;margin-top:3px;color:var(--muted);font:12px/1.4 system-ui,sans-serif}
 #plan-display-mode input {accent-color:var(--accent);flex:none;margin:2px 0 0}
-#plans-list {display:grid;gap:8px;margin:10px 0}
+#plans-list {display:grid;gap:6px;margin:6px 0}
 #plans-list:empty {display:none}
 #settings #plans-empty {margin-top:10px}
 #plans-empty p {margin:0 0 8px}
 #settings .plan-row {
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:8px;
-  padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);
+  display:grid;grid-template-columns:auto minmax(0,1fr) 44px auto auto;align-items:center;gap:5px;
+  padding:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface);
 }
 .plan-rank {min-width:2ch;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 .plan-row-info {overflow-wrap:anywhere}
-.plan-row-info strong {font-size:15px}
+.plan-row-info strong {font-size:14px}
 .plan-row-info small {font-size:12px}
 #settings .plan-row label {
   position:relative;display:grid;justify-items:center;align-content:center;gap:1px;
@@ -403,59 +410,76 @@ html:is(.manager-view,.plan-editing) #settings #close-settings {min-width:44px}
 .plan-toggle input:focus-visible + .switch-track {outline:2px solid var(--focus);outline-offset:3px}
 .plan-toggle small {pointer-events:none}
 .plan-row button,.plan-more summary {min-width:44px;min-height:44px}
-.plan-more {grid-column:2/-1}
+.plan-row button {padding:6px 8px}
+#settings .plan-row .plan-edit {font-size:13px}
 .plan-more summary {
-  display:flex;align-items:center;width:max-content;color:var(--accent);cursor:pointer;font-weight:600;
+  display:flex;align-items:center;width:max-content;color:var(--accent);cursor:pointer;font:600 12px system-ui,sans-serif;
 }
-.plan-more summary::after {content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1px 1px 0;transform:rotate(45deg);margin:0 3px 3px 7px}
+.plan-more summary::after {content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1px 1px 0;transform:rotate(45deg);margin:0 2px 3px 5px}
 .plan-more[open] summary::after {transform:rotate(225deg);margin-bottom:-3px}
 .plan-more div {display:flex;flex-wrap:wrap;gap:6px}
 .plan-row button[aria-disabled=true] {opacity:.62;cursor:default}
-@media(min-width:600px) {
-  #settings .plan-row {grid-template-columns:auto minmax(0,1fr) auto auto auto}
-  .plan-more {grid-column:auto}
-  .plan-row:has(.plan-more[open]) {grid-template-columns:auto minmax(0,1fr) auto auto}
-  .plan-more[open] {grid-column:2/-1}
-}
-.editor-layout,.editor-fields {display:grid;gap:14px;min-width:0}
-.editor-layout {margin-top:12px;align-items:start}
+#settings .plan-row:has(.plan-more[open]) {grid-template-columns:auto minmax(0,1fr) 44px auto}
+.plan-more[open] {grid-column:2/-1}
+.editor-layout,.editor-fields {display:grid;gap:8px;min-width:0}
+.editor-layout {margin-top:5px;align-items:start}
+#settings #schedule-editor :is(.plan-preview,.editor-fields section) h2 {margin:0 0 4px}
 @media(min-width:760px) {
   .editor-layout {grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
   .plan-preview {position:sticky;top:4px;max-height:100%;overflow:auto}
 }
 #settings .plan-mode-switch {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 #settings .plan-mode-switch button {
-  text-align:left;align-content:start;padding:9px 7px;font-size:13px;
+  display:flex;flex-direction:column;align-items:start;justify-content:center;
+  min-width:0;padding:5px;text-align:left;font-size:13px;overflow-wrap:anywhere;
   color:var(--text);background:var(--surface);
 }
 #settings .plan-mode-switch button[aria-pressed=true] {
   border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--selected);
 }
-#settings .plan-details>label {margin-bottom:4px}
-#settings .plan-dates {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 4px}
-#settings .plan-date-field {display:grid;min-width:0;gap:4px}
-#settings :is(.plan-dates input,#verses-per-day) {
-  width:100%;min-width:0;min-height:44px;padding:7px 8px;font-size:16px;color:var(--text);
+#settings .plan-details>label {margin-bottom:2px}
+#settings .plan-dates {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,126px),1fr));
+  align-items:start;gap:6px;margin:5px 0 0;
 }
-#settings .plan-dates input::-webkit-date-and-time-value {text-align:left}
-#settings #clear-end-date {padding:6px 8px}
-#clear-end-date:disabled {opacity:.6;cursor:default}
-#settings #verse-count-field {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.plan-date-field {display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
+.plan-date-field label {overflow-wrap:anywhere}
+.plan-end-control {display:flex;flex-wrap:wrap;gap:4px}
+#settings :is(.plan-dates input,#bible-date,#bible-jump,#plan-name,#schedule) {
+  display:block;min-inline-size:0;max-inline-size:100%;
+}
+#settings :is(.plan-dates input,#bible-date,#verses-per-day) {
+  width:100%;min-width:0;min-height:44px;padding:6px 8px;font:16px system-ui,sans-serif;
+  border:1px solid var(--border);border-radius:9px;color:var(--text);background:var(--surface);
+}
+#settings :is(.plan-dates input,#bible-date)::-webkit-date-and-time-value {
+  min-inline-size:0;overflow:hidden;text-overflow:ellipsis;text-align:left;
+}
+.plan-end-control input {flex:1 1 126px}
+#settings #clear-end-date {padding:6px 8px;font-size:13px}
+#settings #clear-end-date:disabled {display:none}
+#settings #verse-count-field {display:flex;flex-wrap:wrap;gap:6px;margin:0 0 5px}
 #settings #verse-count-field[hidden],#settings #repeat-label[hidden] {display:none}
 #settings #verses-per-day {width:75px}
 #settings #verse-count-error {flex-basis:100%}
-#settings #schedule {display:block;flex:none;min-height:112px;margin:4px 0;resize:vertical}
+#settings #schedule {display:block;flex:none;min-height:90px;margin:2px 0;resize:vertical}
 #settings #repeat-label:not([hidden]) {display:flex;width:fit-content}
 #repeat {width:20px;height:20px;accent-color:var(--accent)}
 #settings #book-field {margin:0;padding:0;border:0;background:transparent}
-#settings #book-field > button {margin:0 4px 5px 0}
+#settings #book-field > button {margin:0 3px 3px 0}
+#settings .reading-position .bible-row {margin:4px 0}
+#settings .reading-position .bible-row > button {flex:none}
 #settings #selection-summary {
   display:block;overflow:visible;white-space:normal;overflow-wrap:anywhere;
-  margin:5px 0 8px;padding:0;border:0;border-radius:0;background:none;color:var(--text);
+  margin:3px 0 5px;padding:0;border:0;border-radius:0;background:none;color:var(--text);
 }
-.plan-preview ol {display:grid;gap:0;padding:0;margin:10px 0 0;list-style:none}
+.plan-preview ol {display:grid;gap:0;padding:0;margin:5px 0 0;list-style:none}
 .plan-preview li {overflow-wrap:anywhere}
-#plan-preview-days li {padding:7px 0;border-top:1px solid var(--border)}
+#plan-preview-days li {
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;
+  padding:4px 0;border-top:1px solid var(--border);
+}
+#plan-preview-days li > * {min-width:0;max-width:100%}
 #plan-preview-days time {display:block;font-size:12px;font-weight:600;color:var(--muted)}
 #settings #preview-overrides:not(:empty) {margin-top:8px}
 .plan-error,.plan-error-list {
@@ -463,7 +487,7 @@ html:is(.manager-view,.plan-editing) #settings #close-settings {min-width:44px}
 }
 .plan-error-list {padding-left:18px}
 .plan-error:empty,.plan-error-list:empty {display:none}
-#settings #plan-save-error {margin:0}
+#settings #plan-save-error {margin:0;min-width:0;max-block-size:4.2em;overflow:auto}
 #settings :is(.plan-section,.plan-row) [aria-invalid=true] {border-color:var(--accent)}
 html:is(.manager-view,.plan-editing) #settings :focus-visible {outline:2px solid var(--focus);outline-offset:2px}
 html:is(.manager-view,.plan-editing) #settings .plan-toggle input:focus-visible {outline:none}
@@ -473,10 +497,21 @@ html.plan-editing.keyboard-open #settings #schedule {
 }
 @media(max-width:370px) {
   html:is(.manager-view,.plan-editing) #settings .theme-name {display:none}
-  #settings #plan-display-mode {grid-template-columns:1fr}
-  #settings .plan-mode-switch {grid-template-columns:1fr}
-  #settings .plan-mode-switch button {display:flex;align-items:center;gap:8px}
-  .plan-mode-switch span {margin:0}
+}
+@container (max-width:380px) {
+  #settings #plan-display-mode {grid-template-columns:minmax(0,1fr)}
+  #plan-display-mode label > span {
+    display:grid;grid-template-columns:minmax(62px,auto) minmax(0,1fr);align-items:baseline;gap:5px;min-width:0;
+  }
+  #plan-display-mode small {margin:0;overflow-wrap:anywhere}
+}
+@container (max-width:258px) {
+  #settings .plan-row {grid-template-columns:auto minmax(0,1fr) 44px auto}
+  .plan-more {grid-column:2/-1}
+  #settings .plan-mode-switch {grid-template-columns:minmax(0,1fr)}
+  #settings .plan-mode-switch button {flex-direction:row;align-items:center;justify-content:start;gap:6px}
+  .plan-mode-switch strong {flex:none}
+  .plan-mode-switch span {margin:0;min-width:0}
 }
 html.plan-calendar-view #settings #plan-calendar>.calendar-toolbar:first-child {
   grid-template-columns:auto 44px minmax(0,1fr) auto 44px;
@@ -531,17 +566,17 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
 <section id="plans-manager" aria-labelledby="settings-title" hidden>
   <div class="plans-navigation">
     <button type="button" id="back-to-calendar" class="quiet-button">← Calendar</button>
+    <div class="plan-transfer">
+      <button type="button" id="import-schedule" class="quiet-button">Import</button>
+      <button type="button" id="export-schedule" class="quiet-button">Export</button>
+    </div>
     <button type="button" id="add-plan" class="primary-button">+ New plan</button>
-  </div>
-  <div class="plan-transfer">
-    <button type="button" id="import-schedule" class="quiet-button">Import</button>
-    <button type="button" id="export-schedule" class="quiet-button">Export</button>
   </div>
   <p id="schedule-transfer-status" class="hint" role="status"></p>
   <fieldset id="plan-display-mode" class="plan-section">
     <legend>Display mode</legend>
-    <label><input type="radio" name="arrangement-mode" value="combined" aria-labelledby="combined-title" aria-describedby="combined-help"><span><strong id="combined-title">Combined</strong><small id="combined-help">Shows readings from every enabled plan in order.</small></span></label>
-    <label><input type="radio" name="arrangement-mode" value="override" aria-labelledby="override-title" aria-describedby="override-help"><span><strong id="override-title">Override</strong><small id="override-help">Uses the first enabled plan with readings for the selected day, starting from the top of the list.</small></span></label>
+    <label><input type="radio" name="arrangement-mode" value="combined" aria-labelledby="combined-title" aria-describedby="combined-help"><span><strong id="combined-title">Combined</strong><small id="combined-help">Shows readings from all enabled plans in list order.</small></span></label>
+    <label><input type="radio" name="arrangement-mode" value="override" aria-labelledby="override-title" aria-describedby="override-help"><span><strong id="override-title">Override</strong><small id="override-help">Uses readings from the first enabled plan that has any that day, starting at the top.</small></span></label>
   </fieldset>
   <h2>Plan priority</h2>
   <p id="priority-help" class="hint">Highest priority at the top. Drag to reorder or use Move up and Move down under More.</p>
@@ -563,9 +598,9 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
       <fieldset class="plan-section plan-type">
         <legend>Plan type</legend>
         <div class="plan-mode-switch">
-          <button type="button" id="plan-shuffle" class="quiet-button" aria-labelledby="shuffle-title" aria-describedby="shuffle-help"><strong id="shuffle-title">Shuffle</strong> <span id="shuffle-help">Mix verses from your selection.</span></button>
-          <button type="button" id="plan-sequential" class="quiet-button" aria-labelledby="sequential-title" aria-describedby="sequential-help"><strong id="sequential-title">Sequential</strong> <span id="sequential-help">Read your selection in Bible order.</span></button>
-          <button type="button" id="plan-custom" class="quiet-button" aria-labelledby="custom-title" aria-describedby="custom-help"><strong id="custom-title">Custom</strong> <span id="custom-help">Assign references one day at a time.</span></button>
+          <button type="button" id="plan-shuffle" class="quiet-button" aria-labelledby="shuffle-title" aria-describedby="shuffle-help"><strong id="shuffle-title">Shuffle</strong> <span id="shuffle-help">Mix selected verses.</span></button>
+          <button type="button" id="plan-sequential" class="quiet-button" aria-labelledby="sequential-title" aria-describedby="sequential-help"><strong id="sequential-title">Sequential</strong> <span id="sequential-help">Read in Bible order.</span></button>
+          <button type="button" id="plan-custom" class="quiet-button" aria-labelledby="custom-title" aria-describedby="custom-help"><strong id="custom-title">Custom</strong> <span id="custom-help">Set readings by day.</span></button>
         </div>
       </fieldset>
       <fieldset class="plan-section plan-details">
@@ -573,16 +608,24 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
         <label for="plan-name">Plan name</label>
         <input id="plan-name" type="text" maxlength="60" placeholder="My reading plan">
         <div class="plan-dates">
-          <div class="plan-date-field"><label for="plan-start-date">Start date</label><input id="plan-start-date" type="date" aria-describedby="start-date-error" required></div>
-          <div class="plan-date-field"><label for="plan-end-date">End date (optional)</label><input id="plan-end-date" type="date" aria-describedby="end-date-error"></div>
+          <div class="plan-date-field">
+            <label for="plan-start-date">Start date</label>
+            <input id="plan-start-date" type="date" aria-describedby="start-date-error" required>
+            <p id="start-date-error" class="plan-error" role="status"></p>
+          </div>
+          <div class="plan-date-field">
+            <label for="plan-end-date">End date (optional)</label>
+            <div class="plan-end-control">
+              <input id="plan-end-date" type="date" aria-describedby="end-date-error">
+              <button type="button" id="clear-end-date" class="quiet-button" aria-label="Clear end date" disabled>Clear</button>
+            </div>
+            <p id="end-date-error" class="plan-error" role="status"></p>
+          </div>
         </div>
-        <button type="button" id="clear-end-date" class="quiet-button" disabled>Clear end date</button>
-        <p id="start-date-error" class="plan-error" role="status"></p>
-        <p id="end-date-error" class="plan-error" role="status"></p>
       </fieldset>
       <section class="plan-section" aria-labelledby="plan-readings-title">
         <h2 id="plan-readings-title">Daily readings</h2>
-<div id="verse-count-field" class="verse-count-field" hidden><label for="verses-per-day">Verses per day</label><input id="verses-per-day" type="number" inputmode="numeric" min="1" step="1" value="2" aria-describedby="verse-count-error"><p id="verse-count-error" class="plan-error" role="status"></p></div><div id="custom-inputs"><label for="schedule">One day per line</label><textarea id="schedule" rows="5" aria-describedby="schedule-help schedule-errors" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p id="schedule-help" class="hint">Blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28.</p><ul id="schedule-errors" class="plan-error-list"></ul><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label></div><div id="book-field" class="settings-group" hidden><button type="button" id="choose-books" class="quiet-button" aria-haspopup="dialog" aria-controls="book-picker-dialog">Choose books</button><button type="button" id="custom-range" class="quiet-button" aria-haspopup="dialog" aria-controls="custom-range-dialog">Custom range</button><p id="selection-summary" class="hint"></p><p id="range-error" class="plan-error" role="status"></p><div hidden><div class="book-toolbar"><label id="books-label">Choose books</label><div class="book-actions"><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p></div><input id="range-text" type="hidden"><details id="bible-field" class="reading-position" hidden><summary>Reading position</summary><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Restart selection</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></details></div>
+<div id="verse-count-field" class="verse-count-field" hidden><label for="verses-per-day">Verses per day</label><input id="verses-per-day" type="number" inputmode="numeric" min="1" step="1" value="2" aria-describedby="verse-count-error"><p id="verse-count-error" class="plan-error" role="status"></p></div><div id="custom-inputs"><label for="schedule">One day per line</label><textarea id="schedule" rows="3" aria-describedby="schedule-help schedule-errors" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p id="schedule-help" class="hint">Blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28.</p><ul id="schedule-errors" class="plan-error-list"></ul><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label></div><div id="book-field" class="settings-group" hidden><button type="button" id="choose-books" class="quiet-button" aria-haspopup="dialog" aria-controls="book-picker-dialog">Choose books</button><button type="button" id="custom-range" class="quiet-button" aria-haspopup="dialog" aria-controls="custom-range-dialog">Custom range</button><p id="selection-summary" class="hint"></p><p id="range-error" class="plan-error" role="status"></p><div hidden><div class="book-toolbar"><label id="books-label">Choose books</label><div class="book-actions"><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p></div><input id="range-text" type="hidden"><details id="bible-field" class="reading-position" hidden><summary>Reading position</summary><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Restart selection</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></details></div>
       </section>
     </div>
     <section class="plan-section plan-preview" aria-labelledby="plan-preview-title">
@@ -1826,7 +1869,7 @@ load();
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
 </script>
-<script id="acswebapps-updater" data-version="rise-v98">
+<script id="acswebapps-updater" data-version="rise-v99">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
