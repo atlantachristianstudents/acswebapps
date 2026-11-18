@@ -19,9 +19,19 @@
   if (year) year.textContent = new Date().getFullYear();
 
   /* ---------- theme ---------- */
+  const themeDialog = document.getElementById("theme-dialog");
+  const themePresets = document.getElementById("theme-presets");
+  const themeNameEl = document.getElementById("theme-name");
+  const saveThemeBtn = document.getElementById("save-theme");
+  const THEME_NAMES = ["light", "dark", "dawn", "paper", "sage", "ocean", "rose", "dusk", "midnight"];
+
+  function currentTheme() {
+    return root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  }
+
   function applyTheme(theme, persist) {
     root.setAttribute("data-theme", theme);
-    if (themeToggle) themeToggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+    if (themeNameEl) themeNameEl.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
     if (persist) {
       try { localStorage.setItem("acswebapps-theme", theme); } catch (e) {}
     }
@@ -29,21 +39,47 @@
 
   let savedTheme = null;
   try { savedTheme = localStorage.getItem("acswebapps-theme"); } catch (e) {}
-  if (savedTheme) {
+  if (savedTheme && THEME_NAMES.includes(savedTheme)) {
     applyTheme(savedTheme, false);
+  } else if (savedTheme === "dark") {
+    applyTheme("dark", false);
   } else {
-    themeToggle.setAttribute(
-      "aria-pressed",
-      window.matchMedia("(prefers-color-scheme: dark)").matches ? "true" : "false"
-    );
+    applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", false);
+  }
+
+  function previewTheme(name) {
+    applyTheme(name, false);
+    document.querySelectorAll("#theme-presets [data-theme-choice]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(btn.dataset.themeChoice === name));
+    });
   }
 
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
-      const current =
-        root.getAttribute("data-theme") ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      applyTheme(current === "dark" ? "light" : "dark", true);
+      if (!themeDialog) return;
+      previewTheme(currentTheme());
+      themeDialog.showModal();
+    });
+  }
+
+  if (themePresets) {
+    themePresets.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-theme-choice]");
+      if (btn) previewTheme(btn.dataset.themeChoice);
+    });
+  }
+
+  if (saveThemeBtn) {
+    saveThemeBtn.addEventListener("click", () => {
+      applyTheme(currentTheme(), true);
+      themeDialog.close();
+    });
+  }
+
+  if (themeDialog) {
+    themeDialog.addEventListener("cancel", () => applyTheme(currentTheme(), false));
+    themeDialog.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") themeDialog.close();
     });
   }
 

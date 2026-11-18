@@ -36,7 +36,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):not([data-theme="dawn"]):not([data-theme="paper"]):not([data-theme="sage"]):not([data-theme="ocean"]):not([data-theme="rose"]) {
     color-scheme: dark;
 
     --bg: #0d111b;
@@ -266,6 +266,23 @@ button {
 
 .icon-btn:active {
   transform: scale(.94);
+}
+
+.primary {
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.primary:hover {
+  background: var(--accent-hover);
+}
+
+.primary:active {
+  transform: scale(.96);
 }
 
 /* Hero */
@@ -599,6 +616,104 @@ a.card:hover {
 
 .about a {
   color: var(--accent);
+  font-weight: 600;
+}
+
+/* Theme picker */
+
+#theme-dialog {
+  width: min(520px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 16px 60px #0004;
+  text-align: left;
+  font: 14px/1.45 system-ui, sans-serif;
+}
+
+#theme-dialog::backdrop {
+  background: #0007;
+}
+
+#theme-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+#theme-dialog .hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+#theme-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#theme-presets button {
+  display: flex;
+  min-width: 0;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+#theme-presets button:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+#theme-presets button[aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.theme-swatch {
+  display: block;
+  width: 40px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--swatch-bg) 0 65%, var(--swatch-accent) 65%);
+}
+
+.theme-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.theme-dialog-actions > span {
+  flex: 1;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+.theme-dialog-actions button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: .85rem;
   font-weight: 600;
 }
 
