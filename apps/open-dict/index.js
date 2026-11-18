@@ -15,7 +15,7 @@
   };
   const kinds = {exact:"Exact headword", form:"Recognized form", variant:"Spelling variant", prefix:"Starts with",
     suggestion:"Suggested spelling", filter:"Matches filters"};
-  let offline, online, adapter = starter;
+  let offline, online, published, adapter = starter;
   let renderVersion = 0;
   let suggestionVersion = 0, suggestions = [], activeSuggestion = -1, suggestTimer;
   let goToContent = false, installController;
@@ -207,16 +207,36 @@
     preference("theme", themeValue);
   });
 
+  function availableAdapters() {
+    return [...new Set([
+      online?.coverage === "full" && online,
+      published?.coverage === "full" && published,
+      offline, online, published, starter
+    ].filter(Boolean))];
+  }
+
+  function updateCoverage() {
+    const status = document.querySelector("#coverage-status");
+    const count = adapter.headwords ? " · " + adapter.headwords.toLocaleString() + " headwords" : "";
+    status.textContent = adapter.name + count + (adapter.coverage === "starter"
+      ? " · Full search needs a published release or a complete offline pack." : "");
+  }
+
   async function queryAdapter(method, ...args) {
-    let value;
-    try {
-      value = await adapter[method](...args);
-    } catch (error) {
-      if (adapter !== online) throw error;
-      adapter = offline || starter;
-      value = await adapter[method](...args);
+    let error;
+    for (const candidate of availableAdapters()) {
+      try {
+        const value = await candidate[method](...args);
+        if (adapter !== candidate) {
+          adapter = candidate;
+          updateCoverage();
+        }
+        return method === "lookup" && value ? dictionary.presentationOrder(value) : value;
+      } catch (failure) {
+        error = failure;
+      }
     }
-    return method === "lookup" && value ? dictionary.presentationOrder(value) : value;
+    throw error;
   }
 
   function modeButton() {
@@ -425,7 +445,7 @@
     const fields = ["First word","Second word"].map((label, index) => {
       const field = element("input");
       field.required = true;
-      field.maxLength = 200;
+      field.maxLength = 1024;
       field.value = index ? right : left;
       compareForm.append(element("label", "", label, field));
       return field;
@@ -544,7 +564,8 @@
         if (offline) preference("pack-installation", JSON.stringify({
           edition:offline.edition, release:offline.release, installedAt:Date.now()
         }));
-        adapter = online || offline || starter;
+        adapter = availableAdapters()[0];
+        updateCoverage();
         showStatus(edition + " is ready for offline use.");
         if (location.hash === "#offline") {
           installController = null;
@@ -569,12 +590,13 @@
     if (fragment === "content") return;
     const params = new URLSearchParams(fragment.includes("=") ? fragment : "");
     const initialWord = !fragment ? new URLSearchParams(location.search).get("word") : null;
-    const word = (params.get("word") || initialWord || "").slice(0, 200);
-    const query = (params.get("q") || "").slice(0, 200);
+    const word = (params.get("word") || initialWord || "").slice(0, 1024);
+    const query = (params.get("q") || "").slice(0, 1024);
     const advanced = params.has("q");
+    const browsing = params.has("browse");
     const pageName = params.has("compare") || fragment === "compare" ? "compare"
       : ["sources","offline"].includes(fragment) ? fragment : "home";
-    const isHome = pageName === "home" && !word && !advanced;
+    const isHome = pageName === "home" && !word && !advanced && !browsing;
     document.body.classList.toggle("inner", !isHome);
     document.querySelector("#hero").hidden = !isHome;
     document.querySelectorAll("[data-nav]").forEach(anchor => {
@@ -594,13 +616,22 @@
     try {
       if (pageName === "sources") page = sourcePage();
       else if (pageName === "offline") page = offlinePage();
-      else if (pageName === "compare") page = await compare((params.get("compare") || "").slice(0, 200), (params.get("with") || "").slice(0, 200));
-      else if (advanced) {
+      else if (pageName === "compare") page = await compare((params.get("compare") || "").slice(0, 1024), (params.get("with") || "").slice(0, 1024));
+      else if (browsing) {
+        const prefix = (params.get("browse") || "").slice(0, 1024);
+        const after = (params.get("after") || "").slice(0, 1024);
+        const batch = await queryAdapter("browse", prefix, after, 24);
+        page = heading(prefix ? "Headwords beginning with “" + prefix + "”" : "Browse headwords", adapter.name);
+        page.append(resultList(batch.results));
+        if (batch.next) page.append(link("Next page", "#" + new URLSearchParams({browse:prefix, after:batch.next}), "button"));
+      } else if (advanced) {
         const results = await queryAdapter("search", query, {filters:currentFilters});
         const empty = adapter.boundedFilters ? "No matches in this browser search window. Add a beginning to narrow the search."
           : "No entries match these filters.";
         page = heading("Search results", results.length ? adapter.name : empty);
         page.append(resultList(results));
+        const prefix = query || currentFilters.beginning;
+        if (prefix) page.append(link("Browse all headwords with this prefix", "#" + new URLSearchParams({browse:prefix})));
       } else if (word) {
         const record = await queryAdapter("lookup", word, {scholarly});
         const results = await queryAdapter("search", word, {limit:18, suggest:Boolean(record)});
@@ -609,6 +640,9 @@
           page = heading("No exact entry for “" + word + "”", results.length
             ? "Browse recognized forms and suggested spellings." : "This word is unavailable in " + adapter.name + ".");
           page.append(resultList(results));
+          if (results.some(item => item.kind === "prefix")) {
+            page.append(link("Browse all prefix matches", "#" + new URLSearchParams({browse:word})));
+          }
         }
       } else page = home();
     } catch (_) {
@@ -632,6 +666,7 @@
   }
 
   updateSourceOptions();
+  updateCoverage();
   render();
   if (/^https?:$/.test(location.protocol)) {
     if ("serviceWorker" in navigator) {
@@ -639,11 +674,14 @@
     }
     Promise.all([
       dictionary.offlineAdapter().catch(() => null),
-      navigator.onLine ? dictionary.apiAdapter("api/v1/").catch(() => null) : null
-    ]).then(([pack, api]) => {
+      navigator.onLine ? dictionary.apiAdapter("api/v1/").catch(() => null) : null,
+      navigator.onLine ? dictionary.publishedAdapter().catch(() => null) : null
+    ]).then(([pack, api, release]) => {
       offline = pack;
       online = api;
-      adapter = online || offline || starter;
+      published = release;
+      adapter = availableAdapters()[0];
+      updateCoverage();
       updateSourceOptions();
       if (adapter !== starter) render();
     });

@@ -2,20 +2,22 @@
 
 Open Dictionary is a free English reference built from English Wiktionary, Open English WordNet, and the 1913 Webster historical transcription. It preserves the sources’ independent senses, parts of speech, homographs, glosses, and available examples, pronunciations, etymologies, and relations. The bundled starter has **225 headwords, 598 source entries, and 3,844 source senses**.
 
-The ACS Web Apps route is [`/apps/open-dict/`](https://acswebapps.com/apps/open-dict/) after the parent repository publishes this app. GitHub Pages serves the starter and any pack artifacts operators publish at that route. The optional Python API serves the same UI with the imported dictionary, server-rendered entry pages, and PostgreSQL or SQLite search.
+The ACS Web Apps route is [`/apps/open-dict/`](https://acswebapps.com/apps/open-dict/). Static hosts can serve full dictionary lookup and search directly from published release shards. The Python API also serves the same UI with SQLite or PostgreSQL search and server-rendered entries. The page identifies its active data source and explicitly labels starter coverage.
 
 ## Run locally
 
 From the ACS Web Apps repository root, run `python3 -m http.server 8765 --bind 127.0.0.1` and open [Open Dictionary](http://127.0.0.1:8765/apps/open-dict/). The starter also opens directly from `apps/open-dict/index.html`. For local service workers and installed data, use a loopback HTTP address or HTTPS.
 
-For the same-origin API and a starter SQLite database, run these commands from `apps/open-dict`. Use Python 3.9 or newer with SQLite FTS5.
+For a complete local deployment, run these commands from `apps/open-dict` with Python 3.9+ and SQLite FTS5.
 
 ```sh
-python3 -m lexical.build seed
+python3 -m lexical.build download .local/raw
+python3 -m lexical.build import-all .local/raw
+python3 -m lexical.build coverage
 python3 -m api.server
 ```
 
-Then open [the local API-backed app](http://127.0.0.1:8766/). For full data, follow [Ingestion](docs/INGESTION.md). The verified combined import contains 1,403,043 normalized headword keys and 2,138,869 source senses. For PostgreSQL, Docker, reverse-proxy hosting, backups, or disconnected operation, follow [Deployment](docs/DEPLOYMENT.md).
+Then open [the full local app](http://127.0.0.1:8766/). For a small development database, run `python3 -m lexical.build --db .local/dev.sqlite seed` and start `python3 -m api.server --db .local/dev.sqlite --allow-partial`. The production API requires all three complete source imports by default. See [Ingestion](docs/INGESTION.md), [Vocabulary coverage](docs/VOCABULARY_COVERAGE.md), and [Deployment](docs/DEPLOYMENT.md).
 
 ## Use the dictionary
 
@@ -35,6 +37,7 @@ The backend serves these JSON GET endpoints beneath its configured mount. Search
 | `api/v1/lookup/{word}?view=scholarly` | Normalized spelling, source entry groups, senses, and forms |
 | `api/v1/search?q=&limit=` | Ranked search with optional `pos`, `source`, `beginning`, `ending`, `definition`, `label`, and `domain` |
 | `api/v1/suggest?q=&limit=` | Exact, recognized-form, variant, and prefix matches |
+| `api/v1/browse?prefix=&after=&limit=` | Exhaustive alphabetical pages with `results` and a `next` headword key to pass back as `after` |
 | `api/v1/senses/{id}` | A source sense with entry spelling and release |
 | `api/v1/senses/{id}/relations` | Available source relations keyed by type |
 | `api/v1/sources` | Active source releases, license information, and notices |

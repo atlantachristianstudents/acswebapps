@@ -2,7 +2,9 @@
 
 ## ACS Web Apps and static hosting
 
-GitHub Pages serves the existing repository root. The app route is `/apps/open-dict/` at the custom domain and `/acswebapps/apps/open-dict/` at the project-site fallback. Serve `index.html` and app-local resources with the existing worker scope. A static pack publisher can provide immutable files under the app’s `data/releases/` path. GitHub Pages can serve source files and fixtures directly. Provision larger releases through a separate artifact publication workflow consistent with the host’s size limits.
+GitHub Pages serves `/apps/open-dict/` at the custom domain and `/acswebapps/apps/open-dict/` on the project-site fallback. The frontend uses relative URLs. Full static lookup requires the generated `data/releases/manifest.json` and all files in its named release directory at the app’s same-origin URL. Upload the version directory first and publish the manifest last. Serve compressed files as bytes without HTTP content encoding. Keep an earlier version directory available while existing tabs may still have its manifest.
+
+The repository’s branch-based Pages checkout keeps generated artifacts out of Git. Use an artifact-aware static deployment or a same-origin dictionary service to make that data available in production. A bare Pages checkout exposes the bundled starter and identifies it as such. Neither the Python API nor the database runs on GitHub Pages.
 
 ## PostgreSQL
 
@@ -10,7 +12,7 @@ Create a dedicated UTF-8 database with a binary `C` collation so the ordered pre
 
 ```sh
 python -m pip install --require-hashes -r docker/requirements.txt
-python -m lexical.build --db "$OPEN_DICT_DATABASE_URL" seed
+python -m lexical.build --db "$OPEN_DICT_DATABASE_URL" import-all .local/raw
 python -m api.server --mount /apps/open-dict/ --canonical https://dictionary.example/apps/open-dict/
 ```
 
@@ -18,14 +20,14 @@ Set `OPEN_DICT_DATABASE_URL` in the deployment environment. Use a PostgreSQL ser
 
 ## Docker
 
-Copy `.env.example` to `.env` and set a strong `OPEN_DICT_DB_PASSWORD`. Create `data/releases` and `.local/raw` as needed. Mount the latter as the read-only input for imports.
+Copy `.env.example` to `.env` and set `OPEN_DICT_DB_PASSWORD`. Create `data/releases` and obtain the verified archives with `python3 -m lexical.build download .local/raw`. Compose mounts the archive directory read-only and completes all three full imports before starting the API. Rerun the same initialization after an interrupted import.
 
 ```sh
 docker compose build init
 docker compose up -d
 docker compose ps
 docker compose --profile import run --rm import report
-docker compose --profile import run --rm import import oewn /sources/wordnet.xml.gz --version 2025
+docker compose --profile import run --rm import coverage
 ```
 
 The container uses UID 10001. For release generation inside Docker, grant that UID write access to the mounted release directory. The database is on a dedicated named volume and has no host port mapping. Bind the frontend to a private LAN address only when required and use HTTPS for PWA features from remote devices.

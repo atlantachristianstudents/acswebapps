@@ -77,3 +77,14 @@ CREATE TABLE IF NOT EXISTS editorial_reviews (
     FOREIGN KEY (left_source, left_version, left_sense) REFERENCES senses(source, version, id),
     FOREIGN KEY (right_source, right_version, right_sense) REFERENCES senses(source, version, id)
 );
+
+
+CREATE TABLE IF NOT EXISTS import_checkpoints (
+    source TEXT NOT NULL,
+    version TEXT NOT NULL,
+    records INTEGER NOT NULL,
+    updated_at TEXT NOT NULL,
+    report TEXT NOT NULL,
+    PRIMARY KEY (source, version),
+    FOREIGN KEY (source, version) REFERENCES releases(source, version)
+);

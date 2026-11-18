@@ -1,12 +1,15 @@
 """Streaming Wiktextract and Global WordNet LMF readers."""
+from contextlib import closing
 import gzip
+from hashlib import sha256
+import sqlite3
 import json
 import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
-from .model import RELATIONS, identifier, objects, strings, text
+from .model import RELATIONS, identifier, key, objects, strings, text
 
-POS = {"n": "noun", "v": "verb", "a": "adj", "s": "adj", "r": "adv"}
+POS = {"n": "noun", "v": "verb", "a": "adj", "s": "adj", "r": "adv", "e": "name"}
 
 
 def open_source(path, mode="rt"):
@@ -27,11 +30,18 @@ def links(record, fields=RELATIONS):
     return result
 
 
-def wiktionary(path, selected, report):
-    seen = set()
+def wiktionary(path, selected, report, identities=None):
+    # Keep identity collision checks on disk for full dumps.
+    if identities is None:
+        with closing(sqlite3.connect("")) as scratch:
+            yield from wiktionary(path, selected, report, scratch)
+        return
+    identities.execute("CREATE TABLE seen(id TEXT PRIMARY KEY, fingerprint TEXT) WITHOUT ROWID")
     with open_source(path) as stream:
         for line_number, line in enumerate(stream, 1):
+            report["records_scanned"] += 1
             if not line.strip():
+                report["blank_lines"] += 1
                 continue
             try:
                 entry = json.loads(line)
@@ -39,29 +49,50 @@ def wiktionary(path, selected, report):
                 raise ValueError(f"Invalid Wiktextract JSON on line {line_number}") from error
             if not isinstance(entry, dict):
                 raise ValueError(f"Expected a record on line {line_number}")
+            report["source_records_read"] += 1
+            if entry.get("lang_code") != "en":
+                report["other_languages"] += 1
+                continue
+            report["english_records"] += 1
             word = text(entry.get("word"))
-            if entry.get("lang_code") != "en" or (selected is not None and word.lower() not in selected):
+            if selected is not None and key(word) not in selected:
+                report["outside_selection"] += 1
+                continue
+            raw = line.rstrip("\n")
+            if not word or not key(word):
+                report["invalid_headwords"] += 1
+                report["rejected_senses"] += len(objects(entry.get("senses")))
+                yield None, (identifier("wiktionary-rejected", line_number), raw)
                 continue
             pos = text(entry.get("pos")) or "unknown"
-            if not word or len(word) > 240:
-                report["invalid_headwords"] += 1
-                continue
             origin = text(str(entry.get("etymology_number", "")))
             page = text(entry.get("original_title")) or word
             entry_id = identifier("wiktionary", page, word, origin, pos)
-            if entry_id in seen:
-                # Preserve independently extracted homographs even when the dump lacks an origin number.
-                entry_id = identifier(entry_id, [item.get("glosses") for item in objects(entry.get("senses"))])
-                if entry_id in seen:
-                    report["duplicate_entry_keys"] += 1
+            # Same glosses can represent distinct entries with different source metadata.
+            # Archive exact repeats separately and keep the first stable entry ID.
+            fingerprint = sha256(raw.encode()).hexdigest()[:28]
+            known = identities.execute("INSERT OR IGNORE INTO seen VALUES (?,?)", (entry_id, fingerprint))
+            if not known.rowcount:
+                previous = identities.execute("SELECT fingerprint FROM seen WHERE id=?", (entry_id,)).fetchone()[0]
+                if fingerprint != previous:
+                    entry_id = identifier(entry_id, fingerprint)
+                    known = identities.execute("INSERT OR IGNORE INTO seen VALUES (?,?)", (entry_id, fingerprint))
+                if not known.rowcount:
+                    report["duplicate_entry_records"] += 1
+                    report["duplicate_source_senses"] += len(objects(entry.get("senses")))
+                    yield None, (identifier("wiktionary-repeat", line_number), raw)
                     continue
                 report["unresolved_homographs"] += 1
-            seen.add(entry_id)
             senses = []
             parents = {}
             occurrences = set()
             for source_sense in objects(entry.get("senses")):
-                glosses = strings(source_sense.get("glosses"))
+                report["source_senses_read"] += 1
+                glosses = [value for value in strings(source_sense.get("glosses")) if value.strip()]
+                if not glosses:
+                    glosses = [value for value in strings(source_sense.get("raw_glosses")) if value.strip()]
+                    if glosses:
+                        report["raw_gloss_senses"] += 1
                 if not glosses:
                     report["missing_definitions"] += 1
                     continue
@@ -89,6 +120,7 @@ def wiktionary(path, selected, report):
                 senses.append(sense)
             if not senses:
                 report["entries_without_senses"] += 1
+                yield None, (entry_id, raw)
                 continue
             forms = [{"word": item["form"], "labels": strings(item.get("tags")) + strings(item.get("raw_tags"))}
                      for item in objects(entry.get("forms"))
@@ -96,7 +128,7 @@ def wiktionary(path, selected, report):
                      and not ({"table-tags", "inflection-template"} & set(strings(item.get("tags"))))]
             pronunciations = []
             for item in objects(entry.get("sounds")):
-                ipa, audio = text(item.get("ipa")), text(item.get("audio"))
+                ipa, audio = text(item.get("ipa")) or text(item.get("audio-ipa")), text(item.get("audio"))
                 if ipa or audio:
                     pronunciations.append({"ipa": ipa, "audioFile": audio, "labels": strings(item.get("tags")),
                                            "note": text(item.get("note")), "audioUrl": text(item.get("ogg_url"))})
@@ -105,7 +137,7 @@ def wiktionary(path, selected, report):
                 "sourceUrl": "https://en.wiktionary.org/wiki/" + quote(page.replace(" ", "_"), safe="") + "#English",
                 "etymology": text(entry.get("etymology_text")), "pronunciations": pronunciations,
                 "forms": forms, "relations": links(entry), "senses": senses
-            }, line.rstrip("\n"))
+            }, raw)
 
 
 def xml_items(path):
@@ -137,9 +169,11 @@ def wordnet(path, selected, temp, report):
     """)
     with temp:
         for tag, element in xml_items(path):
+            report["source_records_read"] += 1
             record_id = element.attrib["id"]
             raw = ET.tostring(element, encoding="unicode")
             if tag == "Synset":
+                report["synsets_read"] += 1
                 temp.execute("INSERT INTO wn_synsets VALUES (?, ?)", (record_id, raw))
                 continue
             lemma = element.find("Lemma")
@@ -157,11 +191,13 @@ def wordnet(path, selected, temp, report):
             (synset,)
         )
     for entry_id, word, pos, raw in temp.execute("SELECT id,word,pos,raw FROM wn_entries ORDER BY id"):
-        if selected is not None and word.lower() not in selected:
+        if selected is not None and key(word) not in selected:
+            report["outside_selection"] += 1
             continue
         entry = ET.fromstring(raw)
         senses = []
         for element in entry.findall("Sense"):
+            report["source_senses_read"] += 1
             source_id, synset_id = element.attrib["id"], element.attrib["synset"]
             synset_row = temp.execute("SELECT raw FROM wn_synsets WHERE id=?", (synset_id,)).fetchone()
             synset = ET.fromstring(synset_row[0]) if synset_row else None

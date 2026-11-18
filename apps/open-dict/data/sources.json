@@ -9,12 +9,20 @@
     "terms": "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use",
     "attribution": "English Wiktionary contributors, via Wiktextract and Kaikki.org. Selected fields, structural normalization, and indexing by Open Dictionary. Wiktionary-derived adaptations remain CC BY-SA 4.0.",
     "version": "2026-10-01 / Wiktextract 19f9a30",
-    "sha256": "5ff2c072f8099f2d2ce484bd6957bf179f046d2ad37bc36555edf8bb84cb5291"
+    "sha256": "5ff2c072f8099f2d2ce484bd6957bf179f046d2ad37bc36555edf8bb84cb5291",
+    "filename": "wiktionary-2026-10-01.jsonl.gz",
+    "bytes": 3082476978,
+    "baseline": {
+      "records_scanned": 11121531,
+      "english_records": 1499161,
+      "archived_records": 1499161,
+      "source_senses_read": 1795048
+    }
   },
   "oewn": {
     "name": "Open English WordNet",
     "url": "https://en-word.net/",
-    "download": "https://en-word.net/static/english-wordnet-2025.xml.gz",
+    "download": "https://en-word.net/static/english-wordnet-2025-plus.xml.gz",
     "license": "CC BY 4.0 and Princeton WordNet License",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
     "terms": "https://github.com/globalwordnet/english-wordnet/blob/2025-edition/LICENSE.md",
@@ -22,9 +30,16 @@
       "data/licenses/OEWN_LICENSE.md",
       "data/licenses/WNDB_License.txt"
     ],
-    "attribution": "The Open English WordNet Team and Princeton University WordNet. Selected fields, structural normalization, and indexing by Open Dictionary.",
-    "version": "2025",
-    "sha256": "9ca6d1dcb75f822fdd66617f7d9da48142ace38dd544d6ad5e2feca1674ad3fe"
+    "attribution": "The Open English WordNet Team and Princeton University WordNet. Selected fields, structural normalization, and indexing by Open Dictionary. The 2025+ release includes curated Open English Namenet entries and data derived from Wikidata (CC0).",
+    "version": "2025+",
+    "sha256": "31f4af16c54b532fd5484d4cc33aee588a31bb5b70683ae8197842fde5b586bc",
+    "filename": "english-wordnet-2025-plus.xml.gz",
+    "bytes": 12925887,
+    "baseline": {
+      "source_records_read": 282439,
+      "source_senses_read": 212659,
+      "synsets_read": 120564
+    }
   },
   "webster1913": {
     "name": "Webster's Revised Unabridged Dictionary (1913)",
@@ -35,6 +50,8 @@
     "terms": "https://www.gutenberg.org/ebooks/29765",
     "attribution": "1913 Webster's Revised Unabridged Dictionary, digitized by Graham Lawrence in ebook 29765. Open Dictionary extracts marked sense blocks and keeps the original text for audit. The transcription can contain errors.",
     "version": "Gutenberg 29765 / 2025-07-06",
-    "sha256": "86fb9c28c32008ea288ca4bcf34f4f0d3d11ccf9e0898294d98b73671497f1d3"
+    "sha256": "86fb9c28c32008ea288ca4bcf34f4f0d3d11ccf9e0898294d98b73671497f1d3",
+    "filename": "webster-29765.txt",
+    "bytes": 28956350
   }
 }

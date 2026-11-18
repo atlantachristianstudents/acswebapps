@@ -75,6 +75,7 @@ def glosses(body):
 def webster(path, selected, report):
     entries_seen = {}
     for raw in entries(path):
+        report["source_records_read"] += 1
         names = [key(name) for name in raw[0].split(";")]
         names = list(dict.fromkeys(name for name in names if name))
         words = [name for name in names if selected is None or name in selected]
@@ -87,10 +88,11 @@ def webster(path, selected, report):
         pos = PARTS[match[1]] if match else "unknown"
         definitions = [(ordinal, definition) for ordinal, definition in glosses(raw[split:])
                        if definition and not LABEL.fullmatch(definition)]
+        line = "\n".join(raw)
         if not definitions:
             report["entries_without_marked_definitions"] += 1
+            yield None, (identifier("webster-unsegmented", report["source_records_read"]), line)
             continue
-        line = "\n".join(raw)
         for word in words:
             identity = (word, pos, key(syntax.translate(STRESS)))
             duplicate = entries_seen.get(identity, 0)

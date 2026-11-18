@@ -22,7 +22,9 @@ services:
     environment: &database
       OPEN_DICT_DATABASE_URL: postgresql://open_dict@db/open_dict
       PGPASSWORD: ${OPEN_DICT_DB_PASSWORD}
-    command: ["sh", "-c", "python -m lexical.build --db \"$$OPEN_DICT_DATABASE_URL\" seed"]
+    command: ["python", "-m", "lexical.build", "import-all", "/sources"]
+    volumes:
+      - ./.local/raw:/sources:ro
     depends_on:
       db:
         condition: service_healthy

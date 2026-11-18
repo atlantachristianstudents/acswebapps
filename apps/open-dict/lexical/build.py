@@ -2,20 +2,25 @@
 import argparse
 from collections import Counter
 from contextlib import closing
-from datetime import date
+from datetime import date, datetime, timezone
 import gzip
 import hashlib
 import json
+import os
+import sys
+from itertools import islice
 from pathlib import Path
 import re
 import shutil
 import sqlite3
 from tempfile import TemporaryDirectory
 
+from .coverage import count_group, count_sense, report_coverage
+from .download import download
 from .evidence import add_evidence
 from .importers import wiktionary, wordnet
 from .model import SCHEMA, encode, identifier, key
-from .store import ROOT, connect, sources
+from .store import ROOT, connect, coverage_scope, sources
 from .webster import webster
 
 
@@ -45,7 +50,7 @@ def aliases(entry):
                     yield key(relation["word"]), key(entry["word"]), kind
 
 
-def write_records(store, source, version, records, report):
+def write_records(store, source, version, records, report, checkpoint=None, start=0):
     batches = {name: [] for name in ("source_records", "lexemes", "senses", "forms", "senses_fts")}
 
     def flush():
@@ -56,7 +61,8 @@ def write_records(store, source, version, records, report):
                 store.many(f"INSERT INTO {table} VALUES ({params}){conflict}", batch)
                 batch.clear()
 
-    for entry, raw in records:
+    for number, (entry, raw) in enumerate(records, start + 1):
+        report["archived_records"] += 1
         if entry is None:
             batches["source_records"].append((source, version, *raw))
         else:
@@ -74,17 +80,39 @@ def write_records(store, source, version, records, report):
                 if not store.postgres:
                     batches["senses_fts"].append((sense["definition"], sense["id"], *prefix))
             batches["forms"].extend((*prefix, term, target, kind) for term, target, kind in aliases(entry)
-                                    if term and target and term != target and len(term) <= 240)
+                                    if term and target and term != target)
             report["lexemes"] += 1
             report["senses"] += len(senses)
             if entry["pos"] == "unknown":
                 report["missing_pos"] += 1
-        if len(batches["source_records"]) >= 1000:
+        if len(batches["source_records"]) >= (6000 if checkpoint else 1000):
             flush()
+            if checkpoint:
+                checkpoint(number)
     flush()
+    # Record the last yielded row as well, so restart is safe during post-import validation.
+    if checkpoint and report["archived_records"] > start:
+        checkpoint(report["archived_records"])
 
 
-def import_source(store, source, file, version, expected, selected):
+def available_capacity(directory, needed):
+    free = shutil.disk_usage(directory).free
+    if free < needed:
+        raise ValueError(f"Insufficient disk space in {directory}: {free:,} bytes free, {needed:,} bytes required")
+
+
+def check_import(store, source, version, report):
+    for table, metric in (("source_records", "archived_records"), ("lexemes", "lexemes"), ("senses", "senses")):
+        count = store.query(f"SELECT count(*) FROM {table} WHERE source=? AND version=?", (source, version)).fetchone()[0]
+        if count != report[metric] or (table != "source_records" and not count):
+            raise ValueError(f"Incomplete import for {source}: {table} {count:,} differs from {report[metric]:,}")
+    if not store.postgres:
+        count = store.query("SELECT count(*) FROM senses_fts WHERE source=? AND version=?", (source, version)).fetchone()[0]
+        if count != report["senses"]:
+            raise ValueError(f"Search index count {count:,} does not match imported sense count {report['senses']:,}")
+
+
+def import_source(store, source, file, version, expected, selected, progress=False):
     metadata = sources()[source]
     checksum = sha256(file)
     if expected and checksum != expected.lower():
@@ -94,21 +122,90 @@ def import_source(store, source, file, version, expected, selected):
     selection = identifier(*sorted(selected)) if selected is not None else None
     current = store.query("SELECT checksum,metadata FROM releases WHERE source=? AND version=?", (source, version)).fetchone()
     if current and (current[0] != checksum or json.loads(current[1]).get("selection") != selection):
-        raise ValueError("This release ID already identifies different source bytes")
-    if not current:
+        raise ValueError("This release ID already identifies different source bytes or a different selection")
+    previous = store.query("SELECT records,report FROM import_checkpoints WHERE source=? AND version=?",
+                           (source, version)).fetchone()
+    if not current or previous:
         report = Counter()
+        if checksum == metadata.get("sha256"):
+            metadata["upstreamVersion"] = metadata["version"]
         metadata.update(version=version, checksum=checksum, subset=selected is not None, selection=selection)
-        store.query("INSERT INTO releases VALUES (?,?,?,?)", (source, version, checksum, encode(metadata)))
-        if source == "oewn":
-            with TemporaryDirectory(prefix="open-dict-import-") as folder, closing(sqlite3.connect(Path(folder) / "work.sqlite")) as temp:
-                write_records(store, source, version, wordnet(file, selected, temp, report), report)
+        if not current:
+            store.query("INSERT INTO releases VALUES (?,?,?,?)", (source, version, checksum, encode(metadata)))
+        start, saved = (previous[0], json.loads(previous[1])) if previous else (0, {})
+        if not store.postgres and selected is None:
+            database = store.query("PRAGMA database_list").fetchone()[2]
+            estimate = file.stat().st_size * (3 if source == "wiktionary" else 42 if source == "oewn" else 10)
+            baseline_records = metadata.get("baseline", {}).get("archived_records", 0) if checksum == metadata["sha256"] else 0
+            remaining = min(1, max(0, 1 - start / baseline_records)) if baseline_records else 1
+            available_capacity(Path(database).parent, max(128 * 1024**2, int(estimate * remaining)))
+
+        last = start
+        def checkpoint(number):
+            nonlocal last
+            if number == last:
+                return
+            stamp = datetime.now(timezone.utc).isoformat()
+            store.query("""
+                INSERT INTO import_checkpoints VALUES (?,?,?,?,?)
+                ON CONFLICT (source,version) DO UPDATE SET records=excluded.records,
+                    updated_at=excluded.updated_at, report=excluded.report
+            """, (source, version, number, stamp, encode(report)))
+            store.connection.commit()
+            last = number
+            if progress:
+                scanned = report["records_scanned"] or report["source_records_read"]
+                baseline = metadata.get("baseline", {})
+                total = baseline.get("records_scanned") if checksum == metadata.get("sha256") else None
+                rejected = sum(report[k] for k in ("invalid_headwords", "duplicate_entry_records",
+                                                   "entries_without_senses", "entries_without_marked_definitions"))
+                left = f", {max(0, total - scanned):,} input rows remaining" if total is not None else ""
+                print(f"{source}: {scanned:,} scanned, {report['archived_records']:,} archived, "
+                      f"{report['lexemes']:,} lexemes, {report['senses']:,} senses, {rejected:,} rejected{left}",
+                      file=sys.stderr, flush=True)
+
+        baseline = metadata.get("baseline", {}) if checksum == metadata.get("sha256") else {}
+        staged_all = (source == "wiktionary" and selected is None and
+                      saved.get("records_scanned") == baseline.get("records_scanned") and
+                      baseline.get("archived_records") == start and start > 0)
+        if staged_all:
+            report.update(saved)
+            if progress:
+                print(f"{source}: validating all {start:,} previously staged English records",
+                      file=sys.stderr, flush=True)
         else:
-            reader = {"wiktionary": wiktionary, "webster1913": webster}[source]
-            write_records(store, source, version, reader(file, selected, report), report)
-        if not report["lexemes"]:
-            raise ValueError("No English lexical entries were imported")
+            with TemporaryDirectory(prefix="open-dict-import-") as folder, closing(sqlite3.connect(Path(folder) / "work.sqlite")) as temp:
+                temp.execute("PRAGMA journal_mode=OFF")
+                temp.execute("PRAGMA synchronous=OFF")
+                temp.execute("PRAGMA cache_size=-32768")
+                if source == "oewn":
+                    stream = wordnet(file, selected, temp, report)
+                elif source == "wiktionary":
+                    stream = wiktionary(file, selected, report, temp)
+                else:
+                    stream = webster(file, selected, report)
+                if start:
+                    # Replaying source identity decisions avoids seeking to an unsafe point in gzip or XML.
+                    skipped = sum(1 for _ in islice(stream, start))
+                    if skipped != start:
+                        raise ValueError("The source ended before its saved checkpoint")
+                    for field in ("archived_records", "lexemes", "senses", "missing_pos"):
+                        report[field] = saved.get(field, 0)
+                    if progress:
+                        print(f"{source}: resumed after {start:,} archived records", file=sys.stderr, flush=True)
+                write_records(store, source, version, stream, report, checkpoint, start)
+
+        if source == "wiktionary":
+            report["source_senses_read"] += report["duplicate_source_senses"] + report["rejected_senses"]
+        check_import(store, source, version, report)
+        if not selected and checksum == metadata.get("sha256"):
+            for field, count in metadata.get("baseline", {}).items():
+                if report[field] != count:
+                    raise ValueError(f"Pinned {source} baseline mismatch for {field}: {report[field]:,} vs {count:,}")
         metadata["report"] = dict(report)
+        metadata["completedAt"] = datetime.now(timezone.utc).isoformat()
         store.query("UPDATE releases SET metadata=? WHERE source=? AND version=?", (encode(metadata), source, version))
+        store.query("DELETE FROM import_checkpoints WHERE source=? AND version=?", (source, version))
     store.query("""
         INSERT INTO active_releases VALUES (?,?)
         ON CONFLICT (source) DO UPDATE SET version=excluded.version
@@ -140,6 +237,51 @@ def essential(record):
     return record
 
 
+def pack_chunks(directory, version, prefix, records, size_limit=2 * 1024 * 1024):
+    files, batch = [], []
+    size = 0
+
+    def write_chunk():
+        nonlocal size
+        name = f"{prefix}-{len(files):04}.ndjson.gz"
+        path = directory / name
+        with path.open("wb") as stream, gzip.GzipFile(filename="", fileobj=stream, mode="wb", mtime=0,
+                                                       compresslevel=5) as zipped:
+            zipped.writelines(line for _, line in batch)
+        files.append({"path": version + "/" + name, "bytes": path.stat().st_size,
+                      "decodedBytes": size, "sha256": sha256(path), "entries": len(batch),
+                      "firstKey":batch[0][0], "lastKey":batch[-1][0]})
+        batch.clear()
+        size = 0
+
+    for term, record in records:
+        line = (encode(record) + "\n").encode()
+        if batch and size + len(line) > size_limit:
+            write_chunk()
+        batch.append((term, line))
+        size += len(line)
+    if batch:
+        write_chunk()
+    return files
+
+
+def pack_forms(store):
+    sql = """
+        SELECT f.term,f.headword,f.kind,COALESCE(min(CASE WHEN l.spelling=l.headword THEN l.spelling END),min(l.spelling))
+        FROM forms f JOIN active_releases a ON f.source=a.source AND f.version=a.version
+        JOIN lexemes l ON l.headword=f.headword
+        JOIN active_releases b ON l.source=b.source AND l.version=b.version
+        GROUP BY f.term,f.headword,f.kind ORDER BY f.term,f.headword,f.kind
+    """
+    cursor = store.connection.cursor(name="open_dict_pack_aliases") if store.postgres else store.connection.cursor()
+    try:
+        cursor.execute(sql)
+        for term, target, kind, spelling in cursor:
+            yield term, {"term":term, "key":target, "kind":kind, "word":spelling}
+    finally:
+        cursor.close()
+
+
 def release(store, directory, version, essential_words, scholarly=False):
     if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}", version):
         raise ValueError("Invalid release ID")
@@ -152,52 +294,61 @@ def release(store, directory, version, essential_words, scholarly=False):
         if not any(not source.get("fixture") and not source.get("portable") for source in source_info.values()):
             raise ValueError("Scholarly Research requires archived source records")
         selections.append(("Scholarly Research", None))
-    output = directory / version
-    output.mkdir()
-    release_info = {"schema": SCHEMA, "release": version, "date": date.today().isoformat(), "editions": {},
+    destination = directory / version
+    if destination.exists():
+        raise ValueError(f"Release {version} already exists")
+    totals = store.report()
+    release_info = {"schema": SCHEMA, "release": version, "date": date.today().isoformat(),
+                    "coverage":coverage_scope(source_info), "editions": {},
                     "sources": {k: public_source(v) for k, v in source_info.items()}}
-    for edition, selection in selections:
-        if edition == "Essential English" and not selection:
-            continue
-        files = []
-        batch, size, count = [], 0, 0
+    with TemporaryDirectory(prefix=".open-dict-release-", dir=directory) as folder:
+        output = Path(folder) / version
+        output.mkdir()
+        for edition, selection in selections:
+            if edition == "Essential English" and not selection:
+                continue
+            counts = Counter()
+            fields = {"headwords", "source attribution", "parts of speech", "definitions"}
 
-        def write_chunk():
-            nonlocal size
-            name = f"{edition.split()[0].lower()}-{len(files):04}.ndjson.gz"
-            path = output / name
-            with path.open("wb") as stream, gzip.GzipFile(filename="", fileobj=stream, mode="wb", mtime=0) as zipped:
-                zipped.writelines(batch)
-            files.append({"path": version + "/" + name, "bytes": path.stat().st_size,
-                          "decodedBytes": size, "sha256": sha256(path), "entries": len(batch)})
-            batch.clear()
-            size = 0
+            def records():
+                for record in groups(store, selection):
+                    if edition == "Essential English":
+                        record["groups"] = [group for group in record["groups"] if not group.get("historical")]
+                        if not record["groups"]:
+                            continue
+                        record = essential(record)
+                    elif edition == "Scholarly Research":
+                        add_evidence(store, record, source_info)
+                    for group in record["groups"]:
+                        count_group(counts, group)
+                        if group.get("forms"):
+                            fields.add("inflections and forms")
+                        if group.get("evidence"):
+                            fields.add("source evidence")
+                        for sense in group["senses"]:
+                            count_sense(counts, sense)
+                    yield record["key"], record
 
-        for record in groups(store, selection):
-            if edition == "Essential English":
-                record["groups"] = [group for group in record["groups"] if not group.get("historical")]
-                if not record["groups"]:
-                    continue
-                record = essential(record)
-            elif edition == "Scholarly Research":
-                record = add_evidence(store, record, source_info)
-            line = (encode(record) + "\n").encode()
-            if batch and size + len(line) > 2 * 1024 * 1024:
-                write_chunk()
-            batch.append(line)
-            size += len(line)
-            count += 1
-        if batch:
-            write_chunk()
-        if files:
-            release_info["editions"][edition] = {"files": files, "headwords": count,
-                                                 "bytes": sum(f["bytes"] for f in files)}
-    if not release_info["editions"]:
-        raise ValueError("No data are active")
-    manifest = directory / "manifest.json"
-    pending = manifest.with_suffix(".tmp")
-    pending.write_text(encode(release_info) + "\n", encoding="utf-8")
-    pending.replace(manifest)
+            files = pack_chunks(output, version, edition.split()[0].lower(), records())
+            if edition != "Essential English" and (sum(f["entries"] for f in files) != totals["headwords"] or
+                    counts["lexemes"] != totals["lexemes"] or counts["senses"] != totals["senses"]):
+                raise ValueError(f"{edition} does not match the active database counts")
+            if files:
+                for metric, field in (("pronunciations", "pronunciations"), ("etymologies", "etymologies"),
+                                      ("examples", "usage examples"), ("synonym_edges", "synonyms"),
+                                      ("antonym_edges", "antonyms"), ("historical_entries", "historical entries")):
+                    if counts[metric]:
+                        fields.add(field)
+                release_info["editions"][edition] = {"files": files, "headwords": sum(f["entries"] for f in files),
+                    "lexemes":counts["lexemes"], "senses":counts["senses"],
+                    "fields":sorted(fields), "bytes":sum(f["bytes"] for f in files)}
+                print(f"Built {edition}: {release_info['editions'][edition]['headwords']:,} headwords",
+                      file=sys.stderr, flush=True)
+        release_info["online"] = {"aliases":pack_chunks(output, version, "forms", pack_forms(store), 512 * 1024)}
+        pending = Path(folder) / "manifest.json"
+        pending.write_text(encode(release_info) + "\n", encoding="utf-8")
+        output.rename(destination)
+        pending.replace(directory / "manifest.json")
     return release_info
 
 
@@ -297,10 +448,15 @@ def seed(store):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--db", default=".local/open-dict.sqlite", help="SQLite file or PostgreSQL DSN")
+    parser.add_argument("--db", default=os.environ.get("OPEN_DICT_DATABASE_URL", ".local/full.sqlite"), help="SQLite file or PostgreSQL DSN")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("init")
     commands.add_parser("seed")
+    downloads = commands.add_parser("download")
+    downloads.add_argument("directory", type=Path)
+    all_sources = commands.add_parser("import-all")
+    all_sources.add_argument("directory", type=Path)
+    commands.add_parser("reindex")
     importer = commands.add_parser("import")
     importer.add_argument("source", choices=sources().keys())
     importer.add_argument("file", type=Path)
@@ -312,6 +468,7 @@ def main():
     pack.add_argument("--id", required=True)
     pack.add_argument("--essential-words")
     pack.add_argument("--scholarly", action="store_true")
+    pack.add_argument("--allow-partial", action="store_true", help="Build a fixture pack explicitly")
     sqlite = commands.add_parser("portable")
     sqlite.add_argument("directory", type=Path)
     sqlite.add_argument("--id", required=True)
@@ -320,21 +477,56 @@ def main():
     sample.add_argument("--wiktionary-words")
     sample.add_argument("--output", type=Path, required=True)
     commands.add_parser("report")
+    coverage = commands.add_parser("coverage")
+    coverage.add_argument("--packs", type=Path, default=ROOT / "data/releases")
     args = parser.parse_args()
+    if args.command == "download":
+        for source in sources().values():
+            print(download(source, args.directory, sha256))
+        return
     if not args.db.startswith(("postgresql://", "postgres://")):
         Path(args.db).parent.mkdir(parents=True, exist_ok=True)
-    read_only = args.command in {"report", "release", "portable", "fixture"}
+    read_only = args.command in {"report", "coverage", "release", "portable", "fixture"}
     with connect(args.db, read_only=read_only) as store:
         if not read_only:
             store.initialize()
+        if args.command in {"import", "import-all"} and not store.postgres:
+            store.connection.commit()
+            store.query("PRAGMA journal_mode=WAL")
+            store.query("PRAGMA synchronous=NORMAL")
+            store.query("PRAGMA cache_size=-98304")
         if args.command in {"init", "report"}:
             result = store.report()
         elif args.command == "import":
             selected = read_words(args.words)
             if args.words and not selected:
                 parser.error("Word list is empty")
-            result = import_source(store, args.source, args.file, args.version, args.sha256, selected)
+            result = import_source(store, args.source, args.file, args.version, args.sha256, selected, progress=True)
+        elif args.command == "import-all":
+            for source, metadata in sources().items():
+                archive = args.directory / metadata["filename"]
+                if not archive.is_file():
+                    parser.error(f"Missing {archive}. Run the download command first")
+                version = metadata["version"]
+                existing = store.query("SELECT metadata FROM releases WHERE source=? AND version=?", (source, version)).fetchone()
+                if existing:
+                    saved = json.loads(existing[0])
+                    if saved.get("report") and not saved.get("completedAt"):
+                        # Previous complete imports predate the raw-gloss and audit fixes.
+                        version += " / normalized 2"
+                import_source(store, source, archive, version, metadata["sha256"], None, progress=True)
+                store.connection.commit()
+            result = store.report()
+        elif args.command == "coverage":
+            result = report_coverage(store, args.packs)
+        elif args.command == "reindex":
+            store.rebuild_indexes()
+            result = store.report()
         elif args.command == "release":
+            if not store.postgres:
+                store.query("PRAGMA cache_size=-131072")
+            if not args.allow_partial and coverage_scope(store.release_metadata()) != "full":
+                parser.error("Complete packs require a full import. Use --allow-partial for development fixtures.")
             result = release(store, args.directory, args.id, read_words(args.essential_words), args.scholarly)
         elif args.command == "portable":
             result = portable(store, args.directory, args.id)
@@ -345,7 +537,7 @@ def main():
         if args.command == "release":
             result = {"release": result["release"], "editions": {edition: {k: v for k, v in details.items()
                        if k != "files"} for edition, details in result["editions"].items()}}
-        print(json.dumps(result, ensure_ascii=False))
+        print(json.dumps(result, ensure_ascii=False, indent=2 if args.command == "coverage" else None))
 
 
 if __name__ == "__main__":

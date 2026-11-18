@@ -4,16 +4,16 @@ Run the app tests from `apps/open-dict` and the parent validator from the reposi
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m lexical.build seed
-python3 -m tests.benchmark .local/open-dict.sqlite
+python3 -m lexical.build --db .local/dev.sqlite seed
+python3 -m tests.benchmark .local/dev.sqlite
 ```
 
 The default integration suite creates a temporary SQLite database from the starter. It collects distinct source senses for difficult words and exercises morphology, JSON API, parameter validation, atomic import failure, source licensing, server-rendered pages, sitemaps, and pack hashes. To run the same tests against PostgreSQL, set `OPEN_DICT_TEST_POSTGRES` to a dedicated empty test database with UTF-8 encoding and C collation. The tests create dictionary records in that database.
 
-For end-to-end PWA verification, generate a local release with both editions and start a static server from the repository root.
+For fixture PWA verification, generate a small release and serve it as `data/releases/` from a disposable static copy of the app. This keeps the production artifact manifest independent of the fixture test.
 
 ```sh
-python3 -m lexical.build release data/releases --id browser-test-v1 \
+python3 -m lexical.build --db .local/dev.sqlite release .local/test-releases --allow-partial --id browser-test-v1 \
   --essential-words data/fixtures/wiktionary-headwords.txt
 ```
 
@@ -43,3 +43,8 @@ Decoded bytes measure the package content before browser storage and indexing.
 
 
 Chromium installed the full Complete English pack in 243.9 seconds from a loopback server on the development Mac. Its storage API estimated an increase of 978,601,284 bytes for the installed pack and indexes. The pack survived a service-worker upgrade. After disabling networking and clearing the HTTP cache, Chromium reloaded the app, looked up an entry outside the starter, displayed etymology, and followed an alternate spelling. A mixed-case headword case verified that the common word and the proper name retained separate source groups.
+
+
+Run `python3 -m tests.coverage_api .local/full.sqlite http://127.0.0.1:8766/` against a fresh API process to compare requested and reservoir-sampled headwords with the active database. It also checks exact ranking, sense identity, and indexed prefix paging. The Wiktionary regression fixture is a small CC BY-SA field selection from the pinned archive.
+
+To check the full static release and install it in Chromium, serve the locally generated release files under the app’s route on a loopback static server and run `OPEN_DICT_FULL_BROWSER=1 node tests/browser.mjs http://127.0.0.1:8765/apps/open-dict/`. The full test reuses an installed Complete pack for the same release. Use a fresh browser profile to verify and measure a new installation. The test exercises a rare word online before installation, prefix pagination, corrupt update recovery, and a long rare word after network disconnection. See the [coverage audit](VOCABULARY_COVERAGE.md) for the results of the current full release.

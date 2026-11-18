@@ -6,7 +6,7 @@ import json
 import re
 import sqlite3
 
-from .model import SCHEMA, key
+from .model import SCHEMA, SOURCES, key
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,6 +16,16 @@ def sources():
     for source in data.values():
         source["noticeText"] = [(ROOT / name).read_text(encoding="utf-8") for name in source.get("notices", [])]
     return data
+
+
+def coverage_scope(metadata):
+    if not metadata:
+        return "empty"
+    if all(item.get("fixture") for item in metadata.values()):
+        return "starter"
+    if not SOURCES.issubset(metadata) or any(item.get("subset") or item.get("fixture") for item in metadata.values()):
+        return "partial"
+    return "full"
 
 
 @contextmanager
@@ -222,19 +232,57 @@ class Store:
         if len(rows) < limit:
             collect("l.headword>=? AND l.headword<?", [word, word + "\U0010ffff"], "prefix")
         if len(rows) < limit and not suggest and 2 <= len(word) <= 48:
-            fuzzy_condition = "l.headword %% ? OR " if self.postgres else ""
-            candidates = self.query(f"""
-                SELECT DISTINCT l.headword FROM lexemes l JOIN active_releases a USING(source,version)
-                WHERE {fuzzy_condition}(l.headword>=? AND l.headword<?)
-                ORDER BY l.headword LIMIT 900
-            """, ([word] if self.postgres else []) + [word[0], word[0] + "\U0010ffff"])
-            ranked = sorted((distance(word, term), term) for (term,) in candidates
+            prefixes = {word[:3], word[0] + word[2:4]}
+            for i in range(min(3, len(word) - 1)):
+                prefixes.add((word[:i] + word[i + 1] + word[i] + word[i + 2:])[:3])
+            candidates = set()
+            for prefix in prefixes:
+                candidates.update(row[0] for row in self.query("""
+                    SELECT DISTINCT l.headword FROM lexemes l JOIN active_releases a USING(source,version)
+                    WHERE l.headword>=? AND l.headword<? ORDER BY l.headword LIMIT 600
+                """, (prefix, prefix + "\U0010ffff")))
+            if self.postgres:
+                candidates.update(row[0] for row in self.query("""
+                    SELECT l.headword FROM lexemes l JOIN active_releases a USING(source,version)
+                    WHERE l.headword %% ? GROUP BY l.headword
+                    ORDER BY similarity(l.headword,?) DESC,l.headword LIMIT 400
+                """, (word, word)))
+            ranked = sorted((distance(word, term), term) for term in candidates
                             if term not in rows and abs(len(word) - len(term)) <= 2)
             for cost, term in ranked:
                 if cost > (1 if len(word) < 6 else 2) or len(rows) >= limit:
                     break
                 collect("l.headword=?", [term], "suggestion")
         return list(rows.values())[:limit]
+
+    def browse(self, prefix, after, limit):
+        prefix, after = key(prefix), key(after)
+        bounds = ["l.headword>?"]
+        args = [after]
+        if prefix:
+            bounds.append("l.headword>=? AND l.headword<?")
+            args.extend((prefix, prefix + "\U0010ffff"))
+        rows = self.query(f"""
+            SELECT l.headword,COALESCE(min(CASE WHEN l.spelling=l.headword THEN l.spelling END),min(l.spelling))
+            FROM lexemes l JOIN active_releases a USING(source,version)
+            WHERE {" AND ".join(bounds)} GROUP BY l.headword ORDER BY l.headword LIMIT ?
+        """, (*args, limit + 1)).fetchall()
+        return {"results": [{"word": spelling, "key": term, "kind": "prefix"} for term, spelling in rows[:limit]],
+                "next": rows[limit - 1][0] if len(rows) > limit else None}
+
+    def rebuild_indexes(self):
+        if self.postgres:
+            for index in ("lexemes_lookup", "lexemes_trigram", "lexemes_prefix",
+                          "senses_lexeme", "senses_permalink", "senses_fts", "forms_lookup", "forms_by_headword"):
+                self.connection.execute(f"REINDEX INDEX {index}")
+            for table in ("lexemes", "senses", "forms"):
+                self.connection.execute(f"ANALYZE {table}")
+        else:
+            self.connection.execute("DELETE FROM senses_fts")
+            self.connection.execute("INSERT INTO senses_fts SELECT definition,id,source,version FROM senses")
+            self.connection.execute("INSERT INTO senses_fts(senses_fts) VALUES ('integrity-check')")
+            self.connection.execute("REINDEX")
+            self.connection.execute("ANALYZE")
 
     def report(self):
         counts = {}

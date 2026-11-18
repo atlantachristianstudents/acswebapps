@@ -237,7 +237,7 @@
         <div class="search-area">
           <div class="searchbar">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
-            <input id="search" type="text" role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false" placeholder="Search for a word" maxlength="200" autocapitalize="off" spellcheck="false">
+            <input id="search" type="text" role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false" placeholder="Search for a word" maxlength="1024" autocapitalize="off" spellcheck="false">
             <button class="button primary" type="submit">Look up</button>
           </div>
           <ul id="suggestions" class="suggestions" role="listbox" aria-label="Word suggestions" hidden></ul>
@@ -267,6 +267,7 @@
       </form>
     </section>
     <p id="status" class="status sr-only" role="status"></p>
+    <p id="coverage-status" class="meta" role="status"></p>
     <main id="content" tabindex="-1"><!-- ENTRY_HTML --><noscript><p>Enable JavaScript to search the browser dictionary.</p></noscript></main>
   </div>
 
@@ -281,7 +282,7 @@
   <script src="dictionary.js"></script>
   <script src="sounds/catalog.js"></script>
   <script src="index.js"></script>
-<script id="acswebapps-updater" data-version="open-dict-v6">
+<script id="acswebapps-updater" data-version="open-dict-v7">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

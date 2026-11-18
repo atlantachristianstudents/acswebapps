@@ -15,8 +15,8 @@ from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from xml.sax.saxutils import escape as xml_escape
 
 from lexical.evidence import add_evidence
-from lexical.model import SCHEMA, encode, key
-from lexical.store import ROOT, connect
+from lexical.model import MAX_TERM, SCHEMA, encode, key
+from lexical.store import ROOT, connect, coverage_scope
 
 FILTERS = {"pos", "source", "beginning", "ending", "definition", "label", "domain"}
 WORD_ID = re.compile(r"[a-f0-9]{28}")
@@ -24,7 +24,7 @@ PUBLIC_ASSETS = {"index.html", "index.js", "dictionary.js", "sw.js", "manifest.w
                  "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
                  "data/fixtures/starter.js", "sounds/catalog.js", "sounds/apple.mp3",
                  "sounds/bank.mp3", "sounds/serendipity.mp3"}
-RELEASE_FILE = re.compile(r"data/releases/(?:manifest\.json|[\w][\w.-]{0,63}/(?:essential|complete|scholarly)-\d+\.ndjson\.gz)")
+RELEASE_FILE = re.compile(r"data/releases/(?:manifest\.json|[\w][\w.-]{0,63}/(?:essential|complete|scholarly|forms)-\d+\.ndjson\.gz)")
 MAX_CONCURRENT = 16
 
 
@@ -180,20 +180,30 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, route, params):
         with connect(self.server.database, read_only=True) as store:
             if route == "health":
-                populated = store.query("SELECT 1 FROM active_releases LIMIT 1").fetchone() is not None
-                return self.json(200, {"status": "ok", "schema": SCHEMA, "hasData": populated,
-                                       "edition": "Online dictionary"})
+                scope = coverage_scope(store.release_metadata())
+                edition = {"full": "Full online dictionary", "starter": "Starter API",
+                           "partial": "Partial API", "empty": "Empty API"}[scope]
+                return self.json(200, {"status": "ok", "schema": SCHEMA, "hasData": scope != "empty",
+                                       "coverage": scope, "edition": edition})
             if route == "sources":
                 return self.json(200, store.release_metadata())
             if route == "releases":
                 path = ROOT / "data/releases/manifest.json"
                 return self.json(200, json.loads(path.read_text(encoding="utf-8")) if path.is_file()
                                  else {"schema": SCHEMA, "editions": {}})
+            if route == "browse":
+                if set(params) - {"prefix", "after", "limit"}:
+                    raise ValueError("Unknown browse parameter")
+                limit = int(self.param(params, "limit", "24", 2))
+                if not 1 <= limit <= 50:
+                    raise ValueError("Limit must be between 1 and 50")
+                return self.json(200, store.browse(self.param(params, "prefix", maximum=MAX_TERM),
+                                                   self.param(params, "after", maximum=MAX_TERM), limit))
             if route in {"search", "suggest"}:
                 unknown = set(params) - FILTERS - {"q", "limit"}
                 if unknown:
                     raise ValueError("Unknown search parameter")
-                word = self.param(params, "q")
+                word = self.param(params, "q", maximum=MAX_TERM)
                 limit = int(self.param(params, "limit", "24", 2))
                 if not 1 <= limit <= 50:
                     raise ValueError("Limit must be between 1 and 50")
@@ -202,7 +212,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.json(200, [])
                 return self.json(200, store.search(word, limit, filters, suggest=route == "suggest"))
             if route.startswith("lookup/"):
-                word = self.param({"word": [route[len("lookup/"):]]}, "word")
+                word = self.param({"word": [route[len("lookup/"):]]}, "word", maximum=MAX_TERM)
                 if not key(word):
                     raise ValueError("A headword is required")
                 record = store.lookup(word)
@@ -220,7 +230,7 @@ class Handler(BaseHTTPRequestHandler):
         return self.json(404, {"error": "Route not found"})
 
     def entry(self, params):
-        word = self.param(params, "word")
+        word = self.param(params, "word", maximum=MAX_TERM)
         with connect(self.server.database, read_only=True) as store:
             record = store.lookup(word)
             source_names = {name: metadata["name"] for name, metadata in store.release_metadata().items()} if record else {}
@@ -278,7 +288,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--db", default=os.environ.get("OPEN_DICT_DATABASE_URL", ".local/open-dict.sqlite"))
+    parser.add_argument("--db", default=os.environ.get("OPEN_DICT_DATABASE_URL", ".local/full.sqlite"))
+    parser.add_argument("--allow-partial", action="store_true", help="Serve a fixture or incomplete database for development")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--mount", default="/")
@@ -291,7 +302,11 @@ def main():
         if url.scheme != "https" or not url.hostname or url.username or url.path != args.mount or url.query or url.fragment:
             parser.error("Canonical URL must be HTTPS, with a path equal to --mount")
     if not args.db.startswith(("postgresql://", "postgres://")) and not Path(args.db).is_file():
-        parser.error("Initialize and seed or import the dictionary database before starting the API")
+        parser.error("Import the full dictionary with lexical.build import-all before starting the API")
+    with connect(args.db, read_only=True) as store:
+        scope = coverage_scope(store.release_metadata())
+    if scope != "full" and not args.allow_partial:
+        parser.error(f"Dictionary data are {scope}. Run lexical.build import-all or use --allow-partial for development")
     with DictionaryServer((args.host, args.port), args.db, args.mount, args.canonical) as server:
         print(f"Open Dictionary at http://{args.host}:{args.port}{args.mount}", flush=True)
         server.serve_forever()

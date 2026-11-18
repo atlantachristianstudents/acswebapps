@@ -5,6 +5,7 @@
   const SCHEMA = 1;
   const RELEASES = "data/releases/manifest.json";
   const MAX = "\uffff";
+  const LAST_CODE_POINT = "\u{10ffff}";
   const STAGE_PREFIX = "staging:";
   const STALE_STAGE_MS = 24 * 60 * 60 * 1000;
   const key = value => value.normalize("NFKC").replace(/[‘’]/g, "'")
@@ -76,11 +77,46 @@
     return results.slice(0, limit).map(({ key, word, rank }) => ({ key, word, kind: kinds[rank] }));
   }
 
+  function browseRecords(records, prefix, after, limit) {
+    const matches = [...records].filter(row => row.key.startsWith(prefix) && compareKeys(row.key, after) > 0);
+    matches.sort((a, b) => compareKeys(a.key, b.key));
+    return browsePage(matches, limit);
+  }
+
+  function browsePage(rows, limit) {
+    return {results:rows.slice(0, limit).map(record => ({
+      word:record.groups ? preferredWord(record) : record.word, key:record.key, kind:"prefix"
+    })), next:rows.length > limit ? rows[limit - 1].key : null};
+  }
+
+  function fuzzyPrefixes(term) {
+    if (term.length < 2 || term.length > 48) return [];
+    const prefixes = new Set([term.slice(0, 3), term[0] + term.slice(2, 4)]);
+    for (let index = 0; index < Math.min(3, term.length - 1); index++) {
+      prefixes.add((term.slice(0, index) + term[index + 1] + term[index] + term.slice(index + 2)).slice(0, 3));
+    }
+    return prefixes;
+  }
+
+  function compareKeys(a, b) {
+    if (a === b) return 0;
+    // SQLite binary UTF-8 and PostgreSQL C order Unicode code points.
+    for (let offset = 0; offset < Math.min(a.length, b.length);) {
+      const left = a.codePointAt(offset), right = b.codePointAt(offset);
+      if (left !== right) return left - right;
+      offset += left > 0xffff ? 2 : 1;
+    }
+    return a.length - b.length;
+  }
+
   function starterAdapter(data) {
     const indexed = new Map(data.entries.map(record => [record.key, record]));
     return {
       name: "Starter collection",
+      coverage:"starter",
+      headwords:data.entries.length,
       sourceInfo: data.sources,
+      browse:async (prefix, after, limit) => browseRecords(indexed.values(), key(prefix), key(after), limit),
       lookup: async word => indexed.get(key(word)) || null,
       search: async (word, { limit = 24, filters = {}, suggest = false } = {}) =>
         searchRows(indexed.values(), key(word), limit, filters, !suggest)
@@ -98,6 +134,10 @@
     if (health.schema !== SCHEMA || !health.hasData) throw Error("Unavailable");
     return {
       name: health.edition || "Online dictionary",
+      coverage:health.coverage || "partial",
+      browse(prefix, after, limit) {
+        return request(base + "browse?" + new URLSearchParams({prefix, after, limit}));
+      },
       sourceInfo: await request(base + "sources"),
       async lookup(word, { scholarly = false } = {}) {
         const view = scholarly ? "?view=scholarly" : "";
@@ -164,7 +204,18 @@
       return await result(db.transaction("entries").objectStore("entries").get([slot, key(word)])) || null;
     }
     return {
-      ...active, name: active.edition, sourceInfo: active.sources, lookup, boundedFilters:active.headwords > 450,
+      ...active, name: active.edition, sourceInfo: active.sources, lookup,
+      coverage:active.coverage || (active.edition === "Essential English" ? "partial" : "unclassified"),
+      async browse(prefix, after, limit) {
+        prefix = key(prefix);
+        after = key(after);
+        const entries = db.transaction("entries").objectStore("entries");
+        const lower = after && after >= prefix ? after : prefix;
+        if (prefix && lower > prefix + MAX) return { results:[], next:null };
+        const range = IDBKeyRange.bound([slot, lower], prefix ? [slot, prefix + MAX] : [slot, []], lower === after);
+        const rows = await result(entries.getAll(range, limit + 1));
+        return browsePage(rows, limit);
+      }, boundedFilters:active.headwords > 450,
       async search(word, { limit = 24, filters = {}, suggest = false } = {}) {
         const term = key(word);
         const transaction = db.transaction(["entries", "aliases", "typos"]);
@@ -190,19 +241,29 @@
     };
   }
 
+  function validFile(file, release, prefixes) {
+    return file && new RegExp("^" + prefixes + "-[0-9]+\\.ndjson\\.gz$").test(file.path?.slice(release.length + 1)) &&
+      file.path.startsWith(release + "/") && /^[a-f0-9]{64}$/.test(file.sha256) &&
+      Number.isSafeInteger(file.bytes) && file.bytes > 0 && file.bytes <= 16 * 1024 * 1024 &&
+      Number.isSafeInteger(file.decodedBytes) && file.decodedBytes > 0 && file.decodedBytes <= 32 * 1024 * 1024 &&
+      Number.isSafeInteger(file.entries) && file.entries > 0;
+  }
+
+  function rangesValid(files) {
+    return files.every((file, index) => typeof file.firstKey === "string" && file.firstKey &&
+      typeof file.lastKey === "string" && compareKeys(file.firstKey, file.lastKey) <= 0 &&
+      (!index || compareKeys(files[index - 1].lastKey, file.firstKey) <= 0));
+  }
+
   function validManifest(data) {
     if (!data || data.schema !== SCHEMA || !/^[\w][\w.-]{0,63}$/.test(data.release) ||
         !data.sources || !data.editions || typeof data.editions !== "object") {
       throw Error("This release uses an incompatible dictionary format.");
     }
     for (const edition of Object.values(data.editions)) {
-      if (!Array.isArray(edition.files) || !edition.files.length || edition.files.length > 12000 ||
+      if (!Array.isArray(edition?.files) || !edition.files.length || edition.files.length > 12000 ||
           !Number.isSafeInteger(edition.headwords) || edition.headwords < 1 ||
-          edition.files.some(file => !/^\w[\w.-]*\/(?:essential|complete|scholarly)-\d+\.ndjson\.gz$/.test(file.path) ||
-            !file.path.startsWith(data.release + "/") || !/^[a-f0-9]{64}$/.test(file.sha256) ||
-            !Number.isSafeInteger(file.bytes) || file.bytes < 1 || file.bytes > 16 * 1024 * 1024 ||
-            !Number.isSafeInteger(file.decodedBytes) || file.decodedBytes < 1 || file.decodedBytes > 32 * 1024 * 1024 ||
-            !Number.isSafeInteger(file.entries) || file.entries < 1) ||
+          edition.files.some(file => !validFile(file, data.release, "(?:essential|complete|scholarly)")) ||
           new Set(edition.files.map(file => file.path)).size !== edition.files.length ||
           edition.files.reduce((sum, file) => sum + file.entries, 0) !== edition.headwords ||
           edition.files.reduce((sum, file) => sum + file.bytes, 0) !== edition.bytes) {
@@ -210,6 +271,93 @@
       }
     }
     return data;
+  }
+
+  async function publishedAdapter() {
+    if (!globalThis.crypto?.subtle || !globalThis.DecompressionStream) return null;
+    const data = validManifest(await request(RELEASES, {signal:AbortSignal.timeout(3000)}));
+    const complete = data.editions["Complete English"];
+    const scholarly = data.editions["Scholarly Research"];
+    const forms = data.online?.aliases;
+    if (!complete || !Array.isArray(forms) || !rangesValid(complete.files) ||
+        !forms.every(file => validFile(file, data.release, "forms")) || !rangesValid(forms)) return null;
+    const recent = new Map();
+    function load(file) {
+      let job = recent.get(file.path);
+      if (!job) {
+        job = fetch("data/releases/" + file.path, {cache:"no-store", signal:AbortSignal.timeout(20000)})
+          .then(response => unpack(response, file))
+          .then(records => {
+            if (records.length !== file.entries) throw Error("An online dictionary file is incomplete.");
+            return records;
+          });
+        job.catch(() => recent.delete(file.path));
+      }
+      recent.delete(file.path);
+      recent.set(file.path, job);
+      if (recent.size > 8) recent.delete(recent.keys().next().value);
+      return job;
+    }
+
+    function covering(files, start, end = start) {
+      return files.filter(file => compareKeys(file.lastKey, start) >= 0 && compareKeys(file.firstKey, end) <= 0);
+    }
+
+    async function lookup(word, options = {}) {
+      const term = key(word);
+      const files = options.scholarly && scholarly && rangesValid(scholarly.files) ? scholarly.files : complete.files;
+      for (const file of covering(files, term)) {
+        const match = (await load(file)).find(row => row.key === term);
+        if (match) {
+          if (!validateRecord(match, data.sources)) throw Error("An online record uses an invalid format.");
+          return match;
+        }
+      }
+      return null;
+    }
+
+    async function prefixRecords(prefix, after, limit, filters = {}) {
+      const found = [];
+      const start = compareKeys(after, prefix) > 0 ? after : prefix;
+      for (const file of covering(complete.files, start, prefix + LAST_CODE_POINT)) {
+        for (const row of await load(file)) {
+          if (row.key.startsWith(prefix) && compareKeys(row.key, after) > 0 && matches(row, filters)) {
+            found.push(row);
+            if (found.length >= limit) return found;
+          }
+        }
+      }
+      return found;
+    }
+
+    return {
+      name: data.coverage === "full" ? "Full published dictionary" : "Published subset",
+      coverage:data.coverage || "partial", headwords:complete.headwords, sourceInfo:data.sources, lookup,
+      async browse(prefix, after, limit) {
+        return browsePage(await prefixRecords(key(prefix), key(after), limit + 1), limit);
+      },
+      async search(word, { limit = 24, filters = {}, suggest = false } = {}) {
+        const term = key(word);
+        const candidates = new Map();
+        if (term) {
+          for (const file of covering(forms, term)) {
+            for (const alias of await load(file)) {
+              if (alias.term !== term || candidates.has(alias.key)) continue;
+              const row = await lookup(alias.key);
+              if (row) candidates.set(row.key, row);
+            }
+          }
+        }
+        const prefix = term || key(filters.beginning || "");
+        for (const row of await prefixRecords(prefix, "", limit + candidates.size, filters)) candidates.set(row.key, row);
+        if (term && !suggest && !candidates.size) {
+          for (const prefix of fuzzyPrefixes(term)) {
+            for (const row of await prefixRecords(prefix, "", 250, filters)) candidates.set(row.key, row);
+          }
+        }
+        return searchRows(candidates.values(), term, limit, filters, !suggest);
+      }
+    };
   }
 
   async function manifest() {
@@ -256,7 +404,7 @@
   }
 
   function validateRecord(record, sources) {
-    return record && typeof record.word === "string" && record.word.length <= 240 &&
+    return record && typeof record.word === "string" && record.word &&
       typeof record.key === "string" && record.key && key(record.word) === record.key &&
       Array.isArray(record.groups) && record.groups.length &&
       record.groups.every(group => typeof group.word === "string" && key(group.word) === record.key &&
@@ -352,7 +500,8 @@
           transaction.abort();
           return;
         }
-        meta.put({ slot, edition, release: data.release, sources: data.sources, headwords: pack.headwords }, "active");
+        meta.put({ slot, edition, release: data.release, sources: data.sources, headwords: pack.headwords,
+          coverage:edition === "Essential English" ? "partial" : data.coverage || "unclassified" }, "active");
         meta.delete(STAGE_PREFIX + slot);
         meta.get("previous").onsuccess = older => { previous = older.target.result; };
         if (active) meta.put(active, "previous");
@@ -370,5 +519,5 @@
     }
   }
 
-  window.OpenDictionary = { key, starterAdapter, apiAdapter, offlineAdapter, manifest, installPack, presentationOrder };
+  window.OpenDictionary = { key, starterAdapter, apiAdapter, publishedAdapter, offlineAdapter, manifest, installPack, presentationOrder };
 })();

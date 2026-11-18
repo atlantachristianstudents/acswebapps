@@ -1,37 +1,24 @@
 # Ingestion and releases
 
-Run these commands from `apps/open-dict`. The starter works with the public fixture and needs no source downloads. Use a dedicated SQLite path or a PostgreSQL URL passed to `--db` before the subcommand.
+Run these commands from `apps/open-dict`. Use the default SQLite file `.local/full.sqlite`, set `OPEN_DICT_DATABASE_URL` for a dedicated PostgreSQL database, or pass `--db` before the subcommand.
 
 ```sh
-mkdir -p .local/raw
-curl -fL --continue-at - https://kaikki.org/dictionary/raw-wiktextract-data.jsonl.gz \
-  -o .local/raw/wiktionary.jsonl.gz
-curl -fL https://en-word.net/static/english-wordnet-2025.xml.gz \
-  -o .local/raw/wordnet.xml.gz
-curl -fL --continue-at - https://gutenberg.pglaf.org/cache/epub/29765/pg29765.txt \
-  -o .local/raw/webster-29765.txt
-
-python3 -m lexical.build --db .local/full.sqlite import wiktionary .local/raw/wiktionary.jsonl.gz \
-  --version '2026-10-01 / Wiktextract 19f9a30'
-python3 -m lexical.build --db .local/full.sqlite import oewn .local/raw/wordnet.xml.gz --version 2025
-python3 -m lexical.build --db .local/full.sqlite import webster1913 .local/raw/webster-29765.txt \
-  --version 'Gutenberg 29765 / 2025-07-06'
-python3 -m lexical.build --db .local/full.sqlite report
+python3 -m lexical.build download .local/raw
+python3 -m lexical.build import-all .local/raw
+python3 -m lexical.build coverage
+python3 -m lexical.build release data/releases --id english-2026-11-18-r2 \
+  --essential-words data/fixtures/headwords.txt --scholarly
 ```
 
-The Kaikki raw download is mutable. Confirm the dump date and Wiktextract commit on the [raw data page](https://kaikki.org/dictionary/rawdata.html) before naming a release. The importer verifies the pinned hashes for the versions in the registry. When selecting a newer release, capture its version, the downloaded SHA-256, and the corresponding license in the registry. Use `--sha256` to enforce an explicit digest. Retain upstream archives separately from Git to reproduce an older release.
+The [source registry](../data/sources.json) pins the archive URLs, filenames, byte sizes, licenses, and SHA-256 hashes. The download command resumes a verified-size `.partial` transfer until it can verify and activate the archive. It reuses a matching local archive. The [Kaikki raw download](https://kaikki.org/dictionary/rawdata.html) is mutable. Record the upstream snapshot, digest, and independent source counts when advancing to a different Wiktextract release. The importer reads only actual `lang_code == "en"` entries and archives the raw English records, including entries it cannot assign a sourced gloss.
 
-The import walks the compressed input incrementally and writes database batches. WordNet uses a temporary disk index for forward references. A transaction activates a source release only after a valid import. Reimporting the same input and selection for the same version reuses its records. Use a fresh version ID for different input bytes or a different selection. Superseded releases stay available in the database for audit. The report distinguishes source records, normalized lexemes, senses, headwords, and forms. Per-source import anomalies appear in release metadata.
+The importer stages batches and commits checkpoints without activating an unfinished source. Run the same `import-all` command again after an interruption. The importer verifies the archive checksum and replays the source stream through the saved boundary to reconstruct IDs, then continues inserting at the checkpoint. The importer logs scanned input, archived rows, lexemes, senses, rejected records, and remaining input when the archive has a measured baseline. Invalid JSON aborts with its input line number. Completed, audited source releases are reused on re-import. The first import after upgrading a legacy database stages a new normalization revision for any pinned source loaded before checkpoint and coverage tracking. Use a fresh version ID for changed bytes, a different selection, or a deliberate normalization rebuild.
 
-Use `--words data/fixtures/headwords.txt` to import a small selection. This consumes the entire input stream to locate entries but only inserts the selected headwords. The committed starter was built from per-word Wiktextract JSONL excerpts and the pinned WordNet LMF archive.
+The standalone `import` subcommand accepts a local source archive and an explicit version. `--words` enables a development selection and marks the release as a subset. Full `import-all` takes the three pinned archives and has no vocabulary selection. WordNet uses a temporary disk index to resolve forward references. Webster archives recognizable entries without a usable marked definition and reports the exclusion from search.
 
-```sh
-python3 -m lexical.build --db .local/full.sqlite release data/releases \
-  --id english-2026-10 --essential-words data/fixtures/headwords.txt --scholarly
-```
+To rebuild and check search indexes, run `python3 -m lexical.build reindex` and then `python3 -m lexical.build coverage`. Rebuilding SQLite FTS rewrites the index. Allow temporary disk space and schedule it outside heavy import activity. The coverage command reports active revisions and source counts, missing or mismatched indexes, incomplete checkpoints, and pack coverage. See the [coverage audit](VOCABULARY_COVERAGE.md).
 
-The release tool creates immutable compressed chunks and atomically replaces the manifest once all editions finish. Publish all chunks for the release ID alongside its manifest. A publisher can choose a separate Essential headword list. The optional Scholarly Research edition adds selected evidence to records backed by original archives. Include the source notices in any separate redistribution. Keep generated files and databases outside Git. See [Offline](OFFLINE.md).
-
+The pack exporter writes all editions, optional source evidence, and the online form index into an atomic version directory. Each edition reports actual headwords, lexemes, senses, fields, and compressed bytes. Complete and Scholarly use every active searchable key. For test fixtures, explicitly pass `release ... --allow-partial`. Publish the manifest and its version directory together. Include source notices and keep generated artifacts outside Git. See [Offline](OFFLINE.md).
 
 ## Refresh the bundled starter
 

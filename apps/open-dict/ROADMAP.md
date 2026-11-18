@@ -7,7 +7,9 @@
 - [x] Word comparison, source and license inspection, keyboard autocomplete, and shareable sense links
 - [x] Relational schema, SQLite FTS5, PostgreSQL trigram and full-text indexes, and read-only API
 - [x] Server-rendered entries and configurable XML sitemaps on the API-backed edition
-- [ ] Publish expanded lexical artifacts and provision a production backend. The current GitHub Pages deployment is static.
+- [x] Make complete imports the default for API and Compose, add resumable ingestion, and expose corpus coverage in the app.
+- [x] Enable full static lookup from release shards and exhaustive prefix paging.
+- [ ] Publish the full release artifacts to the production app origin. The current public Pages endpoint has no release manifest.
 
 ## Lexical sources and editorial work
 
@@ -25,7 +27,7 @@
 
 - [x] Scoped PWA shell and chunked, checksum-verified IndexedDB pack downloads
 - [x] Essential and Complete exports with measured transfer sizes, atomic activation, and retention of the previous working edition
-- [x] Install the full combined Complete pack in Chromium and verify disconnected lookup after a shell update.
+- [x] Install the full combined Complete pack in Chromium and verify disconnected lookup and corrupt replacement recovery.
 - [ ] Publish and test full-sized packs on iOS, iPadOS, Android, and other desktop browsers. Compare IndexedDB performance and storage with other browser persistence options.
 - [x] Export Scholarly Research packs with licensed source excerpts and Wiktionary quotation citations.
 - [x] Export portable normalized SQLite databases with FTS indexes and verified manifests.

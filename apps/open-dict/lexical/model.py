@@ -4,6 +4,8 @@ import hashlib
 import unicodedata
 
 SCHEMA = 1
+MAX_TERM = 1024
+SOURCES = frozenset({"wiktionary", "oewn", "webster1913"})
 PUNCTUATION = str.maketrans({"’": "'", "‘": "'", "‐": "-", "‑": "-", "–": "-"})
 RELATIONS = ("synonyms", "antonyms", "hypernyms", "hyponyms", "related", "derived",
              "coordinate_terms", "meronyms", "holonyms", "instances", "form_of", "alt_of")

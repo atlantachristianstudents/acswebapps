@@ -5,6 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 const base = process.argv[2] || "http://127.0.0.1:8765/apps/open-dict/";
 const devtools = process.argv[3] || "http://127.0.0.1:8767";
+const full = process.env.OPEN_DICT_FULL_BROWSER === "1";
 const tab = await fetch(devtools + "/json/new?about:blank", { method:"PUT" }).then(response => response.json());
 const socket = new WebSocket(tab.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
@@ -53,10 +54,11 @@ async function evaluate(expression) {
   return reply.result.value;
 }
 
-async function waitFor(expression, label) {
-  for (let step = 0; step < 165; step++) {
+async function waitFor(expression, label, timeout = 15000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) {
     if (await evaluate(expression).catch(() => false)) return;
-    await delay(75);
+    await delay(timeout > 60000 ? 500 : 75);
   }
   throw Error("Timed out waiting for " + label + ". Page text: " +
     await evaluate("document.body?.innerText.slice(0, 900)").catch(() => "(unavailable)"));
@@ -96,14 +98,31 @@ try {
   })`, "matching app shell and service worker");
   assert.equal(await evaluate("navigator.serviceWorker.controller.scriptURL"), base + "sw.js");
 
+  if (full) {
+    await waitFor("document.querySelector('#coverage-status')?.innerText.includes('Full published dictionary')", "full static data");
+    await navigate("#word=syzygy");
+    await waitFor("document.querySelector('.word-title')?.textContent === 'syzygy'", "rare static lookup");
+    await navigate("#browse=sy");
+    await waitFor("document.querySelectorAll('.result-list li').length === 24", "full prefix page");
+    const first = await evaluate("document.querySelector('.result-list a').textContent");
+    await click("Next page", "a");
+    await waitFor(`document.querySelector('.result-list a')?.textContent !== ${JSON.stringify(first)}`, "distinct second prefix page");
+    await navigate("#home");
+    await waitFor("Boolean(document.querySelector('.daily'))", "home return");
+  }
+
   await evaluate(`document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'/',bubbles:true}))`);
   assert.equal(await evaluate("document.activeElement.id"), "search");
-  await evaluate(`(() => {const input=document.querySelector('#search'); input.value='ban'; input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await evaluate(`(() => {const input=document.querySelector('#search'); input.value='bank'; input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   await waitFor("document.querySelector('#search').getAttribute('aria-expanded') === 'true'", "autocomplete");
   await evaluate(`document.querySelector('#search').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`);
   assert.equal(await evaluate("document.querySelector('#search').getAttribute('aria-activedescendant')"), "suggestion-0");
   await evaluate(`document.querySelector('#search').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);
   await waitFor("document.querySelector('.word-title')?.textContent === 'bank'", "keyboard lookup");
+  if (await evaluate("document.querySelector('[data-mode]').getAttribute('aria-pressed') === 'true'")) {
+    await click("Scholarly mode");
+    await waitFor("document.querySelector('[data-mode]').getAttribute('aria-pressed') === 'false'", "simple mode");
+  }
   const sense = await evaluate("document.querySelector('.sense-actions a').getAttribute('href')");
   await navigate(sense);
   await waitFor("Boolean(document.querySelector('.sense-list .selected'))", "sense permalink");
@@ -129,14 +148,25 @@ try {
   await navigate("#offline");
   await waitFor("document.querySelector('.section-title')?.textContent === 'Offline dictionary'", "offline controls");
   const release = await evaluate("fetch('data/releases/manifest.json',{cache:'no-store'}).then(response=>response.json()).then(data=>data.release)");
-  await click("Check for data packs");
-  await waitFor(`[...document.querySelectorAll('.pack-list h3')].some(node => node.textContent === 'Complete English')`, "pack manifest");
-  assert.equal(await evaluate(`(() => {
-    const card=[...document.querySelectorAll('.pack-list section')].find(node => node.querySelector('h3').textContent === 'Complete English');
-    card?.querySelector('button')?.click();return Boolean(card);
-  })()`), true);
   const label = JSON.stringify("Installed: Complete English · " + release);
-  await waitFor(`document.querySelector('#content').innerText.includes(${label})`, "verified pack installation");
+  const active = `document.querySelector('#content').innerText.includes(${label})`;
+  if (full && await evaluate(active)) {
+    console.log("Reusing the verified Complete pack for this release.");
+  } else {
+    await click("Check for data packs");
+    await waitFor(`[...document.querySelectorAll('.pack-list h3')].some(node => node.textContent === 'Complete English')`, "pack manifest");
+    const beforeInstall = await evaluate("navigator.storage.estimate().then(data => data.usage)");
+    const started = Date.now();
+    assert.equal(await evaluate(`(() => {
+      const card=[...document.querySelectorAll('.pack-list section')].find(node => node.querySelector('h3').textContent === 'Complete English');
+      card?.querySelector('button')?.click();return Boolean(card);
+    })()`), true);
+    await waitFor(active, "verified pack installation", full ? 600000 : 15000);
+    if (full) {
+      const installed = await evaluate("navigator.storage.estimate().then(data => data.usage)");
+      console.log(`Complete pack installed in ${((Date.now()-started)/1000).toFixed(1)} s. Browser storage increased by about ${installed-beforeInstall} bytes.`);
+    }
+  }
   await click("Check for data packs");
   await waitFor(`document.querySelector('.pack-list')?.innerText.includes('Essential English')`, "alternate edition");
   await send("Fetch.enable", {patterns:[{urlPattern:"*essential-*.ndjson.gz",requestStage:"Request"}]});
@@ -156,9 +186,16 @@ try {
   await evaluate("document.querySelector('audio').load()");
   await waitFor("document.querySelector('audio').duration > 0", "offline sourced pronunciation decodes");
   await navigate("#word=colour");
-  await waitFor("document.querySelector('aside')?.innerText.includes('Spelling variant')", "offline alternate spelling");
+  await waitFor(`document.querySelector('.word-title')?.textContent === 'colour' &&
+    [...document.querySelectorAll('aside a')].some(node => node.textContent === 'color' &&
+      node.closest('li').textContent.includes('Spelling variant'))`, "offline alternate spelling");
   await click("color", "aside a");
   await waitFor("document.querySelector('.word-title')?.textContent === 'color'", "offline cross-reference");
+  if (full) {
+    await navigate("#word=pneumonoultramicroscopicsilicovolcanoconiosis");
+    await waitFor(`document.querySelector('.word-title')?.textContent === 'pneumonoultramicroscopicsilicovolcanoconiosis' &&
+      document.querySelector('.entry-heading').innerText.includes('Complete English')`, "rare disconnected lookup");
+  }
   await navigate("#word=unlisted-test-headword");
   await waitFor("document.querySelector('.section-title')?.textContent.startsWith('No exact entry')", "offline missing word state");
   assert.deepEqual(scriptErrors, []);
