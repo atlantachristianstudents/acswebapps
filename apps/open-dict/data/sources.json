@@ -1,0 +1,40 @@
+{
+  "wiktionary": {
+    "name": "English Wiktionary",
+    "url": "https://en.wiktionary.org/",
+    "extractor": "https://kaikki.org/dictionary/English/",
+    "download": "https://kaikki.org/dictionary/raw-wiktextract-data.jsonl.gz",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "terms": "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use",
+    "attribution": "English Wiktionary contributors, via Wiktextract and Kaikki.org. Selected fields, structural normalization, and indexing by Open Dictionary. Wiktionary-derived adaptations remain CC BY-SA 4.0.",
+    "version": "2026-10-01 / Wiktextract 19f9a30",
+    "sha256": "5ff2c072f8099f2d2ce484bd6957bf179f046d2ad37bc36555edf8bb84cb5291"
+  },
+  "oewn": {
+    "name": "Open English WordNet",
+    "url": "https://en-word.net/",
+    "download": "https://en-word.net/static/english-wordnet-2025.xml.gz",
+    "license": "CC BY 4.0 and Princeton WordNet License",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "terms": "https://github.com/globalwordnet/english-wordnet/blob/2025-edition/LICENSE.md",
+    "notices": [
+      "data/licenses/OEWN_LICENSE.md",
+      "data/licenses/WNDB_License.txt"
+    ],
+    "attribution": "The Open English WordNet Team and Princeton University WordNet. Selected fields, structural normalization, and indexing by Open Dictionary.",
+    "version": "2025",
+    "sha256": "9ca6d1dcb75f822fdd66617f7d9da48142ace38dd544d6ad5e2feca1674ad3fe"
+  },
+  "webster1913": {
+    "name": "Webster's Revised Unabridged Dictionary (1913)",
+    "url": "https://www.gutenberg.org/ebooks/29765",
+    "download": "https://gutenberg.pglaf.org/cache/epub/29765/pg29765.txt",
+    "license": "Public domain in the United States",
+    "licenseUrl": "https://www.gutenberg.org/policy/license.html",
+    "terms": "https://www.gutenberg.org/ebooks/29765",
+    "attribution": "1913 Webster's Revised Unabridged Dictionary, digitized by Graham Lawrence in ebook 29765. Open Dictionary extracts marked sense blocks and keeps the original text for audit. The transcription can contain errors.",
+    "version": "Gutenberg 29765 / 2025-07-06",
+    "sha256": "86fb9c28c32008ea288ca4bcf34f4f0d3d11ccf9e0898294d98b73671497f1d3"
+  }
+}

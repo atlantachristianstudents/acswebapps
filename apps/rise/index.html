@@ -26,7 +26,6 @@ body{height:var(--screen-height,100svh);min-height:0;touch-action:pan-x pan-y}
 #settings .settings-group>label:first-child{margin-top:0}
 .book-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}.book-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
 #selection-summary{display:inline-flex;align-items:center;gap:6px;margin:6px 0 14px;padding:5px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font:13px/1.4 system-ui,sans-serif;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#selection-summary .sel-icon{font-size:15px}
 #selection-summary[hidden]{display:none}.plan-dates{display:flex;align-items:center;gap:12px;margin:10px 0 14px}.plan-date-field{display:flex;align-items:center;gap:6px;flex:1 1 145px}.plan-dates label{margin:0!important;font-size:12px;color:var(--muted);white-space:nowrap}.plan-dates input[type=date]{width:auto;min-width:110px;min-height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);padding:5px 8px;font:13px system-ui,sans-serif;accent-color:var(--accent)}#schedule-editor{padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--panel)}.plan-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);text-align:left;touch-action:pan-y}.plan-row-info{display:grid;flex:1;min-width:0}.plan-row-info small{color:var(--muted)}.plan-row button{padding:6px 9px}.plan-row input{width:20px;height:20px}#plans-list{padding:0;list-style:none}#plan-display-mode{display:flex;gap:16px;border:0;padding:0;margin:16px 0}#plan-display-mode label{display:flex;align-items:center;gap:6px;margin:0}#plan-display-mode input{width:18px;height:18px}
 #settings .book-toolbar label{margin:0}
 #settings button{cursor:pointer;font:600 14px system-ui,sans-serif;min-height:44px}
@@ -53,7 +52,7 @@ html{touch-action:pan-x pan-y}
 #settings form>*{flex-shrink:0}
 .settings-header{align-items:center;margin:0;gap:10px}
 #settings h1{font-size:23px;margin:0}
-#settings .eyebrow,#settings .intro,#mode-hint{display:none}
+#settings .eyebrow,#settings .intro{display:none}
 #settings label{margin:0;font-size:13px}
 #settings select,#settings input[type=text],#settings input[type=search]{min-height:40px;padding:8px 10px;border-radius:9px}
 #settings select{flex-shrink:0}
@@ -106,7 +105,7 @@ html{touch-action:pan-x pan-y}
 @media(max-width:359px){.plan-dates{gap:8px}.plan-date-field{flex-basis:100%}.plan-dates input[type=date]{flex:1;min-width:0}#settings h1{font-size:20px}#settings form{gap:5px}#settings .settings-group{padding:8px;gap:4px}#settings .actions .hint{font-size:11px}#settings #save-settings{min-width:120px}.quiet-button{padding:8px 10px}#settings .update-row>.hint:not(#update-status){display:none}}
 @media(max-height:420px) and (min-width:600px){#settings form{max-width:850px;grid-template-rows:44px 18px 44px minmax(0,1fr) 44px 44px}}
 html.keyboard-open #settings form{display:flex;gap:6px}
-html.keyboard-open #settings .preferences-row,html.keyboard-open #settings .update-row,html.keyboard-open #settings #repeat-label,html.keyboard-open #custom-field>.hint{display:none}
+html.keyboard-open #settings .preferences-row,html.keyboard-open #settings .update-row,html.keyboard-open #custom-field>.hint{display:none}
 html.keyboard-open #settings .settings-group{flex:1;min-height:0;height:auto}
 html.keyboard-open #settings h1{font-size:20px}
 html.keyboard-open #settings .actions{padding-top:6px}
@@ -142,17 +141,8 @@ html.editing-calendar #plan-calendar>.calendar-toolbar:first-child,html.editing-
 #schedule-transfer-status:empty{display:none}
 #settings .plan-toolbar{justify-content:flex-end}
 #settings .plan-toolbar #export-schedule,#settings .plan-toolbar #import-schedule{order:-1;margin-right:auto}
-html.manager-view #settings .plan-toolbar #import-schedule{margin-right:0}
 @media(orientation:landscape) and (max-height:600px){html.calendar-view #settings{align-items:stretch;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}html.calendar-view #settings form{display:flex;flex-direction:column;width:100%;max-width:1000px;height:100%;min-height:0;gap:5px}html.calendar-view #settings .settings-header{flex-shrink:0}html.calendar-view #settings #custom-field{flex:1;min-height:0;width:100%;padding:6px}html.calendar-view #settings #plan-calendar{flex:1;min-height:0}html.calendar-view #settings #calendar-days{min-height:0}html.calendar-view #settings .actions{flex-shrink:0;padding-top:0}}
-@media(orientation:landscape) and (max-height:600px){html.plan-editing #settings,html.manager-view #settings{align-items:stretch;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}html.plan-editing #settings form,html.manager-view #settings form{display:flex;flex-direction:column;width:100%;max-width:1100px;height:100%;min-height:0;gap:5px}html.plan-editing #settings .settings-header,html.manager-view #settings .settings-header{flex-shrink:0}html.plan-editing #settings #custom-field,html.manager-view #settings #custom-field{flex:1;min-height:0;width:100%;padding:6px}html.plan-editing #settings #schedule-editor:not([hidden]){display:grid;flex:1;min-height:0;overflow:auto;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr);gap:6px 14px}html.plan-editing #settings .plan-name-field,html.plan-editing #settings .plan-dates,html.plan-editing #settings #mode-hint{grid-column:1/-1}html.plan-editing #settings .plan-mode-switch{grid-column:1/-1;grid-row:3}html.plan-editing #settings #mode-hint{grid-row:4}html.plan-editing #settings #verse-count-field{grid-column:1;grid-row:5}html.plan-editing #settings #custom-inputs:not([hidden]){grid-column:1/-1;grid-row:5;min-height:0}html.plan-editing #settings #custom-inputs textarea{flex:1;min-height:0}html.plan-editing #settings #book-field:not([hidden]){grid-column:2;grid-row:5;min-height:0;overflow:auto}html.manager-view #settings #plans-manager{flex:1;min-height:0;overflow:auto}html.plan-editing #settings .actions,html.manager-view #settings .actions{flex-shrink:0}}
-html.plan-editing #settings .actions{position:sticky;bottom:0;z-index:2;margin-top:auto;padding:10px 0 max(8px,env(safe-area-inset-bottom));background:var(--bg)}
-/* Bleed the sticky footer behind the screen edges and bottom safe area. */
-html.plan-editing #settings{overflow-x:hidden}
-html.plan-editing #settings form{min-height:100%}
-html.plan-editing #settings .actions{isolation:isolate}
-html.plan-editing #settings .actions::before{content:"";position:absolute;z-index:-1;top:0;bottom:calc(-1 * max(12px,env(safe-area-inset-bottom)));left:calc(50% - 50vw);right:calc(50% - 50vw);background:var(--bg);pointer-events:none}
 html.keyboard-open #schedule-transfer-status{display:none}
-#schedule-count{font-weight:600;color:var(--accent)}
 
 /* Consistent field focus and text selection on mobile browsers. */
 #settings :is(textarea,input[type=text],input[type=search]){-webkit-appearance:none;appearance:none;box-shadow:none;border:1px solid var(--border);border-radius:10px;caret-color:var(--accent);line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-user-select:text;user-select:text}
@@ -266,14 +256,6 @@ main.page ::selection{background:transparent;color:inherit}
 #settings .settings-group{min-height:0}
 @media(max-height:420px) and (min-width:600px){#settings form{grid-template-rows:44px minmax(0,1fr) 44px}#settings #custom-field{grid-row:1 / 4}#settings #repeat-label{grid-row:2}#settings .actions{grid-row:3}}
 
-.plan-mode-switch{display:flex;gap:6px;flex-shrink:0}
-#settings .plan-mode-switch button{flex:1;min-width:0;min-height:44px;padding:6px 3px;font-size:12px;border-radius:10px}
-#settings .plan-mode-switch{gap:12px}
-#settings .plan-mode-switch button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-#schedule-editor>#custom-inputs{display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
-#settings #schedule-editor>[hidden]{display:none}
-#settings #schedule-editor>.settings-group{padding:0;border:0;border-radius:0;background:transparent;min-height:0;flex:1;overflow:auto}
-html.keyboard-open .plan-mode-switch,html.keyboard-open #mode-hint{display:none}
 #settings #repeat-label{flex-shrink:0}
 
 #plan-start-description{color:var(--muted);margin:0 0 16px}
@@ -285,8 +267,6 @@ html.keyboard-open .plan-mode-switch,html.keyboard-open #mode-hint{display:none}
 #settings .reading-position .hint{margin:6px 0}
 
 #settings #custom-range{min-height:44px;text-align:left}
-#range-summary{overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-#range-summary[hidden]{display:none}
 #settings #custom-range-title{font:500 25px Georgia,serif;margin:0 0 14px}
 #settings #custom-range-input{width:100%;min-height:44px;margin:6px 0 12px}
 #settings #custom-range-help{margin:0 0 18px}
@@ -294,10 +274,6 @@ html.keyboard-open .plan-mode-switch,html.keyboard-open #mode-hint{display:none}
 .about-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 #about-dialog #about-title{margin:0;font:500 25px Georgia,serif;color:var(--text)}
 #about-dialog #close-about{min-height:44px;min-width:72px;flex-shrink:0;font:600 14px system-ui,sans-serif}
-#settings .plan-row .plan-icon-button{display:grid;place-items:center;min-width:40px;min-height:44px;padding:10px;flex-shrink:0}
-.plan-action-icon{display:block;width:18px;height:18px;background:currentColor}
-.edit-icon{-webkit-mask:url('icons/edit.svg') center/contain no-repeat;mask:url('icons/edit.svg') center/contain no-repeat}
-.delete-icon{-webkit-mask:url('icons/delete.svg') center/contain no-repeat;mask:url('icons/delete.svg') center/contain no-repeat}
 #export-plans-list{max-height:45dvh;overflow:auto;margin:16px 0}
 #settings #export-plans-list label{display:flex;align-items:center;gap:10px;min-height:44px;overflow-wrap:anywhere}
 #settings #export-plans-list label{align-items:flex-start;padding:8px 0}
@@ -341,7 +317,181 @@ html.plan-calendar-view #settings #plan-calendar>.calendar-toolbar:first-child b
 html.plan-calendar-view #settings #calendar-month{font-size:12px}
 html.plan-calendar-view #settings #calendar-references{min-height:36px;padding:6px 8px}
 html.plan-calendar-view #settings .actions{flex-shrink:0;padding-top:6px}
-@media(orientation:landscape) and (max-height:600px){html.plan-editing:not(.plan-calendar-view) #settings #custom-field{height:auto;overflow:auto}html.plan-editing:not(.plan-calendar-view) #settings #schedule-editor:not([hidden]){display:flex;overflow:visible}html.plan-editing:not(.plan-calendar-view) #settings #book-field:not([hidden]){flex:none;overflow:visible}}
+/* Plan management and editing share one scroll region above the save bar. */
+html:is(.manager-view,.plan-editing) #settings {
+  height:var(--screen-height,100dvh);min-height:0;overflow:hidden;
+}
+html:is(.manager-view,.plan-editing) #settings form {
+  display:flex;flex-direction:column;align-items:stretch;
+  width:100%;max-width:760px;height:100%;min-height:0;gap:8px;
+}
+html.plan-editing:not(.plan-calendar-view) #settings form {max-width:1060px}
+html:is(.manager-view,.plan-editing) #settings .settings-header h1 {
+  font-family:var(--app-font,Georgia,serif);font-size:clamp(24px,4vw,34px);
+}
+html:is(.manager-view,.plan-editing) #settings #custom-field {
+  display:block;flex:1;min-height:0;overflow:auto;
+  padding:3px 4px 12px;border:0;background:transparent;border-radius:0;
+  scroll-padding:12px;overscroll-behavior:contain;
+}
+html.plan-calendar-view #settings #custom-field {
+  display:flex;flex-direction:column;overflow:hidden;padding:2px 0 0;
+}
+html:is(.manager-view,.plan-editing) #settings .actions {
+  position:static;display:flex;flex:none;justify-content:space-between;
+  margin:0;padding:8px 0 0;border-top:1px solid var(--border);
+}
+#settings .actions [hidden],#settings #calendar-plan-actions[hidden] {display:none}
+html.manager-view #settings .actions .hint {max-width:none}
+html:is(.manager-view,.plan-editing) #settings #close-settings {min-width:44px}
+#settings #save-plan {margin-left:auto;flex:none;padding:8px 18px;border-radius:10px}
+#settings #save-settings.pending {background:var(--accent);color:var(--on-accent)}
+#settings #save-settings:not(.pending) {color:var(--muted);background:var(--surface);border:1px solid var(--border);cursor:default}
+#settings :is(#plans-manager,#schedule-editor)[hidden] {display:none}
+#settings #schedule-editor {
+  display:block;padding:0;background:none;border:0;border-radius:0;
+}
+#settings :is(#plans-manager,#schedule-editor) :is(h2,legend) {
+  font:600 15px/1.4 system-ui,sans-serif;color:var(--text);
+}
+#settings #plans-manager h2 {margin:18px 0 4px}
+.plans-navigation,.plan-transfer {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.plans-navigation {justify-content:space-between}
+.plans-navigation button,.plan-transfer button {border-radius:10px;padding:8px 12px}
+#settings #back-to-calendar,#settings #back-to-plans {border-color:transparent;padding-left:4px}
+.plan-transfer {margin:10px 0 14px}
+#settings :is(#schedule-transfer-status,#plans-status,#editor-notice):not(:empty) {margin:8px 0}
+#settings .plan-section {
+  min-width:0;margin:0;padding:14px;border:1px solid var(--border);
+  border-radius:14px;background:var(--panel);
+}
+.plan-section legend {padding:0 5px;margin-left:-5px}
+#settings #plan-display-mode {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#settings #plan-display-mode label {
+  display:flex;align-items:start;gap:8px;min-height:44px;padding:9px;
+  color:var(--text);border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;
+}
+#settings #plan-display-mode label:has(:checked) {outline:1px solid var(--accent);outline-offset:-1px;background:var(--selected)}
+#plan-display-mode small,.plan-mode-switch span {display:block;margin-top:3px;color:var(--muted);font:12px/1.4 system-ui,sans-serif}
+#plan-display-mode input {accent-color:var(--accent);flex:none;margin:2px 0 0}
+#plans-list {display:grid;gap:8px;margin:10px 0}
+#plans-list:empty {display:none}
+#settings #plans-empty {margin-top:10px}
+#plans-empty p {margin:0 0 8px}
+#settings .plan-row {
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:8px;
+  padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);
+}
+.plan-rank {min-width:2ch;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.plan-row-info {overflow-wrap:anywhere}
+.plan-row-info strong {font-size:15px}
+.plan-row-info small {font-size:12px}
+#settings .plan-row label {
+  position:relative;display:grid;justify-items:center;align-content:center;gap:1px;
+  min-width:44px;min-height:44px;cursor:pointer;color:var(--text);
+}
+.plan-toggle input {position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.switch-track {
+  display:block;position:relative;width:34px;height:20px;pointer-events:none;
+  border:1px solid var(--accent);border-radius:20px;background:var(--panel);
+}
+.switch-track::before {
+  content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--accent);
+}
+.plan-toggle input:checked + .switch-track {background:var(--accent)}
+.plan-toggle input:checked + .switch-track::before {left:16px;background:var(--on-accent)}
+.plan-toggle input:focus-visible + .switch-track {outline:2px solid var(--focus);outline-offset:3px}
+.plan-toggle small {pointer-events:none}
+.plan-row button,.plan-more summary {min-width:44px;min-height:44px}
+.plan-more {grid-column:2/-1}
+.plan-more summary {
+  display:flex;align-items:center;width:max-content;color:var(--accent);cursor:pointer;font-weight:600;
+}
+.plan-more summary::after {content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1px 1px 0;transform:rotate(45deg);margin:0 3px 3px 7px}
+.plan-more[open] summary::after {transform:rotate(225deg);margin-bottom:-3px}
+.plan-more div {display:flex;flex-wrap:wrap;gap:6px}
+.plan-row button[aria-disabled=true] {opacity:.62;cursor:default}
+@media(min-width:600px) {
+  #settings .plan-row {grid-template-columns:auto minmax(0,1fr) auto auto auto}
+  .plan-more {grid-column:auto}
+  .plan-row:has(.plan-more[open]) {grid-template-columns:auto minmax(0,1fr) auto auto}
+  .plan-more[open] {grid-column:2/-1}
+}
+.editor-layout,.editor-fields {display:grid;gap:14px;min-width:0}
+.editor-layout {margin-top:12px;align-items:start}
+@media(min-width:760px) {
+  .editor-layout {grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+  .plan-preview {position:sticky;top:4px;max-height:100%;overflow:auto}
+}
+#settings .plan-mode-switch {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#settings .plan-mode-switch button {
+  text-align:left;align-content:start;padding:9px 7px;font-size:13px;
+  color:var(--text);background:var(--surface);
+}
+#settings .plan-mode-switch button[aria-pressed=true] {
+  border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--selected);
+}
+#settings .plan-details>label {margin-bottom:4px}
+#settings .plan-dates {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 4px}
+#settings .plan-date-field {display:grid;min-width:0;gap:4px}
+#settings :is(.plan-dates input,#verses-per-day) {
+  width:100%;min-width:0;min-height:44px;padding:7px 8px;font-size:16px;color:var(--text);
+}
+#settings .plan-dates input::-webkit-date-and-time-value {text-align:left}
+#settings #clear-end-date {padding:6px 8px}
+#clear-end-date:disabled {opacity:.6;cursor:default}
+#settings #verse-count-field {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+#settings #verse-count-field[hidden],#settings #repeat-label[hidden] {display:none}
+#settings #verses-per-day {width:75px}
+#settings #verse-count-error {flex-basis:100%}
+#settings #schedule {display:block;flex:none;min-height:112px;margin:4px 0;resize:vertical}
+#settings #repeat-label:not([hidden]) {display:flex;width:fit-content}
+#repeat {width:20px;height:20px;accent-color:var(--accent)}
+#settings #book-field {margin:0;padding:0;border:0;background:transparent}
+#settings #book-field > button {margin:0 4px 5px 0}
+#settings #selection-summary {
+  display:block;overflow:visible;white-space:normal;overflow-wrap:anywhere;
+  margin:5px 0 8px;padding:0;border:0;border-radius:0;background:none;color:var(--text);
+}
+.plan-preview ol {display:grid;gap:0;padding:0;margin:10px 0 0;list-style:none}
+.plan-preview li {overflow-wrap:anywhere}
+#plan-preview-days li {padding:7px 0;border-top:1px solid var(--border)}
+#plan-preview-days time {display:block;font-size:12px;font-weight:600;color:var(--muted)}
+#settings #preview-overrides:not(:empty) {margin-top:8px}
+.plan-error,.plan-error-list {
+  margin:6px 0 0;color:var(--text);font:600 13px/1.4 system-ui,sans-serif;overflow-wrap:anywhere;
+}
+.plan-error-list {padding-left:18px}
+.plan-error:empty,.plan-error-list:empty {display:none}
+#settings #plan-save-error {margin:0}
+#settings :is(.plan-section,.plan-row) [aria-invalid=true] {border-color:var(--accent)}
+html:is(.manager-view,.plan-editing) #settings :focus-visible {outline:2px solid var(--focus);outline-offset:2px}
+html:is(.manager-view,.plan-editing) #settings .plan-toggle input:focus-visible {outline:none}
+html.plan-editing.keyboard-open:not(.plan-calendar-view) #settings .settings-header {display:none}
+html.plan-editing.keyboard-open #settings #schedule {
+  min-height:0;max-height:max(56px,calc(var(--screen-height,100dvh) - 100px));
+}
+@media(max-width:370px) {
+  html:is(.manager-view,.plan-editing) #settings .theme-name {display:none}
+  #settings #plan-display-mode {grid-template-columns:1fr}
+  #settings .plan-mode-switch {grid-template-columns:1fr}
+  #settings .plan-mode-switch button {display:flex;align-items:center;gap:8px}
+  .plan-mode-switch span {margin:0}
+}
+html.plan-calendar-view #settings #plan-calendar>.calendar-toolbar:first-child {
+  grid-template-columns:auto 44px minmax(0,1fr) auto 44px;
+}
+html.plan-calendar-view #settings #plan-calendar>.calendar-toolbar:first-child button {min-height:44px;min-width:44px}
+html.plan-calendar-view #settings #reset-calendar-day {min-height:44px}
+#calendar-reference-error {max-height:4.2em;overflow:auto}
+@media(max-width:335px) {
+  html.plan-calendar-view #settings {padding-inline:max(5px,env(safe-area-inset-left)) max(5px,env(safe-area-inset-right))}
+}
+
+html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat(var(--calendar-weeks,6),minmax(48px,1fr))}
+@media(orientation:landscape) and (max-height:450px) {
+  html.plan-calendar-view #settings .settings-header {display:none}
+}
 </style>
 <script>try{const saved=JSON.parse(localStorage.getItem('rise-settings-v1')||'{}'),root=document.documentElement,theme=saved.theme;if(['dawn','paper','sage','ocean','rose','dusk','midnight'].includes(theme))root.dataset.theme=theme;else if(theme==='custom'&&saved.customTheme){root.dataset.theme='custom';for(const key of ['bg','text','muted','surface','panel','border','accent','on-accent','selected','focus'])if(/^#[0-9a-f]{6}$/i.test(saved.customTheme[key]||''))root.style.setProperty('--'+key,saved.customTheme[key]);const fonts={serif:'Georgia,"Iowan Old Style","Times New Roman",serif',sans:'Arial,Helvetica,sans-serif',rounded:'"Trebuchet MS",Arial,sans-serif',mono:'"Courier New",monospace'};root.style.setProperty('--app-font',fonts[saved.customTheme.font]||fonts.serif)}else root.dataset.theme='dawn'}catch(_){document.documentElement.dataset.theme='dawn'}</script>
 <script>if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
@@ -373,7 +523,78 @@ html.plan-calendar-view #settings .actions{flex-shrink:0;padding-top:6px}
 .update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
 .update-row.acs-update p{margin:0!important}
 </style>
-</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1>Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving" title="Close settings">×</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><input type="hidden" id="mode" value="sequential"><div id="custom-field" class="settings-group"><div class="plan-toolbar"><span id="plan-heading" class="visually-hidden">Daily plan</span><button type="button" id="import-schedule" class="quiet-button">Import</button><button type="button" id="add-plan" class="quiet-button" aria-label="Add plan" title="Add plan">＋</button><button type="button" id="manage-plans" class="quiet-button">Edit plans</button><button type="button" id="export-schedule" class="quiet-button">Export</button></div><input id="schedule-file" type="file" accept=".json,.txt,application/json,text/plain" hidden><p id="schedule-transfer-status" class="hint" role="status"></p><div id="plans-manager" hidden><h2>Plans</h2><ol id="plans-list" aria-label="Saved plans"></ol><fieldset id="plan-display-mode"><legend>Display plans</legend><label><input type="radio" name="arrangement-mode" value="combined"> Combined</label><label><input type="radio" name="arrangement-mode" value="override"> Override</label></fieldset><p class="hint">Higher plans appear first. Drag plans to reorder them, or use the move buttons.</p><p id="plans-status" class="hint" role="status"></p></div><div id="schedule-editor" hidden><div class="plan-name-field"><label for="plan-name">Plan name</label><input id="plan-name" type="text" maxlength="60" placeholder="My reading plan"></div><div class="plan-dates"><div class="plan-date-field"><label for="plan-start-date">Starts</label><input id="plan-start-date" type="date" aria-label="Plan start date"></div><div class="plan-date-field"><label for="plan-end-date">Ends</label><input id="plan-end-date" type="date" aria-label="Optional plan end date"></div></div><div class="plan-mode-switch" role="group" aria-label="Reading plan type"><button type="button" id="plan-shuffle" class="quiet-button">Shuffle</button><button type="button" id="plan-sequential" class="quiet-button">Sequential</button><button type="button" id="plan-custom" class="quiet-button">Custom</button></div><p class="hint" id="mode-hint" aria-live="polite"></p><div id="verse-count-field" class="verse-count-field" hidden><label for="verses-per-day">Verses per day</label><input id="verses-per-day" type="number" inputmode="numeric" min="1" step="1" value="2" aria-label="Verses per day"></div><div id="custom-inputs"><label for="schedule">One day per line</label><textarea id="schedule" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p class="hint">One line per day; blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28. <span id="schedule-count" role="status"></span></p><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label></div><div id="book-field" class="settings-group" hidden><button type="button" id="choose-books" class="quiet-button" aria-haspopup="dialog" aria-controls="book-picker-dialog">Choose books</button><button type="button" id="custom-range" class="quiet-button" aria-haspopup="dialog" aria-controls="custom-range-dialog">Custom range</button><p id="selection-summary" class="hint"></p><div hidden><div class="book-toolbar"><label id="books-label">Choose books</label><div class="book-actions"><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p></div><input id="range-text" type="hidden"><p id="range-summary" class="hint" hidden></p><details id="bible-field" class="reading-position" hidden><summary>Reading position</summary><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Restart selection</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></details></div></div><div id="plan-calendar" hidden><div class="calendar-toolbar"><button type="button" id="return-plan-editor" class="quiet-button" hidden aria-label="Back to plan">← Plan</button><button type="button" id="previous-month" class="quiet-button" aria-label="Previous month">←</button><h2 id="calendar-month" aria-live="polite"></h2><button type="button" id="calendar-today" class="quiet-button">Today</button><button type="button" id="next-month" class="quiet-button" aria-label="Next month">→</button></div><div id="calendar-days" aria-label="Daily verse calendar"></div><label for="calendar-references" id="calendar-date-label">Select a date</label><span id="calendar-selected-references" class="calendar-selected-references" aria-live="polite"></span><button type="button" id="calendar-preview" class="primary-button">Preview</button><input id="calendar-references" type="text" placeholder="Jn3:16-18; Rom8:28" autocapitalize="off" spellcheck="false"><div class="calendar-toolbar"><span class="hint">Blank = no verses for this date.</span><button type="button" id="reset-calendar-day" class="quiet-button">Use plan</button></div></div></div><div class="actions"><span class="hint" id="settings-save-hint" role="status">Saved on this device</span><button type="button" id="save-plan" hidden>Save plan</button><button type="button" id="save-settings">Save changes</button></div></form><dialog id="book-picker-dialog" aria-labelledby="book-picker-title"><h2 id="book-picker-title">Choose books and chapters</h2><p class="hint">Choose a book, then select chapters or the entire book. An empty selection uses the whole Bible.</p><div id="picker-book-search"><label for="picker-search">Find a book</label><input id="picker-search" type="search" placeholder="Search books" autocomplete="off"></div><button type="button" id="picker-back" class="quiet-button" hidden>← All books</button><h3 id="picker-book-title" hidden tabindex="-1"></h3><div class="picker-tools"><button type="button" id="picker-all" class="quiet-button">Select all</button><button type="button" id="picker-clear" class="quiet-button">Clear selection</button><span id="picker-status" role="status"></span></div><div class="picker-scroll"><div id="chapter-picker" aria-label="Books"></div></div><div class="discard-actions"><button type="button" id="picker-cancel" class="quiet-button">Cancel</button><button type="button" id="picker-save" class="primary-button">Use selection</button></div></dialog><dialog id="custom-range-dialog" aria-labelledby="custom-range-title" aria-describedby="custom-range-help"><h2 id="custom-range-title">Custom range</h2><label for="custom-range-input">Chapters or verses</label><input id="custom-range-input" type="text" placeholder="Jn3, Rom8:28-30" autocapitalize="off" spellcheck="false" autofocus><p id="custom-range-help" class="hint">Separate ranges with commas. They are added to checked books. Leave empty to clear the custom range.</p><div class="discard-actions"><button type="button" id="cancel-custom-range" class="quiet-button">Cancel</button><button type="button" id="save-custom-range" class="primary-button">Save</button></div></dialog><dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">Import schedule</h2><button type="button" id="import-file" class="quiet-button">Choose a file</button><p class="hint">Or paste a direct link to a Rise JSON export or plain-text plan.</p><label for="schedule-url">Schedule URL</label><input id="schedule-url" type="url" placeholder="https://example.com/plan.json" autocapitalize="off" autocomplete="off" spellcheck="false" enterkeyhint="go"><p id="import-url-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-import" class="quiet-button">Cancel</button><button type="button" id="load-schedule-url" class="primary-button">Import URL</button></div></dialog><dialog id="export-plans-dialog" aria-labelledby="export-plans-title"><h2 id="export-plans-title">Export plans</h2><p class="hint">Choose the plans to include.</p><div id="export-plans-list"></div><p id="export-plans-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-export-plans" class="quiet-button">Cancel</button><button type="button" id="download-plans" class="primary-button">Export selected</button></div></dialog><dialog id="delete-plan-dialog" aria-labelledby="delete-plan-title" aria-describedby="delete-plan-description"><h2 id="delete-plan-title">Delete plan?</h2><p id="delete-plan-description"></p><div class="discard-actions"><button type="button" id="cancel-delete-plan" class="quiet-button" autofocus>Cancel</button><button type="button" id="confirm-delete-plan" class="primary-button">Delete plan</button></div></dialog><dialog id="discard-dialog" aria-labelledby="discard-title" aria-describedby="discard-description"><h2 id="discard-title">Discard changes?</h2><p id="discard-description">Your settings have unsaved changes. Keep editing or discard them and return to your verses.</p><div class="discard-actions"><button type="button" id="keep-editing" class="quiet-button" autofocus>Keep editing</button><button type="button" id="discard-changes">Discard changes</button></div></dialog></section><button type="button" id="preview-back" hidden>Back to calendar</button><main class="page" tabindex="-1"><span id="empty-day-icon" role="img" aria-label="No verses scheduled for today" hidden></span><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
+</head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1 id="settings-title" tabindex="-1">Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving" title="Close settings">×</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><input type="hidden" id="mode" value="sequential"><div id="custom-field" class="settings-group"><div class="plan-toolbar" id="calendar-plan-actions">
+  <button type="button" id="calendar-new-plan" class="quiet-button" aria-label="New plan">＋</button>
+  <button type="button" id="manage-plans" class="quiet-button">Edit plans</button>
+</div>
+<input id="schedule-file" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+<section id="plans-manager" aria-labelledby="settings-title" hidden>
+  <div class="plans-navigation">
+    <button type="button" id="back-to-calendar" class="quiet-button">← Calendar</button>
+    <button type="button" id="add-plan" class="primary-button">+ New plan</button>
+  </div>
+  <div class="plan-transfer">
+    <button type="button" id="import-schedule" class="quiet-button">Import</button>
+    <button type="button" id="export-schedule" class="quiet-button">Export</button>
+  </div>
+  <p id="schedule-transfer-status" class="hint" role="status"></p>
+  <fieldset id="plan-display-mode" class="plan-section">
+    <legend>Display mode</legend>
+    <label><input type="radio" name="arrangement-mode" value="combined" aria-labelledby="combined-title" aria-describedby="combined-help"><span><strong id="combined-title">Combined</strong><small id="combined-help">Shows readings from every enabled plan in order.</small></span></label>
+    <label><input type="radio" name="arrangement-mode" value="override" aria-labelledby="override-title" aria-describedby="override-help"><span><strong id="override-title">Override</strong><small id="override-help">Uses the first enabled plan with readings for the selected day, starting from the top of the list.</small></span></label>
+  </fieldset>
+  <h2>Plan priority</h2>
+  <p id="priority-help" class="hint">Highest priority at the top. Drag to reorder or use Move up and Move down under More.</p>
+  <ol id="plans-list" role="list" aria-label="Saved plans, highest priority first"></ol>
+  <div id="plans-empty" class="plan-section" hidden>
+    <p>No plans yet. Create a plan to schedule your readings.</p>
+    <button type="button" id="create-first-plan" class="quiet-button">Create a plan</button>
+  </div>
+  <p id="plans-status" class="hint" role="status"></p>
+</section>
+<section id="schedule-editor" aria-labelledby="settings-title" hidden>
+  <div class="plans-navigation">
+    <button type="button" id="back-to-plans" class="quiet-button">← Back to plans</button>
+    <button type="button" id="plan-calendar-open" class="quiet-button">Plan calendar</button>
+  </div>
+  <p id="editor-notice" class="hint" role="status"></p>
+  <div class="editor-layout">
+    <div class="editor-fields">
+      <fieldset class="plan-section plan-type">
+        <legend>Plan type</legend>
+        <div class="plan-mode-switch">
+          <button type="button" id="plan-shuffle" class="quiet-button" aria-labelledby="shuffle-title" aria-describedby="shuffle-help"><strong id="shuffle-title">Shuffle</strong> <span id="shuffle-help">Mix verses from your selection.</span></button>
+          <button type="button" id="plan-sequential" class="quiet-button" aria-labelledby="sequential-title" aria-describedby="sequential-help"><strong id="sequential-title">Sequential</strong> <span id="sequential-help">Read your selection in Bible order.</span></button>
+          <button type="button" id="plan-custom" class="quiet-button" aria-labelledby="custom-title" aria-describedby="custom-help"><strong id="custom-title">Custom</strong> <span id="custom-help">Assign references one day at a time.</span></button>
+        </div>
+      </fieldset>
+      <fieldset class="plan-section plan-details">
+        <legend>Plan details</legend>
+        <label for="plan-name">Plan name</label>
+        <input id="plan-name" type="text" maxlength="60" placeholder="My reading plan">
+        <div class="plan-dates">
+          <div class="plan-date-field"><label for="plan-start-date">Start date</label><input id="plan-start-date" type="date" aria-describedby="start-date-error" required></div>
+          <div class="plan-date-field"><label for="plan-end-date">End date (optional)</label><input id="plan-end-date" type="date" aria-describedby="end-date-error"></div>
+        </div>
+        <button type="button" id="clear-end-date" class="quiet-button" disabled>Clear end date</button>
+        <p id="start-date-error" class="plan-error" role="status"></p>
+        <p id="end-date-error" class="plan-error" role="status"></p>
+      </fieldset>
+      <section class="plan-section" aria-labelledby="plan-readings-title">
+        <h2 id="plan-readings-title">Daily readings</h2>
+<div id="verse-count-field" class="verse-count-field" hidden><label for="verses-per-day">Verses per day</label><input id="verses-per-day" type="number" inputmode="numeric" min="1" step="1" value="2" aria-describedby="verse-count-error"><p id="verse-count-error" class="plan-error" role="status"></p></div><div id="custom-inputs"><label for="schedule">One day per line</label><textarea id="schedule" rows="5" aria-describedby="schedule-help schedule-errors" autocapitalize="off" spellcheck="false" placeholder="Jn3:16-18&#10;Rom8:28"></textarea><p id="schedule-help" class="hint">Blank lines are days without verses. Example: Jn3:16-18,20; Rom8:28.</p><ul id="schedule-errors" class="plan-error-list"></ul><label id="repeat-label"><input id="repeat" type="checkbox" checked> Repeat schedule</label></div><div id="book-field" class="settings-group" hidden><button type="button" id="choose-books" class="quiet-button" aria-haspopup="dialog" aria-controls="book-picker-dialog">Choose books</button><button type="button" id="custom-range" class="quiet-button" aria-haspopup="dialog" aria-controls="custom-range-dialog">Custom range</button><p id="selection-summary" class="hint"></p><p id="range-error" class="plan-error" role="status"></p><div hidden><div class="book-toolbar"><label id="books-label">Choose books</label><div class="book-actions"><button type="button" id="clear-books" class="quiet-button">Clear selection</button></div></div><label for="book-search" class="hint">Find a book</label><input type="search" id="book-search" placeholder="Search books" autocomplete="off" enterkeyhint="search"><p class="hint" id="book-count" aria-live="polite">Loading books…</p><table id="books" aria-labelledby="books-label" aria-describedby="books-hint"><thead><tr><th scope="col">Book</th><th scope="col">Select</th></tr></thead><tbody></tbody></table><p class="hint" id="books-hint">Check one or more books. Leave all unchecked to use the whole Bible.</p></div><input id="range-text" type="hidden"><details id="bible-field" class="reading-position" hidden><summary>Reading position</summary><p class="hint" id="bible-progress" role="status"></p><div class="bible-row"><label class="visually-hidden" for="bible-jump">Jump to verse</label><input id="bible-jump" type="text" placeholder="Jump to verse, e.g. John 3:16" autocapitalize="off" spellcheck="false"><button type="button" id="bible-jump-go" class="quiet-button">Jump</button></div><div class="bible-row"><label class="visually-hidden" for="bible-date">Go to day</label><input id="bible-date" type="date"><button type="button" id="bible-date-go" class="quiet-button">Go to</button></div><button type="button" id="bible-reset" class="quiet-button">Restart selection</button><p class="hint" id="bible-status" role="status" aria-live="polite"></p></details></div>
+      </section>
+    </div>
+    <section class="plan-section plan-preview" aria-labelledby="plan-preview-title">
+      <h2 id="plan-preview-title">Schedule preview</h2>
+      <p id="preview-note" class="hint">The first five dates in this plan.</p>
+      <ol id="plan-preview-days"></ol>
+      <p id="preview-overrides" class="hint"></p>
+      <ul id="override-errors" class="plan-error-list"></ul>
+    </section>
+  </div>
+</section>
+<div id="plan-calendar" hidden><div class="calendar-toolbar"><button type="button" id="return-plan-editor" class="quiet-button" hidden>← Plan</button><button type="button" id="previous-month" class="quiet-button" aria-label="Previous month">←</button><h2 id="calendar-month" aria-live="polite"></h2><button type="button" id="calendar-today" class="quiet-button">Today</button><button type="button" id="next-month" class="quiet-button" aria-label="Next month">→</button></div><div id="calendar-days" aria-label="Daily verse calendar"></div><label for="calendar-references" id="calendar-date-label">Select a date</label><span id="calendar-selected-references" class="calendar-selected-references" aria-live="polite"></span><button type="button" id="calendar-preview" class="primary-button">Preview</button><input id="calendar-references" aria-describedby="calendar-reference-error" type="text" placeholder="Jn3:16-18; Rom8:28" autocapitalize="off" spellcheck="false"><div class="calendar-toolbar"><span class="hint">Blank = no verses for this date.</span><button type="button" id="reset-calendar-day" class="quiet-button">Use plan</button></div><p id="calendar-reference-error" class="plan-error" role="status"></p></div></div><div class="actions"><span class="hint" id="settings-save-hint" role="status">Saved on this device</span><p id="plan-save-error" class="plan-error" role="status"></p><button type="button" id="save-plan" class="primary-button" hidden>Save plan</button><button type="button" id="save-settings">Save changes</button></div></form><dialog id="book-picker-dialog" aria-labelledby="book-picker-title"><h2 id="book-picker-title">Choose books and chapters</h2><p class="hint">Choose a book, then select chapters or the entire book. An empty selection uses the whole Bible.</p><div id="picker-book-search"><label for="picker-search">Find a book</label><input id="picker-search" type="search" placeholder="Search books" autocomplete="off"></div><button type="button" id="picker-back" class="quiet-button" hidden>← All books</button><h3 id="picker-book-title" hidden tabindex="-1"></h3><div class="picker-tools"><button type="button" id="picker-all" class="quiet-button">Select all</button><button type="button" id="picker-clear" class="quiet-button">Clear selection</button><span id="picker-status" role="status"></span></div><div class="picker-scroll"><div id="chapter-picker" aria-label="Books"></div></div><div class="discard-actions"><button type="button" id="picker-cancel" class="quiet-button">Cancel</button><button type="button" id="picker-save" class="primary-button">Use selection</button></div></dialog><dialog id="custom-range-dialog" aria-labelledby="custom-range-title" aria-describedby="custom-range-help"><h2 id="custom-range-title">Custom range</h2><label for="custom-range-input">Chapters or verses</label><input id="custom-range-input" aria-describedby="custom-range-help custom-range-error" type="text" placeholder="Jn3, Rom8:28-30" autocapitalize="off" spellcheck="false" autofocus><p id="custom-range-help" class="hint">Separate ranges with commas. They are added to checked books. Leave empty to clear the custom range.</p><p id="custom-range-error" class="plan-error" role="status"></p><div class="discard-actions"><button type="button" id="cancel-custom-range" class="quiet-button">Cancel</button><button type="button" id="save-custom-range" class="primary-button">Save</button></div></dialog><dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">Import schedule</h2><button type="button" id="import-file" class="quiet-button">Choose a file</button><p class="hint">Or paste a direct link to a Rise JSON export or plain-text plan.</p><label for="schedule-url">Schedule URL</label><input id="schedule-url" type="url" placeholder="https://example.com/plan.json" autocapitalize="off" autocomplete="off" spellcheck="false" enterkeyhint="go"><p id="import-url-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-import" class="quiet-button">Cancel</button><button type="button" id="load-schedule-url" class="primary-button">Import URL</button></div></dialog><dialog id="export-plans-dialog" aria-labelledby="export-plans-title"><h2 id="export-plans-title">Export plans</h2><p class="hint">Choose the plans to include.</p><div id="export-plans-list"></div><p id="export-plans-status" class="hint" role="status"></p><div class="discard-actions"><button type="button" id="cancel-export-plans" class="quiet-button">Cancel</button><button type="button" id="download-plans" class="primary-button">Export selected</button></div></dialog><dialog id="delete-plan-dialog" aria-labelledby="delete-plan-title" aria-describedby="delete-plan-description"><h2 id="delete-plan-title">Delete plan?</h2><p id="delete-plan-description"></p><div class="discard-actions"><button type="button" id="cancel-delete-plan" class="quiet-button" autofocus>Cancel</button><button type="button" id="confirm-delete-plan" class="primary-button">Delete plan</button></div></dialog><dialog id="discard-dialog" aria-labelledby="discard-title" aria-describedby="discard-description"><h2 id="discard-title">Discard changes?</h2><p id="discard-description">Your settings have unsaved changes. Keep editing or discard them and return to your verses.</p><div class="discard-actions"><button type="button" id="keep-editing" class="quiet-button" autofocus>Keep editing</button><button type="button" id="discard-changes">Discard changes</button></div></dialog></section><button type="button" id="preview-back" hidden>Back to calendar</button><main class="page" tabindex="-1"><span id="empty-day-icon" role="img" aria-label="No verses scheduled for today" hidden></span><blockquote class="verse" id="verse" aria-live="polite">The Lord is near.</blockquote><p class="reference" id="reference">Philippians 4:5</p></main>
 <dialog id="theme-dialog" aria-labelledby="theme-dialog-title"><h2 id="theme-dialog-title">Choose a theme</h2><p class="hint">Preview themes here. Changes are saved when you press Save theme.</p><div id="theme-presets" aria-label="Preset themes"><button type="button" data-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button><button type="button" data-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button><button type="button" data-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button><button type="button" data-theme-choice="ocean"><span class="theme-swatch" style="--swatch-bg:#e8f0f4;--swatch-accent:#315d77"></span>Ocean</button><button type="button" data-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button><button type="button" data-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button><button type="button" data-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button><button type="button" data-theme-choice="custom"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#7257a5"></span>Custom</button></div><section id="custom-theme-controls" hidden><h3>Custom colors and font</h3><div class="theme-color-grid"><label>Background<input type="color" data-theme-color="bg"></label><label>Text<input type="color" data-theme-color="text"></label><label>Muted text<input type="color" data-theme-color="muted"></label><label>Surface<input type="color" data-theme-color="surface"></label><label>Panel<input type="color" data-theme-color="panel"></label><label>Border<input type="color" data-theme-color="border"></label><label>Accent<input type="color" data-theme-color="accent"></label><label>Accent text<input type="color" data-theme-color="on-accent"></label><label>Selected<input type="color" data-theme-color="selected"></label><label>Focus<input type="color" data-theme-color="focus"></label></div><label for="custom-theme-font">Font</label><select id="custom-theme-font"><option value="serif">Serif</option><option value="sans">Sans serif</option><option value="rounded">Rounded</option><option value="mono">Monospace</option></select></section><div class="theme-dialog-actions"><button type="button" id="surprise-theme" class="quiet-button">Surprise me</button><span></span><button type="button" id="cancel-theme" class="quiet-button">Cancel</button><button type="button" id="save-theme" class="primary-button">Save theme</button></div></dialog><dialog id="about-dialog" aria-labelledby="about-title" aria-describedby="about-description"><div class="about-header"><h2 id="about-title">About Rise</h2><button type="button" id="close-about" class="quiet-button" autofocus>Done</button></div><p id="about-description">Begin each day with verses from the Recovery Version. Create a daily reading plan, choose a theme, and read offline after downloading Scripture.</p><div class="about-help"><p class="about-help-heading">Controls</p><ul><li><kbd>/</kbd> opens settings</li><li><kbd>↑</kbd> <kbd>↓</kbd> move to the previous or next verse</li><li><kbd>Esc</kbd> closes settings</li></ul><p class="about-help-touch">On a touchscreen, swipe up for the next verse and swipe down to go back; swipe down on the first verse to open settings.</p></div><p>Rise is part of the <a href="../../" target="_blank" rel="noopener">ACS Web Apps project</a>, a collection of ad-free apps built by Atlanta Christian Students.</p><div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></dialog>
 <dialog id="swipe-popup" aria-labelledby="swipe-popup-title" aria-describedby="swipe-popup-desc"><h2 id="swipe-popup-title">Swipe down to open settings</h2><p id="swipe-popup-desc">On a touchscreen, swipe down on the verse screen to open settings anytime. On a keyboard, press <kbd>/</kbd> or the up or down arrow keys to open settings. Confirm to stop seeing this popup.</p><div class="popup-actions"><button type="button" id="swipe-popup-confirm" class="quiet-button" autofocus>Got it</button></div></dialog>
 <script>
@@ -410,9 +631,12 @@ try{const saved=JSON.parse(localStorage.getItem(SETTINGS)||'{}')||{};prefs={...d
 // the plan's "started". Existing read-through users keep their position.
 if(!('bibleStarted'in saved))prefs.bibleStarted=(prefs.mode==='sequential'&&Number.isInteger(prefs.started))?prefs.started:REAL_DAY;
 if((!prefs.books||!prefs.books.length)&&prefs.book)prefs.books=[prefs.book];}catch(_){}if(!Number.isInteger(prefs.versesPerDay)||prefs.versesPerDay<1||prefs.versesPerDay>10)prefs.versesPerDay=1;
-if(!Array.isArray(prefs.plans)||!prefs.plans.length){const id='rise-plan-'+Date.now();prefs.plans=[{id,name:prefs.mode==='daily'?'Custom plan':prefs.mode==='shuffle'?'Shuffle plan':'Sequential plan',mode:prefs.mode,schedule:prefs.schedule,repeat:prefs.repeat,books:prefs.books||[],range:prefs.range||'',versesPerDay:prefs.versesPerDay||1,started:prefs.mode==='sequential'?prefs.bibleStarted:prefs.started,startDate:prefs.mode==='sequential'?prefs.bibleStarted:prefs.started,endDate:null,calendarOverrides:prefs.calendarOverrides||{},bibleStarted:prefs.bibleStarted}];prefs.arrangement={order:[id],enabled:{[id]:true},mode:'override'};try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}}
+if(!Array.isArray(prefs.plans)){const id='rise-plan-'+Date.now();prefs.plans=[{id,name:prefs.mode==='daily'?'Custom plan':prefs.mode==='shuffle'?'Shuffle plan':'Sequential plan',mode:prefs.mode,schedule:prefs.schedule,repeat:prefs.repeat,books:prefs.books||[],range:prefs.range||'',versesPerDay:prefs.versesPerDay||1,started:prefs.mode==='sequential'?prefs.bibleStarted:prefs.started,startDate:prefs.mode==='sequential'?prefs.bibleStarted:prefs.started,endDate:null,calendarOverrides:prefs.calendarOverrides||{},bibleStarted:prefs.bibleStarted}];prefs.arrangement={order:[id],enabled:{[id]:true},mode:'override'};try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}}
 if(!prefs.arrangement)prefs.arrangement={order:(prefs.plans||[]).map(plan=>plan.id),enabled:Object.fromEntries((prefs.plans||[]).map(plan=>[plan.id,true])),mode:'override'};
-let arrangementDraft=null,editorPlanDraft=null,editorPlanId=null,settingsView='calendar',discardDestination=null;
+let arrangementDraft=null,editorPlanDraft=null,editorBaseline='',settingsView='calendar',discardDestination=null;
+let scriptureStatus='loading',managerScroll=0,editorScroll=0,overviewDate=day;
+let automaticDrafts;
+const planTypeName={daily:'Custom',shuffle:'Shuffle',sequential:'Sequential'};
 const themeNames=['dawn','paper','sage','ocean','rose','dusk','midnight'];
 
 const themeVars=['bg','text','muted','surface','panel','border','accent','on-accent','selected','focus'];
@@ -519,7 +743,13 @@ document.documentElement.classList.toggle('editing-range',keyboard&&focused.id==
 document.documentElement.classList.toggle('editing-search',keyboard&&focused.id==='book-search');
 document.documentElement.classList.toggle('editing-calendar',keyboard&&focused.id==='calendar-references');
 const page=document.querySelector('main'),verse=$('verse'),reference=$('reference'),bodyStyle=getComputedStyle(document.body);
-if(panel.classList.contains('open'))return;
+if(panel.classList.contains('open')){
+  if(keyboard&&settingsView==='editor'&&!calendarVisible&&$('schedule-editor').contains(focused)){
+    const field=focused.getBoundingClientRect(),scroll=$('custom-field').getBoundingClientRect();
+    if(field.top<scroll.top||field.bottom>scroll.bottom)focused.scrollIntoView({block:'nearest'});
+  }
+  return;
+}
 if(dailyIndices.length&&(layoutWidth!==page.clientWidth||layoutHeight!==height)){const anchor=(dailySlides[slideIndex]||[])[0];cancelSlideTransition();dailySlides=groupSlides(dailyIndices);slideIndex=Math.max(0,dailySlides.findIndex(group=>group.includes(anchor)));paintSlide()}
 const availableHeight=Math.max(1,height-parseFloat(bodyStyle.paddingTop)-parseFloat(bodyStyle.paddingBottom)-2);
 verse.style.fontSize='';reference.style.fontSize='';reference.style.marginTop='';
@@ -580,43 +810,101 @@ await slideAnimation.finished;
 finally{if(transition===slideTransition){if(slideAnimation)slideAnimation.cancel();slideAnimation=null;slideMoving=false}}
 }
 
-function scheduleRowForDate(target,schedule,repeat,started){const rows=schedule.split(/\r?\n/).map(s=>s.trim());if(!rows.length||target<started)return '';const elapsed=target-started;return rows[elapsed]===undefined?(repeat?rows[elapsed%rows.length]:''):rows[elapsed]}
-function scheduleIndices(){const raw=prefs.calendarOverrides&&prefs.calendarOverrides[day]!==undefined?prefs.calendarOverrides[day]:scheduleRowForDate(day,prefs.schedule,prefs.repeat,Number.isInteger(prefs.started)?prefs.started:day);if(!raw.trim())return [];const refs=referencesForDay(raw);return refs.length&&refs.every(i=>i>=0)?refs:null}
-let draftBibleStarted=Number.isInteger(prefs.bibleStarted)?prefs.bibleStarted:REAL_DAY,importedStart=null,calendarOverrides={},calendarDate=day,calendarMonth=new Date(day*86400000),calendarVisible=false;
-function draftStarted(){if(editorPlanDraft)return dateValue($('plan-start-date').value)??editorPlanDraft.started??day;if(Number.isInteger(importedStart))return importedStart;return $('mode').value===prefs.mode&&$('schedule').value===prefs.schedule&&Number.isInteger(prefs.started)?prefs.started:day}
-function calendarRow(target){
-if(!editorPlanDraft){const refs=arrangementReferences(target);return refs.map(i=>{const match=lines&&lines[i]&&lines[i].match(/^(.*?\d+:\d+)/);return match?match[1]:''}).filter(Boolean).join('; ')}
-const startDate=draftStarted(),endDate=dateValue($('plan-end-date').value);
-if(target<startDate||(endDate!==null&&target>endDate))return '';
-if(Object.prototype.hasOwnProperty.call(calendarOverrides,target))return calendarOverrides[target];
-const mode=$('mode').value;
-if(mode==='daily')return scheduleRowForDate(target,$('schedule').value,$('repeat').checked,startDate);
-if(!lines)return '';
-const pool=mode==='sequential'?biblePool():selectionPool();
-if(!pool||!pool.length)return '';
-const started=mode==='sequential'?draftBibleStarted:startDate,offset=mode==='sequential'?(editorPlanDraft.bibleOffset||0):0;
-return readingIndices(pool,mode,target,started,$('verses-per-day').value,offset).map(index=>{const match=lines[index]&&lines[index].match(/^(.*?\d+:\d+)\s/);return match?match[1]:''}).filter(Boolean).join('; ')
+function scheduleRowForDate(target,schedule,repeat,started){
+const rows=typeof schedule==='string'?schedule.split(/\r?\n/):schedule;
+if(!rows.length||target<started)return '';
+const elapsed=target-started;
+return (rows[elapsed]??(repeat?rows[elapsed%rows.length]:'')).trim();
+}
+let draftBibleStarted=Number.isInteger(prefs.bibleStarted)?prefs.bibleStarted:REAL_DAY;
+let calendarOverrides={},calendarDate=day,calendarMonth=new Date(day*86400000),calendarVisible=false;
+
+function dateInPlan(plan,target){
+return target>=(Number.isInteger(plan.startDate)?plan.startDate:day)&&
+  (!Number.isInteger(plan.endDate)||target<=plan.endDate);
+}
+function planDateOverride(plan,target){
+return plan.calendarOverrides&&Object.prototype.hasOwnProperty.call(plan.calendarOverrides,target);
+}
+function customPlanRow(plan,target,rows){
+const start=plan.startDate??plan.started??day;
+return scheduleRowForDate(target,rows??plan.schedule??'',!!plan.repeat,start);
+}
+function referenceText(index){
+return (lines?.[index]?.match(/^(.*?\d+:\d+)\s/)||[])[1]||'';
+}
+function calendarReadingForDraft(plan,target,prepared){
+if(!dateInPlan(plan,target))return '';
+if(planDateOverride(plan,target))return plan.calendarOverrides[target];
+if(plan.mode==='daily')return customPlanRow(plan,target,prepared.rows);
+return planReferences(plan,target,prepared)?.map(referenceText).filter(Boolean).join('; ')||'';
+}
+function calendarReader(){
+if(!editorPlanDraft){
+  const prepared=new Map();
+  return target=>arrangementReferences(target,prepared).map(referenceText).filter(Boolean).join('; ');
+}
+const plan=readPlanDraft(),prepared=preparePlanReadings(plan);
+return target=>calendarReadingForDraft(plan,target,prepared);
 }
 
-function dateTitle(target){return new Date(target*86400000).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+const readingDateFormat=new Intl.DateTimeFormat(undefined,{timeZone:'UTC',weekday:'short',month:'short',day:'numeric',year:'numeric'});
+const planDateFormat=new Intl.DateTimeFormat(undefined,{timeZone:'UTC',dateStyle:'medium'});
+function dateTitle(target){return readingDateFormat.format(target*86400000)}
 function calendarReferenceList(raw){const refs=raw.split(';').map(ref=>ref.trim()).filter(Boolean);if(lines&&raw){const indices=referencesForDay(raw);if(indices.length&&indices.every(index=>index>=0))return indices.map(index=>{const match=lines[index]&&lines[index].match(/^(.*?\d+:\d+)/);return match?match[1]:''}).filter(Boolean)}return refs}
 function calendarReferenceSummary(raw){const refs=calendarReferenceList(raw);return refs.length>1?refs[0]+' +'+(refs.length-1)+' more':refs[0]||'—'}
 function renderCalendar(){
-$('calendar-references').hidden=!editorPlanDraft;$('calendar-preview').hidden=!!editorPlanDraft;$('calendar-references').nextElementSibling.hidden=!editorPlanDraft;
+if(!calendarVisible)return;
+const readDate=calendarReader();
+$('calendar-references').hidden=!editorPlanDraft;$('calendar-reference-error').hidden=!editorPlanDraft;$('calendar-preview').hidden=!!editorPlanDraft;$('calendar-references').nextElementSibling.hidden=!editorPlanDraft;
 $('calendar-selected-references').hidden=!!editorPlanDraft;
 $('calendar-month').textContent=calendarMonth.toLocaleDateString(undefined,{timeZone:'UTC',month:'long',year:'numeric'});
 const year=calendarMonth.getUTCFullYear(),month=calendarMonth.getUTCMonth(),count=new Date(Date.UTC(year,month+1,0)).getUTCDate(),buttons=[];
 $('calendar-days').style.setProperty('--calendar-weeks',Math.ceil((new Date(Date.UTC(year,month,1)).getUTCDay()+count)/7));
 for(let weekday=0;weekday<7;weekday++){const heading=document.createElement('span');heading.className='calendar-weekday';heading.textContent=new Date(Date.UTC(2026,10,1+weekday)).toLocaleDateString(undefined,{timeZone:'UTC',weekday:'short'});buttons.push(heading)}
 for(let blank=0;blank<new Date(Date.UTC(year,month,1)).getUTCDay();blank++){const spacer=document.createElement('span');spacer.className='calendar-spacer';spacer.setAttribute('aria-hidden','true');buttons.push(spacer)}
-for(let number=1;number<=count;number++){const target=Math.floor(Date.UTC(year,month,number)/86400000),raw=calendarRow(target),button=document.createElement('button'),date=document.createElement('time'),summary=document.createElement('span');
+for(let number=1;number<=count;number++){const target=Math.floor(Date.UTC(year,month,number)/86400000),raw=readDate(target),button=document.createElement('button'),date=document.createElement('time'),summary=document.createElement('span');
 button.type='button';button.className='calendar-day';button.dataset.day=String(target);button.setAttribute('aria-pressed',String(target===calendarDate));if(target===day)button.setAttribute('aria-current','date');button.setAttribute('aria-label',dateTitle(target)+': '+(raw||'No verses planned'));date.dateTime=new Date(target*86400000).toISOString().slice(0,10);date.textContent=String(number);summary.textContent=calendarReferenceSummary(raw);button.append(date,summary);button.addEventListener('click',()=>selectCalendarDate(target));buttons.push(button)}
 const list=$('calendar-days'),position=list.scrollTop,focused=document.activeElement,focusedDay=focused&&focused.classList.contains('calendar-day')?focused.dataset.day:null;list.replaceChildren(...buttons);list.scrollTop=position;if(focusedDay){const replacement=buttons.find(button=>button.dataset.day===focusedDay);if(replacement)replacement.focus({preventScroll:true})}
-const selected=$('calendar-selected-references'),refs=calendarReferenceList(calendarRow(calendarDate));selected.textContent=refs.join('; ')||'No verses planned';if(refs.length>1&&selected.scrollWidth>selected.clientWidth)selected.textContent=refs[0]+' +'+(refs.length-1)+' more'
+const selected=$('calendar-selected-references'),refs=calendarReferenceList(readDate(calendarDate));selected.textContent=refs.join('; ')||'No verses planned';if(refs.length>1&&selected.scrollWidth>selected.clientWidth)selected.textContent=refs[0]+' +'+(refs.length-1)+' more'
 }
-function selectCalendarDate(target){calendarDate=target;$('calendar-date-label').textContent=dateTitle(target);$('calendar-references').value=calendarRow(target);$('calendar-references').setCustomValidity('');$('calendar-preview').setAttribute('aria-label','Preview '+dateTitle(target));renderCalendar()}
-function setCalendarView(visible){calendarVisible=visible;document.documentElement.classList.toggle('calendar-view',visible&&!editorPlanDraft);document.documentElement.classList.toggle('plan-editing',!!editorPlanDraft);document.documentElement.classList.toggle('plan-calendar-view',visible&&!!editorPlanDraft);document.documentElement.classList.remove('manager-view');settingsView=editorPlanDraft?'editor':'calendar';if(!editorPlanDraft){$('manage-plans').textContent='Edit plans';$('manage-plans').setAttribute('aria-label','Edit plans')}const controlsHidden=!!editorPlanDraft;$('add-plan').hidden=controlsHidden;$('manage-plans').hidden=false;if(editorPlanDraft){$('manage-plans').textContent='Back to calendar';$('manage-plans').setAttribute('aria-label','Back to calendar')}$('import-schedule').hidden=!controlsHidden;$('export-schedule').hidden=true;$('plan-calendar').hidden=!visible;$('plans-manager').hidden=true;$('schedule-editor').hidden=visible;$('save-plan').hidden=!editorPlanDraft;$('save-settings').hidden=true;$('return-plan-editor').hidden=!editorPlanDraft;if(!editorPlanDraft){$('calendar-references').readOnly=true;$('reset-calendar-day').hidden=true}else{$('calendar-references').readOnly=false;$('reset-calendar-day').hidden=false}updateMode();if(visible)selectCalendarDate(calendarDate)}
-function syncCalendar(){importedStart=null;$('schedule-transfer-status').textContent='';calendarOverrides={...(prefs.calendarOverrides||{})};calendarDate=day;calendarMonth=new Date(day*86400000);setCalendarView(true)}
+function selectCalendarDate(target){calendarDate=target;$('calendar-date-label').textContent=dateTitle(target);$('calendar-references').value=editorPlanDraft&&Object.prototype.hasOwnProperty.call(calendarOverrides,target)?calendarOverrides[target]:calendarReader()(target);updateCalendarError();$('calendar-references').setCustomValidity('');$('calendar-preview').setAttribute('aria-label','Preview '+dateTitle(target));renderCalendar()}
+function setPlanView(view){
+settingsView=view==='plan-calendar'?'editor':view;
+calendarVisible=view==='calendar'||view==='plan-calendar';
+const root=document.documentElement;
+root.classList.toggle('calendar-view',view==='calendar');
+root.classList.toggle('manager-view',view==='manager');
+root.classList.toggle('plan-editing',!!editorPlanDraft);
+root.classList.toggle('plan-calendar-view',view==='plan-calendar');
+$('calendar-plan-actions').hidden=view!=='calendar';
+$('plan-calendar').hidden=!calendarVisible;
+$('plans-manager').hidden=view!=='manager';
+$('schedule-editor').hidden=view!=='editor';
+$('save-plan').hidden=!editorPlanDraft;
+$('save-settings').hidden=view!=='manager';
+$('settings-save-hint').hidden=view!=='manager';
+$('return-plan-editor').hidden=view!=='plan-calendar';
+$('calendar-references').readOnly=view!=='plan-calendar';
+$('reset-calendar-day').hidden=view!=='plan-calendar';
+$('settings-title').textContent=view==='manager'?'Edit plans':view==='plan-calendar'?'Plan calendar':
+  view==='editor'?(savedPlan(editorPlanDraft.id)?'Edit plan':'New plan'):'Rise settings';
+$('settings').setAttribute('aria-label',$('settings-title').textContent);
+$('custom-field').scrollTop=0;
+if(calendarVisible)selectCalendarDate(calendarDate);
+}
+function updateCalendarError(){
+const raw=$('calendar-references').value.trim();
+const invalid=!!editorPlanDraft&&!!lines&&!!raw&&!validReferences(raw);
+$('calendar-references').setAttribute('aria-invalid',String(invalid));
+$('calendar-reference-error').textContent=invalid?'Check the references for '+dateTitle(calendarDate)+': “'+raw+'”.':'';
+}
+function syncCalendar(){
+calendarDate=day;
+calendarMonth=new Date(day*86400000);
+if(calendarVisible)selectCalendarDate(day);
+}
+
 function validateScheduleFile(data){
 if(!data||data.format!=='rise-schedule'||data.version!==1||typeof data.schedule!=='string'||typeof data.repeat!=='boolean'||!Number.isInteger(data.started)||Math.abs(data.started)>1000000)throw Error('Choose a Rise schedule export (version 1) or a plain text plan.');
 const startDate=Number.isInteger(data.startDate)?data.startDate:data.started,endDate=Number.isInteger(data.endDate)?data.endDate:null;if(Math.abs(startDate)>1000000||(data.startDate!==undefined&&data.startDate!==null&&!Number.isInteger(data.startDate))||(data.endDate!==undefined&&data.endDate!==null&&!Number.isInteger(data.endDate))||(endDate!==null&&(Math.abs(endDate)>1000000||endDate<startDate)))throw Error('The plan dates are invalid.');
@@ -625,59 +913,101 @@ const valid=raw=>{if(!raw.trim())return true;const refs=referencesForDay(raw);re
 if(rows.some(row=>!valid(row)))throw Error('The plan contains an invalid Scripture reference.');
 const edits=data.calendarOverrides||{};if(typeof edits!=='object'||Array.isArray(edits))throw Error('Calendar edits have an invalid format.');
 const checked={};for(const [key,raw] of Object.entries(edits)){if(!/^-?\d+$/.test(key)||Math.abs(Number(key))>1000000||typeof raw!=='string'||!valid(raw))throw Error('A calendar edit contains an invalid date or reference.');checked[key]=raw}
-let selection=null;if(data.selection){const source=data.selection;if(!['shuffle','sequential'].includes(source.mode)||!Array.isArray(source.books)||source.books.some(book=>typeof book!=='string'||!resolveBook(book))||typeof source.range!=='string'||(source.range.trim()&&!rangeIndices(source.range)))throw Error('The exported reading selection is invalid.');selection={bibleOffset:Number.isInteger(source.bibleOffset)&&source.bibleOffset>=0?source.bibleOffset:0,mode:source.mode,books:source.books.map(resolveBook),range:source.range,versesPerDay:Number.isInteger(source.versesPerDay)&&source.versesPerDay>=1&&source.versesPerDay<=10?source.versesPerDay:2}}
+let selection=null;if(data.selection){const source=data.selection;if(!['shuffle','sequential'].includes(source.mode)||!Array.isArray(source.books)||source.books.some(book=>typeof book!=='string'||!resolveBook(book))||typeof source.range!=='string'||(source.range.trim()&&!rangeIndices(source.range)))throw Error('The exported reading selection is invalid.');selection={bibleOffset:Number.isInteger(source.bibleOffset)&&source.bibleOffset>=0?source.bibleOffset:0,mode:source.mode,books:source.books.map(resolveBook),range:source.range,versesPerDay:Number.isSafeInteger(source.versesPerDay)&&source.versesPerDay>=1?source.versesPerDay:2}}
 return {schedule:rows.join('\n'),repeat:data.repeat,started:data.started,startDate,endDate:Number.isInteger(data.endDate)?data.endDate:null,name:typeof data.name==='string'?data.name:'Imported plan',calendarOverrides:checked,selection}
 }
-function scheduleDraft(){return {format:'rise-schedule',version:1,name:$('plan-name').value,startDate:dateValue($('plan-start-date').value),endDate:dateValue($('plan-end-date').value),schedule:$('schedule').value,repeat:$('repeat').checked,started:$('mode').value==='sequential'?draftBibleStarted:draftStarted(),calendarOverrides:{...calendarOverrides},selection:$('mode').value==='daily'?null:{mode:$('mode').value,books:[...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value),range:$('range-text').value,versesPerDay:Number($('verses-per-day').value)}}}
 let scheduleUrlController=null;
 $('import-schedule').addEventListener('click',()=>{$('import-url-status').textContent='';$('import-dialog').showModal()});
 $('import-file').addEventListener('click',()=>{$('import-dialog').close();$('schedule-file').value='';$('schedule-file').click()});
 $('cancel-import').addEventListener('click',()=>$('import-dialog').close());
 $('import-dialog').addEventListener('close',()=>{if(scheduleUrlController)scheduleUrlController.abort()});
 $('import-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-function applyImportedPlan(data){if(data&&data.format==='rise-plans'){if(data.version!==1||!Array.isArray(data.plans)||!data.plans.length||data.plans.length>1000)throw Error('Choose a valid Rise plans export.');const checked=data.plans.map(validateScheduleFile),newPlans=checked.map(imported=>({id:'rise-plan-'+Date.now()+'-'+Math.random().toString(36).slice(2),name:imported.name,mode:imported.selection?imported.selection.mode:'daily',schedule:imported.schedule,repeat:imported.repeat,books:imported.selection?imported.selection.books:[],range:imported.selection?imported.selection.range:'',versesPerDay:imported.selection?imported.selection.versesPerDay:2,bibleOffset:imported.selection?imported.selection.bibleOffset:0,started:imported.started,bibleStarted:imported.started,startDate:imported.startDate,endDate:imported.endDate,calendarOverrides:imported.calendarOverrides}));prefs.plans=[...(prefs.plans||[]),...newPlans];const arrangement=getArrangementDraft();prefs.arrangement=arrangement;try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}arrangementDraft=null;openPlansManager();$('plans-status').textContent=newPlans.length+' plans imported and turned on.';display();return}const imported=validateScheduleFile(data),mode=imported.selection?imported.selection.mode:'daily',id='rise-plan-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),plan={id,bibleOffset:imported.selection?imported.selection.bibleOffset:0,name:imported.name||'Imported plan',mode,schedule:imported.schedule,repeat:imported.repeat,books:imported.selection?imported.selection.books:[],range:imported.selection?imported.selection.range:'',versesPerDay:imported.selection?imported.selection.versesPerDay:2,started:imported.started,bibleStarted:imported.started,startDate:imported.startDate,endDate:imported.endDate,calendarOverrides:imported.calendarOverrides};loadEditor(plan);$('schedule').value=plan.schedule;$('repeat').checked=plan.repeat;$('verses-per-day').value=String(plan.versesPerDay);$('range-text').value=plan.range;const selected=new Set(plan.books);$('books').querySelectorAll('tbody input').forEach(input=>input.checked=selected.has(input.value));draftBibleStarted=plan.bibleStarted;$('plan-name').value=plan.name;updateRangeSummary();updateMode();calendarOverrides={...plan.calendarOverrides};$('schedule-transfer-status').textContent='Imported as a new plan. Save plan to add it and turn it on.'}
+function importedPlan(imported){
+const selection=imported.selection;
+return {id:'rise-plan-'+Date.now()+'-'+Math.random().toString(36).slice(2),
+  name:imported.name||'Imported plan',mode:selection?.mode||'daily',schedule:imported.schedule,
+  repeat:imported.repeat,books:selection?.books||[],range:selection?.range||'',
+  versesPerDay:selection?.versesPerDay||2,bibleOffset:selection?.bibleOffset||0,
+  started:imported.started,bibleStarted:imported.started,startDate:imported.startDate,
+  endDate:imported.endDate,calendarOverrides:imported.calendarOverrides};
+}
+function applyImportedPlan(data){
+if(data?.format==='rise-plans'){
+  if(data.version!==1||!Array.isArray(data.plans)||!data.plans.length||data.plans.length>1000)
+    throw Error('Choose a valid Rise plans export.');
+  const imported=data.plans.map(item=>importedPlan(validateScheduleFile(item)));
+  addSavedPlans(imported,false);
+  renderPlans();
+  $('schedule-transfer-status').textContent=imported.length+' plans imported and turned on.';
+  $('import-schedule').focus();
+  display();
+  return;
+}
+$('schedule-transfer-status').textContent='';
+loadEditor(importedPlan(validateScheduleFile(data)),'Imported as a new plan. Save plan to add it and turn it on.');
+}
 async function importScheduleUrl(){
 const button=$('load-schedule-url'),status=$('import-url-status'),dialog=$('import-dialog');if(button.disabled)return;
 let timer,controller;
-try{if(!lines)throw Error('Wait for Scripture to load before importing a plan.');let url;try{url=new URL($('schedule-url').value.trim())}catch(_){throw Error('Enter a complete http or https URL.')}if(!/^https?:$/.test(url.protocol))throw Error('Use an http or https URL.');
+try{if(!lines)throw Error(scriptureMessage());let url;try{url=new URL($('schedule-url').value.trim())}catch(_){throw Error('Enter a complete http or https URL.')}if(!/^https?:$/.test(url.protocol))throw Error('Use an http or https URL.');
 controller=new AbortController();scheduleUrlController=controller;timer=setTimeout(()=>controller.abort(),20000);button.disabled=true;status.textContent='Downloading schedule…';
 let response;try{response=await fetch(url.href,{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'})}catch(_){throw Error('Could not download this link. Check your connection and use a direct link that allows browser access (CORS).')}
 if(!response.ok)throw Error('The link returned HTTP '+response.status+'. Use a direct schedule link.');if(Number(response.headers.get('content-length'))>1048576)throw Error('Choose a schedule smaller than 1 MB.');
 const text=(await response.text()).replace(/^\uFEFF/,'');if(text.length>1048576)throw Error('Choose a schedule smaller than 1 MB.');if(controller.signal.aborted||!dialog.open)return;
 let data;if(/^\s*[\[{]/.test(text)){try{data=JSON.parse(text)}catch(_){throw Error('The link does not contain valid schedule JSON.')}}else data={format:'rise-schedule',version:1,schedule:text,repeat:true,started:day+1,calendarOverrides:{}};
 applyImportedPlan(data);dialog.close();
+if(editorPlanDraft)$('settings-title').focus();
 }catch(error){if(dialog.open)status.textContent=error.message}
 finally{clearTimeout(timer);button.disabled=false;if(scheduleUrlController===controller)scheduleUrlController=null}
 }
 $('load-schedule-url').addEventListener('click',importScheduleUrl);
 $('schedule-url').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();importScheduleUrl()}});
-function insertAtCursor(textarea,text){const start=textarea.selectionStart;textarea.value=textarea.value.slice(0,start)+text+textarea.value.slice(textarea.selectionEnd);textarea.selectionStart=textarea.selectionEnd=start+text.length}
-$('schedule').addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();insertAtCursor(e.currentTarget,'\n')}});
 $('schedule-file').addEventListener('change',async()=>{
 const file=$('schedule-file').files[0],status=$('schedule-transfer-status');if(!file)return;
-try{if(!lines)throw Error('Wait for Scripture to load before importing a plan.');if(file.size>1048576)throw Error('Choose a schedule file smaller than 1 MB.');
+try{if(!lines)throw Error(scriptureMessage());if(file.size>1048576)throw Error('Choose a schedule file smaller than 1 MB.');
 const text=(await file.text()).replace(/^\uFEFF/,'');let data;
 if(/\.txt$/i.test(file.name))data={format:'rise-schedule',version:1,schedule:text,repeat:true,started:day+1,calendarOverrides:{}};else{try{data=JSON.parse(text)}catch(_){throw Error('Choose a valid Rise JSON export or a .txt plan.')}}
-applyImportedPlan(data);
+if(settingsView==='manager')applyImportedPlan(data);
 }catch(error){status.textContent=error.message}
 });
-function exportPlanData(plan){return {format:'rise-schedule',version:1,name:plan.name,startDate:plan.startDate,endDate:plan.endDate,schedule:plan.schedule||'',repeat:!!plan.repeat,started:plan.mode==='sequential'?(plan.bibleStarted??plan.started):plan.started,calendarOverrides:{...(plan.calendarOverrides||{})},selection:plan.mode==='daily'?null:{mode:plan.mode,books:plan.books||[],range:plan.range||'',versesPerDay:plan.versesPerDay||2,bibleOffset:plan.bibleOffset||0}}}
+function exportPlanData(plan){return {format:'rise-schedule',version:1,name:plan.name,startDate:plan.startDate,endDate:plan.endDate,schedule:plan.mode==='daily'?(plan.schedule||''):'',repeat:!!plan.repeat,started:plan.mode==='sequential'?(plan.bibleStarted??plan.started):plan.started,calendarOverrides:{...(plan.calendarOverrides||{})},selection:plan.mode==='daily'?null:{mode:plan.mode,books:plan.books||[],range:plan.range||'',versesPerDay:plan.versesPerDay||2,bibleOffset:plan.bibleOffset||0}}}
 function exportPlanDescription(plan){const details=[],mode=plan.mode||'daily';if(mode==='daily'){const rows=(plan.schedule||'').split(/\r?\n/);details.push('Custom schedule · '+rows.length+' days · '+(plan.repeat===false?'does not repeat':'repeats'))}else{details.push((mode==='shuffle'?'Shuffle':'Sequential')+' · '+(plan.versesPerDay||2)+' verses per day');const books=plan.books||[];details.push(books.length?books.length+' selected book'+(books.length===1?'':'s'):'All books');if(plan.range)details.push('Custom range: '+plan.range)}const overrides=Object.keys(plan.calendarOverrides||{}).length;if(overrides)details.push(overrides+' date override'+(overrides===1?'':'s'));if(Number.isInteger(plan.startDate))details.push('Starts '+dateTitle(plan.startDate));if(Number.isInteger(plan.endDate))details.push('Ends '+dateTitle(plan.endDate));return details.join(' · ')}
 function updateExportSelection(){$('download-plans').disabled=!$('export-plans-list').querySelector('input:checked')}
 $('export-schedule').addEventListener('click',()=>{const list=$('export-plans-list');list.replaceChildren();const order=getArrangementDraft().order;for(const id of order){const plan=(prefs.plans||[]).find(item=>item.id===id);if(!plan)continue;const label=document.createElement('label'),input=document.createElement('input'),copy=document.createElement('span'),name=document.createElement('span'),details=document.createElement('span');input.type='checkbox';input.value=id;input.checked=true;input.addEventListener('change',updateExportSelection);copy.className='export-plan-copy';name.className='export-plan-name';name.textContent=plan.name||plan.mode||'Reading plan';details.className='export-plan-details';details.textContent=exportPlanDescription(plan);copy.append(name,details);label.append(input,copy);list.append(label)}$('export-plans-status').textContent=list.children.length?'':'No saved plans to export.';updateExportSelection();$('export-plans-dialog').showModal()});
 $('cancel-export-plans').addEventListener('click',()=>$('export-plans-dialog').close());
 $('export-plans-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-$('download-plans').addEventListener('click',()=>{let url;try{if(!lines)throw Error('Wait for Scripture to load before exporting plans.');const selected=[...$('export-plans-list').querySelectorAll('input:checked')].map(input=>(prefs.plans||[]).find(plan=>plan.id===input.value)).filter(Boolean);if(!selected.length)throw Error('Choose at least one plan.');const plans=selected.map(exportPlanData);plans.forEach(validateScheduleFile);const data=plans.length===1?plans[0]:{format:'rise-plans',version:1,plans};url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='rise-plans-'+dateInput(day)+'.json';document.body.append(link);link.click();link.remove();$('export-plans-dialog').close();$('schedule-transfer-status').textContent=plans.length+' plan'+(plans.length===1?'':'s')+' exported.'}catch(error){$('export-plans-status').textContent=error.message}finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),1000)}});
-$('add-plan').addEventListener('click',startNewPlan);$('manage-plans').addEventListener('click',()=>settingsView==='manager'||editorPlanDraft?requestBackToCalendar():openPlansManager());
-$('return-plan-editor').addEventListener('click',()=>setCalendarView(false));
-$('calendar-preview').addEventListener('click',()=>{const raw=calendarRow(calendarDate),refs=raw&&lines?referencesForDay(raw):[];setOpen(false);show(refs.filter(index=>index>=0));$('preview-back').hidden=false;$('preview-back').textContent='← '+dateTitle(calendarDate)+' · Back';$('preview-back').focus({preventScroll:true})});
+$('download-plans').addEventListener('click',()=>{let url;try{if(!lines)throw Error(scriptureMessage());const selected=[...$('export-plans-list').querySelectorAll('input:checked')].map(input=>(prefs.plans||[]).find(plan=>plan.id===input.value)).filter(Boolean);if(!selected.length)throw Error('Choose at least one plan.');const plans=selected.map(exportPlanData);plans.forEach(validateScheduleFile);const data=plans.length===1?plans[0]:{format:'rise-plans',version:1,plans};url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='rise-plans-'+dateInput(day)+'.json';document.body.append(link);link.click();link.remove();$('export-plans-dialog').close();$('schedule-transfer-status').textContent=plans.length+' plan'+(plans.length===1?'':'s')+' exported.'}catch(error){$('export-plans-status').textContent=error.message}finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),1000)}});
+$('add-plan').addEventListener('click',startNewPlan);
+$('calendar-new-plan').addEventListener('click',startNewPlan);
+$('create-first-plan').addEventListener('click',startNewPlan);
+$('manage-plans').addEventListener('click',()=>{
+  overviewDate=calendarDate;
+  openPlansManager();
+  $('settings-title').focus({preventScroll:true});
+});
+$('back-to-calendar').addEventListener('click',requestBackToCalendar);
+$('back-to-plans').addEventListener('click',requestBackToPlans);
+$('return-plan-editor').addEventListener('click',returnFromPlanCalendar);
+$('plan-calendar-open').addEventListener('click',()=>{
+  const start=dateValue($('plan-start-date').value);
+  if(start===null){updatePlanPreview();$('plan-start-date').focus();return}
+  editorScroll=$('custom-field').scrollTop;
+  $('plan-save-error').textContent='';
+  setPlanView('plan-calendar');
+  $('return-plan-editor').focus();
+});
+$('clear-end-date').addEventListener('click',()=>{
+  $('plan-end-date').value='';
+  $('plan-end-date').focus();
+  updatePlanPreview();
+});
+$('calendar-preview').addEventListener('click',()=>{const raw=calendarReader()(calendarDate),refs=raw&&lines?referencesForDay(raw):[];setOpen(false);show(refs.filter(index=>index>=0));$('preview-back').hidden=false;$('preview-back').textContent='← '+dateTitle(calendarDate)+' · Back';$('preview-back').focus({preventScroll:true})});
 $('preview-back').addEventListener('click',()=>{const target=calendarDate,month=calendarMonth;setOpen(true);calendarMonth=month;selectCalendarDate(target);$('calendar-preview').focus({preventScroll:true})});
 $('calendar-today').addEventListener('click',()=>{calendarMonth=new Date(day*86400000);selectCalendarDate(day);const list=$('calendar-days'),today=list.querySelector('[aria-current="date"]');if(today)list.scrollTop=Math.max(0,today.offsetTop-(list.clientHeight-today.offsetHeight)/2)});
 $('previous-month').addEventListener('click',()=>{calendarMonth=new Date(Date.UTC(calendarMonth.getUTCFullYear(),calendarMonth.getUTCMonth()-1,1));selectCalendarDate(Math.floor(calendarMonth.getTime()/86400000))});
 $('next-month').addEventListener('click',()=>{calendarMonth=new Date(Date.UTC(calendarMonth.getUTCFullYear(),calendarMonth.getUTCMonth()+1,1));selectCalendarDate(Math.floor(calendarMonth.getTime()/86400000))});
-$('calendar-references').addEventListener('input',()=>{calendarOverrides[calendarDate]=$('calendar-references').value.trim();$('calendar-references').setCustomValidity('');renderCalendar()});
+$('calendar-references').addEventListener('input',()=>{calendarOverrides[calendarDate]=$('calendar-references').value.trim();updateCalendarError();renderCalendar()});
 $('reset-calendar-day').addEventListener('click',()=>{delete calendarOverrides[calendarDate];selectCalendarDate(calendarDate)});
-$('repeat').addEventListener('change',()=>{if(calendarVisible)selectCalendarDate(calendarDate)});
 
 function rangeIndices(raw){
 if(!lines||!raw.trim())return raw.trim()?null:[];
@@ -715,27 +1045,53 @@ function poolForSelection(selected,typed){if(!lines)return [];let pool=(selected
 function selectionPool(){return poolForSelection([...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value),$('range-text').value)}
 
 function readingCount(pool,value){return Math.min(pool.length,Math.max(1,Math.floor(Number(value)||2)))}
-function readingIndices(pool,mode,target,started,value,offset=0){
+function shuffleReadings(pool,started){
+return pool.map((index,n)=>{
+  let seed=((Number.isInteger(started)?started:day)+1+n*0x9e3779b9)>>>0;
+  seed=Math.imul(seed^(seed>>>16),0x21f0aaad);
+  seed=Math.imul(seed^(seed>>>15),0x735a2d97);
+  return {index,rank:(seed^(seed>>>15))>>>0};
+}).sort((a,b)=>a.rank-b.rank).map(item=>item.index);
+}
+function readingIndices(pool,mode,target,started,value,offset=0,ordered=pool){
 if(!pool.length)return [];
-const count=readingCount(pool,value),elapsed=Math.max(0,target-(Number.isInteger(started)?started:day)),start=(elapsed*count+offset)%pool.length;
-let ordered=pool;
-if(mode==='shuffle'){ordered=pool.map((index,n)=>{let seed=((Number.isInteger(started)?started:day)+1+n*0x9e3779b9)>>>0;seed=Math.imul(seed^(seed>>>16),0x21f0aaad);seed=Math.imul(seed^(seed>>>15),0x735a2d97);return {index,rank:(seed^(seed>>>15))>>>0}}).sort((a,b)=>a.rank-b.rank).map(item=>item.index)}
-const refs=Array.from({length:count},(_,n)=>ordered[(start+n)%ordered.length]);return mode==='shuffle'?refs.sort((a,b)=>a-b):refs
+const count=readingCount(pool,value),elapsed=Math.max(0,target-(Number.isInteger(started)?started:day));
+const start=(elapsed*count+offset)%pool.length;
+const refs=Array.from({length:count},(_,n)=>ordered[(start+n)%ordered.length]);
+return mode==='shuffle'?refs.sort((a,b)=>a-b):refs;
 }
-function planReferences(plan,target){
-if(target<(Number.isInteger(plan.startDate)?plan.startDate:day)||(Number.isInteger(plan.endDate)&&target>plan.endDate))return null;
-if(plan.calendarOverrides&&Object.prototype.hasOwnProperty.call(plan.calendarOverrides,target)){const raw=plan.calendarOverrides[target];if(!raw.trim())return [];const refs=referencesForDay(raw);return refs.length&&refs.every(i=>i>=0)?refs:null}
-if(plan.mode==='daily'){const raw=scheduleRowForDate(target,plan.schedule||'',!!plan.repeat,Number.isInteger(plan.startDate)?plan.startDate:Number.isInteger(plan.started)?plan.started:day);if(!raw.trim())return [];const refs=referencesForDay(raw);return refs.length&&refs.every(i=>i>=0)?refs:null}
-const pool=poolForSelection(plan.books||[],plan.range||'');if(!pool||!pool.length)return [];
-const started=plan.mode==='sequential'?(Number.isInteger(plan.bibleStarted)?plan.bibleStarted:Number.isInteger(plan.started)?plan.started:plan.startDate):(Number.isInteger(plan.started)?plan.started:plan.startDate);
-return readingIndices(pool,plan.mode,target,started,plan.versesPerDay,plan.mode==='sequential'?(plan.bibleOffset||0):0)
+function planReadingStart(plan){
+if(plan.mode==='sequential'&&Number.isInteger(plan.bibleStarted))return plan.bibleStarted;
+return Number.isInteger(plan.started)?plan.started:plan.startDate;
 }
-function arrangementReferences(target){
+function preparePlanReadings(plan){
+if(plan.mode==='daily')return {rows:(plan.schedule||'').split(/\r?\n/)};
+const pool=poolForSelection(plan.books||[],plan.range||'')||[];
+return {pool,order:plan.mode==='shuffle'?shuffleReadings(pool,planReadingStart(plan)):pool};
+}
+function planReferences(plan,target,prepared){
+if(!dateInPlan(plan,target))return null;
+if(planDateOverride(plan,target)||plan.mode==='daily'){
+  const raw=planDateOverride(plan,target)?plan.calendarOverrides[target]:customPlanRow(plan,target,prepared?.rows);
+  if(!raw.trim())return [];
+  const refs=referencesForDay(raw);
+  return refs.length&&refs.every(index=>index>=0)?refs:null;
+}
+const {pool,order}=prepared||preparePlanReadings(plan);
+return readingIndices(pool,plan.mode,target,planReadingStart(plan),plan.versesPerDay,
+  plan.mode==='sequential'?(plan.bibleOffset||0):0,order);
+}
+function arrangementReferences(target,preparedPlans){
 const arrangement=prefs.arrangement||{},combined=[];
 for(const id of arrangement.order||[]){
 if(!arrangement.enabled||!arrangement.enabled[id])continue;
 const plan=(prefs.plans||[]).find(item=>item.id===id);if(!plan)continue;
-const refs=planReferences(plan,target);if(!refs||!refs.length)continue;
+let prepared=preparedPlans?.get(id);
+if(preparedPlans&&!prepared&&dateInPlan(plan,target)&&!planDateOverride(plan,target)){
+  prepared=preparePlanReadings(plan);
+  preparedPlans.set(id,prepared);
+}
+const refs=planReferences(plan,target,prepared);if(!refs||!refs.length)continue;
 if(arrangement.mode==='override')return refs;
 combined.push(...refs);
 }
@@ -752,55 +1108,559 @@ if(pickerBook){const entire=pickerButton('The entire book',byBook.get(pickerBook
 else books.filter(book=>bookMatchesSearch(book,query)).forEach(book=>{const indices=byBook.get(book),count=indices.filter(index=>pickerSelection.has(index)).length,button=document.createElement('button');button.type='button';button.textContent=bookDisplayName(book)+(count===indices.length?' ✓':count?' · selected':'');button.setAttribute('aria-label',bookDisplayName(book)+(count===indices.length?', entire book selected':count?', partly selected':''));button.addEventListener('click',()=>{pickerBook=book;renderBookPicker();$('picker-book-title').focus({preventScroll:true});$('chapter-picker').parentElement.scrollTop=0});content.append(button)});
 $('picker-status').textContent=pickerSelection.size?pickerSelection.size+' verses selected':'Whole Bible';}
 $('picker-back').addEventListener('click',()=>{pickerBook=null;renderBookPicker();$('picker-search').focus({preventScroll:true})});
-$('choose-books').addEventListener('click',()=>{if(!lines){$('selection-summary').innerHTML='<span class="sel-icon">⏳</span>Wait for Scripture to load.';return}const selected=[...$('books').querySelectorAll('tbody input:checked')].flatMap(input=>byBook.get(input.value)||[]),range=$('range-text').value.trim();pickerSelection=new Set([...selected,...(range?rangeIndices(range)||[]:[])]);pickerBook=null;$('picker-search').value='';renderBookPicker();$('book-picker-dialog').showModal()});
+$('choose-books').addEventListener('click',()=>{if(!lines){$('selection-summary').textContent=scriptureMessage();return}const selected=[...$('books').querySelectorAll('tbody input:checked')].flatMap(input=>byBook.get(input.value)||[]),range=$('range-text').value.trim();pickerSelection=new Set([...selected,...(range?rangeIndices(range)||[]:[])]);pickerBook=null;$('picker-search').value='';renderBookPicker();$('book-picker-dialog').showModal()});
 $('picker-search').addEventListener('input',renderBookPicker);
 $('picker-all').addEventListener('click',()=>{pickerSelection=new Set(lines.map((_,index)=>index));renderBookPicker()});
 $('picker-clear').addEventListener('click',()=>{pickerSelection.clear();renderBookPicker()});
 $('picker-cancel').addEventListener('click',()=>$('book-picker-dialog').close());
 $('book-picker-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-$('picker-save').addEventListener('click',()=>{const ranges=[];$('books').querySelectorAll('tbody input').forEach(input=>{const indices=byBook.get(input.value)||[];input.checked=indices.every(index=>pickerSelection.has(index));if(!input.checked)pickerChapters(input.value).forEach((chapterIndices,chapter)=>{const selected=chapterIndices.filter(index=>pickerSelection.has(index));if(selected.length===chapterIndices.length)ranges.push(lines[chapterIndices[0]].match(/^(.*?\d+:\d+)\s/)[1]+'-'+chapter+':'+lines[chapterIndices[chapterIndices.length-1]].match(/\d+:(\d+)\s/)[1]);else selected.forEach(index=>ranges.push(lines[index].match(/^(.*?\d+:\d+)\s/)[1]))})});$('range-text').value=ranges.join('; ');updateRangeSummary();updateBookList();selectionChanged();$('book-picker-dialog').close()});
+$('picker-save').addEventListener('click',()=>{const ranges=[];$('books').querySelectorAll('tbody input').forEach(input=>{const indices=byBook.get(input.value)||[];input.checked=indices.every(index=>pickerSelection.has(index));if(!input.checked)pickerChapters(input.value).forEach((chapterIndices,chapter)=>{const selected=chapterIndices.filter(index=>pickerSelection.has(index));if(selected.length===chapterIndices.length)ranges.push(lines[chapterIndices[0]].match(/^(.*?\d+:\d+)\s/)[1]+'-'+chapter+':'+lines[chapterIndices[chapterIndices.length-1]].match(/\d+:(\d+)\s/)[1]);else selected.forEach(index=>ranges.push(lines[index].match(/^(.*?\d+:\d+)\s/)[1]))})});$('range-text').value=ranges.join('; ');updateBookList();selectionChanged();$('book-picker-dialog').close()});
 
-function selectionBadge(){const count=$('books').querySelectorAll('tbody input:checked').length,range=$('range-text').value.trim();if(!books.length)return {text:'Loading books…',icon:'⏳'};if(range)return {text:'Custom range',icon:'🎯'};if(count===0)return {text:'Whole Bible',icon:'📖'};return {text:count+' selected book'+(count===1?'':'s'),icon:'✓'}}
-function updateBookList(){const query=cleanRef($('book-search').value);[...$('books').tBodies[0].rows].forEach(row=>row.hidden=!bookMatchesSearch(row.dataset.book||row.textContent,query));const badge=selectionBadge();$('selection-summary').innerHTML='<span class="sel-icon">'+badge.icon+'</span>'+badge.text;$('book-count').textContent=books.length?($('books').querySelectorAll('tbody input:checked').length?'selected':'Whole Bible · no books selected'):'Loading books…'}
-function updateMode(){const mode=$('mode').value,custom=mode==='daily';$('schedule').disabled=!custom;$('range-text').disabled=custom;$('schedule').setCustomValidity('');$('range-text').setCustomValidity('');$('custom-field').hidden=false;$('custom-inputs').hidden=!custom;$('book-field').hidden=calendarVisible||custom;$('bible-field').hidden=calendarVisible||mode!=='sequential';$('repeat-label').hidden=!custom||calendarVisible;$('verse-count-field').hidden=custom||calendarVisible;[['plan-shuffle','shuffle'],['plan-sequential','sequential'],['plan-custom','daily']].forEach(([id,value])=>$(id).setAttribute('aria-pressed',String(mode===value)));$('mode-hint').textContent=custom?'One line per day, with optional date-specific edits.':mode==='shuffle'?'Read shuffled verses without repeating until the selection cycles.':'Read through selected books or ranges in order, the chosen number of verses per day.';if(mode==='sequential')updateBibleProgress()}
+function updateBookList(){
+const query=cleanRef($('book-search').value);
+for(const row of $('books').tBodies[0].rows)row.hidden=!bookMatchesSearch(row.dataset.book||row.textContent,query);
+const selected=selectedBooks().map(bookDisplayName),range=$('range-text').value.trim();
+if(range)selected.push(range);
+$('selection-summary').textContent=selected.length?selected.join(' · '):'Whole Bible';
+$('book-count').textContent=books.length?'Choose books or chapters':'Loading books…';
+}
+function updateMode(){
+const mode=$('mode').value,custom=mode==='daily';
+$('custom-inputs').hidden=!custom;
+$('book-field').hidden=custom;
+$('bible-field').hidden=mode!=='sequential';
+$('verse-count-field').hidden=custom;
+[['plan-shuffle','shuffle'],['plan-sequential','sequential'],['plan-custom','daily']]
+  .forEach(([id,value])=>$(id).setAttribute('aria-pressed',String(mode===value)));
+if(mode==='sequential')updateBibleProgress();
+}
 
 function biblePool(){return lines?(selectionPool()||[]):[]}
 function updateBibleProgress(){const status=$('bible-progress');if(!lines){status.textContent='Loading Scripture…';return}const pool=biblePool();if(!pool.length){status.textContent='Choose valid books or ranges.';return}const offset=Math.max(0,day-draftBibleStarted),part=verseParts(readingIndices(pool,'sequential',day,draftBibleStarted,$('verses-per-day').value,editorPlanDraft?editorPlanDraft.bibleOffset||0:0)[0]);status.textContent=part?'Day '+(offset+1)+' of '+Math.ceil(pool.length/readingCount(pool,$('verses-per-day').value))+' · today: '+part.book+' '+part.chapter+':'+part.verse:''}
-function updateRangeSummary(){const range=$('range-text').value.trim();$('range-summary').textContent=range;$('range-summary').title=range;$('range-summary').hidden=!range;$('custom-range').setAttribute('aria-label',range?'Custom range: '+range:'Custom range')}
-function openCustomRange(){const input=$('custom-range-input');input.value=$('range-text').value;input.setCustomValidity('');$('custom-range-dialog').showModal()}
-function saveCustomRange(){const input=$('custom-range-input'),range=input.value.trim();if(range&&(!lines||!rangeIndices(range))){input.setCustomValidity(lines?'Enter valid ranges, such as Jn3, Rom8:28-30, or 1John5:20-Rev.':'Wait for Scripture to load before adding a range.');input.reportValidity();return}const changed=range!==$('range-text').value.trim();$('range-text').value=range;updateRangeSummary();updateBookList();$('custom-range-dialog').close();if(changed)selectionChanged()}
+function openCustomRange(){
+$('custom-range-input').value=$('range-text').value;
+setPlanFieldError('custom-range-input','custom-range-error','');
+$('custom-range-dialog').showModal();
+}
+function saveCustomRange(){
+const input=$('custom-range-input'),range=input.value.trim();
+if(range&&(!lines||!rangeIndices(range))){
+  const error=lines?'Check the range. Examples: Jn3, Rom8:28–30, or 1John5:20–Rev.':scriptureMessage();
+  setPlanFieldError(input.id,'custom-range-error',error);
+  input.focus();
+  return;
+}
+const changed=range!==$('range-text').value.trim();
+$('range-text').value=range;
+updateBookList();
+$('custom-range-dialog').close();
+if(changed)selectionChanged();
+}
 $('custom-range').addEventListener('click',openCustomRange);
 $('save-custom-range').addEventListener('click',saveCustomRange);
 $('cancel-custom-range').addEventListener('click',()=>$('custom-range-dialog').close());
-$('custom-range-input').addEventListener('input',()=>$('custom-range-input').setCustomValidity(''));
+$('custom-range-input').addEventListener('input',()=>setPlanFieldError('custom-range-input','custom-range-error',''));
 $('custom-range-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-function selectionChanged(){if($('mode').value==='sequential'){draftBibleStarted=dateValue($('plan-start-date').value)||day;if(editorPlanDraft)editorPlanDraft.bibleOffset=0;updateBibleProgress()}renderCalendar()}
-function applyBibleStart(started){draftBibleStarted=started;updateBibleProgress();renderCalendar()}
+function selectionChanged(){
+if($('mode').value==='sequential'){
+  draftBibleStarted=dateValue($('plan-start-date').value)??day;
+  editorPlanDraft.bibleOffset=0;
+  updateBibleProgress();
+}
+updatePlanPreview();
+}
+function applyBibleStart(started){
+draftBibleStarted=started;
+updateBibleProgress();
+updatePlanPreview();
+}
 
 function dateInput(value){return Number.isInteger(value)?new Date(value*86400000).toISOString().slice(0,10):''}
-function dateValue(value){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value||'');return m?Math.floor(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]))/86400000):null}
-function loadEditor(plan){editorPlanDraft={...plan,books:[...(plan.books||[])],calendarOverrides:{...(plan.calendarOverrides||{})}};editorPlanId=plan.id;$('plan-name').value=plan.name||'';$('plan-start-date').value=dateInput(plan.startDate);$('plan-end-date').value=dateInput(plan.endDate);draftBibleStarted=Number.isInteger(plan.bibleStarted)?plan.bibleStarted:Number.isInteger(plan.started)?plan.started:REAL_DAY;$('mode').value=plan.mode||'daily';$('schedule').value=plan.schedule||'';$('repeat').checked=plan.repeat!==false;const selected=new Set(plan.books||[]);[...$('books').querySelectorAll('tbody input')].forEach(input=>input.checked=selected.has(input.value));$('range-text').value=plan.range||'';$('verses-per-day').value=String(plan.versesPerDay||2);calendarOverrides={...(plan.calendarOverrides||{})};calendarDate=day;calendarMonth=new Date(day*86400000);updateRangeSummary();updateMode();updateBookList();updateScheduleCount();setCalendarView(false);if(!arrangementChanged())settingsBaseline=settingsSnapshot()}
-function syncForm(){document.documentElement.classList.remove('plan-calendar-view');arrangementDraft=null;updateSaveHint();editorPlanDraft=null;editorPlanId=null;document.documentElement.classList.add('calendar-view');document.documentElement.classList.remove('plan-editing','manager-view');applyTheme(prefs.theme);$('mode').value=prefs.mode;$('schedule').value=prefs.schedule;$('repeat').checked=!!prefs.repeat;$('range-text').value=prefs.range||'';$('verses-per-day').value=String(prefs.versesPerDay||2);calendarOverrides={...(prefs.calendarOverrides||{})};updateRangeSummary();$('book-search').value='';$('bible-jump').value='';$('bible-date').value='';$('bible-status').textContent='';updateMode();updateBookList();updateScheduleCount();calendarDate=day;calendarMonth=new Date(day*86400000);settingsView='calendar';calendarVisible=true;$('manage-plans').textContent='Edit plans';$('manage-plans').setAttribute('aria-label','Edit plans');$('add-plan').hidden=false;$('manage-plans').hidden=false;$('import-schedule').hidden=true;$('export-schedule').hidden=true;$('plan-calendar').hidden=false;$('plans-manager').hidden=true;$('schedule-editor').hidden=true;$('save-plan').hidden=true;$('save-settings').hidden=true;$('calendar-references').readOnly=true;$('reset-calendar-day').hidden=true;$('return-plan-editor').hidden=true;renderCalendar()}
-function startNewPlan(){const id='rise-plan-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);loadEditor({id,name:'',mode:'shuffle',schedule:'',repeat:true,books:[],range:'',versesPerDay:2,started:day+1,bibleStarted:day+1,startDate:day+1,endDate:null,calendarOverrides:{}})}
-function startEditPlan(id){const plan=(prefs.plans||[]).find(item=>item.id===id);if(plan)loadEditor(plan)}
-function getArrangementDraft(){const saved=prefs.arrangement||{},order=[...(saved.order||[])],enabled={...(saved.enabled||{})};for(const plan of prefs.plans||[])if(!order.includes(plan.id)){order.push(plan.id);enabled[plan.id]=true}return {order,enabled,mode:saved.mode==='combined'?'combined':'override',deleted:[]}}
-function updateSaveHint(){const dirty=arrangementChanged();$('settings-save-hint').textContent=dirty?'Unsaved changes':'Saved on this device';if(dirty)$('plans-status').textContent=''}
-function arrangementChanged(){return !!arrangementDraft&&JSON.stringify(arrangementDraft)!==JSON.stringify(getArrangementDraft())}
-function syncArrangementPlans(){if(!arrangementDraft)arrangementDraft=getArrangementDraft();for(const plan of prefs.plans||[])if(!arrangementDraft.order.includes(plan.id)&&!arrangementDraft.deleted.includes(plan.id)){arrangementDraft.order.push(plan.id);arrangementDraft.enabled[plan.id]=true}}
-function renderPlans(){updateSaveHint();const list=$('plans-list'),positions=new Map([...list.children].map(row=>[row.dataset.id,row.getBoundingClientRect().top])),focused=document.activeElement,focusedRow=focused.closest('.plan-row'),focusId=focusedRow&&focusedRow.dataset.id,focusIndex=focusedRow?[...focusedRow.children].indexOf(focused):-1;syncArrangementPlans();const plans=prefs.plans||[];list.replaceChildren();for(const id of arrangementDraft.order){const plan=plans.find(item=>item.id===id);if(!plan)continue;const row=document.createElement('li');row.dataset.id=id;row.draggable=true;row.className='plan-row';const info=document.createElement('span');info.className='plan-row-info';const name=document.createElement('strong');name.textContent=plan.name||plan.mode;const detail=document.createElement('small');detail.textContent=(plan.mode==='daily'?'Custom':plan.mode==='shuffle'?'Shuffle':'Sequential')+' · '+dateInput(plan.startDate)+(plan.endDate?' – '+dateInput(plan.endDate):'');info.append(name,detail);const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=!!arrangementDraft.enabled[id];toggle.setAttribute('aria-label','Turn on '+(plan.name||plan.mode));toggle.addEventListener('change',()=>{arrangementDraft.enabled[id]=toggle.checked;updateSaveHint()});const up=document.createElement('button');up.type='button';up.className='quiet-button';up.textContent='↑';up.setAttribute('aria-label','Move '+(plan.name||plan.mode)+' higher');up.disabled=arrangementDraft.order.indexOf(id)===0;up.addEventListener('click',()=>movePlan(id,-1));const down=document.createElement('button');down.type='button';down.className='quiet-button';down.textContent='↓';down.setAttribute('aria-label','Move '+(plan.name||plan.mode)+' lower');down.disabled=arrangementDraft.order.indexOf(id)===arrangementDraft.order.length-1;down.addEventListener('click',()=>movePlan(id,1));const edit=document.createElement('button');edit.type='button';edit.className='quiet-button';edit.classList.add('plan-icon-button');edit.setAttribute('aria-label','Edit '+(plan.name||plan.mode));edit.title='Edit plan';const editIcon=document.createElement('span');editIcon.className='plan-action-icon edit-icon';editIcon.setAttribute('aria-hidden','true');edit.append(editIcon);edit.addEventListener('click',()=>startEditPlan(id));const del=document.createElement('button');del.type='button';del.className='quiet-button';del.classList.add('plan-icon-button');del.setAttribute('aria-label','Delete '+(plan.name||plan.mode));del.title='Delete plan';const delIcon=document.createElement('span');delIcon.className='plan-action-icon delete-icon';delIcon.setAttribute('aria-hidden','true');del.append(delIcon);del.addEventListener('click',()=>deletePlan(id));row.append(info,toggle,up,down,edit,del);row.addEventListener('dragstart',event=>{event.dataTransfer.setData('text/plain',id);event.dataTransfer.effectAllowed='move';row.classList.add('dragging')});row.addEventListener('dragend',()=>{row.classList.remove('dragging');list.querySelectorAll('.drop-target').forEach(item=>item.classList.remove('drop-target'))});row.addEventListener('dragleave',event=>{if(!row.contains(event.relatedTarget))row.classList.remove('drop-target')});row.addEventListener('dragover',event=>{event.preventDefault();event.dataTransfer.dropEffect='move';if(!row.classList.contains('dragging'))row.classList.add('drop-target')});row.addEventListener('drop',event=>{event.preventDefault();row.classList.remove('drop-target');const from=arrangementDraft.order.indexOf(event.dataTransfer.getData('text/plain')),to=arrangementDraft.order.indexOf(id);if(from<0||to<0||from===to)return;const [moved]=arrangementDraft.order.splice(from,1);arrangementDraft.order.splice(to,0,moved);renderPlans()});list.append(row)}const radio=document.querySelector('input[name="arrangement-mode"][value="'+arrangementDraft.mode+'"]');if(radio)radio.checked=true;for(const row of list.children){const previous=positions.get(row.dataset.id),offset=previous===undefined?0:previous-row.getBoundingClientRect().top;if(offset&&row.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches)row.animate([{transform:'translateY('+offset+'px)'},{transform:'translateY(0)'}],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)'});if(row.dataset.id===focusId&&focusIndex>=0){const control=row.children[focusIndex];if(control&&!control.disabled)control.focus({preventScroll:true})}}}
-function movePlan(id,offset){const index=arrangementDraft.order.indexOf(id),next=index+offset;if(next<0||next>=arrangementDraft.order.length)return;arrangementDraft.order.splice(index,1);arrangementDraft.order.splice(next,0,id);renderPlans()}
-function openPlansManager(){document.documentElement.classList.remove('plan-calendar-view');const fresh=!arrangementDraft;if(fresh)arrangementDraft=getArrangementDraft();$('add-plan').hidden=false;$('manage-plans').hidden=false;$('manage-plans').textContent='Back to calendar';$('manage-plans').setAttribute('aria-label','Back to calendar');$('import-schedule').hidden=false;$('export-schedule').hidden=false;settingsView='manager';document.documentElement.classList.remove('calendar-view','plan-editing');document.documentElement.classList.add('manager-view');calendarVisible=false;$('plan-calendar').hidden=true;$('schedule-editor').hidden=true;$('plans-manager').hidden=false;$('save-plan').hidden=true;$('save-settings').hidden=false;renderPlans();if(fresh)settingsBaseline=settingsSnapshot()}
-function requestBackToCalendar(){if(settingsSnapshot()!==settingsBaseline){discardDestination='calendar';$('discard-title').textContent=editorPlanDraft?'Discard plan changes?':'Discard arrangement changes?';$('discard-description').textContent=editorPlanDraft?'Your plan has unsaved changes. Discard them and return to the calendar?':'Your plan deletions, ordering, and on/off changes are not saved. Discard them and return to the calendar?';$('discard-changes').textContent='Discard and return';$('discard-dialog').showModal();return}leavePlansManager()}
-function leavePlansManager(){arrangementDraft=null;editorPlanDraft=null;editorPlanId=null;calendarOverrides={};setCalendarView(true);settingsBaseline=settingsSnapshot()}
-function resetDiscardDialog(){discardDestination=null;$('discard-title').textContent='Discard changes?';$('discard-description').textContent='Your settings have unsaved changes. Keep editing or discard them and return to your verses.';$('discard-changes').textContent='Discard changes'}
+function dateValue(value){
+if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+const target=Date.parse(value)/86400000;
+return Number.isInteger(target)&&dateInput(target)===value?target:null;
+}
+function savedPlan(id){return (prefs.plans||[]).find(plan=>plan.id===id)}
+function selectedBooks(){
+if(!books.length&&editorPlanDraft)return [...(editorPlanDraft.books||[])];
+return [...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value);
+}
+function setSelectedBooks(selected){
+const lookup=new Set(selected);
+$('books').querySelectorAll('tbody input').forEach(input=>input.checked=lookup.has(input.value));
+}
+function readPlanDraft(){
+const mode=$('mode').value,startDate=dateValue($('plan-start-date').value);
+const original=editorPlanDraft;
+return {...original,mode,name:$('plan-name').value.trim()||planTypeName[mode]+' plan',
+  schedule:$('schedule').value,repeat:$('repeat').checked,books:selectedBooks(),
+  range:$('range-text').value.trim(),versesPerDay:Number($('verses-per-day').value),
+  started:mode==='shuffle'&&startDate===original.startDate?(original.started??startDate):startDate,
+  bibleStarted:draftBibleStarted,startDate,endDate:dateValue($('plan-end-date').value),
+  calendarOverrides:{...calendarOverrides}};
+}
+function automaticFields(){
+return {books:selectedBooks().sort(),range:$('range-text').value,count:$('verses-per-day').value};
+}
+function showAutomaticFields(selection){
+setSelectedBooks(selection.books);
+$('range-text').value=selection.range;
+$('verses-per-day').value=selection.count;
+}
+function switchPlanType(mode){
+const previous=$('mode').value;
+if(previous===mode)return;
+if(previous!=='daily')automaticDrafts[previous]=automaticFields();
+if(mode!=='daily')showAutomaticFields(automaticDrafts[mode]);
+$('mode').value=mode;
+$('plan-save-error').textContent='';
+updateBookList();
+updateMode();
+updatePlanPreview();
+}
+function editorSnapshot(){
+const mode=$('mode').value;
+const selections=['shuffle','sequential'].map(type=>type===mode?automaticFields():automaticDrafts[type]);
+return JSON.stringify([$('plan-name').value,$('plan-start-date').value,$('plan-end-date').value,
+  mode,$('schedule').value,$('repeat').checked,selections,draftBibleStarted,editorPlanDraft.bibleOffset||0,
+  Object.entries(calendarOverrides).sort()]);
+}
+function editorChanged(){return !!editorPlanDraft&&editorSnapshot()!==editorBaseline}
+function loadEditor(plan,notice=''){
+managerScroll=$('custom-field').scrollTop;
+editorScroll=0;
+editorPlanDraft={...plan};
+$('plan-name').value=plan.name||'';
+$('plan-start-date').value=dateInput(plan.startDate);
+$('plan-end-date').value=dateInput(plan.endDate);
+draftBibleStarted=plan.bibleStarted??plan.started??REAL_DAY;
+$('mode').value=plan.mode||'daily';
+$('schedule').value=plan.schedule||'';
+$('repeat').checked=plan.repeat!==false;
+const selection={books:[...(plan.books||[])].sort(),range:plan.range||'',count:String(plan.versesPerDay||2)};
+automaticDrafts={shuffle:selection,sequential:selection};
+showAutomaticFields(selection);
+calendarOverrides={...(plan.calendarOverrides||{})};
+calendarDate=plan.startDate??day;
+calendarMonth=new Date(calendarDate*86400000);
+$('bible-field').open=false;
+for(const id of ['bible-jump','bible-date'])$(id).value='';
+$('bible-status').textContent='';
+$('plan-save-error').textContent='';
+$('editor-notice').textContent=notice;
+setPlanView('editor');
+updateMode();
+updateBookList();
+updatePlanPreview();
+editorBaseline=editorSnapshot();
+$('settings-title').focus({preventScroll:true});
+}
+function syncForm(){
+arrangementDraft=null;
+editorPlanDraft=null;
+managerScroll=0;
+$('plan-save-error').textContent='';
+$('plans-status').textContent='';
+$('schedule-transfer-status').textContent='';
+applyTheme(prefs.theme);
+calendarDate=overviewDate=day;
+calendarMonth=new Date(day*86400000);
+setPlanView('calendar');
+}
+function startNewPlan(){
+const id='rise-plan-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+if(settingsView==='calendar'){
+  overviewDate=calendarDate;
+  $('custom-field').scrollTop=0;
+}
+loadEditor({id,name:'',mode:'shuffle',schedule:'',repeat:true,books:[],range:'',
+  versesPerDay:2,started:day+1,bibleStarted:day+1,startDate:day+1,endDate:null,calendarOverrides:{}});
+}
+function startEditPlan(id){
+const plan=savedPlan(id);
+if(plan)loadEditor(plan);
+}
+function closePlanEditor(focusId){
+editorPlanDraft=null;
+$('plan-save-error').textContent='';
+openPlansManager();
+$('custom-field').scrollTop=managerScroll;
+const row=[...$('plans-list').children].find(row=>row.dataset.id===focusId);
+(row?.querySelector('.plan-edit')||$('add-plan')).focus();
+}
+function requestBackToPlans(){
+if(editorChanged()){
+  confirmDiscard('plans','Discard plan changes?','Your plan has unsaved changes. Discard them and return to Edit plans?');
+  return;
+}
+closePlanEditor(editorPlanDraft.id);
+}
+function returnFromPlanCalendar(){
+setPlanView('editor');
+$('custom-field').scrollTop=editorScroll;
+$('plan-save-error').textContent='';
+updatePlanPreview();
+$('plan-calendar-open').focus();
+}
+function scriptureMessage(){
+return scriptureStatus==='loading'?'Scripture is loading. The preview will appear when it is ready.':
+  'Scripture is unavailable. Connect to the internet and reload Rise to preview and save plans.';
+}
+function validReferences(raw){
+const refs=referencesForDay(raw);
+return refs.length>0&&refs.every(index=>index>=0);
+}
+function setPlanFieldError(field,status,message){
+$(field).setAttribute('aria-invalid',String(!!message));
+$(status).textContent=message;
+}
+function fillPlanErrors(id,messages){
+const list=$(id);
+if(list.textContent===messages.join(''))return;
+const items=document.createDocumentFragment();
+for(const message of messages){
+  const item=document.createElement('li');
+  item.textContent=message;
+  items.append(item);
+}
+list.replaceChildren(items);
+}
+function updatePlanPreview(){
+if(!editorPlanDraft)return null;
+const plan=readPlanDraft(),custom=plan.mode==='daily';
+const startInput=$('plan-start-date'),endInput=$('plan-end-date');
+const startError=(plan.startDate===null||startInput.validity.badInput)?'Choose a start date.':'';
+const endError=(endInput.validity.badInput||(endInput.value&&plan.endDate===null))?'Enter a valid end date or clear it.':
+  plan.endDate!==null&&plan.startDate!==null&&plan.endDate<plan.startDate?'End date must be on or after the start date.':'';
+const countError=!custom&&(!Number.isSafeInteger(plan.versesPerDay)||plan.versesPerDay<1)?
+  'Enter a positive whole number.':'';
+const rangeError=!custom&&lines&&plan.range&&!rangeIndices(plan.range)?'Check the selected chapters or verse ranges.':'';
+setPlanFieldError(startInput.id,'start-date-error',startError);
+setPlanFieldError(endInput.id,'end-date-error',endError);
+setPlanFieldError('verses-per-day','verse-count-error',countError);
+setPlanFieldError('custom-range','range-error',rangeError);
+$('clear-end-date').disabled=!endInput.value&&!endInput.validity.badInput;
+const rows=custom?plan.schedule.split(/\r?\n/):null;
+const invalidLines=new Set(),scheduleErrors=[],overrideErrors=[];
+let firstInvalidOverride=null;
+if(lines&&rows)rows.forEach((raw,index)=>{
+  if(!raw.trim()||validReferences(raw))return;
+  invalidLines.add(index);
+  const date=plan.startDate===null?'':' ('+dateTitle(plan.startDate+index)+')';
+  scheduleErrors.push('Line '+(index+1)+date+': check “'+raw.trim()+'”.');
+});
+if(lines)for(const [target,raw] of Object.entries(plan.calendarOverrides)){
+  if(raw.trim()&&!validReferences(raw)){
+    firstInvalidOverride??=Number(target);
+    overrideErrors.push(dateTitle(Number(target))+': check “'+raw+'”.');
+  }
+}
+$('schedule').setAttribute('aria-invalid',String(!!scheduleErrors.length));
+fillPlanErrors('schedule-errors',scheduleErrors);
+fillPlanErrors('override-errors',overrideErrors);
+const days=$('plan-preview-days'),overrides=Object.keys(plan.calendarOverrides).length;
+const note=!lines?scriptureMessage():startError||endError?'Choose a valid date range to preview this plan.':
+  countError||rangeError?'Check the daily reading settings to preview this plan.':'The first five dates in this plan.';
+$('preview-note').textContent=note;
+$('preview-overrides').textContent=overrides?overrides+' date '+(overrides===1?'override':'overrides')+' · Edit in Plan calendar.':'';
+if(startError||endError||countError||rangeError||(!lines&&!custom)){
+  days.replaceChildren();
+}else{
+  const preview=[],prepared=lines?preparePlanReadings(plan):{rows};
+  for(let i=0;i<5;i++){
+    const target=plan.startDate+i;
+    if(!dateInPlan(plan,target))break;
+    const override=planDateOverride(plan,target);
+    const line=custom?(i<rows.length?i:plan.repeat?i%rows.length:null):null;
+    const raw=override?plan.calendarOverrides[target]:custom?customPlanRow(plan,target,rows):'';
+    const refs=lines?planReferences(plan,target,prepared):null;
+    const title=document.createElement('time'),reading=document.createElement('span'),item=document.createElement('li');
+    title.dateTime=dateInput(target);
+    title.textContent=dateTitle(target)+(line!==null&&!override?' · Line '+(line+1):'')+(override?' · Override':'');
+    if((!override&&invalidLines.has(line))||(lines&&!refs))reading.textContent='Check “'+raw+'”';
+    else if(raw.trim())reading.textContent=raw;
+    else if(refs?.length){
+      const visible=refs.slice(0,10).map(referenceText).join('; ');
+      reading.textContent=visible+(refs.length>10?' · +'+(refs.length-10)+' more':'');
+    }
+    else reading.textContent=override||line!==null?'Blank day':'No reading scheduled';
+    item.append(title,reading);
+    preview.push(item);
+  }
+  days.replaceChildren(...preview);
+}
+const field=startError?startInput.id:endError?endInput.id:countError?'verses-per-day':
+  rangeError?'custom-range':scheduleErrors.length?'schedule':overrideErrors.length?'plan-calendar-open':null;
+return {plan,field,firstInvalidOverride,message:!lines?scriptureMessage():overrideErrors.length&&field==='plan-calendar-open'?'Check the date overrides listed in the preview.':''};
+}
+let previewFrame=0;
+function refreshPlanPreview(){
+if(!editorPlanDraft||calendarVisible)return;
+cancelAnimationFrame(previewFrame);
+previewFrame=requestAnimationFrame(updatePlanPreview);
+}
+function getArrangementDraft(){
+const saved=prefs.arrangement||{},ids=(prefs.plans||[]).map(plan=>plan.id);
+const order=(saved.order||[]).filter(id=>ids.includes(id)),enabled={};
+for(const id of order)enabled[id]=!!saved.enabled?.[id];
+for(const id of ids)if(!order.includes(id)){
+  order.push(id);
+  enabled[id]=true;
+}
+return {order,enabled,mode:saved.mode==='combined'?'combined':'override',deleted:[]};
+}
+function arrangementChanged(){
+if(!arrangementDraft)return false;
+const saved=getArrangementDraft(),draft=arrangementDraft;
+return draft.deleted.length>0||draft.mode!==saved.mode||draft.order.length!==saved.order.length||
+  draft.order.some((id,index)=>id!==saved.order[index]||draft.enabled[id]!==saved.enabled[id]);
+}
+function updateSaveHint(){
+const dirty=arrangementChanged();
+$('settings-save-hint').textContent=dirty?'Unsaved changes':'Saved on this device';
+$('save-settings').disabled=!dirty;
+$('save-settings').classList.toggle('pending',dirty);
+$('add-plan').classList.toggle('primary-button',!dirty);
+$('add-plan').classList.toggle('quiet-button',dirty);
+}
+function planButton(label,name){
+const button=document.createElement('button');
+button.type='button';
+button.className='quiet-button';
+button.textContent=label;
+if(name)button.setAttribute('aria-label',label+' '+name);
+return button;
+}
+function planRangeLabel(plan){
+const start=Number.isInteger(plan.startDate)?planDateFormat.format(plan.startDate*86400000):'Any date';
+return Number.isInteger(plan.endDate)?start+' – '+planDateFormat.format(plan.endDate*86400000):start+' onward';
+}
+function makePlanRow(id,index){
+const plan=savedPlan(id),name=plan.name||planTypeName[plan.mode]+' plan';
+const row=document.createElement('li'),rank=document.createElement('span'),info=document.createElement('div');
+const title=document.createElement('strong'),type=document.createElement('small'),dates=document.createElement('small');
+row.dataset.id=id;
+row.className='plan-row';
+row.draggable=true;
+rank.className='plan-rank';
+rank.textContent=String(index+1);
+rank.setAttribute('aria-label','Priority '+(index+1));
+info.className='plan-row-info';
+title.textContent=name;
+type.textContent=planTypeName[plan.mode];
+dates.textContent=planRangeLabel(plan);
+info.append(title,type,dates);
+
+const label=document.createElement('label'),toggle=document.createElement('input');
+const track=document.createElement('span'),state=document.createElement('small');
+label.className='plan-toggle';
+toggle.type='checkbox';
+toggle.setAttribute('role','switch');
+toggle.setAttribute('aria-label',name+' enabled');
+toggle.checked=!!arrangementDraft.enabled[id];
+track.className='switch-track';
+track.setAttribute('aria-hidden','true');
+state.setAttribute('aria-hidden','true');
+state.textContent=toggle.checked?'On':'Off';
+toggle.addEventListener('change',()=>{
+  arrangementDraft.enabled[id]=toggle.checked;
+  state.textContent=toggle.checked?'On':'Off';
+  arrangementUpdated();
+});
+label.append(toggle,track,state);
+const edit=planButton('Edit',name);
+edit.classList.add('plan-edit');
+edit.addEventListener('click',()=>startEditPlan(id));
+
+const more=document.createElement('details'),summary=document.createElement('summary'),actions=document.createElement('div');
+more.className='plan-more';
+summary.textContent='More';
+summary.setAttribute('aria-label','More actions for '+name);
+for(const [label,offset] of [['Move up',-1],['Move down',1]]){
+  const button=planButton(label,name);
+  button.dataset.move=String(offset);
+  button.setAttribute('aria-disabled',String(index+offset<0||index+offset>=arrangementDraft.order.length));
+  button.addEventListener('click',()=>movePlan(id,index+offset,offset));
+  actions.append(button);
+}
+const remove=planButton('Delete',name);
+remove.addEventListener('click',()=>deletePlan(id));
+actions.append(remove);
+more.append(summary,actions);
+row.append(rank,info,label,edit,more);
+
+row.addEventListener('dragstart',event=>{
+  event.dataTransfer.setData('text/plain',id);
+  event.dataTransfer.effectAllowed='move';
+  row.classList.add('dragging');
+});
+row.addEventListener('dragend',()=>{
+  row.classList.remove('dragging');
+  $('plans-list').querySelectorAll('.drop-target').forEach(item=>item.classList.remove('drop-target'));
+});
+row.addEventListener('dragleave',event=>{
+  if(!row.contains(event.relatedTarget))row.classList.remove('drop-target');
+});
+row.addEventListener('dragover',event=>{
+  if(!$('plans-list').querySelector('.dragging'))return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect='move';
+  if(!row.classList.contains('dragging'))row.classList.add('drop-target');
+});
+row.addEventListener('drop',event=>{
+  event.preventDefault();
+  movePlan(event.dataTransfer.getData('text/plain'),index);
+});
+return row;
+}
+function renderPlans(){
+const list=$('plans-list');
+list.replaceChildren(...arrangementDraft.order.map(makePlanRow));
+$('plans-empty').hidden=list.children.length>0;
+$('priority-help').hidden=!list.children.length;
+const radio=document.querySelector('input[name="arrangement-mode"][value="'+arrangementDraft.mode+'"]');
+radio.checked=true;
+updateSaveHint();
+}
+function arrangementUpdated(){
+$('plans-status').textContent='';
+updateSaveHint();
+}
+function movePlan(id,next,offset){
+const order=arrangementDraft.order,index=order.indexOf(id);
+if(index<0||next<0||next>=order.length||next===index)return;
+order.splice(index,1);
+order.splice(next,0,id);
+renderPlans();
+const row=$('plans-list').children[next];
+if(offset){
+  row.querySelector('.plan-more').open=true;
+  row.querySelector('[data-move="'+offset+'"]').focus();
+}else row.querySelector('.plan-edit').focus();
+$('plans-status').textContent=(savedPlan(id).name||'Plan')+' moved to position '+(next+1)+' of '+order.length+'.';
+}
+function openPlansManager(){
+if(!arrangementDraft)arrangementDraft=getArrangementDraft();
+setPlanView('manager');
+renderPlans();
+}
+function confirmDiscard(destination,title,description){
+discardDestination=destination;
+$('discard-title').textContent=title;
+$('discard-description').textContent=description;
+$('discard-changes').textContent='Discard changes';
+$('discard-dialog').showModal();
+}
+function requestBackToCalendar(){
+if(arrangementChanged()){
+  confirmDiscard('calendar','Discard arrangement changes?',
+    'Your display mode, order, on/off switches, and pending deletions have unsaved changes.');
+  return;
+}
+leavePlansManager();
+}
+function leavePlansManager(){
+arrangementDraft=null;
+$('plans-status').textContent='';
+$('schedule-transfer-status').textContent='';
+calendarDate=overviewDate;
+calendarMonth=new Date(calendarDate*86400000);
+setPlanView('calendar');
+$('manage-plans').focus();
+}
+function savePreferences(next){
+localStorage.setItem(SETTINGS,JSON.stringify(next));
+prefs=next;
+}
+function saveArrangement(){
+if(!arrangementChanged())return;
+const {order,enabled,mode,deleted}=arrangementDraft;
+try{
+  savePreferences({...prefs,plans:prefs.plans.filter(plan=>!deleted.includes(plan.id)),
+    arrangement:{order:[...order],enabled:{...enabled},mode}});
+}catch(_){
+  $('settings-save-hint').textContent='Changes could not be saved on this device. Try again.';
+  return;
+}
+arrangementDraft=getArrangementDraft();
+updateSaveHint();
+$('plans-status').textContent='';
+display();
+}
 let pendingDeletePlan=null;
-function deletePlan(id){const plan=(prefs.plans||[]).find(item=>item.id===id);if(!plan)return;pendingDeletePlan=id;$('delete-plan-description').textContent='Delete “'+(plan.name||plan.mode)+'”? The deletion will be saved when you press Save changes.';$('delete-plan-dialog').showModal()}
+function deletePlan(id){
+const plan=savedPlan(id);
+if(!plan)return;
+pendingDeletePlan=id;
+$('delete-plan-description').textContent='Delete “'+(plan.name||planTypeName[plan.mode])+'”? The deletion will be saved when you press Save changes.';
+$('delete-plan-dialog').showModal();
+}
 $('cancel-delete-plan').addEventListener('click',()=>$('delete-plan-dialog').close());
 $('delete-plan-dialog').addEventListener('close',()=>{pendingDeletePlan=null});
 $('delete-plan-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-$('confirm-delete-plan').addEventListener('click',()=>{const id=pendingDeletePlan;$('delete-plan-dialog').close();if(id)confirmDeletePlan(id)});
-function confirmDeletePlan(id){if(!(prefs.plans||[]).some(plan=>plan.id===id))return;if(!arrangementDraft)arrangementDraft=getArrangementDraft();if(!arrangementDraft.deleted.includes(id))arrangementDraft.deleted.push(id);arrangementDraft.order=arrangementDraft.order.filter(item=>item!==id);delete arrangementDraft.enabled[id];renderPlans()}
-function savePlan(){const mode=$('mode').value,name=$('plan-name').value.trim()||(mode==='daily'?'Custom plan':mode==='shuffle'?'Shuffle plan':'Sequential plan'),startDate=dateValue($('plan-start-date').value),endDate=dateValue($('plan-end-date').value);if(startDate===null){$('plan-start-date').setCustomValidity('Choose a starting date.');$('plan-start-date').reportValidity();return}$('plan-start-date').setCustomValidity('');if(endDate!==null&&endDate<startDate){$('plan-end-date').setCustomValidity('The end date must be on or after the start date.');$('plan-end-date').reportValidity();return}$('plan-end-date').setCustomValidity('');if(mode==='daily'){const rows=$('schedule').value.split(/\r?\n/).map(row=>row.trim());if(rows.some(row=>{if(!row)return false;const refs=referencesForDay(row);return !refs.length||refs.some(index=>index<0)})){$('schedule').setCustomValidity('Check each reference in the custom schedule.');$('schedule').reportValidity();return}}const range=$('range-text').value.trim();if(mode!=='daily'&&range&&!rangeIndices(range)){openCustomRange();$('custom-range-input').setCustomValidity('Check the book, chapter, or verse range.');$('custom-range-input').reportValidity();return}const plan={...editorPlanDraft,id:editorPlanId,name,mode,schedule:$('schedule').value,repeat:$('repeat').checked,books:[...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value),range,versesPerDay:Number($('verses-per-day').value)||2,started:startDate,bibleStarted:mode==='sequential'?draftBibleStarted:startDate,startDate,endDate,calendarOverrides:{...calendarOverrides}};if(!Array.isArray(prefs.plans))prefs.plans=[];const existing=prefs.plans.findIndex(item=>item.id===plan.id);if(existing<0){prefs.plans.push(plan);if(!prefs.arrangement)prefs.arrangement={order:[],enabled:{},mode:'override'};if(!prefs.arrangement.order)prefs.arrangement.order=[];if(!prefs.arrangement.enabled)prefs.arrangement.enabled={};if(!prefs.arrangement.order.includes(plan.id))prefs.arrangement.order.unshift(plan.id);prefs.arrangement.enabled[plan.id]=true}else prefs.plans[existing]=plan;editorPlanDraft=plan;try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}openPlansManager();$('plans-status').textContent='Plan saved. New plans are on by default.';if(!arrangementChanged())settingsBaseline=settingsSnapshot();display()}
+$('confirm-delete-plan').addEventListener('click',()=>{
+const id=pendingDeletePlan,index=arrangementDraft.order.indexOf(id);
+$('delete-plan-dialog').close();
+if(index<0)return;
+arrangementDraft.deleted.push(id);
+arrangementDraft.order.splice(index,1);
+delete arrangementDraft.enabled[id];
+renderPlans();
+const list=$('plans-list'),row=list.children[Math.min(index,list.children.length-1)];
+(row?.querySelector('.plan-edit')||$('create-first-plan')).focus();
+$('plans-status').textContent='Plan marked for deletion.';
+});
+function addSavedPlans(plans,atTop){
+const {order,enabled,mode}=getArrangementDraft();
+const ids=plans.map(plan=>plan.id);
+const insert=target=>atTop?target.unshift(...ids):target.push(...ids);
+insert(order);
+for(const id of ids)enabled[id]=true;
+savePreferences({...prefs,plans:[...(prefs.plans||[]),...plans],arrangement:{order,enabled,mode}});
+if(arrangementDraft){
+  insert(arrangementDraft.order);
+  for(const id of ids)arrangementDraft.enabled[id]=true;
+}
+}
+function savePlan(){
+const result=updatePlanPreview();
+if(!result)return;
+const {plan,field,message,firstInvalidOverride}=result;
+if(field||message){
+  if(calendarVisible&&field==='plan-calendar-open'){
+    calendarMonth=new Date(firstInvalidOverride*86400000);
+    selectCalendarDate(firstInvalidOverride);
+    $('calendar-references').focus();
+    $('plan-save-error').textContent='Correct the references for the selected date.';
+    return;
+  }
+  if(calendarVisible&&field)returnFromPlanCalendar();
+  $('plan-save-error').textContent=message||'Review the highlighted plan details.';
+  if(field)$(field).focus();
+  return;
+}
+const original=savedPlan(plan.id);
+// Only active fields can be saved. Keep the last saved values for inactive fields.
+if(plan.mode!=='daily'){
+  plan.schedule=original?.schedule||'';
+  plan.repeat=original?.repeat??true;
+}else{
+  plan.books=original?.books||[];
+  plan.range=original?.range||'';
+  plan.versesPerDay=original?.versesPerDay||2;
+}
+try{
+  if(original)savePreferences({...prefs,plans:prefs.plans.map(item=>item.id===plan.id?plan:item)});
+  else addSavedPlans([plan],true);
+}catch(_){
+  $('plan-save-error').textContent='Plan could not be saved on this device. Your draft is still open. Try again.';
+  return;
+}
+$('plans-status').textContent=original?'Plan saved on this device.':'Plan saved on this device and turned on.';
+closePlanEditor(plan.id);
+display();
+}
 $('plan-start-date').addEventListener('change',()=>{
 const startDate=dateValue($('plan-start-date').value);
 if(!editorPlanDraft||startDate===null)return;
@@ -808,39 +1668,59 @@ draftBibleStarted=startDate;
 calendarDate=startDate;
 calendarMonth=new Date(startDate*86400000);
 if($('mode').value==='sequential')updateBibleProgress();
-if(calendarVisible)selectCalendarDate(startDate)
+refreshPlanPreview();
 });
 $('save-plan').addEventListener('click',savePlan);
 
-let settingsBaseline='';
-function settingsSnapshot(){return JSON.stringify({bibleOffset:editorPlanDraft?editorPlanDraft.bibleOffset||0:0,arrangement:arrangementDraft,planName:$('plan-name').value,startDate:$('plan-start-date').value,endDate:$('plan-end-date').value,mode:$('mode').value,schedule:$('schedule').value,repeat:$('repeat').checked,books:[...$('books').querySelectorAll('tbody input:checked')].map(input=>input.value).sort(),range:$('range-text').value,versesPerDay:Number($('verses-per-day').value),started:$('mode').value==='daily'?draftStarted():prefs.started,bibleStarted:draftBibleStarted,calendarOverrides:Object.keys(calendarOverrides).sort().map(key=>[key,calendarOverrides[key]])})}
-function requestCloseSettings(){if(!panel.classList.contains('open')||$('export-plans-dialog').open||$('delete-plan-dialog').open||$('discard-dialog').open||$('import-dialog').open||$('about-dialog').open||$('custom-range-dialog').open||$('book-picker-dialog').open)return;if(settingsSnapshot()!==settingsBaseline){resetDiscardDialog();$('discard-dialog').showModal();return}setOpen(false)}
+function requestCloseSettings(){
+if(!panel.classList.contains('open')||document.querySelector('dialog[open]'))return;
+if(editorChanged()||arrangementChanged()){
+  confirmDiscard('close','Discard changes?','Your unsaved changes will be discarded when you return to your verses.');
+  return;
+}
+setOpen(false);
+}
 $('close-about').addEventListener('click',()=>$('about-dialog').close());
 $('about-rise').addEventListener('click',showAbout);
 function showAbout(){$('about-dialog').showModal()}
 (function(){const POPUP='rise-swipe-popup-seen';if(localStorage.getItem(POPUP))return;const d=$('swipe-popup');if(!d)return;const confirm=()=>{localStorage.setItem(POPUP,'1');d.close()};$('swipe-popup-confirm').addEventListener('click',confirm);d.addEventListener('cancel',confirm);d.addEventListener('keydown',e=>{if(e.key==='Escape')confirm()});d.showModal()})();
 $('about-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-$('keep-editing').addEventListener('click',()=>{resetDiscardDialog();$('discard-dialog').close()});
-$('discard-changes').addEventListener('click',()=>{const destination=discardDestination;resetDiscardDialog();$('discard-dialog').close();if(destination==='calendar')leavePlansManager();else setOpen(false)});
-$('discard-dialog').addEventListener('cancel',resetDiscardDialog);
+$('keep-editing').addEventListener('click',()=>$('discard-dialog').close());
+$('discard-changes').addEventListener('click',()=>{
+const destination=discardDestination;
+$('discard-dialog').close();
+if(destination==='calendar')leavePlansManager();
+else if(destination==='plans')closePlanEditor(editorPlanDraft.id);
+else setOpen(false);
+});
 $('discard-dialog').addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation()});
-function setOpen(open){if(open&&!$('preview-back').hidden){$('preview-back').hidden=true;display()}if(panel.classList.contains('open')===open)return;verseGesture=false;verseReadyAt=Date.now()+300;cancelSlideTransition();panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();settingsBaseline=settingsSnapshot();$('calendar-today').focus({preventScroll:true})}else{applyTheme(prefs.theme);document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
-$('verses-per-day').addEventListener('change',()=>{updateBibleProgress();renderCalendar()});
-$('mode').addEventListener('change',updateMode);document.querySelectorAll('input[name="arrangement-mode"]').forEach(input=>input.addEventListener('change',()=>{if(arrangementDraft)arrangementDraft.mode=input.value;updateSaveHint()}));
-[['plan-shuffle','shuffle'],['plan-sequential','sequential'],['plan-custom','daily']].forEach(([id,value])=>$(id).addEventListener('click',()=>{$('mode').value=value;updateMode();renderCalendar()}));
+function setOpen(open){if(open&&!$('preview-back').hidden){$('preview-back').hidden=true;display()}if(panel.classList.contains('open')===open)return;verseGesture=false;verseReadyAt=Date.now()+300;cancelSlideTransition();panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));panel.inert=!open;document.querySelector('main').inert=open;if(open){syncForm();$('calendar-today').focus({preventScroll:true})}else{applyTheme(prefs.theme);document.querySelector('main').focus({preventScroll:true});window.scrollTo(0,0);fitVerse()}}
+$('verses-per-day').addEventListener('change',()=>{
+  if($('mode').value==='sequential')updateBibleProgress();
+  refreshPlanPreview();
+});
+$('plan-end-date').addEventListener('change',refreshPlanPreview);
+document.querySelectorAll('input[name="arrangement-mode"]').forEach(input=>input.addEventListener('change',()=>{
+  arrangementDraft.mode=input.value;
+  arrangementUpdated();
+}));
+[['plan-shuffle','shuffle'],['plan-sequential','sequential'],['plan-custom','daily']].forEach(([id,value])=>$(id).addEventListener('click',()=>switchPlanType(value)));
 $('bible-jump-go').addEventListener('click',()=>{const status=$('bible-status');try{if(!lines)throw Error('Wait for Scripture to load.');const raw=$('bible-jump').value.trim();if(!raw)throw Error('Enter a verse reference, such as John 3:16.');const refs=referencesForDay(raw);if(!refs.length||refs.some(i=>i<0))throw Error('Check the reference, such as John 3:16 or Jn3:16.');const position=biblePool().indexOf(refs[0]);if(position<0)throw Error('That verse is outside the selected books or ranges.');const part=verseParts(refs[0]);editorPlanDraft.bibleOffset=position;applyBibleStart(day);$('bible-jump').value='';status.textContent='Continuing from '+part.book+' '+part.chapter+':'+part.verse+' today.'}catch(error){status.textContent=error.message}});
 $('bible-date-go').addEventListener('click',()=>{const status=$('bible-status');try{if(!lines)throw Error('Wait for Scripture to load.');const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec($('bible-date').value||'');if(!m)throw Error('Choose a date to continue from.');const target=Math.floor(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]))/86400000),started=draftBibleStarted;applyBibleStart(day-(target-started));$('bible-date').value='';status.textContent='Continuing from the verse planned for '+dateTitle(target)+'.'}catch(error){status.textContent=error.message}});
 $('bible-reset').addEventListener('click',()=>{if(editorPlanDraft)editorPlanDraft.bibleOffset=0;applyBibleStart(dateValue($('plan-start-date').value)||day);const first=verseParts(biblePool()[0]);$('bible-status').textContent=(first?'Reading restarted — '+first.book+' '+first.chapter+':'+first.verse+' today.':'Reading selection restarted.')+' Save plan to apply.'});
 $('book-search').addEventListener('input',updateBookList);$('books').addEventListener('change',()=>{updateBookList();selectionChanged()});$('clear-books').addEventListener('click',()=>{const checked=$('books').querySelectorAll('tbody input:checked');if(!checked.length)return;checked.forEach(input=>input.checked=false);updateBookList();selectionChanged()});$('close-settings').addEventListener('click',requestCloseSettings);
-function updateScheduleCount(){const count=$('schedule').value.split(/\r?\n/).filter(line=>line.trim()).length;$('schedule-count').textContent=count?String(count)+' day'+(count===1?'':'s')+' planned':''}
-$('schedule').addEventListener('input',()=>{$('mode').value='daily';updateMode();$('schedule').setCustomValidity('');updateScheduleCount()});
-form.addEventListener('submit',e=>e.preventDefault());
-$('save-settings').addEventListener('click',()=>{if(settingsView!=='manager')return;const mode=document.querySelector('input[name="arrangement-mode"]:checked');if(mode)arrangementDraft.mode=mode.value;const enabled={};for(const id of arrangementDraft.order)enabled[id]=!!arrangementDraft.enabled[id];prefs.plans=(prefs.plans||[]).filter(plan=>!arrangementDraft.deleted.includes(plan.id));prefs.arrangement={order:[...arrangementDraft.order],enabled,mode:arrangementDraft.mode};arrangementDraft.deleted=[];try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}arrangementDraft=getArrangementDraft();updateSaveHint();$('plans-status').textContent='';display();settingsBaseline=settingsSnapshot()});
+$('schedule-editor').addEventListener('input',event=>{
+  $('plan-save-error').textContent='';
+  if(event.target.matches('#schedule,#verses-per-day,#plan-start-date,#plan-end-date'))refreshPlanPreview();
+});
+$('repeat').addEventListener('change',refreshPlanPreview);
+form.addEventListener('submit',event=>event.preventDefault());
+$('save-settings').addEventListener('click',saveArrangement);
 document.addEventListener('keydown',e=>{if(e.defaultPrevented||e.isComposing||e.repeat||document.querySelector('dialog[open]'))return;const active=document.activeElement;if(e.key==='/'&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!/^(INPUT|TEXTAREA)$/.test(active.tagName)&&!active.isContentEditable){e.preventDefault();if(panel.classList.contains('open'))requestCloseSettings();else setOpen(true)}else if(e.key==='Escape')requestCloseSettings()});
 let settingsTouch=null;
 panel.addEventListener('touchstart',event=>{
 settingsTouch=null;
-if(!panel.classList.contains('open')||event.touches.length!==1||event.target.closest('input,textarea,select,#books,#calendar-days,dialog'))return;
+if(!panel.classList.contains('open')||event.touches.length!==1||event.target.closest('input,textarea,select,#books,#calendar-days,dialog')||settingsView!=='calendar')return;
 settingsTouch={x:event.touches[0].clientX,y:event.touches[0].clientY};
 },{passive:true});
 panel.addEventListener('touchmove',event=>{
@@ -895,19 +1775,58 @@ const RiseTestDate={
 };
 window.RiseTestDate=RiseTestDate;
 
-async function download(){const r=await fetch(SOURCE);if(!r.ok)throw Error();const data=(await r.text()).replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);if(data.length!==COUNT||!data[COUNT-1].startsWith('Rev. 22:21 ')||!data.some(line=>line.startsWith('Rev. 12:18 ')))throw Error();const firstLoad=!books.length;lines=data;if(firstLoad){buildIndex();syncForm()}await write(data);try{localStorage.setItem(FETCHED,String(Date.now()))}catch(_){}if(firstLoad||!panel.classList.contains('open'))display()}
-async function load(){let cached=null;try{cached=await read()}catch(_){}
-if(cached&&cached.length===COUNT&&cached[COUNT-1].startsWith('Rev. 22:21 ')){lines=cached;buildIndex();syncForm();display()}
-let fresh=false;try{fresh=Date.now()-(Number(localStorage.getItem(FETCHED))||0)<TTL}catch(_){}
-// Serve the cached copy immediately; refresh from the network only when missing or stale.
-if(!lines||!fresh){if(navigator.onLine)download().catch(()=>{})}
-if(!lines)$('books-hint').textContent='Scripture could not be loaded. Connect to the internet and reload to choose books, chapters, or verses.'}syncForm();display();load()})();
+function useScripture(data){
+const firstLoad=!lines;
+lines=data;
+scriptureStatus='ready';
+if(firstLoad){
+  const selected=editorPlanDraft?selectedBooks():[];
+  buildIndex();
+  if(editorPlanDraft){
+    if($('plan-save-error').textContent.startsWith('Scripture is loading'))$('plan-save-error').textContent='';
+    setSelectedBooks(selected);
+    updateBookList();
+    updateMode();
+    updatePlanPreview();
+  }
+  if(calendarVisible)selectCalendarDate(calendarDate);
+}
+if(firstLoad||!panel.classList.contains('open'))display();
+}
+async function download(){
+const response=await fetch(SOURCE);
+if(!response.ok)throw Error();
+const data=(await response.text()).replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);
+if(data.length!==COUNT||!data[COUNT-1].startsWith('Rev. 22:21 ')||!data.some(line=>line.startsWith('Rev. 12:18 ')))throw Error();
+useScripture(data);
+await write(data);
+try{localStorage.setItem(FETCHED,String(Date.now()))}catch(_){}
+}
+async function load(){
+let cached=null;
+try{cached=await read()}catch(_){}
+if(cached&&cached.length===COUNT&&cached[COUNT-1].startsWith('Rev. 22:21 '))useScripture(cached);
+let fresh=false;
+try{fresh=Date.now()-(Number(localStorage.getItem(FETCHED))||0)<TTL}catch(_){}
+if(navigator.onLine&&(!lines||!fresh)){
+  try{await download()}catch(_){}
+}
+if(!lines){
+  scriptureStatus='unavailable';
+  $('books-hint').textContent=scriptureMessage();
+  updatePlanPreview();
+}
+}
+syncForm();
+display();
+load();
+})();
 </script>
 <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
 </script>
-<script id="acswebapps-updater" data-version="rise-v97">
+<script id="acswebapps-updater" data-version="rise-v98">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

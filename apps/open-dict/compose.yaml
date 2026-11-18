@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: open_dict
+      POSTGRES_USER: open_dict
+      POSTGRES_PASSWORD: ${OPEN_DICT_DB_PASSWORD:?Set OPEN_DICT_DB_PASSWORD in .env}
+      POSTGRES_INITDB_ARGS: --locale=C --encoding=UTF8
+    volumes:
+      - open-dict-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "open_dict", "-d", "open_dict"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  init:
+    image: open-dict-app:local
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment: &database
+      OPEN_DICT_DATABASE_URL: postgresql://open_dict@db/open_dict
+      PGPASSWORD: ${OPEN_DICT_DB_PASSWORD}
+    command: ["sh", "-c", "python -m lexical.build --db \"$$OPEN_DICT_DATABASE_URL\" seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: open-dict-app:local
+    environment: *database
+    ports:
+      - "${OPEN_DICT_BIND:-127.0.0.1}:${OPEN_DICT_PORT:-8766}:8766"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    volumes:
+      - ./data/releases:/opt/open-dict/data/releases:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8766/api/v1/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 4s
+      retries: 5
+
+  import:
+    image: open-dict-app:local
+    profiles: ["import"]
+    environment: *database
+    entrypoint: ["python", "-m", "lexical.build", "--db", "postgresql://open_dict@db/open_dict"]
+    command: ["report"]
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    volumes:
+      - ./.local/raw:/sources:ro
+      - ./data/releases:/opt/open-dict/data/releases
+volumes:
+  open-dict-postgres:

@@ -31,6 +31,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 
 | App | What it does | Status |
 | --- | --- | --- |
+| [Open Dictionary](https://acswebapps.com/apps/open-dict/) | Look up English definitions by source, compare words, and read available pronunciations and etymologies. The starter collection works offline. | beta |
 | [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Bible Compare](https://acswebapps.com/apps/bible-compare/) | Read Scripture and compare the same verses across public-domain translations, with the Recovery Version first, difference highlighting, offline downloads, and a Compare mode that stacks selected verses one under another. | beta |
@@ -66,6 +67,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 Plain HTML, CSS, and JavaScript, served as-is on GitHub Pages. There is no build system or npm dependency. The only scheduled automation refreshes Show Songs’s Songbase data; apps are still served as-is.
 
 A few apps bundle or use specialized pieces:
+
+- **Open Dictionary** uses a bundled starter collection on GitHub Pages. The app directory contains the optional dictionary API, database imports, and offline pack tooling. See the [Open Dictionary README](apps/open-dict/README.md).
 
 - **Test** bundles PDF.js (with fonts and character maps) for private, offline PDF text import.
 - **Logos Type** bundles PeerJS for friend races and downloads Scripture from a public API, caching it locally.
@@ -219,12 +222,12 @@ Contributions to the home page should keep it dependency-free and accessible (ke
 
 ## License
 
-Please see the repository on GitHub for licensing details (no license file is bundled in this repo yet).
+See the repository on GitHub for project licensing details. Open Dictionary’s app code has its own [MIT License](apps/open-dict/LICENSE), with separate [terms for the lexical sources](apps/open-dict/docs/LICENSING.md).
 
 
 ## App usage analytics
 
-All ten registered apps contain a self-contained, dependency-free `acswebapps-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
+Registered apps contain a self-contained, dependency-free `acswebapps-usage` script in their main `index.html`. Totals are collected by [GoatCounter](https://atlantachristianstudents.goatcounter.com); sign in there to view its Events section. Paths use the actual app folder name: `apps/<folder>/open`, `apps/<folder>/installed-open`, and `apps/<folder>/install`. Filter those paths to compare apps or event types. Do not add installed opens to opens: the former is a subset. Only visible document loads count as opens (including reloads); simply resuming an existing window does not count again. Browser-supported installs are partial observations, not a total installed user base. PWA caching is not counted as a download.
 
 Only fixed app and event labels are explicitly sent via GoatCounter's tracking pixel endpoint; no third-party scripts, cookies, referrers, URL parameters, searches, user content, or persistent visitor identifiers are added. The service receives IP addresses and browser headers as part of the request. Do Not Track and Global Privacy Control suppress all reporting. Localhost, file hosting, and automated browsers are excluded. A per-tab sessionStorage queue retries offline/failed events on reconnection, when the tab becomes visible, and every minute after a visible failure. It holds at most 100 events for seven days and can be lost when a tab closes. Delivery time determines the date in the dashboard; blockers, interrupted requests, and browser install-event support make totals approximate.
 

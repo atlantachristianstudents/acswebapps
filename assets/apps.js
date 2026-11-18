@@ -13,6 +13,15 @@
  */
 window.APPS = [
   {
+    id: "open-dict",
+    name: "Open Dictionary",
+    description: "Look up English words, trace their origins, and inspect source-backed definitions. The starter collection works offline.",
+    icon: "📖",
+    iconUrl: "apps/open-dict/icons/icon.svg",
+    tags: ["Reading", "Study", "Tools"],
+    status: "beta"
+  },
+  {
     id: "rise",
     name: "Rise",
     description: "Start the day with a verse from the Recovery Version. Install it to your phone’s home screen for a quiet, one-tap morning opening.",
