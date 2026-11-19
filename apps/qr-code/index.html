@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f4efe5">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Create static, customizable QR codes from any text or link. Runs entirely on your device and works offline.">
+<title>QR Code · ACS Web Apps</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<script>
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+<style>
+:root{--app-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--bg:#f4efe5;--text:#24302b;--muted:#596459;--surface:#fffdf8;--panel:#f9f6ee;--border:#c9c8bc;--accent:#44584b;--on-accent:#ffffff;--selected:#e8eee4;--focus:#74876a;color-scheme:light;font-family:var(--app-font)}
+:root[data-theme=paper]{--bg:#fafafa;--text:#24272b;--muted:#555d66;--surface:#fff;--panel:#f1f2f3;--border:#c6cbd0;--accent:#3e4b58;--on-accent:#fff;--selected:#e0e7ee;--focus:#647d96}
+:root[data-theme=sage]{--bg:#e8eee5;--text:#253529;--muted:#4c6250;--surface:#f7faf4;--panel:#f0f4eb;--border:#b8c7b5;--accent:#3c5c40;--on-accent:#fff;--selected:#d6e5ce;--focus:#587c50}
+:root[data-theme=ocean]{--bg:#e8f0f4;--text:#243746;--muted:#4c6273;--surface:#f7fbfe;--panel:#eef5f9;--border:#b8cad7;--accent:#315d77;--on-accent:#fff;--selected:#d4e5ef;--focus:#4f7e9b}
+:root[data-theme=rose]{--bg:#f5eae8;--text:#462e34;--muted:#76545d;--surface:#fff8f6;--panel:#faf0ed;--border:#d6bdc1;--accent:#804a5b;--on-accent:#fff;--selected:#eed7dd;--focus:#a16678}
+:root[data-theme=dusk]{--bg:#292634;--text:#eee7f5;--muted:#c4b6d2;--surface:#353040;--panel:#302b3a;--border:#665a74;--accent:#d1b6e7;--on-accent:#292634;--selected:#4c3b5d;--focus:#dbbafa;color-scheme:dark}
+:root[data-theme=midnight]{--bg:#141c24;--text:#e5ecf2;--muted:#acbdcd;--surface:#202c38;--panel:#1a2530;--border:#526477;--accent:#afcee5;--on-accent:#141c24;--selected:#2d455b;--focus:#9dc9ed;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 var(--app-font);-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top)) 16px 10px;background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font:600 15px/1 var(--app-font);letter-spacing:-.01em}
+.brand .mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:16px}
+.brand small{display:block;font:500 11px/1.2 var(--app-font);color:var(--muted);letter-spacing:.02em}
+.topbar .spacer{flex:1}
+.icon-btn{min-height:40px;padding:0 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font:600 12.5px/1 var(--app-font);cursor:pointer;transition:border-color .15s,background .15s}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+main{width:min(1080px,100%);margin:0 auto;padding:clamp(16px,3vw,32px)}
+.intro{max-width:60ch;margin:0 0 clamp(16px,3vw,26px)}
+.intro h1{margin:0 0 6px;font:500 clamp(28px,5vw,40px)/1.1 Georgia,"Iowan Old Style","Times New Roman",serif;letter-spacing:-.02em}
+.intro p{margin:0;color:var(--muted);font-size:15px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.82fr);gap:clamp(16px,3vw,28px);align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:clamp(16px,2.4vw,24px);box-shadow:0 1px 2px rgb(0 0 0/.04)}
+.controls{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font:600 12px/1.2 var(--app-font);letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.field>span b{color:var(--text);font-weight:700;letter-spacing:0}
+textarea,
+:is(input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=password],input[type=search],input[type=datetime-local],input[type=date],select){
+  width:100%;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--panel);
+  color:var(--text);
+  font:inherit;
+  line-height:1.45;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+  box-shadow:inset 0 1px 2px rgb(0 0 0/.03);
+}
+textarea{min-height:96px;resize:vertical}
+:is(input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=password],input[type=search],input[type=datetime-local],input[type=date]){min-height:46px}
+select{min-height:46px;padding:0 40px 0 14px;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 19px) 21px,calc(100% - 13px) 21px;background-size:6px 6px,6px 6px;background-repeat:no-repeat;cursor:pointer}
+textarea:hover,:is(input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=password],input[type=search],input[type=datetime-local],input[type=date],select):hover{border-color:var(--focus)}
+textarea:focus,:is(input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=password],input[type=search],input[type=datetime-local],input[type=date],select):focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--selected),inset 0 1px 2px rgb(0 0 0/.03)}
+::placeholder{color:var(--muted);opacity:.7}
+input[type=range]:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+input[type=datetime-local]::-webkit-calendar-picker-indicator{opacity:.6;cursor:pointer}
+.color-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--selected)}
+.file-btn:hover{background:var(--selected)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:460px){.row{grid-template-columns:1fr}}
+input[type=range]{-webkit-appearance:none;appearance:none;height:8px;margin:8px 0 0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent)) 0/var(--fill,50%) 100% no-repeat,var(--border);cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 4px rgb(0 0 0/.18)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.color-field{flex-direction:row;align-items:center;justify-content:space-between;padding:8px 10px 8px 12px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+.color-field>span{text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)}
+input[type=color]{width:46px;height:34px;padding:2px;border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer}
+.builder{display:flex;flex-direction:column;gap:12px}
+.builder .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:460px){.builder .two{grid-template-columns:1fr}}
+.style-block{border:1px solid var(--border);border-radius:14px;padding:0 14px;background:var(--panel)}
+.style-block>summary{cursor:pointer;list-style:none;padding:13px 0;font:600 13px/1 var(--app-font);letter-spacing:.02em;color:var(--text)}
+.style-block>summary::-webkit-details-marker{display:none}
+.style-block>summary::after{content:"+";float:right;color:var(--muted);font-weight:700}
+.style-block[open]>summary::after{content:"–"}
+.style-block>.row{margin:0 0 12px}
+.switch{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text);cursor:pointer;padding:6px 0;user-select:none}
+.switch input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.logo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.file-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:1px dashed var(--border);border-radius:12px;background:var(--panel);font:600 13px var(--app-font);cursor:pointer;transition:border-color .15s}
+.file-btn:hover{border-color:var(--accent)}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+#logo-name{font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+button.small{min-height:38px;padding:0 12px;font-size:12px}
+.muted{color:var(--muted)}
+.builder .switch{flex-direction:row;align-items:center;justify-content:flex-start}
+.builder .switch>span{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:2px}
+button.primary,button.ghost{min-height:46px;padding:0 18px;border-radius:12px;font:600 14px/1 var(--app-font);cursor:pointer;transition:transform .06s,background .15s,border-color .15s}
+button.primary{border:1px solid var(--accent);background:var(--accent);color:var(--on-accent)}
+button.primary:hover{filter:brightness(1.06)}
+button.primary:active{transform:translateY(1px)}
+button.ghost{border:1px solid var(--border);background:transparent;color:var(--text)}
+button.ghost:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.status{min-height:20px;margin:0;font-size:13px;color:var(--muted)}
+.status.warn{color:#a3541f}
+:root[data-theme=dusk] .status.warn,:root[data-theme=midnight] .status.warn{color:#f0b27a}
+.preview{display:flex;flex-direction:column;gap:14px;position:sticky;top:88px}
+@media (max-width:760px){.preview{position:static}}
+.qrbox{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1;padding:14px;border-radius:16px;background:var(--panel);border:1px solid var(--border)}
+.qrbox canvas{display:block;width:100%;height:auto;max-width:100%;max-height:100%;border-radius:8px;image-rendering:pixelated;transition:width .18s ease}
+.qrbox .empty{max-width:22ch;text-align:center;color:var(--muted);font-size:13.5px}
+.qr-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+.qr-meta code{font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:3px 7px}
+.preview .actions{justify-content:stretch}
+.preview .actions button{flex:1}
+.hint{margin:0;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:flex-start}
+.hint svg{flex:none;margin-top:2px}
+.acswebapps-help{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:1000;background:var(--surface);border-radius:50%;display:inline-block;font:14px/1.5 var(--app-font);color:var(--text)}
+.acswebapps-help>summary{display:block;list-style:none;cursor:pointer;border:1px solid var(--border);border-radius:50%;width:36px;height:36px;line-height:34px;text-align:center;box-sizing:border-box;background:var(--surface)}
+.acswebapps-help>summary::-webkit-details-marker{display:none}
+.acswebapps-help>summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.acswebapps-help>nav{position:absolute;bottom:calc(100% + 8px);right:0;z-index:1000;width:260px;max-width:calc(100vw - 64px);box-sizing:border-box;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);white-space:normal;box-shadow:0 10px 30px rgb(0 0 0/.18);font:13px/1.5 var(--app-font)}
+.acswebapps-help a{color:var(--accent)}
+.acs-update{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.acs-update [data-acs-update-button]{display:inline-block;min-height:40px;border:1px solid var(--border);border-radius:9px;padding:8px 12px;background:transparent;color:inherit;font:600 12.5px var(--app-font);cursor:pointer}
+.acs-update [data-acs-update-button]:hover{border-color:var(--accent)}
+.acs-update [data-acs-update-button]:disabled{opacity:.55;cursor:wait}
+.acs-update p{margin:6px 0 0;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.acs-update-note{opacity:.85}
+[data-acs-update-status]:empty{display:none}
+</style>
+<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
+<script id="acswebapps-no-pinch">
+// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+(function () {
+  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
+  document.addEventListener('gesturestart', preventPinch, { passive: false });
+  document.addEventListener('gesturechange', preventPinch, { passive: false });
+  document.addEventListener('touchmove', function (event) {
+    if (event.touches.length > 1) preventPinch(event);
+  }, { passive: false });
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) preventPinch(event);
+  }, { passive: false });
+}());
+</script>
+<style id="acswebapps-directory-home-style">
+#acswebapps-directory-home{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));z-index:32;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border:1px solid #80848a;border-radius:999px;background:#f8fafc;color:#1f2937;box-shadow:0 2px 8px rgb(0 0 0/.18);font:600 13px/1 system-ui,sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer!important}
+@media (prefers-color-scheme:dark){#acswebapps-directory-home{background:#20242b;color:#f8fafc}}
+#acswebapps-directory-home:hover{text-decoration:underline}
+#acswebapps-directory-home:focus-visible{outline:2px solid #527dff;outline-offset:3px}
+:fullscreen #acswebapps-directory-home{display:none}
+:-webkit-full-screen #acswebapps-directory-home{display:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark" aria-hidden="true">▦</span><span>QR Code<small>STATIC · OFFLINE</small></span></div>
+  <span class="spacer"></span>
+  <button id="theme" class="icon-btn" type="button" aria-haspopup="dialog">Theme</button>
+</header>
+
+<main>
+  <div class="intro">
+    <h1>Make a QR code</h1>
+    <p>Turn any text or link into a crisp, static QR code. Everything is generated on this device — nothing is uploaded, and it works offline.</p>
+  </div>
+  <div class="layout">
+    <section class="panel controls" aria-label="QR code settings">
+      <label class="field">
+        <span>Type</span>
+        <select id="type" aria-label="Content type">
+          <option value="url">URL</option>
+          <option value="text">Text</option>
+          <option value="wifi">Wi-Fi</option>
+          <option value="email">Email</option>
+          <option value="sms">SMS</option>
+          <option value="phone">Phone</option>
+          <option value="vcard">vCard</option>
+          <option value="location">Location</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="review">Google Review</option>
+          <option value="payid">PayID</option>
+          <option value="calendar">Calendar</option>
+        </select>
+      </label>
+      <div id="builder" class="builder"></div>
+
+      <details class="style-block">
+        <summary>Style</summary>
+        <div class="row">
+          <label class="field"><span>Module shape</span>
+            <select id="shape">
+              <option value="square" selected>Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="dots">Dots</option>
+              <option value="diamond">Diamond</option>
+            </select>
+          </label>
+          <label class="field"><span>Corner eyes</span>
+            <select id="eye">
+              <option value="square">Square</option>
+              <option value="rounded" selected>Rounded</option>
+              <option value="circle">Circle</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label class="field">
+            <span>Size · <b id="size-val">1024</b> px</span>
+            <input id="size" type="range" min="160" max="1024" step="16" value="1024" aria-label="QR code size in pixels">
+          </label>
+          <label class="field">
+            <span>Error correction</span>
+            <select id="ec" aria-label="Error correction level">
+              <option value="L">Low · 7%</option>
+              <option value="M">Medium · 15%</option>
+              <option value="Q">Quartile · 25%</option>
+              <option value="H" selected>High · 30%</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label class="field color-field"><span>Foreground</span><input id="dark" type="color" value="#1a2233" aria-label="Foreground color"></label>
+          <label class="field color-field"><span>Background</span><input id="light" type="color" value="#ffffff" aria-label="Background color"></label>
+        </div>
+        <div class="row">
+          <label class="switch"><input id="gradient" type="checkbox"> Gradient foreground</label>
+          <label class="switch"><input id="transparent" type="checkbox"> Transparent background</label>
+        </div>
+        <div class="row" id="gradient-row" hidden>
+          <label class="field color-field"><span>Gradient color</span><input id="dark2" type="color" value="#3f7d6b" aria-label="Gradient end color"></label>
+          <span></span>
+        </div>
+      </details>
+
+      <div class="logo-row">
+        <label class="file-btn"><span>Add logo</span><input id="logo" type="file" accept="image/*" aria-label="Upload a logo image"></label>
+        <button id="logo-clear" class="ghost small" type="button" hidden>Remove logo</button>
+        <span class="muted" id="logo-name">No logo</span>
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite">Ready.</p>
+      <p class="hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+        Tip: keep the foreground dark and the background light. Logos raise error correction to High automatically.
+      </p>
+    </section>
+
+    <section class="panel preview" aria-label="QR code preview">
+      <div class="qrbox" id="qrbox"><p class="empty" id="empty">Your QR code appears here as you type.</p></div>
+      <div class="qr-meta"><span id="modules">—</span><span><code id="px">1024</code> px</span></div>
+      <div class="actions">
+        <button id="download" class="primary" type="button">PNG</button>
+        <button id="download-svg" class="primary" type="button">SVG</button>
+        <button id="copy" class="ghost" type="button">Copy</button>
+      </div>
+      <button id="advanced-btn" class="link-btn" type="button">Advanced details</button>
+    </section>
+  </div>
+</main>
+
+<dialog id="theme-dialog" aria-labelledby="theme-title">
+  <h2 id="theme-title">Choose a theme</h2>
+  <p class="hint-text">Preview a look below. Your choice is saved when you press Save theme.</p>
+  <div id="theme-presets" aria-label="Preset themes">
+    <button type="button" data-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button>
+    <button type="button" data-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button>
+    <button type="button" data-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button>
+    <button type="button" data-theme-choice="ocean"><span class="theme-swatch" style="--swatch-bg:#e8f0f4;--swatch-accent:#315d77"></span>Ocean</button>
+    <button type="button" data-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button>
+    <button type="button" data-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button>
+    <button type="button" data-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button>
+    <button type="button" data-theme-choice="custom"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#7257a5"></span>Custom</button>
+  </div>
+  <section id="custom-controls" hidden>
+    <h3>Custom colors and font</h3>
+    <div class="theme-color-grid">
+      <label>Background<input type="color" data-theme-color="bg"></label>
+      <label>Text<input type="color" data-theme-color="text"></label>
+      <label>Muted<input type="color" data-theme-color="muted"></label>
+      <label>Surface<input type="color" data-theme-color="surface"></label>
+      <label>Panel<input type="color" data-theme-color="panel"></label>
+      <label>Border<input type="color" data-theme-color="border"></label>
+      <label>Accent<input type="color" data-theme-color="accent"></label>
+      <label>On accent<input type="color" data-theme-color="on-accent"></label>
+      <label>Selected<input type="color" data-theme-color="selected"></label>
+      <label>Focus<input type="color" data-theme-color="focus"></label>
+    </div>
+    <label class="font-label">Font<select id="custom-font">
+      <option value="sans">Sans</option>
+      <option value="serif">Serif</option>
+      <option value="rounded">Rounded</option>
+    </select></label>
+  </section>
+  <div class="theme-dialog-actions">
+    <button type="button" id="theme-cancel" class="icon-btn">Cancel</button>
+    <button type="button" id="theme-save" class="icon-btn">Save theme</button>
+  </div>
+</dialog>
+<dialog id="advanced-dialog" aria-labelledby="advanced-title">
+  <h2 id="advanced-title">Advanced details</h2>
+  <p class="adv-hint">Exact encoded payload and spacing math. Payloads may include passwords or contact details.</p>
+  <dl class="adv-grid" id="adv-stats"></dl>
+  <h3 class="adv-label">Encoded payload</h3>
+  <pre id="adv-payload" class="adv-payload" tabindex="0"></pre>
+  <div class="theme-dialog-actions">
+    <button type="button" id="adv-copy" class="icon-btn">Copy payload</button>
+    <button type="button" id="adv-close" class="icon-btn">Close</button>
+  </div>
+</dialog>
+<style>
+.link-btn{align-self:flex-start;padding:6px 0;border:0;background:none;color:var(--muted);font:600 12.5px var(--app-font);cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .15s}
+.link-btn:hover{color:var(--accent)}
+.link-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+#advanced-dialog{width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;margin:auto;padding:20px;border:1px solid var(--border);border-radius:18px;background:var(--panel);color:var(--text);box-shadow:0 16px 60px rgb(0 0 0/.28);font:14px/1.45 var(--app-font)}
+#advanced-dialog::backdrop{background:rgb(0 0 0/.45)}
+#advanced-dialog h2{margin:0 0 4px;font:500 24px/1.2 Georgia,"Iowan Old Style",serif}
+#advanced-dialog .adv-hint{margin:0 0 16px;color:var(--muted);font-size:12.5px}
+.adv-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 16px;margin:0 0 18px;font-size:13px}
+.adv-grid dt{margin:0;color:var(--muted);font-weight:600}
+.adv-grid dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.adv-label{margin:0 0 6px;font:600 11.5px/1 var(--app-font);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.adv-payload{margin:0;padding:12px 14px;max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
+.adv-payload:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+<style>
+#theme-dialog{width:min(540px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;margin:auto;padding:20px;border:1px solid var(--border);border-radius:18px;background:var(--panel);color:var(--text);box-shadow:0 16px 60px rgb(0 0 0/.28);font:14px/1.45 var(--app-font)}
+#theme-dialog::backdrop{background:rgb(0 0 0/.45)}
+#theme-dialog h2{margin:0 0 4px;font:500 24px/1.2 Georgia,"Iowan Old Style",serif}
+#theme-dialog .hint-text{margin:0 0 14px;color:var(--muted);font-size:12.5px}
+#theme-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#theme-presets button{display:flex;min-width:0;min-height:60px;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font:600 12px var(--app-font);cursor:pointer}
+#theme-presets button[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:1px}
+#theme-presets button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.theme-swatch{display:block;width:38px;height:18px;border:1px solid var(--border);border-radius:6px;background:linear-gradient(90deg,var(--swatch-bg) 0 65%,var(--swatch-accent) 65%)}
+#custom-controls{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+#custom-controls[hidden]{display:none}
+#custom-controls h3{margin:0 0 10px;font-size:14px}
+.theme-color-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+#theme-dialog .theme-color-grid label{display:flex;min-width:0;flex-direction:column;gap:4px;margin:0;font-size:11px;color:var(--muted)}
+.theme-color-grid input[type=color]{width:100%;height:34px;padding:2px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.font-label{display:flex;flex-direction:column;gap:5px;margin-top:12px;font-size:12px;color:var(--muted)}
+.font-label select{min-height:40px}
+.theme-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+</style>
+
+<script id="acswebapps-usage">
+// ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
+(function () {
+  "use strict";
+  var app = "qr-code";
+  var endpoint = "https://atlantachristianstudents.goatcounter.com/count";
+  if (!/^https?:$/.test(location.protocol) ||
+      /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
+      navigator.webdriver || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return;
+
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
+  try {
+    var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
+    if (Array.isArray(saved)) queue = saved.filter(function (item) {
+      return item && /^(open|installed-open|install)$/.test(item.event) &&
+        typeof item.time === "number" && item.time <= Date.now() && Date.now() - item.time < lifetime;
+    }).slice(-100);
+  } catch (_) {}
+  function save() {
+    try {
+      if (queue.length) sessionStorage.setItem(key, JSON.stringify(queue));
+      else sessionStorage.removeItem(key);
+    } catch (_) {}
+  }
+  function record(event) {
+    queue.push({ event: event, time: Date.now() });
+    queue = queue.slice(-100);
+    save();
+    flush();
+  }
+  function flush() {
+    if (sending || !queue.length || navigator.onLine === false) return;
+    if (retry) { clearTimeout(retry); retry = null; }
+    while (queue.length && Date.now() - queue[0].time >= lifetime) queue.shift();
+    save();
+    if (!queue.length) return;
+    sending = true;
+    var item = queue[0], pixel = new Image(), timer;
+    function finish(ok) {
+      if (!pixel) return;
+      clearTimeout(timer);
+      pixel.onload = pixel.onerror = null;
+      pixel = null;
+      sending = false;
+      if (ok) {
+        var index = queue.indexOf(item);
+        if (index !== -1) queue.splice(index, 1);
+        save();
+        flush();
+      } else if (document.visibilityState === "visible") {
+        retry = setTimeout(function () { retry = null; flush(); }, 60000);
+      }
+    }
+    pixel.onload = function () { finish(true); };
+    pixel.onerror = function () { finish(false); };
+    pixel.referrerPolicy = "no-referrer";
+    timer = setTimeout(function () { finish(false); }, 15000);
+    pixel.src = endpoint + "?p=" + encodeURIComponent("apps/" + app + "/" + item.event) +
+      "&t=" + encodeURIComponent(app + " " + item.event) + "&e=1&r=&rnd=" + Math.random();
+  }
+  function open() {
+    if (opened || document.visibilityState !== "visible") return;
+    opened = true;
+    record("open");
+    if (navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone), (display-mode: minimal-ui)").matches)) {
+      record("installed-open");
+    }
+  }
+  window.addEventListener("appinstalled", function () {
+    if (installed) return;
+    installed = true;
+    record("install");
+  });
+  window.addEventListener("online", flush);
+  document.addEventListener("visibilitychange", function () {
+    open();
+    if (document.visibilityState === "visible") flush();
+  });
+  open();
+  flush();
+}());
+</script>
+
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">QR Code is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
+
+<script id="acswebapps-updater" data-version="qr-code-v6">
+// Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
+(function () {
+  'use strict';
+  const pageVersion = document.currentScript.dataset.version;
+  let busy = false;
+  function report(message) {
+    document.querySelectorAll('[data-acs-update-status]').forEach(node => { node.textContent = message; });
+  }
+  function deadline(task, milliseconds) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error('The update check timed out. Please try again.')), milliseconds);
+      Promise.resolve(task).then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+    });
+  }
+  function activate(worker) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => finish(Error('The update could not finish installing. Please try again.')), 30000);
+      function finish(error) {
+        clearTimeout(timer);
+        worker.removeEventListener('statechange', inspect);
+        if (error) reject(error); else resolve();
+      }
+      function inspect() {
+        if (worker.state === 'redundant') finish(Error('The update did not install. Please try again.'));
+        else if (worker.state === 'activated') finish();
+        else if (worker.state === 'installed') {
+          try { worker.postMessage({ type: 'ACS_SKIP_WAITING' }); } catch (error) { finish(error); }
+        }
+      }
+      worker.addEventListener('statechange', inspect);
+      inspect();
+    });
+  }
+  function versionOf(worker) {
+    return new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => finish(Error('Could not verify the app version. Please try again.')), 5000);
+      function finish(error, value) {
+        clearTimeout(timer);
+        channel.port1.close();
+        if (error) reject(error); else resolve(value);
+      }
+      channel.port1.onmessage = event => {
+        const version = event.data && event.data.version;
+        if (typeof version !== 'string' || !/^.+-v\d+$/.test(version)) finish(Error('The app returned an invalid update version.'));
+        else finish(null, version);
+      };
+      try { worker.postMessage({ type: 'ACS_GET_VERSION' }, [channel.port2]); } catch (error) { finish(error); }
+    });
+  }
+  async function check() {
+    if (busy) return;
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+      report('Updates are available from the website or installed app.'); return;
+    }
+    if (navigator.onLine === false) { report("You're offline. Connect to the internet and try again."); return; }
+    busy = true;
+    document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = true; });
+    report('Checking for updates...');
+    try {
+      const registration = await deadline(navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }), 20000);
+      await deadline(registration.update(), 20000);
+      const candidate = registration.installing || registration.waiting;
+      if (candidate) { report('Downloading update...'); await activate(candidate); }
+      const worker = registration.active || navigator.serviceWorker.controller;
+      if (!worker) throw Error('No active app version was found. Please reload and try again.');
+      const version = await versionOf(worker);
+      if (version !== pageVersion) { report('Update ready. Restarting...'); location.reload(); }
+      else report('This app is up to date.');
+    } catch (error) {
+      report(error.message && /update|version|install|reload/i.test(error.message)
+        ? error.message : 'Could not check for updates. Check your connection and try again.');
+    } finally {
+      busy = false;
+      document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = false; });
+    }
+  }
+  document.addEventListener('pointerdown', event => {
+    if (event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' && event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('click', event => {
+    if (!event.target.closest('[data-acs-update-button]')) return;
+    event.preventDefault(); event.stopPropagation(); check();
+  }, true);
+}());
+</script>
+
+<script id="acswebapps-directory-navigation">
+// Keep this self-contained so an app can also be hosted on its own.
+(function () {
+  "use strict";
+  if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
+
+  const folder = new URL("./", location.href).pathname;
+  try {
+    if (sessionStorage.getItem("acswebapps-directory-launch") !== folder) return;
+  } catch (error) {
+    return;
+  }
+
+  const home = document.createElement("a");
+  home.id = "acswebapps-directory-home";
+  home.href = "../../";
+  home.textContent = "← Home";
+  home.setAttribute("aria-label", "Back to ACS Web Apps home");
+  home.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.stopPropagation();
+  });
+  document.body.appendChild(home);
+})();
+</script>
+
+<script src="vendor/qrcode.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const STORE = "qr-code-settings-v1";
+  const THEME_VARS = ["bg","text","muted","surface","panel","border","accent","on-accent","selected","focus"];
+  const FONTS = {
+    serif: 'Georgia,"Iowan Old Style","Times New Roman",serif',
+    sans: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+    rounded: '"Trebuchet MS",system-ui,sans-serif'
+  };
+  const CUSTOM_DEFAULT = {
+    bg: "#f4efe5", text: "#24302b", muted: "#596459", surface: "#fffdf8",
+    panel: "#f9f6ee", border: "#c9c8bc", accent: "#44584b", "on-accent": "#ffffff",
+    selected: "#e8eee4", focus: "#74876a", font: "sans"
+  };
+  const PRESETS = ["dawn","paper","sage","ocean","rose","dusk","midnight"];
+
+  let prefs = { theme: "dawn", customTheme: Object.assign({}, CUSTOM_DEFAULT) };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || "null");
+    if (saved && typeof saved === "object") {
+      if (saved.theme) prefs.theme = saved.theme;
+      if (saved.customTheme) prefs.customTheme = Object.assign({}, CUSTOM_DEFAULT, saved.customTheme);
+    }
+  } catch (error) {}
+
+  function savePrefs() {
+    try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch (error) {}
+  }
+
+  function luminance(hex) {
+    const value = String(hex || "").replace("#", "");
+    if (value.length !== 6) return 255;
+    const channel = i => {
+      const c = parseInt(value.slice(i, i + 2), 16) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+  }
+
+  function toHex(value, fallback) {
+    const v = String(value || "").trim();
+    if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(v)) return "#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+    const rgb = v.match(/^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i);
+    if (rgb) return "#" + [1, 2, 3].map(i => Number(rgb[i]).toString(16).padStart(2, "0")).join("");
+    return fallback;
+  }
+
+  function applyTheme(name, custom) {
+    const root = document.documentElement;
+    const theme = PRESETS.indexOf(name) !== -1 ? name : (name === "custom" ? "custom" : "dawn");
+    const ct = custom || prefs.customTheme || CUSTOM_DEFAULT;
+    root.dataset.theme = theme;
+    THEME_VARS.concat(["app-font"]).forEach(key => root.style.removeProperty("--" + key));
+    if (theme === "custom") {
+      THEME_VARS.forEach(key => { if (ct[key]) root.style.setProperty("--" + key, ct[key]); });
+      root.style.setProperty("--app-font", FONTS[ct.font] || FONTS.sans);
+    }
+    root.style.colorScheme = (theme === "dusk" || theme === "midnight" ||
+      (theme === "custom" && luminance(ct.bg || CUSTOM_DEFAULT.bg) < 128)) ? "dark" : "light";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      const bg = getComputedStyle(root).getPropertyValue("--bg").trim();
+      if (bg) meta.setAttribute("content", bg);
+    }
+    const label = "Theme: " + theme[0].toUpperCase() + theme.slice(1);
+    const button = document.getElementById("theme");
+    if (button) { button.textContent = label; button.setAttribute("aria-label", "Choose theme. Current " + theme + "."); }
+  }
+
+  applyTheme(prefs.theme, prefs.customTheme);
+
+  // Theme dialog
+  const dialog = document.getElementById("theme-dialog");
+  const customControls = document.getElementById("custom-controls");
+  let draft = { name: prefs.theme, custom: Object.assign({}, CUSTOM_DEFAULT, prefs.customTheme) };
+
+  function syncDraftUI() {
+    customControls.hidden = draft.name !== "custom";
+    document.querySelectorAll("[data-theme-choice]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.themeChoice === draft.name));
+    });
+    document.querySelectorAll("[data-theme-color]").forEach(input => {
+      const key = input.dataset.themeColor;
+      input.value = toHex(draft.custom[key] || CUSTOM_DEFAULT[key], CUSTOM_DEFAULT[key]);
+    });
+    const font = document.getElementById("custom-font");
+    if (font) font.value = draft.custom.font || "sans";
+  }
+
+  function openThemeDialog() {
+    draft = { name: prefs.theme, custom: Object.assign({}, CUSTOM_DEFAULT, prefs.customTheme) };
+    syncDraftUI();
+    applyTheme(draft.name, draft.custom);
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  document.getElementById("theme").addEventListener("click", openThemeDialog);
+
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.addEventListener("click", () => {
+      const choice = button.dataset.themeChoice;
+      if (choice === "custom") {
+        const computed = getComputedStyle(document.documentElement);
+        THEME_VARS.forEach(key => {
+          const value = computed.getPropertyValue("--" + key).trim();
+          if (value) draft.custom[key] = toHex(value, CUSTOM_DEFAULT[key]);
+        });
+        const font = document.getElementById("custom-font");
+        if (!draft.custom.font) draft.custom.font = font ? font.value : "sans";
+      }
+      draft.name = choice;
+      syncDraftUI();
+      applyTheme(choice, draft.custom);
+    });
+  });
+
+  document.querySelectorAll("[data-theme-color]").forEach(input => {
+    input.addEventListener("input", () => {
+      draft.custom[input.dataset.themeColor] = input.value;
+      draft.name = "custom";
+      syncDraftUI();
+      applyTheme("custom", draft.custom);
+    });
+  });
+
+  const fontSelect = document.getElementById("custom-font");
+  if (fontSelect) fontSelect.addEventListener("change", () => {
+    draft.custom.font = fontSelect.value;
+    draft.name = "custom";
+    syncDraftUI();
+    applyTheme("custom", draft.custom);
+  });
+
+  document.getElementById("theme-cancel").addEventListener("click", () => {
+    applyTheme(prefs.theme, prefs.customTheme);
+    dialog.close();
+  });
+
+  document.getElementById("theme-save").addEventListener("click", () => {
+    prefs.theme = draft.name;
+    prefs.customTheme = Object.assign({}, CUSTOM_DEFAULT, draft.custom);
+    savePrefs();
+    applyTheme(prefs.theme, prefs.customTheme);
+    dialog.close();
+  });
+
+  // QR generation
+  const typeSelect = document.getElementById("type");
+  const builder = document.getElementById("builder");
+  const shapeSelect = document.getElementById("shape");
+  const eyeSelect = document.getElementById("eye");
+  const sizeInput = document.getElementById("size");
+  const sizeVal = document.getElementById("size-val");
+  const ecSelect = document.getElementById("ec");
+  const darkInput = document.getElementById("dark");
+  const lightInput = document.getElementById("light");
+  const dark2Input = document.getElementById("dark2");
+  const gradientInput = document.getElementById("gradient");
+  const gradientRow = document.getElementById("gradient-row");
+  const transparentInput = document.getElementById("transparent");
+  const logoInput = document.getElementById("logo");
+  const logoClear = document.getElementById("logo-clear");
+  const logoName = document.getElementById("logo-name");
+  const qrbox = document.getElementById("qrbox");
+  const status = document.getElementById("status");
+  const modulesLabel = document.getElementById("modules");
+  const pxLabel = document.getElementById("px");
+  const downloadBtn = document.getElementById("download");
+  const downloadSvgBtn = document.getElementById("download-svg");
+  const copyBtn = document.getElementById("copy");
+  const advancedBtn = document.getElementById("advanced-btn");
+  const advancedDialog = document.getElementById("advanced-dialog");
+  const advStats = document.getElementById("adv-stats");
+  const advPayload = document.getElementById("adv-payload");
+  const advCopy = document.getElementById("adv-copy");
+  const advClose = document.getElementById("adv-close");
+
+  let canvas = null;
+  let lastText = "";
+  let lastModel = null;
+  let logoData = null;
+  let logoImage = null;
+  let timer = null;
+  const fieldState = {};
+
+  function setStatus(message, warn) {
+    status.textContent = message;
+    status.classList.toggle("warn", !!warn);
+  }
+
+  function contrastRatio(a, b) {
+    const l1 = luminance(a), l2 = luminance(b);
+    const light = Math.max(l1, l2), dark = Math.min(l1, l2);
+    return (light + 0.05) / (dark + 0.05);
+  }
+
+  function updateSizeFill() {
+    const min = Number(sizeInput.min), max = Number(sizeInput.max);
+    const percent = ((Number(sizeInput.value) - min) / (max - min)) * 100;
+    sizeInput.style.setProperty("--fill", percent + "%");
+  }
+
+  function escapeWifi(value) {
+    return String(value || "").replace(/([\\;,":])/g, "\\$1");
+  }
+
+  function escapeVCard(value) {
+    return String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/;/g, "\\;").replace(/,/g, "\\,");
+  }
+
+  function escapeIcs(value) {
+    return String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+  }
+
+  function icsDate(value) {
+    const digits = String(value || "").replace(/[-:]/g, "");
+    if (/T\d{4}$/.test(digits)) return digits + "00Z";
+    if (/^\d{8}$/.test(digits)) return digits + "T000000Z";
+    return digits ? digits + "Z" : "";
+  }
+
+  const TYPES = {
+    url: { fields: [{ k: "url", label: "URL", placeholder: "https://example.com", value: "https://acswebapps.com/" }] },
+    text: { fields: [{ k: "text", label: "Text", type: "textarea", value: "Hello, world!" }] },
+    wifi: { fields: [
+      { k: "ssid", label: "Network name (SSID)" },
+      { k: "password", label: "Password" },
+      { k: "enc", label: "Security", type: "select", value: "WPA", options: [["WPA", "WPA / WPA2 / WPA3"], ["WEP", "WEP"], ["nopass", "None"]] },
+      { k: "hidden", label: "Hidden network", type: "checkbox", value: false }
+    ] },
+    email: { fields: [
+      { k: "to", label: "To", placeholder: "hello@example.com" },
+      { k: "subject", label: "Subject" },
+      { k: "body", label: "Message", type: "textarea" }
+    ] },
+    sms: { fields: [
+      { k: "number", label: "Phone number", placeholder: "+1 555 123 4567" },
+      { k: "message", label: "Message", type: "textarea" }
+    ] },
+    phone: { fields: [{ k: "number", label: "Phone number", placeholder: "+1 555 123 4567" }] },
+    vcard: { fields: [
+      { k: "first", label: "First name" },
+      { k: "last", label: "Last name" },
+      { k: "org", label: "Organization" },
+      { k: "title", label: "Job title" },
+      { k: "phone", label: "Phone" },
+      { k: "email", label: "Email" },
+      { k: "url", label: "Website" }
+    ] },
+    location: { fields: [
+      { k: "lat", label: "Latitude", placeholder: "33.7490" },
+      { k: "lng", label: "Longitude", placeholder: "-84.3880" }
+    ] },
+    whatsapp: { fields: [
+      { k: "number", label: "Phone (country code, digits only)", placeholder: "15551234567" },
+      { k: "message", label: "Message", type: "textarea" }
+    ] },
+    review: { fields: [{ k: "placeid", label: "Google Place ID", placeholder: "ChIJ..." }] },
+    payid: { fields: [{ k: "payid", label: "PayID", placeholder: "name@example.com or +1..." }] },
+    calendar: { fields: [
+      { k: "title", label: "Event title", value: "Event" },
+      { k: "location", label: "Location" },
+      { k: "start", label: "Start", type: "datetime-local" },
+      { k: "end", label: "End", type: "datetime-local" },
+      { k: "description", label: "Description", type: "textarea" }
+    ] }
+  };
+
+  function stateFor(type) {
+    if (!fieldState[type]) fieldState[type] = {};
+    return fieldState[type];
+  }
+
+  function readField(input) {
+    return input.type === "checkbox" ? input.checked : input.value;
+  }
+
+  function renderBuilder() {
+    const type = typeSelect.value;
+    const spec = TYPES[type];
+    const state = stateFor(type);
+    spec.fields.forEach(field => {
+      if (!Object.prototype.hasOwnProperty.call(state, field.k)) {
+        state[field.k] = field.value != null ? field.value : (field.type === "checkbox" ? false : "");
+      }
+    });
+    builder.innerHTML = "";
+    spec.fields.forEach(field => {
+      const label = document.createElement("label");
+      label.className = "field";
+      if (field.type === "checkbox") label.classList.add("switch");
+      const span = document.createElement("span");
+      span.textContent = field.label;
+      label.appendChild(span);
+      let input;
+      if (field.type === "textarea") {
+        input = document.createElement("textarea");
+        input.rows = 2;
+      } else if (field.type === "select") {
+        input = document.createElement("select");
+        (field.options || []).forEach(([value, text]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = text;
+          input.appendChild(option);
+        });
+      } else {
+        input = document.createElement("input");
+        input.type = field.type || "text";
+      }
+      const current = state[field.k];
+      if (field.type === "checkbox") input.checked = !!current;
+      else input.value = current == null ? "" : current;
+      if (field.placeholder) input.placeholder = field.placeholder;
+      input.id = "f-" + field.k;
+      const update = () => { state[field.k] = readField(input); scheduleDraw(); };
+      input.addEventListener("input", update);
+      input.addEventListener("change", update);
+      label.appendChild(input);
+      builder.appendChild(label);
+    });
+  }
+
+  function textValue(type, state) {
+    const v = key => String(state[key] == null ? "" : state[key]).trim();
+    switch (type) {
+      case "url":
+        return v("url");
+      case "text":
+        return String(state.text || "");
+      case "wifi": {
+        let out = "WIFI:T:" + (state.enc || "WPA") + ";S:" + escapeWifi(state.ssid) + ";";
+        if (state.enc !== "nopass") out += "P:" + escapeWifi(state.password) + ";";
+        if (state.hidden) out += "H:true;";
+        return out + ";";
+      }
+      case "email": {
+        const params = [];
+        if (v("subject")) params.push("subject=" + encodeURIComponent(state.subject));
+        if (v("body")) params.push("body=" + encodeURIComponent(state.body));
+        return v("to") || params.length ? "mailto:" + v("to") + (params.length ? "?" + params.join("&") : "") : "";
+      }
+      case "sms":
+        return v("number") || v("message") ? "SMSTO:" + v("number") + ":" + String(state.message || "") : "";
+      case "phone":
+        return v("number") ? "tel:" + v("number") : "";
+      case "vcard": {
+        const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+        const first = v("first"), last = v("last");
+        if (first || last) {
+          lines.push("N:" + escapeVCard(last) + ";" + escapeVCard(first) + ";;;");
+          lines.push("FN:" + escapeVCard([first, last].filter(Boolean).join(" ")));
+        }
+        if (v("org")) lines.push("ORG:" + escapeVCard(state.org));
+        if (v("title")) lines.push("TITLE:" + escapeVCard(state.title));
+        if (v("phone")) lines.push("TEL;TYPE=cell:" + escapeVCard(state.phone));
+        if (v("email")) lines.push("EMAIL:" + escapeVCard(state.email));
+        if (v("url")) lines.push("URL:" + v("url"));
+        lines.push("END:VCARD");
+        return lines.length > 3 ? lines.join("\n") : "";
+      }
+      case "location":
+        return v("lat") && v("lng") ? "geo:" + v("lat") + "," + v("lng") : "";
+      case "whatsapp": {
+        const digits = v("number").replace(/[^\d]/g, "");
+        if (!digits) return "";
+        return "https://wa.me/" + digits + (v("message") ? "?text=" + encodeURIComponent(state.message) : "");
+      }
+      case "review":
+        return v("placeid") ? "https://search.google.com/local/writereview?placeid=" + encodeURIComponent(state.placeid) : "";
+      case "payid":
+        return v("payid");
+      case "calendar": {
+        const stamp = icsDate(state.start) || "19700101T000000Z";
+        const uid = (v("start") || v("title") || "event").replace(/[^a-z0-9]/gi, "") + "@acswebapps.com";
+        const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ACS Web Apps//QR Code//EN", "BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:" + stamp];
+        if (v("start")) lines.push("DTSTART:" + icsDate(state.start));
+        if (v("end")) lines.push("DTEND:" + icsDate(state.end));
+        lines.push("SUMMARY:" + escapeIcs(v("title") || "Event"));
+        if (v("location")) lines.push("LOCATION:" + escapeIcs(state.location));
+        if (v("description")) lines.push("DESCRIPTION:" + escapeIcs(state.description));
+        lines.push("END:VEVENT", "END:VCALENDAR");
+        return lines.join("\n");
+      }
+      default:
+        return "";
+    }
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, radius);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
+  }
+
+  function paintModule(ctx, x, y, s, shape, fill) {
+    ctx.fillStyle = fill;
+    if (shape === "dots") {
+      ctx.beginPath();
+      ctx.arc(x + s / 2, y + s / 2, s * 0.44, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (shape === "rounded") {
+      roundRectPath(ctx, x + s * 0.06, y + s * 0.06, s * 0.88, s * 0.88, s * 0.3);
+      ctx.fill();
+    } else if (shape === "diamond") {
+      ctx.beginPath();
+      ctx.moveTo(x + s / 2, y + s * 0.04);
+      ctx.lineTo(x + s * 0.96, y + s / 2);
+      ctx.lineTo(x + s / 2, y + s * 0.96);
+      ctx.lineTo(x + s * 0.04, y + s / 2);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, s + 0.4, s + 0.4);
+    }
+  }
+
+  function paintEye(ctx, x, y, s, style, fill) {
+    const size = 7 * s;
+    ctx.save();
+    ctx.strokeStyle = fill;
+    ctx.fillStyle = fill;
+    ctx.lineWidth = s;
+    if (style === "circle") {
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, 3 * s, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, 1.5 * s, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      const r = style === "rounded" ? 1.2 * s : 0;
+      roundRectPath(ctx, x + 0.5 * s, y + 0.5 * s, 6 * s, 6 * s, r);
+      ctx.stroke();
+      roundRectPath(ctx, x + 2 * s, y + 2 * s, 3 * s, 3 * s, r * 0.5);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function paintLogo(ctx, pixels, opts) {
+    if (!opts.logo || !opts.logo.complete || !opts.logo.naturalWidth) return;
+    const logoSize = pixels * 0.22;
+    const pad = Math.max(2, pixels * 0.03);
+    const cx = pixels / 2, cy = pixels / 2;
+    ctx.save();
+    ctx.fillStyle = opts.transparent ? "#ffffff" : opts.light;
+    roundRectPath(ctx, cx - logoSize / 2 - pad, cy - logoSize / 2 - pad, logoSize + pad * 2, logoSize + pad * 2, logoSize * 0.18);
+    ctx.fill();
+    const ratio = Math.min(logoSize / opts.logo.naturalWidth, logoSize / opts.logo.naturalHeight);
+    const w = opts.logo.naturalWidth * ratio, h = opts.logo.naturalHeight * ratio;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(opts.logo, cx - w / 2, cy - h / 2, w, h);
+    ctx.restore();
+  }
+
+  function renderCanvas(model, pixels, opts) {
+    const count = model.getModuleCount();
+    const quiet = 4;
+    const total = count + quiet * 2;
+    const s = pixels / total;
+    const next = document.createElement("canvas");
+    next.width = pixels;
+    next.height = pixels;
+    const ctx = next.getContext("2d");
+    if (opts.transparent) ctx.clearRect(0, 0, pixels, pixels);
+    else { ctx.fillStyle = opts.light; ctx.fillRect(0, 0, pixels, pixels); }
+    let fill = opts.dark;
+    if (opts.gradient) {
+      const grad = ctx.createLinearGradient(0, 0, pixels, pixels);
+      grad.addColorStop(0, opts.dark);
+      grad.addColorStop(1, opts.dark2);
+      fill = grad;
+    }
+    const eyes = [[0, 0], [count - 7, 0], [0, count - 7]];
+    const inEye = (r, c) => eyes.some(([er, ec]) => r >= er && r < er + 7 && c >= ec && c < ec + 7);
+    eyes.forEach(([er, ec]) => paintEye(ctx, (ec + quiet) * s, (er + quiet) * s, s, opts.eye, fill));
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (!model.isDark(r, c) || inEye(r, c)) continue;
+        paintModule(ctx, (c + quiet) * s, (r + quiet) * s, s, opts.shape, fill);
+      }
+    }
+    paintLogo(ctx, pixels, opts);
+    return next;
+  }
+
+  function svgRect(x, y, w, h, r, fill) {
+    return '<rect x="' + x.toFixed(3) + '" y="' + y.toFixed(3) + '" width="' + w.toFixed(3) + '" height="' + h.toFixed(3) + '"' + (r ? ' rx="' + r.toFixed(3) + '"' : "") + ' fill="' + fill + '"/>';
+  }
+
+  function svgModuleSVG(x, y, shape, fill) {
+    if (shape === "dots") return '<circle cx="' + (x + 0.5).toFixed(3) + '" cy="' + (y + 0.5).toFixed(3) + '" r="0.44" fill="' + fill + '"/>';
+    if (shape === "rounded") return svgRect(x + 0.06, y + 0.06, 0.88, 0.88, 0.3, fill);
+    if (shape === "diamond") return '<polygon points="' + (x + 0.5) + ',' + (y + 0.04) + ' ' + (x + 0.96) + ',' + (y + 0.5) + ' ' + (x + 0.5) + ',' + (y + 0.96) + ' ' + (x + 0.04) + ',' + (y + 0.5) + '" fill="' + fill + '"/>';
+    return svgRect(x, y, 1.02, 1.02, 0, fill);
+  }
+
+  function svgEyeSVG(x, y, style, fill) {
+    if (style === "circle") {
+      return '<circle cx="' + (x + 3.5) + '" cy="' + (y + 3.5) + '" r="3" fill="none" stroke="' + fill + '" stroke-width="1"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 3.5) + '" r="1.5" fill="' + fill + '"/>';
+    }
+    const r = style === "rounded" ? 1.2 : 0;
+    return '<rect x="' + (x + 0.5) + '" y="' + (y + 0.5) + '" width="6" height="6"' + (r ? ' rx="' + r + '"' : "") + ' fill="none" stroke="' + fill + '" stroke-width="1"/>' +
+      '<rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"' + (r ? ' rx="' + (r * 0.5) + '"' : "") + ' fill="' + fill + '"/>';
+  }
+
+  function renderSVG(model, pixels, opts) {
+    const count = model.getModuleCount();
+    const quiet = 4;
+    const total = count + quiet * 2;
+    let defs = "";
+    let fill = opts.dark;
+    if (opts.gradient) {
+      defs = '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + opts.dark + '"/><stop offset="1" stop-color="' + opts.dark2 + '"/></linearGradient></defs>';
+      fill = "url(#g)";
+    }
+    let body = "";
+    if (!opts.transparent) body += svgRect(0, 0, total, total, 0, opts.light);
+    const eyes = [[0, 0], [count - 7, 0], [0, count - 7]];
+    const inEye = (r, c) => eyes.some(([er, ec]) => r >= er && r < er + 7 && c >= ec && c < ec + 7);
+    eyes.forEach(([er, ec]) => { body += svgEyeSVG(ec + quiet, er + quiet, opts.eye, fill); });
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (!model.isDark(r, c) || inEye(r, c)) continue;
+        body += svgModuleSVG(c + quiet, r + quiet, opts.shape, fill);
+      }
+    }
+    if (opts.logoData) {
+      const logoSize = total * 0.22;
+      const pad = total * 0.03;
+      const x = total / 2 - logoSize / 2 - pad;
+      const y = total / 2 - logoSize / 2 - pad;
+      const bg = opts.transparent ? "#ffffff" : opts.light;
+      body += svgRect(x, y, logoSize + pad * 2, logoSize + pad * 2, logoSize * 0.18, bg);
+      body += '<image href="' + opts.logoData + '" x="' + (total / 2 - logoSize / 2) + '" y="' + (total / 2 - logoSize / 2) + '" width="' + logoSize + '" height="' + logoSize + '" preserveAspectRatio="xMidYMid meet"/>';
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + pixels + '" height="' + pixels + '" viewBox="0 0 ' + total + ' ' + total + '">' + defs + body + '</svg>';
+  }
+
+  function currentOptions() {
+    return {
+      shape: shapeSelect.value,
+      eye: eyeSelect.value,
+      light: lightInput.value,
+      dark: darkInput.value,
+      dark2: dark2Input.value,
+      gradient: gradientInput.checked,
+      transparent: transparentInput.checked,
+      logo: logoImage,
+      logoData: logoData
+    };
+  }
+
+  function draw() {
+    const text = textValue(typeSelect.value, stateFor(typeSelect.value));
+    if (!text.trim()) {
+      qrbox.innerHTML = '<p class="empty" id="empty">Your QR code appears here as you type.</p>';
+      canvas = null;
+      lastModel = null;
+      modulesLabel.textContent = "—";
+      pxLabel.textContent = sizeInput.value;
+      downloadBtn.disabled = downloadSvgBtn.disabled = copyBtn.disabled = true;
+      updateAdvanced("", null, 0);
+      setStatus("Fill in the fields to create a code.");
+      return;
+    }
+    try {
+      const scratch = document.createElement("div");
+      const probe = new QRCode(scratch, {
+        text: text,
+        width: 64,
+        height: 64,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel[ecSelect.value]
+      });
+      const model = probe._oQRCode;
+      if (!model) throw new Error("Could not build the code.");
+      const pixels = Number(sizeInput.value);
+      const opts = currentOptions();
+      const next = renderCanvas(model, pixels, opts);
+      next.setAttribute("role", "img");
+      next.setAttribute("aria-label", "QR code for " + text.slice(0, 120));
+      qrbox.innerHTML = "";
+      qrbox.appendChild(next);
+      const previewPct = 42 + ((pixels - 160) / (1024 - 160)) * 58;
+      next.style.width = previewPct.toFixed(1) + "%";
+      next.style.height = "auto";
+      canvas = next;
+      lastText = text;
+      lastModel = model;
+      const count = model.getModuleCount();
+      modulesLabel.textContent = count + " × " + count + " modules";
+      pxLabel.textContent = String(pixels);
+      downloadBtn.disabled = downloadSvgBtn.disabled = copyBtn.disabled = false;
+      updateAdvanced(text, model, pixels);
+      const ratio = contrastRatio(darkInput.value, lightInput.value);
+      const note = logoData ? " · logo" : "";
+      if (ratio < 3) setStatus("Low color contrast may be hard to scan. Try darker foreground or lighter background.", true);
+      else setStatus("Ready · " + count + " × " + count + " modules · " + pixels + " px" + note + ".");
+    } catch (error) {
+      canvas = null;
+      lastModel = null;
+      qrbox.innerHTML = '<p class="empty">This content is too long for the selected error-correction level. Shorten it or choose a lower level.</p>';
+      modulesLabel.textContent = "—";
+      downloadBtn.disabled = downloadSvgBtn.disabled = copyBtn.disabled = true;
+      updateAdvanced("", null, 0);
+      setStatus(error.message && /too long/i.test(error.message)
+        ? "Too much data. Shorten it or lower the error-correction level."
+        : "Could not generate a code. Try different content.", true);
+    }
+  }
+
+  function scheduleDraw() {
+    clearTimeout(timer);
+    timer = setTimeout(draw, 200);
+  }
+
+  function makeFileName(extension) {
+    const type = typeSelect.value;
+    let base = type;
+    if (type === "url") {
+      try { base = new URL(lastText).hostname || "url"; } catch (error) { base = "url"; }
+    }
+    base = base.replace(/[^a-z0-9.]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "qr-code";
+    return base + "-qr." + extension;
+  }
+
+  typeSelect.addEventListener("change", () => { renderBuilder(); draw(); });
+  [shapeSelect, eyeSelect, ecSelect].forEach(el => el.addEventListener("change", draw));
+  [darkInput, lightInput, dark2Input].forEach(el => el.addEventListener("input", draw));
+  gradientInput.addEventListener("change", () => {
+    gradientRow.hidden = !gradientInput.checked;
+    draw();
+  });
+  transparentInput.addEventListener("change", draw);
+  sizeInput.addEventListener("input", () => {
+    sizeVal.textContent = sizeInput.value;
+    pxLabel.textContent = sizeInput.value;
+    updateSizeFill();
+    scheduleDraw();
+  });
+
+  logoInput.addEventListener("change", () => {
+    const file = logoInput.files && logoInput.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setStatus("Please choose an image file.", true); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      logoData = String(reader.result);
+      const img = new Image();
+      img.onload = () => {
+        logoImage = img;
+        logoName.textContent = file.name;
+        logoClear.hidden = false;
+        if (ecSelect.value !== "H") {
+          ecSelect.value = "H";
+          setStatus("Error correction raised to High so the logo stays readable.");
+        }
+        draw();
+      };
+      img.onerror = () => setStatus("Could not read that image.", true);
+      img.src = logoData;
+    };
+    reader.onerror = () => setStatus("Could not read that file.", true);
+    reader.readAsDataURL(file);
+  });
+
+  logoClear.addEventListener("click", () => {
+    logoData = null;
+    logoImage = null;
+    logoInput.value = "";
+    logoName.textContent = "No logo";
+    logoClear.hidden = true;
+    draw();
+  });
+
+  downloadBtn.addEventListener("click", () => {
+    if (!canvas) return;
+    try {
+      const link = document.createElement("a");
+      link.download = makeFileName("png");
+      link.href = canvas.toDataURL("image/png");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus("Saved " + link.download + ".");
+    } catch (error) {
+      setStatus("Could not save the image. Try again.", true);
+    }
+  });
+
+  downloadSvgBtn.addEventListener("click", () => {
+    try {
+      const text = textValue(typeSelect.value, stateFor(typeSelect.value));
+      if (!text.trim()) return;
+      const scratch = document.createElement("div");
+      const probe = new QRCode(scratch, {
+        text: text,
+        width: 64,
+        height: 64,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel[ecSelect.value]
+      });
+      const model = probe._oQRCode;
+      if (!model) throw new Error("Could not build the code.");
+      const svg = renderSVG(model, Number(sizeInput.value), currentOptions());
+      const blob = new Blob([svg], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = makeFileName("svg");
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus("Saved " + link.download + ".");
+    } catch (error) {
+      setStatus("Could not save the SVG. Try again.", true);
+    }
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    if (!canvas) return;
+    try {
+      if (!navigator.clipboard || typeof ClipboardItem === "undefined" || !canvas.toBlob) {
+        throw new Error("unsupported");
+      }
+      const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(Error("no blob")), "image/png"));
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setStatus("Copied the image to the clipboard.");
+    } catch (error) {
+      setStatus("Copying images isn't supported here. Use Download PNG instead.", true);
+    }
+  });
+
+  const ecLabels = {
+    L: "Low · 7% recoverable",
+    M: "Medium · 15% recoverable",
+    Q: "Quartile · 25% recoverable",
+    H: "High · 30% recoverable"
+  };
+  const shapeLabels = { square: "Square", rounded: "Rounded", dots: "Dots", diamond: "Diamond" };
+  const eyeLabels = { square: "Square", rounded: "Rounded", circle: "Circle" };
+
+  function byteLength(value) {
+    if (window.TextEncoder) return new TextEncoder().encode(value).length;
+    return encodeURIComponent(value).replace(/%[0-9A-F]{2}/gi, "_").length;
+  }
+
+  function updateAdvanced(text, model, pixels) {
+    advStats.textContent = "";
+    if (!text || !model) {
+      advPayload.textContent = "No code yet. Fill in the fields to see the exact encoded payload.";
+      advCopy.disabled = true;
+      return;
+    }
+    const count = model.getModuleCount();
+    const quiet = 4;
+    const total = count + quiet * 2;
+    const modulePx = pixels / total;
+    const bytes = byteLength(text);
+    const chars = Array.from(text).length;
+    const logoArea = Math.pow(0.28, 2) * 100;
+    const colors = gradientInput.checked
+      ? darkInput.value + " to " + dark2Input.value + " (gradient)"
+      : darkInput.value;
+    const rows = [
+      ["Content type", typeSelect.selectedOptions[0].textContent],
+      ["Encoded payload", bytes + (bytes === 1 ? " byte" : " bytes") + " · " + chars + (chars === 1 ? " character" : " characters")],
+      ["Modules", count + " × " + count],
+      ["Total grid", total + " × " + total + " with quiet zone"],
+      ["Module size", modulePx.toFixed(2) + " px"],
+      ["Quiet zone", quiet + " modules · " + (modulePx * quiet).toFixed(1) + " px each side"],
+      ["Output size", pixels + " × " + pixels + " px"],
+      ["Error correction", ecLabels[ecSelect.value] || ecSelect.value],
+      ["Style", shapeLabels[shapeSelect.value] + " modules · " + eyeLabels[eyeSelect.value] + " eyes"],
+      ["Colors", colors + " on " + (transparentInput.checked ? "transparent" : lightInput.value)],
+      ["Logo", logoData ? "Centered · covers about " + logoArea.toFixed(1) + "% of the code" : "None"]
+    ];
+    rows.forEach(([label, value]) => {
+      const dt = document.createElement("dt");
+      dt.textContent = label;
+      const dd = document.createElement("dd");
+      dd.textContent = value;
+      advStats.append(dt, dd);
+    });
+    advPayload.textContent = text;
+    advCopy.disabled = false;
+  }
+
+  function openAdvanced() {
+    if (canvas && lastModel) updateAdvanced(lastText, lastModel, Number(sizeInput.value));
+    if (typeof advancedDialog.showModal === "function") advancedDialog.showModal();
+    else advancedDialog.setAttribute("open", "");
+  }
+
+  advancedBtn.addEventListener("click", openAdvanced);
+  advClose.addEventListener("click", () => advancedDialog.close());
+  advancedDialog.addEventListener("click", event => {
+    if (event.target === advancedDialog) advancedDialog.close();
+  });
+
+  advCopy.addEventListener("click", async () => {
+    const text = advPayload.textContent;
+    if (!text || advCopy.disabled) return;
+    const original = advCopy.textContent;
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("unsupported");
+      await navigator.clipboard.writeText(text);
+      advCopy.textContent = "Copied";
+    } catch (error) {
+      const range = document.createRange();
+      range.selectNodeContents(advPayload);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      advCopy.textContent = "Selected — press Ctrl+C";
+    }
+    setTimeout(() => { advCopy.textContent = original; }, 1800);
+  });
+
+  sizeVal.textContent = sizeInput.value;
+  pxLabel.textContent = sizeInput.value;
+  updateSizeFill();
+  renderBuilder();
+  downloadBtn.disabled = downloadSvgBtn.disabled = copyBtn.disabled = true;
+  draw();
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "QR Code",
+  "short_name": "QR Code",
+  "description": "Create static, customizable QR codes from any text or link. Works offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe5",
+  "theme_color": "#f4efe5",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
