@@ -136,6 +136,15 @@ window.APPS = [
     url: "apps/tune/"
   },
   {
+    id: "qr-code",
+    name: "QR Code",
+    description: "Create static, customizable QR codes from any text or link. Works offline.",
+    icon: "🔳",
+    iconUrl: "apps/qr-code/icons/icon.svg",
+    tags: ["Tools", "Share"],
+    status: "beta"
+  },
+  {
     id: "verse-designer",
     name: "Verse Designer",
     description: "Design beautiful Bible verse wallpapers and shareable images with custom typography and gradients. Export as PNG, offline.",
