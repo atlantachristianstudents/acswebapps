@@ -1,5 +1,7 @@
 # ACS Web Apps
 
+<img src="assets/icons/icon-192.png" alt="ACS Web Apps icon" width="96" height="96" />
+
 **Free, ad-free web apps by Atlanta Christian Students.** Everything runs in the browser — no accounts and no ads, with limited usage counts. The site is a static app directory, and every app is a self-contained PWA that keeps working offline after the first visit.
 
 [![Live Site](https://img.shields.io/badge/🌐_Live_Site-Visit-5865F2?style=for-the-badge)](https://acswebapps.com/)
