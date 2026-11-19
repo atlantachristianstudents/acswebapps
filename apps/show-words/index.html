@@ -81,6 +81,16 @@
   .passage .ref { display: inline; font-size: .7em; line-height: 0; vertical-align: super; font-weight: 700; color: var(--accent); margin-right: 3px; }
   .passage .text { display: inline; margin: 0; }
   .verse:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* Draw the focus ring on the inline verse box, without tracing its superscript. */
+  .passage .verse:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  @media (forced-colors: active) {
+    .passage .verse:focus .text { text-decoration: underline; }
+  }
   .verse.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
   .verse { cursor: pointer; user-select: none; }
   .verse.copied .ref::after { content: " \00b7  Copied"; color: var(--muted); font-weight: 400; }
@@ -5711,7 +5721,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v58">
+<script id="acswebapps-updater" data-version="verse-lookup-v59">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

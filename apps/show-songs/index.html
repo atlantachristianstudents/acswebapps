@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-    <meta name="theme-color" content="#0a0e11" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon-192.png" />
@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <style>
       html {
-        background: #0a0e11;
+        background: #fff;
       }
       body {
         margin: 0;
@@ -25,7 +25,7 @@
     <script>
       try {
         var t = localStorage.getItem("bigtext-theme");
-        if (t === "bw" || t === "wb") document.documentElement.setAttribute("data-theme", t);
+        if (t === "bw" || t === "wb" || t === "system" || t === "custom") document.documentElement.setAttribute("data-theme", t);
       } catch (e) {}
     </script>
     <title>Show Songs</title>
@@ -37,40 +37,38 @@
     <style>
       /* Layout: a single canvas fills the window; typed digits scale to the largest size that fits. */
       :root {
-        --bg: #e9edef;
-        --fg: #0c1317;
-        --hint: #56646c;
+        background: var(--bg);
+        --bg: #ffffff;
+        --fg: #000000;
+        --hint: #555;
+        color-scheme: light;
         --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
         --font-utility: "IBM Plex Mono", ui-monospace, Menlo, monospace;
       }
+      :root[data-theme="system"] {
+        --bg: #e9edef;
+        --fg: #0c1317;
+        --hint: #56646c;
+      }
       @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) {
+        :root[data-theme="system"] {
           --bg: #0a0e11;
           --fg: #e8f0f4;
           --hint: #87969f;
           color-scheme: dark;
         }
       }
-      :root[data-theme="dark"] {
-        --bg: #0a0e11;
-        --fg: #e8f0f4;
-        --hint: #87969f;
-        color-scheme: dark;
-      }
-      /* h cycles: default (follows the system) -> black on white -> white on black */
-      :root[data-theme="bw"] {
-        background: #fff;
-        --bg: #fff;
-        --fg: #000;
-        --hint: #555;
-        color-scheme: light;
-      }
       :root[data-theme="wb"] {
-        background: #000;
-        --bg: #000;
-        --fg: #fff;
+        --bg: #000000;
+        --fg: #ffffff;
         --hint: #aaa;
         color-scheme: dark;
+      }
+      :root[data-theme="custom"] {
+        --bg: var(--custom-bg, #ffffff);
+        --fg: var(--custom-fg, #000000);
+        --hint: var(--fg);
+        --lyrics-font: var(--custom-lyrics-font);
       }
 
       html,
@@ -97,6 +95,8 @@
         width: 100%;
         height: 100%;
       }
+      #stage[inert] { visibility: hidden; }
+      #background-image { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; pointer-events: none; }
       /* Click the display, use m, or use a touch screen to reveal controls. */
       #pad {
         position: fixed;
@@ -155,7 +155,6 @@
         flex-direction: column;
         padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
         box-sizing: border-box;
-        background: var(--bg);
         color: var(--fg);
         font-family: Arial, sans-serif;
       }
@@ -168,6 +167,21 @@
         font: 13px/1.5 var(--font-utility);
         color: var(--hint);
       }
+      #presentation-status {
+        position: absolute;
+        z-index: 1;
+        top: max(16px, env(safe-area-inset-top));
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 12px;
+        border: 1px solid var(--hint);
+        border-radius: 6px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 13px/1.5 var(--font-utility);
+        pointer-events: none;
+      }
+      #presentation-status:empty { opacity: 0; }
       #presentation-title { flex: 1 0 100%; overflow-wrap: anywhere; }
       #presentation header { margin-bottom: 20px; }
       #presentation-version-control { display: grid; gap: 4px; width: 100%; color: var(--hint); font: 11px/1.4 var(--font-utility); }
@@ -236,14 +250,15 @@
       #presentation-capo { font: 13px/1.5 var(--font-utility); overflow-wrap: anywhere; margin: 0 0 16px; }
       .lyric-line, .guitar-line { display: flow-root; box-sizing: border-box; padding-left: 1em; text-indent: -1em; white-space: pre-wrap; }
       .lyric-phrase { white-space: pre-wrap; overflow-wrap: anywhere; }
-      .guitar-token { display: inline-block; position: relative; padding-top: 0.8em; min-width: var(--chord-width); max-width: 100%; vertical-align: bottom; }
-      .guitar-chord { position: absolute; top: 0; left: 0; font: 600 0.6em/1.2 var(--font-utility); white-space: nowrap; }
+      /* Let the chord and its lyric share a measured box. Apply the hanging indent only to the row. */
+      .guitar-token { display: inline-block; max-width: 100%; text-align: left; text-indent: 0; }
+      .guitar-chord { display: block; font: 600 0.6em/1.5 var(--font-utility); opacity: 0.4; white-space: nowrap; }
       #presentation-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; overflow-anchor: none; padding: 0; }
-      #presentation-lyrics { box-sizing: border-box; flex: 0 0 auto; margin: auto; text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; width: 100%; }
+      #presentation-lyrics { box-sizing: border-box; flex: 0 0 auto; margin: auto; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--lyrics-font, Arial, sans-serif); line-height: 1.3; width: 100%; }
       /* Balance lyric rows as a whole. Keep phrase spans inline so adjacent
          punctuation-delimited phrases share one line box and cannot overlap. */
       #presentation-lyrics .lyric-line, #presentation-lyrics .guitar-line { text-wrap: balance; }
-      #presentation-lyrics[data-full-song="true"] { text-align: left; white-space: normal; column-gap: clamp(12px, 2vw, 32px); column-fill: balance; }
+      #presentation-lyrics[data-full-song="true"] { white-space: normal; column-gap: clamp(12px, 2vw, 32px); column-fill: balance; }
       #presentation-lyrics .song-section { display: inline-block; width: 100%; vertical-align: top; break-inside: avoid; break-inside: avoid-column; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin-bottom: 0.5em; }
       #presentation-lyrics .song-section:last-child { margin-bottom: 0; }
       #presentation-lyrics .song-part { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; column-gap: 2ch; break-inside: avoid; white-space: normal; margin-bottom: 0.5em; }
@@ -279,7 +294,6 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--hint);
-        background: var(--bg);
         z-index: 1;
         pointer-events: none;
       }
@@ -296,12 +310,32 @@
           cursor: pointer !important;
         }
       }
-      #song-languages { width: min(560px, calc(100vw - 32px)); max-height: 80dvh; overflow: auto; box-sizing: border-box; padding: 20px; border: 1px solid var(--hint); border-radius: 12px; background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font-utility); }
-      #song-languages::backdrop { background: #0009; }
+      :is(#song-languages, .settings-dialog) { width: min(560px, calc(100vw - 32px)); max-height: 80dvh; overflow: auto; box-sizing: border-box; padding: 20px; border: 1px solid var(--hint); border-radius: 12px; background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font-utility); }
+      :is(#song-languages, .settings-dialog)::backdrop { background: #0009; }
       #song-language-options { display: grid; gap: 8px; }
       #song-language-options button { text-align: left; white-space: normal; }
       #song-languages header { margin-bottom: 16px; }
-      #song-languages, #song-languages * { cursor: auto !important; }
+      #background-image-dialog header { margin-bottom: 12px; }
+      #song-languages, #song-languages *, .settings-dialog, .settings-dialog * { cursor: auto !important; }
+      .settings-dialog { height: min(260px, 80dvh); }
+      .settings-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+      .settings-dialog .dialog-close {
+        display: grid;
+        place-items: center;
+        flex: 0 0 32px;
+        height: 32px;
+        padding: 0;
+        border: 1px solid var(--hint);
+        border-radius: 6px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 20px/1 Arial, sans-serif;
+        cursor: pointer !important;
+      }
+      #background-image-file { display: block; max-width: 100%; margin-top: 6px; font: inherit; }
+      #custom-theme-dialog form { display: grid; gap: 12px; }
+      #custom-theme-dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      #custom-theme-dialog footer { display: flex; flex-wrap: wrap; gap: 8px; }
       #hymn-search {
         width: min(680px, calc(100vw - 32px));
         max-height: calc(100dvh - 48px);
@@ -449,7 +483,9 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
   <body>
 
 
+    <img id="background-image" alt="" hidden />
     <section id="presentation" tabindex="-1" role="dialog" aria-modal="true" aria-label="Hymn presentation" hidden>
+      <div id="presentation-status" role="status"></div>
       <div id="presentation-content">
         <aside id="presentation-numbers" aria-label="Hymn numbers and presentation controls">
           <button type="button" id="presentation-exit" aria-label="Exit presentation" title="Exit presentation (Space)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -476,6 +512,33 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         <div id="song-language-options"></div>
       </dialog>
     </section>
+    <dialog id="background-image-dialog" class="settings-dialog" aria-labelledby="background-image-title">
+      <form method="dialog">
+        <header><strong id="background-image-title">Background image</strong><button type="submit" class="dialog-close" aria-label="Close background dialog">×</button></header>
+        <label for="background-image-file">Choose an image</label>
+        <input id="background-image-file" type="file" accept="image/*" aria-describedby="background-image-status" autofocus />
+        <p id="background-image-status" role="status"></p>
+        <button type="button" id="background-image-remove" hidden>Remove image</button>
+      </form>
+    </dialog>
+    <dialog id="custom-theme-dialog" class="settings-dialog" aria-labelledby="custom-theme-title">
+      <form>
+        <header><strong id="custom-theme-title">Custom theme</strong><button type="button" class="dialog-close" id="custom-theme-close" aria-label="Close custom theme">×</button></header>
+        <label>Text color <input id="custom-text-color" type="color" autofocus /></label>
+        <label>Background color <input id="custom-background-color" type="color" /></label>
+        <label>Lyrics font
+          <select id="custom-lyrics-font">
+            <option value="arial">Arial</option>
+            <option value="verdana">Verdana</option>
+            <option value="georgia">Georgia</option>
+          </select>
+        </label>
+        <footer>
+          <button type="submit">Apply</button>
+          <button type="button" id="custom-theme-default">Use default</button>
+        </footer>
+      </form>
+    </dialog>
     <div id="help" role="dialog" aria-label="Shortcuts" hidden></div>
     <dialog id="hymn-search" aria-labelledby="hymn-search-label">
       <header><label id="hymn-search-label" for="hymn-search-input">Search hymns by title or lyrics</label><button type="button" id="hymn-search-close" aria-label="Close search">×</button></header>
@@ -527,6 +590,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
       <button type="button" data-for="editing" data-act="undo">Undo</button>
       <button type="button" data-for="editing" data-act="redo">Redo</button>
       <button type="button" data-act="theme" data-for="editing">Theme</button>
+      <button type="button" data-act="customTheme">Custom theme</button>
       <button type="button" data-act="lang" data-for="num" data-toggle>All</button>
       <button type="button" data-act="c" data-for="num" data-toggle>C</button>
       <button type="button" data-act="k" data-for="num" data-toggle>K</button>
@@ -674,6 +738,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var hint = document.getElementById("hint");
         var live = document.getElementById("live");
         var FAMILY = '"Big Shoulders Display", "Arial Narrow", Impact, sans-serif';
+        var lyricsFonts = { arial: "Arial, sans-serif", verdana: "Verdana, sans-serif", georgia: "Georgia, serif" };
+        var displayFonts = Object.assign({ "big-shoulders": FAMILY }, lyricsFonts);
+        var displayFont = "big-shoulders";
+        var presentationFont = "";
         var arrowFresh = false; // next digit starts a new number after navigation or presentation
         // Start fresh after number navigation or exiting presentation; otherwise append.
         function digitBase() {
@@ -725,7 +793,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             var song = songsById[id], number = englishNumbersById[id];
             if (!song) return;
             if (!updatedHymns[number]) updatedHymns[number] = [];
-            updatedHymns[number].push({ title: song.title, lyrics: song.lyrics });
+            updatedHymns[number].push({ id: song.id, title: song.title, lyrics: song.lyrics });
           });
           hymnData = updatedHymns;
           searchIndex = null;
@@ -866,10 +934,14 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var presentationNext = document.getElementById("presentation-next");
         var presenting = false, presentationNumber = "", presentationSlides = [], presentationIndex = 0;
         var presentationSections = [];
-        var presentationAlignment = ""; // Empty preserves the default for each view.
-        var presentationBold = false;
+        var presentationAlignment = "";
+        var presentationBold = true;
         var presentationGuitar = false;
         var presentationFullSong = false;
+        var fullSongOrientations = ["Auto", "Horizontal", "Vertical"];
+        var fullSongOrientation = "Auto";
+        var presentationStatus = document.getElementById("presentation-status");
+        var presentationStatusTimer;
         var presentationRepeatChorus = false;
         var presentationFocus = null;
         var selectedLibrarySong = null; // Retain the source while its title is displayed.
@@ -1079,7 +1151,12 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           if (width < 1 || height < 1) return;
           // A definite height lets CSS balance whole stanzas within real columns.
           presentationLyrics.style.height = presentationFullSong ? height + "px" : "auto";
-          var maxColumns = presentationFullSong ? Math.max(1, Math.min(4, Math.floor(width / 180), fullSongParts().length)) : 1;
+          var horizontal = fullSongOrientation === "Horizontal";
+          var maxColumns = 1;
+          if (presentationFullSong && fullSongOrientation !== "Vertical") {
+            var sectionCount = presentationLyrics.querySelectorAll(".song-section").length;
+            maxColumns = Math.max(1, Math.min(4, Math.floor(width / (horizontal ? 120 : 180)), sectionCount));
+          }
           var bestSize = 1, bestColumns = 1;
           for (var columns = 1; columns <= maxColumns; columns++) {
             presentationLyrics.style.columnCount = String(columns);
@@ -1090,7 +1167,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               if (presentationFits(width, height)) { best = size; low = size; }
               else high = size;
             }
-            if (columns === 1 || best > bestSize + 0.1) { bestSize = best; bestColumns = columns; }
+            if (columns === 1 || (horizontal ? best > 1 : best > bestSize + 0.1)) {
+              bestSize = best;
+              bestColumns = columns;
+            }
           }
           presentationLyrics.style.columnCount = String(bestColumns);
           var finalSize = Math.max(1, bestSize * presentationScale * 0.98);
@@ -1114,8 +1194,49 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           renderPresentation();
         }
 
+        function cycleFullSongOrientation() {
+          var index = fullSongOrientations.indexOf(fullSongOrientation);
+          fullSongOrientation = fullSongOrientations[(index + 1) % fullSongOrientations.length];
+          updatePresentationPosition();
+          fitPresentation();
+          saveSettings();
+          flashPresentationStatus(fullSongOrientation);
+        }
+
+        function flashPresentationStatus(message) {
+          presentationStatus.textContent = message;
+          clearTimeout(presentationStatusTimer);
+          presentationStatusTimer = setTimeout(function () { presentationStatus.textContent = ""; }, 1200);
+        }
+
+        function setPresentationFont(font) {
+          presentationFont = font;
+          presentationLyrics.style.fontFamily = font ? lyricsFonts[font] : "";
+        }
+
+        function cycleDisplayFont() {
+          var fonts = Object.keys(displayFonts);
+          displayFont = fonts[(fonts.indexOf(displayFont) + 1) % fonts.length];
+          saveSettings();
+          draw();
+          flash("Font · " + fontLabel(displayFont));
+        }
+
+        function cyclePresentationFont() {
+          var fonts = Object.keys(lyricsFonts);
+          var current = presentationFont || (THEMES[themeIdx].attr === "custom" ? customTheme.font : "arial");
+          setPresentationFont(fonts[(fonts.indexOf(current) + 1) % fonts.length]);
+          saveSettings();
+          fitPresentation();
+          flashPresentationStatus("Font · " + fontLabel(presentationFont));
+        }
+
+        function fontLabel(font) {
+          return font === "big-shoulders" ? "Big Shoulders Display" : font.charAt(0).toUpperCase() + font.slice(1);
+        }
+
         function togglePresentationAlignment() {
-          var current = presentationAlignment || (presentationFullSong ? "left" : "center");
+          var current = presentationAlignment || "left";
           presentationAlignment = current === "left" ? "center" : "left";
           presentationLyrics.style.textAlign = presentationAlignment;
           saveSettings();
@@ -1186,12 +1307,12 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                   if (match[1]) {
                     var token = document.createElement("span");
                     token.className = "guitar-token";
-                    token.style.setProperty("--chord-width", (match[1].length * 0.42) + "em");
                     var chord = document.createElement("span");
                     chord.className = "guitar-chord";
                     chord.textContent = match[1];
                     token.appendChild(chord);
-                    token.appendChild(document.createTextNode(match[2]));
+                    // A standalone chord still needs a lyric baseline.
+                    token.appendChild(document.createTextNode(match[2] || "\u00a0"));
                     group.appendChild(token);
                   } else group.appendChild(document.createTextNode(match[2]));
                   offset = pattern.lastIndex;
@@ -1227,6 +1348,57 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           renderPresentation();
         }
 
+        var backgroundImage = document.getElementById("background-image");
+        var backgroundImageDialog = document.getElementById("background-image-dialog");
+        var backgroundImageFile = document.getElementById("background-image-file");
+        var backgroundImageStatus = document.getElementById("background-image-status");
+        var backgroundImageRemove = document.getElementById("background-image-remove");
+        function setBackgroundImage(url) {
+          var previous = backgroundImage.getAttribute("src");
+          if (url) backgroundImage.src = url;
+          else backgroundImage.removeAttribute("src");
+          backgroundImage.hidden = backgroundImageRemove.hidden = !url;
+          if (previous) URL.revokeObjectURL(previous);
+        }
+        backgroundImageFile.addEventListener("change", async function () {
+          var file = backgroundImageFile.files[0];
+          if (!file) return;
+          var url = URL.createObjectURL(file);
+          var image = new Image();
+          image.src = url;
+          backgroundImageStatus.textContent = "Loading image…";
+          try {
+            await image.decode();
+          } catch (error) {
+            URL.revokeObjectURL(url);
+            if (backgroundImageFile.files[0] === file) {
+              backgroundImageStatus.textContent = "This image could not be opened. Choose another file.";
+              backgroundImageFile.value = "";
+            }
+            return;
+          }
+          if (!backgroundImageDialog.open || backgroundImageFile.files[0] !== file) {
+            URL.revokeObjectURL(url);
+            return;
+          }
+          setBackgroundImage(url);
+          backgroundImageDialog.close();
+        });
+        backgroundImageDialog.addEventListener("close", function () {
+          backgroundImageFile.value = "";
+          backgroundImageStatus.textContent = "";
+        });
+        backgroundImageRemove.addEventListener("click", function () {
+          setBackgroundImage(null);
+          backgroundImageDialog.close();
+        });
+
+        function updatePresentationPosition() {
+          var slide = presentationSlides[presentationIndex];
+          document.getElementById("presentation-position").textContent = presentationFullSong ? "Full song · " + fullSongOrientation :
+            presentationSlideLabel(slide) + " · " + (presentationIndex + 1) + " / " + presentationSlides.length;
+        }
+
         function renderPresentation() {
           var slide = presentationSlides[presentationIndex];
           updateGuitarCapo();
@@ -1255,7 +1427,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               section.appendChild(block);
             });
           } else renderSongPart(presentationLyrics, slide);
-          document.getElementById("presentation-position").textContent = presentationFullSong ? "Full song" : presentationSlideLabel(slide) + " · " + (presentationIndex + 1) + " / " + presentationSlides.length;
+          updatePresentationPosition();
           presentationPrev.disabled = presentationIndex === 0;
           presentationNext.disabled = presentationIndex === presentationSlides.length - 1;
           presentationSlideButtons.forEach(function (button, index) {
@@ -1376,6 +1548,24 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             (linkedSongs[id] || []).forEach(function (linked) { if (!seen[linked]) pending.push(linked); });
           }
           return result.sort(function (a, b) { return a.lang.localeCompare(b.lang) || a.title.localeCompare(b.title); });
+        }
+        function openSheetMusic() {
+          if (!presentationSong) return;
+          var number = englishNumbersById[presentationSong.id];
+          if (!number) {
+            var linked = availableSongLanguages(presentationSong).find(function (song) {
+              return englishNumbersById[song.id];
+            });
+            if (linked) number = englishNumbersById[linked.id];
+          }
+          var path = number ? "hymn/h/" + encodeURIComponent(number) + "?tab=music&sheet=piano" :
+            "search/all/all/" + encodeURIComponent(presentationSong.title.slice(0, 80));
+          window.open("https://www.hymnal.net/en/" + path, "_blank", "noopener,noreferrer");
+        }
+        function openSongbaseEditor() {
+          var song = presentationVersions[Number(presentationVersion.value) || 0];
+          if (!song || !Number.isSafeInteger(song.id) || burmeseData.songs.some(function (entry) { return entry.id === song.id; })) return;
+          window.open("https://songbase.life/songs/" + song.id + "/edit", "_blank", "noopener,noreferrer");
         }
         function closeSongLanguages() {
           languageDialog.close();
@@ -1553,9 +1743,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               textMode: textMode, wrapOn: wrapOn, langOn: langOn,
               picked: { c: !!picked.c, k: !!picked.k, s: !!picked.s, b: !!picked.b },
               mainLanguage: mainLanguage, engOn: engOn, engAlt: engAlt, engRussian: engRussian,
+              displayFont: displayFont, presentationFont: presentationFont,
               presentationAlignment: presentationAlignment,
               presentationBold: presentationBold, presentationGuitar: presentationGuitar,
               presentationRepeatChorus: presentationRepeatChorus, presentationFullSong: presentationFullSong,
+              fullSongOrientation: fullSongOrientation,
               sidebarHidden: document.getElementById("presentation-numbers").hidden,
               numbersHidden: document.getElementById("presentation-refs").hidden,
             }));
@@ -1577,12 +1769,15 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           mainLanguage = Object.keys(QUICK).some(function (key) { return QUICK[key] === settings.mainLanguage; }) ? settings.mainLanguage : "";
           if (mainLanguage) { engOn = true; engAlt = false; langOn = false; }
           QUICK_ORDER.forEach(function (key) { picked[key] = !!(settings.picked && settings.picked[key] === true); });
+          if (Object.prototype.hasOwnProperty.call(displayFonts, settings.displayFont)) displayFont = settings.displayFont;
+          if (Object.prototype.hasOwnProperty.call(lyricsFonts, settings.presentationFont)) setPresentationFont(settings.presentationFont);
           presentationAlignment = settings.presentationAlignment === "left" || settings.presentationAlignment === "center" ? settings.presentationAlignment : "";
           presentationLyrics.style.textAlign = presentationAlignment;
-          presentationBold = flag("presentationBold", false);
+          presentationBold = flag("presentationBold", true);
           presentationGuitar = flag("presentationGuitar", false);
           presentationRepeatChorus = flag("presentationRepeatChorus", false);
           presentationFullSong = flag("presentationFullSong", false);
+          if (fullSongOrientations.includes(settings.fullSongOrientation)) fullSongOrientation = settings.fullSongOrientation;
           document.getElementById("presentation-numbers").hidden = flag("sidebarHidden", false);
           document.getElementById("presentation-refs").hidden = flag("numbersHidden", false);
           presentationLyrics.style.fontWeight = presentationBold ? "700" : "400";
@@ -4663,7 +4858,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           var rowH = (p.h - PANEL_PAD) / p.rows,
             cellW = W / p.cols;
           var fg = fgColor;
-          ctx.font = "900 100px " + FAMILY;
+          var fontFamily = displayFonts[displayFont];
+          ctx.font = "900 100px " + fontFamily;
           var asc100 = ctx.measureText("0").actualBoundingBoxAscent || 70;
           var widest = 1;
           for (var i = 0; i < p.refs.length; i++) widest = Math.max(widest, ctx.measureText(p.refs[i].num).width);
@@ -4710,7 +4906,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               if (!inlineLabels) ctx.fillText(items[k].label.toUpperCase(), cx, y + labelPx * 0.72);
               ctx.globalAlpha = 1;
               ctx.fillStyle = fg;
-              ctx.font = "900 " + numPx + "px " + FAMILY;
+              ctx.font = "900 " + numPx + "px " + fontFamily;
               var baseline = y + (inlineLabels ? 0 : labelPx) + gap + numAsc;
               if (inlineLabels) {
                 var lp = Math.max(18, numPx * 0.7);
@@ -4726,7 +4922,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 ctx.fillText(letter, startX, baseline - numAsc / 2 + lp * 0.35);
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = fg;
-                ctx.font = "900 " + numPx + "px " + FAMILY;
+                ctx.font = "900 " + numPx + "px " + fontFamily;
                 ctx.fillText(items[k].num, startX + lw2 + g2, baseline);
                 ctx.textAlign = "center";
               } else {
@@ -4816,7 +5012,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           ctx.textBaseline = "alphabetic";
 
           // Measure at a reference size, then scale so the ink fills the window.
-          ctx.font = "900 100px " + FAMILY;
+          var fontFamily = textMode ? FAMILY : displayFonts[displayFont];
+          ctx.font = "900 100px " + fontFamily;
           var displayValue = mainLanguage && !textMode ? mainNumberRef().num : value;
           var flat = displayValue.replace(/\n/g, " ");
           var lines = displayValue.split("\n");
@@ -4856,7 +5053,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             lines = wr.lines;
           }
           fitSize = size;
-          // Manual size (set with -/+) overrides the fill size until "f" is pressed.
+          // Manual size (set with -/+) overrides the fill size until it is reset.
           // With the panel showing, the main number just fills what the panel leaves (see adjustSize).
           if (manualSize !== null && !panel) {
             size = manualSize;
@@ -4864,7 +5061,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }
 
           // Measure again at the final size and centre the ink in the window.
-          ctx.font = "900 " + size + "px " + FAMILY;
+          ctx.font = "900 " + size + "px " + fontFamily;
           m = ctx.measureText(flat);
           z = ctx.measureText("0");
           var vb = inkV(m, z);
@@ -4939,33 +5136,78 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }, 1800);
         }
 
-        // h (number mode) cycles the colour theme: default, black on white, white on black.
+        // h (number mode) cycles the colour theme.
         var THEMES = [
-          { attr: null, name: "Default", bar: "#0a0e11" },
           { attr: "bw", name: "Black on white", bar: "#ffffff" },
           { attr: "wb", name: "White on black", bar: "#000000" },
+          { attr: "system", name: "System", bar: "#0a0e11" },
+          { attr: "custom", name: "Custom" },
         ];
         var themeIdx = 0;
         var themeMeta = document.querySelector('meta[name="theme-color"]');
+        var customThemeDialog = document.getElementById("custom-theme-dialog");
+        var customTextColor = document.getElementById("custom-text-color");
+        var customBackgroundColor = document.getElementById("custom-background-color");
+        var customLyricsFont = document.getElementById("custom-lyrics-font");
+        var customTheme = null;
+        try {
+          var savedCustom = JSON.parse(localStorage.getItem("bigtext-custom-theme"));
+          if (savedCustom && /^#[\da-f]{6}$/i.test(savedCustom.text) && /^#[\da-f]{6}$/i.test(savedCustom.background) &&
+              Object.prototype.hasOwnProperty.call(lyricsFonts, savedCustom.font)) customTheme = savedCustom;
+        } catch (error) {}
         function applyTheme(i) {
           themeIdx = i;
-          var t = THEMES[i],
-            root = document.documentElement;
-          if (t.attr) root.setAttribute("data-theme", t.attr);
-          else root.removeAttribute("data-theme");
-          if (themeMeta) themeMeta.setAttribute("content", t.bar);
+          var t = THEMES[i];
+          var root = document.documentElement;
+          if (t.attr === "custom") {
+            root.style.setProperty("--custom-fg", customTheme.text);
+            root.style.setProperty("--custom-bg", customTheme.background);
+            root.style.setProperty("--custom-lyrics-font", lyricsFonts[customTheme.font]);
+          }
+          root.setAttribute("data-theme", t.attr);
+          if (themeMeta) themeMeta.setAttribute("content", t.bar || customTheme.background);
+        }
+        function chooseTheme(i) {
+          applyTheme(i);
+          try {
+            localStorage.setItem("bigtext-theme", THEMES[themeIdx].attr);
+          } catch (e) {}
         }
         function cycleTheme() {
-          applyTheme((themeIdx + 1) % THEMES.length);
-          try {
-            if (THEMES[themeIdx].attr) localStorage.setItem("bigtext-theme", THEMES[themeIdx].attr);
-            else localStorage.removeItem("bigtext-theme");
-          } catch (e) {}
+          var count = customTheme ? THEMES.length : THEMES.length - 1;
+          chooseTheme((themeIdx + 1) % count);
           flash("Theme \u00b7 " + THEMES[themeIdx].name);
         }
+        function openCustomTheme() {
+          var colors = getComputedStyle(document.documentElement);
+          customTextColor.value = customTheme ? customTheme.text : colors.getPropertyValue("--fg").trim();
+          customBackgroundColor.value = customTheme ? customTheme.background : colors.getPropertyValue("--bg").trim();
+          customLyricsFont.value = presentationFont || (customTheme ? customTheme.font : "arial");
+          customThemeDialog.showModal();
+        }
+        customThemeDialog.querySelector("form").addEventListener("submit", function (event) {
+          event.preventDefault();
+          customTheme = { text: customTextColor.value, background: customBackgroundColor.value, font: customLyricsFont.value };
+          try {
+            localStorage.setItem("bigtext-custom-theme", JSON.stringify(customTheme));
+          } catch (error) {}
+          setPresentationFont(customTheme.font);
+          saveSettings();
+          chooseTheme(THEMES.length - 1);
+          customThemeDialog.close();
+        });
+        document.getElementById("custom-theme-default").addEventListener("click", function () {
+          setPresentationFont("");
+          saveSettings();
+          chooseTheme(0);
+          customThemeDialog.close();
+        });
+        document.getElementById("custom-theme-close").addEventListener("click", function () { customThemeDialog.close(); });
         (function () {
           var saved = document.documentElement.getAttribute("data-theme");
-          for (var i = 1; i < THEMES.length; i++) if (THEMES[i].attr === saved) applyTheme(i);
+          applyTheme(Math.max(0, THEMES.findIndex(function (theme) {
+            return theme.attr === saved && (saved !== "custom" || customTheme);
+          })));
         })();
 
         function updateHint() {
@@ -4976,7 +5218,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function helpHtml() {
           var d = " &middot; ";
-          var searchHelp = MOD + "+enter show / hide song search";
+          var searchHelp = MOD + "+enter show / hide song search" + d + MOD + "+h custom theme" + d + MOD + "+i choose a background image";
           var editHelp = MOD + "+backspace or " + MOD + "+delete clear" + d + MOD + "+c copy";
           var historyHelp = MOD + "+z undo" + d + MOD + "+shift+z or " + MOD + "+y redo";
           var displayHelp = MOD + "+- smaller" + d + MOD + "+= or " + MOD + "++ bigger" + d + MOD + "+f fill" + d + "alt+w wrap";
@@ -4990,14 +5232,15 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 "s next stanza" + d + "shift+s previous stanza" + d + "cycles wrap around",
                 "k / &larr; / &uarr; / page up previous slide" + d + "j / &rarr; / &darr; / page down next slide",
                 "h / home first slide" + d + "shift+h / end last slide",
-                "- smaller" + d + "= or + bigger" + d + "0 or f fit lyrics to the screen" + d + "shift+f toggle full screen",
+                "- smaller" + d + "= or + bigger" + d + "0 fit lyrics" + d + "f cycle lyrics font" + d + "shift+f toggle full screen",
                 "l open language list" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
                 "in the language list, arrows or j/k browse, enter selects, l or esc closes",
                 "t next lyrics version (when available)",
                 "n show / hide hymn and language numbers" + d + "b toggle bold lyrics",
                 "shift+j toggle lyrics left / center alignment",
+                "m open sheet music on hymnal.net" + d + "e edit song on Songbase",
                 "click a numbered slide or c in the sidebar to jump directly",
-                "enter toggles full song / current slide" + d + "tab show / hide entire left sidebar",
+                "enter toggles full song / current slide" + d + "o cycles full-song orientation" + d + "tab show / hide entire left sidebar",
                 "esc hides controls or exits full screen",
               ]
             : textMode
@@ -5021,7 +5264,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 historyHelp,
                 "- smaller" + d + "= or + bigger" + d + "other language numbers resize in the opposite direction",
                 displayHelp,
-                "f fill" + d + "shift+f toggle full screen" + d + "w wrap" + d + "h cycle theme" + d + "m toggle controls",
+                "f cycle number / title font" + d + "shift+f toggle full screen" + d + "w wrap" + d + "h cycle theme" + d + "m toggle controls",
                 "t or " + MOD + "+\\ switch to text mode" + d + homeHelp,
                 "l toggle all languages" + d + "select main language with b (Burmese), k (Korean), c (Chinese), s (Spanish 2nd), or r (Russian)",
                 "input uses the main language's numbers" + d + "in Chinese mode, s starts a supplementary number",
@@ -5098,7 +5341,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function focusInput() {
-          if (presenting || searchOpen || languageDialog.open) return;
+          if (presenting || searchOpen || languageDialog.open || customThemeDialog.open || backgroundImageDialog.open) return;
           try {
             input.focus({ preventScroll: true });
           } catch (e) {}
@@ -5257,6 +5500,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           undo: undo,
           redo: redo,
           theme: cycleTheme,
+          customTheme: openCustomTheme,
           lang: toggleLang,
           eng: function () { toggleEng(false, true); },
           engNoRussian: function () { toggleEng(false, false); },
@@ -5340,7 +5584,18 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         })();
 
         document.addEventListener("keydown", function (e) {
+          if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key.toLowerCase() === "i") {
+            e.preventDefault();
+            if (!e.repeat && !backgroundImageDialog.open) backgroundImageDialog.showModal();
+            return;
+          }
+          if (backgroundImageDialog.open || customThemeDialog.open) return;
           if (languageDialog.open) { languageKeydown(e); return; }
+          if (!searchOpen && !helpOpen && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key.toLowerCase() === "h") {
+            e.preventDefault();
+            if (!e.repeat) openCustomTheme();
+            return;
+          }
           if (e.key === "Escape" && padOn && !searchOpen && !helpOpen) {
             e.preventDefault();
             if (!e.repeat) setPad(false, true);
@@ -5370,7 +5625,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
           if (presenting) {
             if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
-            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrRtTjJ ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
+            if (e.target === presentationVersion && !/^[0-9bBcCsSnNlLfFgGrRtTjJmMoOeE ?/=+_-]$/.test(e.key) && e.key !== "Tab" && e.key !== "Enter") return;
             if (e.key === "Tab") {
               e.preventDefault();
               if (!e.repeat) togglePresentationSidebar();
@@ -5380,7 +5635,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             if (e.key === "?" || e.key === "/") showHelp();
             else if (e.key === " ") { if (!e.repeat) endPresentation(); }
             else if ((e.key === "f" || e.key === "F") && e.shiftKey && !e.repeat) toggleFullscreen();
-            else if (e.key === "0" || ((e.key === "f" || e.key === "F") && !e.shiftKey)) { presentationScale = 1; fitPresentation(); }
+            else if ((e.key === "f" || e.key === "F") && !e.shiftKey && !e.repeat) cyclePresentationFont();
+            else if (e.key === "0") { presentationScale = 1; fitPresentation(); }
             else if (e.key === "-" || e.key === "_") adjustPresentationSize(false);
             else if (e.key === "=" || e.key === "+") adjustPresentationSize(true);
             else if (/^[1-9]$/.test(e.key)) jumpToStanza(e.key);
@@ -5388,6 +5644,9 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             else if (e.key === "s" || e.key === "S") cyclePresentation(false, e.shiftKey ? -1 : 1);
             else if ((e.key === "r" || e.key === "R") && !e.repeat) toggleRepeatedChorus();
             else if ((e.key === "g" || e.key === "G") && !e.repeat) togglePresentationGuitar();
+            else if ((e.key === "m" || e.key === "M") && !e.repeat) openSheetMusic();
+            else if ((e.key === "e" || e.key === "E") && !e.repeat) openSongbaseEditor();
+            else if ((e.key === "o" || e.key === "O") && presentationFullSong && !e.repeat) cycleFullSongOrientation();
             else if ((e.key === "l" || e.key === "L") && !e.repeat) { if (e.shiftKey) cycleSongLanguage(); else openSongLanguages(); }
             else if ((e.key === "t" || e.key === "T") && !e.repeat) cycleHymnVersion();
             else if ((e.key === "n" || e.key === "N") && !e.repeat) togglePresentationNumbers();
@@ -5531,13 +5790,12 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           } else if (e.key === "-" || e.key === "_" || e.key === "+" || e.key === "=") {
             e.preventDefault();
             adjustSize(e.key === "+" || e.key === "=");
-          } else if (e.key === "f") {
+          } else if (e.key === "f" || e.key === "F") {
             e.preventDefault();
-            resetSize();
-            draw();
-          } else if (e.key === "F") {
-            e.preventDefault();
-            toggleFullscreen();
+            if (!e.repeat) {
+              if (e.shiftKey) toggleFullscreen();
+              else cycleDisplayFont();
+            }
           } else if (e.key === "Backspace") {
             e.preventDefault();
             arrowFresh = false;
@@ -5614,7 +5872,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         });
 
         document.addEventListener("pointerdown", function (e) {
-          if (searchOpen || languageDialog.open) return;
+          if (searchOpen || languageDialog.open || backgroundImageDialog.open || customThemeDialog.open) return;
           document.body.classList.add("mouse-mode");
           // Blank areas toggle controls; interactive elements keep their own actions.
           if (!helpOpen && !pad.contains(e.target) &&
@@ -5782,7 +6040,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v147">
+<script id="acswebapps-updater" data-version="big-text-v160">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
