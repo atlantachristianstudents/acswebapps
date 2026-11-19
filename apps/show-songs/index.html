@@ -40,8 +40,6 @@
         --bg: #e9edef;
         --fg: #0c1317;
         --hint: #56646c;
-        --controls-height: 64px;
-        --controls-gap: 4px;
         --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
         --font-utility: "IBM Plex Mono", ui-monospace, Menlo, monospace;
       }
@@ -104,28 +102,21 @@
         position: fixed;
         left: 0;
         right: 0;
-        bottom: 6px;
+        bottom: calc(6px + env(safe-area-inset-bottom) + var(--controls-viewport-bottom, 0px));
         z-index: 21;
         box-sizing: border-box;
-        padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left));
+        padding: 4px max(8px, env(safe-area-inset-right)) 4px max(8px, env(safe-area-inset-left));
+        border-top: 1px solid var(--hint);
         background: var(--bg);
         display: flex;
         gap: 3px;
-        height: auto;
-        max-height: min(var(--controls-height), 30vh);
-        flex: 0 0 auto;
+        max-height: calc(var(--controls-viewport-height, 100vh) - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
         flex-wrap: wrap;
         align-content: flex-start;
-        margin-top: var(--controls-gap);
         overflow: auto;
         scrollbar-width: thin;
         -webkit-overflow-scrolling: touch;
-      }
-      #pad {
         -webkit-tap-highlight-color: transparent;
-      }
-      body.has-pad #stage {
-        height: calc(100% - min(var(--controls-height), 30vh) - var(--controls-gap));
       }
       #pad button, #presentation button {
         flex: 0 0 auto;
@@ -167,9 +158,6 @@
         background: var(--bg);
         color: var(--fg);
         font-family: Arial, sans-serif;
-      }
-      body.has-pad #presentation {
-        padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + min(var(--controls-height), 30vh) + var(--controls-gap));
       }
       #presentation header, #presentation footer {
         display: flex;
@@ -877,6 +865,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var presentationPrev = document.getElementById("presentation-prev");
         var presentationNext = document.getElementById("presentation-next");
         var presenting = false, presentationNumber = "", presentationSlides = [], presentationIndex = 0;
+        var presentationSections = [];
         var presentationAlignment = ""; // Empty preserves the default for each view.
         var presentationBold = false;
         var presentationGuitar = false;
@@ -963,10 +952,41 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           return slides;
         }
 
+        function splitPresentationSlides(sections) {
+          var maxLines = 6;
+          var slides = [];
+          sections.forEach(function (section) {
+            var chordLines = (section.chordText || section.text).split("\n");
+            var lyricLines = chordLines.map(function (line) { return line.replace(/\[[^\]\n]*\]/g, ""); });
+            var lyricStarts = [];
+            lyricLines.forEach(function (line, index) {
+              if (line.trim()) lyricStarts.push(index);
+            });
+            var partCount = Math.ceil(lyricStarts.length / maxLines);
+            if (partCount <= 1) {
+              slides.push(section);
+              return;
+            }
+            // Balance the parts so a stanza never ends with a single leftover line.
+            var start = 0;
+            for (var partIndex = 0; partIndex < partCount; partIndex++) {
+              var end = lyricStarts[Math.ceil((partIndex + 1) * lyricStarts.length / partCount)] || chordLines.length;
+              slides.push(Object.assign({}, section, {
+                chordText: chordLines.slice(start, end).join("\n"),
+                text: lyricLines.slice(start, end).join("\n").trim(),
+                partIndex: partIndex,
+                partCount: partCount
+              }));
+              start = end;
+            }
+          });
+          return slides;
+        }
+
         function fullSongParts() {
-          if (presentationRepeatChorus) return presentationSlides.slice();
+          if (presentationRepeatChorus) return presentationSections;
           var seenChoruses = [];
-          return presentationSlides.filter(function (part) {
+          return presentationSections.filter(function (part) {
             if (!part.chorus) return true;
             var key = part.text.replace(/\s+/g, " ").trim();
             if (seenChoruses.indexOf(key) >= 0) return false;
@@ -1115,7 +1135,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function presentationSlideLabel(slide) {
-          return slide.chorus ? "c" : slide.label.replace(/^Stanza /, "");
+          var label = slide.chorus ? "c" : slide.label.replace(/^Stanza /, "");
+          return slide.partCount ? label + "." + (slide.partIndex + 1) : label;
         }
 
         function buildPresentationSlideNav() {
@@ -1126,7 +1147,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             button.type = "button";
             button.textContent = presentationSlideLabel(slide);
             button.title = slide.text;
-            button.setAttribute("aria-label", "Slide " + (index + 1) + ": " + slide.label);
+            var partLabel = slide.partCount ? ", part " + (slide.partIndex + 1) + " of " + slide.partCount : "";
+            button.setAttribute("aria-label", "Slide " + (index + 1) + ": " + slide.label + partLabel);
             button.addEventListener("click", function () {
               presentationIndex = index;
               presentationFullSong = false;
@@ -1261,8 +1283,9 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             presentationSong = songbaseData.songs.find(function (entry) { return entry.title === song.title && englishNumbersById[entry.id] === presentationNumber; }) || sourceSong || null;
           }
           presentationScale = 1;
-          presentationSlides = hymnSlides(song.lyrics);
-          if (!presentationSlides.length) presentationSlides = [{ text: "No lyrics available.", label: "Hymn " + presentationNumber }];
+          presentationSections = hymnSlides(song.lyrics);
+          if (!presentationSections.length) presentationSections = [{ text: "No lyrics available.", label: "Hymn " + presentationNumber }];
+          presentationSlides = splitPresentationSlides(presentationSections);
           presentationIndex = 0;
           buildPresentationSlideNav();
           document.getElementById("presentation-title").textContent = (presentationLibrarySong ? formatLanguageName(presentationSong.lang) : presentationNumber) + " · " + song.title;
@@ -1450,11 +1473,12 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function cyclePresentation(chorus, direction) {
-          // Search from the current slide, wrapping at either end of the hymn.
+          // Cycle between the first slides of sections, wrapping at either end.
           var count = presentationSlides.length;
+          var start = presentationIndex - (presentationSlides[presentationIndex].partIndex || 0);
           for (var step = 1; step <= count; step++) {
-            var index = (presentationIndex + direction * step + count) % count;
-            if (!!presentationSlides[index].chorus === chorus) {
+            var index = (start + direction * step + count) % count;
+            if (!presentationSlides[index].partIndex && !!presentationSlides[index].chorus === chorus) {
               presentationIndex = index;
               presentationFullSong = false;
               renderPresentation();
@@ -4952,7 +4976,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function helpHtml() {
           var d = " &middot; ";
-          var searchHelp = MOD + "+enter search songs by title or lyrics";
+          var searchHelp = MOD + "+enter show / hide song search";
           var editHelp = MOD + "+backspace or " + MOD + "+delete clear" + d + MOD + "+c copy";
           var historyHelp = MOD + "+z undo" + d + MOD + "+shift+z or " + MOD + "+y redo";
           var displayHelp = MOD + "+- smaller" + d + MOD + "+= or " + MOD + "++ bigger" + d + MOD + "+f fill" + d + "alt+w wrap";
@@ -5135,17 +5159,30 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         // ---- On-screen buttons ----
         var padOn = false;
+        var controlsViewport = window.visualViewport;
+        function positionPad() {
+          if (!padOn || !controlsViewport) return;
+          // The on-screen keyboard can shrink the visible area without resizing the stage.
+          var bottom = document.documentElement.clientHeight - controlsViewport.height - controlsViewport.offsetTop;
+          pad.style.setProperty("--controls-viewport-bottom", Math.max(0, bottom) + "px");
+          pad.style.setProperty("--controls-viewport-height", controlsViewport.height + "px");
+        }
+        if (controlsViewport) {
+          controlsViewport.addEventListener("resize", positionPad);
+          controlsViewport.addEventListener("scroll", positionPad);
+        }
         function setPad(on, save) {
           padOn = on;
           pad.hidden = !on;
-          document.body.classList.toggle("has-pad", on);
           if (save) {
             try {
               localStorage.setItem("bigtext-pad", on ? "1" : "0");
             } catch (e) {}
           }
-          if (on) syncPad();
-          if (presenting) fitPresentation();
+          if (on) {
+            positionPad();
+            syncPad();
+          }
         }
         var PRESSED = {
           repeatChorus: function () { return presentationRepeatChorus; },
@@ -5311,7 +5348,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }
           if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.isComposing && e.key === "Enter") {
             e.preventDefault();
-            if (!e.repeat) openHymnSearch();
+            if (!e.repeat) {
+              if (searchOpen) closeHymnSearch();
+              else openHymnSearch();
+            }
             return;
           }
           if (searchOpen) { searchKeydown(e); return; }
@@ -5742,7 +5782,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v145">
+<script id="acswebapps-updater" data-version="big-text-v146">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
