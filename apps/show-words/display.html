@@ -178,6 +178,10 @@
     if (!m || typeof m !== "object") return;
     if (m.t === "who") hello();
     else if (m.t === "state") apply(m);
+    else if (m.t === "appearance") {
+      applyAppearance(m);
+      if (started && $("idle").hidden) fit();
+    }
     else if (m.t === "present-scroll" && scrollPosition) {
       scrollPosition = m.position;
       syncScroll();
@@ -272,10 +276,13 @@
       if (src) { im.src = src; im.classList.add("has"); } else { im.removeAttribute("src"); im.classList.remove("has"); }
     });
   }
-  function apply(s) {
+  function applyAppearance(s) {
     var root = document.documentElement;
     if (s.theme) root.setAttribute("data-theme", s.theme); else root.removeAttribute("data-theme");
     if (s.style) root.setAttribute("style", s.style); else root.removeAttribute("style");
+  }
+  function apply(s) {
+    applyAppearance(s);
     if (s.logo !== undefined) setLogo(s.logo);
     if (s.background !== undefined) {
       var image = $("presBg");

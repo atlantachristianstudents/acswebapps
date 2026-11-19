@@ -87,8 +87,108 @@
     });
   }
 
+  /* ---------- directory updates ---------- */
+  const pageVersion = document.currentScript.dataset.version;
+  const helpDialog = document.getElementById("help-dialog");
+  const updateButton = document.getElementById("check-for-updates");
+  const updateStatus = document.getElementById("update-status");
+  document.getElementById("help-toggle")?.addEventListener("click", () => helpDialog.showModal());
+  updateButton?.addEventListener("click", checkForUpdates);
+
+  function withTimeout(task, milliseconds, message) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(message)), milliseconds);
+      task.then(resolve, reject).finally(() => clearTimeout(timer));
+    });
+  }
+
+  function waitForActivation(worker) {
+    return new Promise((resolve, reject) => {
+      const finish = (error) => {
+        clearTimeout(timer);
+        worker.removeEventListener("statechange", inspect);
+        if (error) reject(error);
+        else resolve();
+      };
+      const inspect = () => {
+        if (worker.state === "activated") finish();
+        if (worker.state === "redundant") finish(new Error("The update could not install. Please try again."));
+      };
+      const timer = setTimeout(() => finish(new Error("The update took too long to install. Please try again.")), 30000);
+      worker.addEventListener("statechange", inspect);
+      inspect();
+    });
+  }
+
+  async function readWorkerVersion(worker) {
+    const channel = new MessageChannel();
+    try {
+      const reply = new Promise((resolve) => {
+        channel.port1.onmessage = (event) => resolve(event.data?.version);
+      });
+      worker.postMessage({ type: "ACS_GET_VERSION" }, [channel.port2]);
+      return await withTimeout(reply, 5000, "Could not verify the installed version. Please try again.");
+    } finally {
+      channel.port1.close();
+    }
+  }
+
+  async function checkForUpdates() {
+    if (updateButton.disabled) return;
+    if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) {
+      updateStatus.textContent = "Open ACS Web Apps on its website or as an installed app to check for updates.";
+      return;
+    }
+    if (!navigator.onLine) {
+      updateStatus.textContent = "You’re offline. Connect to the internet and try again.";
+      return;
+    }
+
+    updateButton.disabled = true;
+    updateStatus.textContent = "Checking for updates…";
+    try {
+      const timeoutMessage = "The update check timed out. Please try again.";
+      const registration = await withTimeout(
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }), 20000, timeoutMessage
+      );
+      await withTimeout(registration.update(), 20000, timeoutMessage);
+      const candidate = registration.installing || registration.waiting;
+      if (candidate) {
+        updateStatus.textContent = "Installing update…";
+        await waitForActivation(candidate);
+      }
+      const worker = registration.active;
+      if (!worker) throw new Error("No installed version found. Reload and try again.");
+      const version = await readWorkerVersion(worker);
+      if (!/^acswebapps-home-v\d+$/.test(version)) throw new Error("Could not verify the installed version. Please try again.");
+      if (version !== pageVersion) {
+        updateStatus.textContent = "Update ready. Restarting…";
+        location.reload();
+      } else {
+        updateStatus.textContent = "ACS Web Apps is up to date.";
+      }
+    } catch (error) {
+      updateStatus.textContent = error.name === "Error" ? error.message :
+        "Could not check for updates. Check your connection and try again.";
+    } finally {
+      updateButton.disabled = false;
+    }
+  }
+
   /* ---------- keyboard shortcuts ---------- */
   document.addEventListener("keydown", (event) => {
+    if (
+      updateButton && event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey &&
+      event.key.toLowerCase() === "u"
+    ) {
+      event.preventDefault();
+      if (!event.repeat) {
+        if (!helpDialog.open) helpDialog.showModal();
+        checkForUpdates();
+      }
+      return;
+    }
+
     if (
       (event.key === "/" || event.key === "?") &&
       !event.ctrlKey &&

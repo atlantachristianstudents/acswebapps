@@ -33,6 +33,7 @@ Open the address once while online; the app caches itself. After that it works w
 
 With a display connected, fitted presentations put the verses on that screen and turn this device into the control panel. Scrolling presentations and scrolling slides stay open on this device, and the audience window follows your reading position.
 
+- The audience display follows the presenting device’s theme and custom colors while waiting or showing verses. In **Auto**, both screens use the presenting device’s light or dark setting.
 - Choose a version at the top of the controller or press **1–9** or **0** on the presenting device. The audience display updates in place, and scrolling presentations keep your reading position.
 - Chrome/Edge (Android, desktop): Display... > Cast or connected display. Needs https. The display page loads on the TV/Chromecast.
 - Any browser: Display... > Open a display window, then drag it to the other screen (iPad Stage Manager, Android desktop mode, computers).

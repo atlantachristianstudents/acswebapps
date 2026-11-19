@@ -3,7 +3,7 @@
 // - Other home-page files and the Inter font are stale-while-revalidate.
 // - Everything under apps/ is left alone: each app has its own service worker and cache.
 // Bump VERSION whenever index.html, manifest.json, sw.js or anything in SHELL changes.
-const VERSION = "acswebapps-home-v46";
+const VERSION = "acswebapps-home-v48";
 const SHELL = [
   "./",
   "index.html",
@@ -20,7 +20,8 @@ const SHELL = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  const shell = SHELL.map((path) => new Request(new URL(path, self.registration.scope), { cache: "reload" }));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(shell)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -29,6 +30,11 @@ self.addEventListener("activate", (e) => {
       .then((keys) => Promise.all(keys.filter((k) => k.startsWith("acswebapps-home-v") && k !== VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("message", (e) => {
+  if (e.data?.type === "ACS_GET_VERSION" && e.ports[0]) e.ports[0].postMessage({ version: VERSION });
+  if (e.data?.type === "ACS_SKIP_WAITING") e.waitUntil(self.skipWaiting());
 });
 
 const cacheable = (res) => res && (res.ok || res.type === "opaque");

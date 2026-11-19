@@ -209,3 +209,5 @@ Local app cards open in the installed directory's window. The inline `acswebapps
 ## Manual app updates
 
 Each app (and the starter template) includes a self-contained `acswebapps-updater` script and a **Check for updates** control inside existing help/About UI. Preserve these copies and the service worker’s `ACS_GET_VERSION` / `ACS_SKIP_WAITING` message handlers. When bumping an app cache version, also update the updater script’s `data-version`; `scripts/validate.py` enforces that they match. Show Songs’ approved scraper and mapping-sync helper update both markers automatically. Never clear IndexedDB or downloaded content during an app-shell upgrade, and do not add floating controls to presentation-only displays.
+
+The home directory’s **?** dialog and **⌘U** shortcut use the updater in `assets/main.js`. When bumping the home cache version, update the `acswebapps-updater` script tag’s `data-version` in the root `index.html`.

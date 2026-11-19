@@ -170,14 +170,17 @@
       </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="assets/apps.js"></script>
-    <script src="assets/main.js"></script>
-    <script>
-      if ("serviceWorker" in navigator && location.protocol !== "file:") {
-        addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
-      }
-    </script>
+    <button id="help-toggle" class="icon-btn" type="button" aria-label="Help and updates"
+      aria-haspopup="dialog" aria-controls="help-dialog" title="Help and updates">?</button>
+    <dialog id="help-dialog" aria-labelledby="help-dialog-title">
+      <h2 id="help-dialog-title">ACS Web Apps</h2>
+      <button id="check-for-updates" class="primary" type="button" aria-keyshortcuts="Meta+U">Check for updates</button>
+      <kbd>⌘U</kbd>
+      <p id="update-status" class="hint" role="status"></p>
+      <form method="dialog">
+        <button class="icon-btn" type="submit" aria-label="Close help">×</button>
+      </form>
+    </dialog>
 
     <dialog id="theme-dialog" aria-labelledby="theme-dialog-title">
       <h2 id="theme-dialog-title">Choose a theme</h2>
@@ -198,5 +201,13 @@
         <button type="button" id="save-theme" class="primary">Save theme</button>
       </div>
     </dialog>
+
+    <script src="assets/apps.js"></script>
+    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v48"></script>
+    <script>
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));
+      }
+    </script>
   </body>
 </html>

@@ -4737,9 +4737,18 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       if (scrollPresent && ext.live) extPost({ t: "present-scroll", position: extScrollPosition() });
     }, 30);
   }, { passive: true });
-  function extBuild(idle) {   // what the display should show, read back from the presentation
+  var extColorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+  function extAppearance() {
     var root = document.documentElement;
-    var st = { t: "state", theme: root.getAttribute("data-theme") || "", style: root.getAttribute("style") || "", logo: $("presLogo").getAttribute("src") || "", blank: ext.blank };
+    return {
+      t: "appearance",
+      theme: root.getAttribute("data-theme") || (extColorScheme.matches ? "dark" : "light"),
+      style: root.getAttribute("style") || ""
+    };
+  }
+  function extBuild(idle) {   // what the display should show, read back from the presentation
+    var st = extAppearance();
+    st.t = "state"; st.logo = $("presLogo").getAttribute("src") || ""; st.blank = ext.blank;
     if (idle) { st.idle = true; return st; }
     st.background = $("presBg").getAttribute("src") || "";
     st.scale = ext.scale; st.ref = $("pref").textContent; st.html = $("pinner").innerHTML;
@@ -4775,8 +4784,14 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     if (ext.q) return;
     ext.q = setTimeout(function () { ext.q = 0; extPublish(false); extUi(); }, 30);
   }
+  function extAppearanceChanged() {
+    if (ext.live) extQueue();
+    else if (extLinked() || ext.frameOK) extPost(extAppearance());
+  }
   new MutationObserver(extQueue).observe($("present"), { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "src", "style"] });
-  new MutationObserver(extQueue).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "data-theme"] });
+  new MutationObserver(extAppearanceChanged).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "data-theme"] });
+  if (extColorScheme.addEventListener) extColorScheme.addEventListener("change", extAppearanceChanged);
+  else extColorScheme.addListener(extAppearanceChanged);
   function extClear() {   // show nothing on the display
     ext.live = false; ext.sent = ""; ext.blank = false;
     extPost(extBuild(true));
@@ -4798,9 +4813,9 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     } else if (m.t === "bye") { delete ext.peers[m.id]; extUi(); }
     else if (m.t === "cmd") extCmd(m);
   }
-  function extPublishTo() {   // a display (re)appeared: send it everything
+  function extPublishTo() {   // a display (re)appeared: send its current appearance and any live content
     if (ext.live) extPublish(true);
-    else if (extPanel) extQueue();
+    else extPost(extAppearance());
   }
   function extCmd(m) {
     if (!presenting && !ext.live) return;
@@ -5874,7 +5889,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v62">
+<script id="acswebapps-updater" data-version="verse-lookup-v63">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

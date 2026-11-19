@@ -61,6 +61,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 - **Installable and offline-first.** The home page and apps are PWAs with service workers. Once cached, core features work without a connection. Songbook needs an initial catalog sync; Logos Type races and Scripture downloads need the internet.
 - **Your data stays on your device.** Progress, settings, and saved content live in `localStorage` or IndexedDB. URL imports fetch the source directly — your reference and answers are never uploaded.
 - **Fast to browse.** A compact header makes room for the app directory. Search (press `/` or `?`), filter by category, hide beta apps, and switch between light and dark themes. The theme choice is remembered.
+- **Directory updates.** Open the bottom-right **?** and select **Check for updates**, or press **⌘U** on Mac. The directory reloads when an update is ready.
+- **Responsive app cards.** The directory keeps space around the grid and between cards, with a single column on phones.
 - **Pinned favorites.** Use the pin on an app card or icon tile to move it to the top of the directory. Pins are saved in your browser and follow your current search and filters.
 - **Compact view.** Toggle Compact view beside the Apps heading for an icon grid with a Beta badge on each beta app. The directory remembers your layout.
 - **Keyboard- and screen-reader-friendly.** Cards, filters, dialogs, and presentation controls are operable without a mouse.

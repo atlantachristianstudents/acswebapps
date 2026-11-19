@@ -158,7 +158,7 @@ def main():
     for path in [ROOT / 'sw.js'] + sorted((ROOT / 'apps').glob('*/sw.js')):
         try:
             version, assets = worker_config(path.read_text())
-            if path.parent != ROOT and page_updaters.get(path.parent / 'index.html') != [version]:
+            if page_updaters.get(path.parent / 'index.html') != [version]:
                 raise ValueError('app updater data-version must match the service-worker cache version')
             cached = {relative(path), relative(path.parent / 'index.html')}
             manifest_name = 'manifest.json' if path.parent == ROOT else 'manifest.webmanifest'
