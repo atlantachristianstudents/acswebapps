@@ -70,12 +70,16 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 4vmin 5vmin; text-align: left;
   }
+  #presBg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .25; z-index: -1; pointer-events: none; }
   #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; display: none; }   /* the reference now sits inside the verse line (see #pinner::before); this element still holds the text for other code */
   #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
   #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
   #present .ptext { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   #present.top .ptext { align-items: flex-start; }   /* slides with several steps: text starts at the top, so earlier steps stay put */
   #present #pinner { width: 100%; line-height: 1.35; text-align: left; }
+  #present.scrolling .ptext { align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; scrollbar-gutter: stable; }
+  #present.scrolling .scrollverse { margin: 0 0 .45em; }
+  #present.scrolling .scrollref { font-weight: 700; color: var(--accent); margin-right: .4em; }
   /* slides with several passages: each reference runs inline on the first line of its passage */
   #present #pinner .pslh { display: inline; font-size: 1em; font-weight: 700; color: var(--accent); margin: 0; line-height: inherit; }
   #present #pinner .pslh::after { content: "\00a0\00a0"; }
@@ -120,9 +124,10 @@
 </head>
 <body>
 <div id="present">
+  <img id="presBg" alt="" hidden>
   <img class="applogo" id="presLogo" alt="">
   <div class="pref" id="pref"></div>
-  <div class="ptext" id="ptext"><div id="pinner"></div></div>
+  <div class="ptext" id="ptext"><div id="pinner" dir="auto"></div></div>
   <div id="pron" hidden><div class="pr1" id="pr1"></div><div class="pr2" id="pr2"></div></div>
 </div>
 <div id="idle">
@@ -138,6 +143,7 @@
   var isReceiver = !!(window.navigator.presentation && navigator.presentation.receiver);
   var myId = Math.random().toString(36).slice(2, 8);
   var conns = [], bc = null, scale = null, started = false, fitSrc = null;
+  var scrollPosition = null, scrollSize = null, scrollHtml = null;
   var ORIGIN = location.origin === "null" ? "*" : location.origin;
   document.body.classList.toggle("preview", preview);
   try { if (!preview && window.BroadcastChannel) bc = new BroadcastChannel("verselookup-display"); } catch (e) { bc = null; }
@@ -172,12 +178,36 @@
     if (!m || typeof m !== "object") return;
     if (m.t === "who") hello();
     else if (m.t === "state") apply(m);
+    else if (m.t === "present-scroll" && scrollPosition) {
+      scrollPosition = m.position;
+      syncScroll();
+    }
     else if (m.t === "scroll") { var el = $("sbs"); if (el) el.scrollTop += m.d * el.clientHeight; }
   }
 
   // ---- drawing ----
+  function syncScroll() {
+    if (!scrollPosition) return;
+    var box = $("ptext"), pos = scrollPosition;
+    var target = pos.progress * (box.scrollHeight - box.clientHeight);
+    if (pos.pos) {
+      var selector = pos.resultIndex === undefined ? 'data-pos="' + CSS.escape(pos.pos) + '"' : 'data-result-index="' + CSS.escape(pos.resultIndex) + '"';
+      var row = $("pinner").querySelector(":is(.scrollverse, .pverse)[" + selector + "]");
+      if (row) {
+        var rect = row.getBoundingClientRect();
+        target = box.scrollTop + rect.top - box.getBoundingClientRect().top + pos.offset * rect.height;
+      }
+    }
+    box.scrollTop = target;
+    placePron();
+  }
   function fit() {
     var box = $("ptext"), el = $("pinner"), real = null;
+    if (scrollPosition) {
+      el.style.fontSize = (scrollSize === null ? Math.max(24, Math.min(48, window.innerWidth * .035)) : scrollSize) + "px";
+      syncScroll();
+      return;
+    }
     if (fitSrc) {   // part-way through a slide's steps: size the text for the fullest step, so it does not jump
       real = { html: el.innerHTML, ref: el.getAttribute("data-ref") || "" };
       el.innerHTML = fitSrc.html; el.setAttribute("data-ref", fitSrc.ref);
@@ -211,7 +241,10 @@
     if (!d) { if (el) el.remove(); sbsTitleSeen = null; return; }
     var keep = 0;
     if (!el) { el = document.createElement("div"); el.id = "sbs"; $("present").appendChild(el); }
-    else if (sbsTitleSeen === d.title) keep = el.scrollTop;
+    else if (sbsTitleSeen === d.title) {
+      var selected = el.querySelector(".cur .sbsname");
+      if (selected && d.cards[0] && selected.textContent === d.cards[0].name) keep = el.scrollTop;
+    }
     sbsTitleSeen = d.title;
     el.textContent = "";
     var head = document.createElement("div"); head.className = "sbshead";
@@ -224,7 +257,7 @@
       var n = document.createElement("div"); n.className = "sbsname"; n.textContent = c.name;
       var r = document.createElement("div"); r.className = "sbsref"; r.textContent = c.ref;
       lab.appendChild(n); lab.appendChild(r);
-      var t = document.createElement("div"); t.className = "sbstext"; t.textContent = c.text;
+      var t = document.createElement("div"); t.className = "sbstext"; t.dir = "auto"; t.textContent = c.text;
       card.appendChild(lab); card.appendChild(t); grid.appendChild(card);
     });
     el.appendChild(head); el.appendChild(grid);
@@ -244,15 +277,29 @@
     if (s.theme) root.setAttribute("data-theme", s.theme); else root.removeAttribute("data-theme");
     if (s.style) root.setAttribute("style", s.style); else root.removeAttribute("style");
     if (s.logo !== undefined) setLogo(s.logo);
+    if (s.background !== undefined) {
+      var image = $("presBg");
+      if (s.background) image.src = s.background; else image.removeAttribute("src");
+      image.hidden = !s.background;
+    }
     $("cover").hidden = !s.blank;
     $("idle").hidden = !s.idle;
-    if (s.idle) { $("idleMsg").textContent = s.msg || "Waiting for the controller…"; drawSbs(null); return; }
+    if (s.idle) {
+      scrollPosition = scrollHtml = null;
+      $("idleMsg").textContent = s.msg || "Waiting for the controller…"; drawSbs(null); return;
+    }
     started = true;
     scale = typeof s.scale === "number" ? s.scale : null;
     pronData = s.pron || null;
     $("pref").textContent = s.ref || "";
-    $("pinner").innerHTML = s.html || "";
-    $("pinner").setAttribute("data-ref", s.ref || "");
+    var html = s.html || "";
+    if (!s.scroll || scrollHtml !== html) $("pinner").innerHTML = html;
+    scrollPosition = s.scroll || null;
+    scrollSize = typeof s.fontSize === "number" ? s.fontSize : null;
+    scrollHtml = scrollPosition ? html : null;
+    $("pinner").setAttribute("data-ref", scrollPosition ? "" : s.ref || "");
+    $("present").classList.toggle("scrolling", !!scrollPosition);
+    if (!scrollPosition) $("ptext").scrollTop = 0;
     $("present").classList.toggle("top", !!s.top);
     fitSrc = s.fitHtml ? { html: s.fitHtml, ref: s.fitRef || "" } : null;
     drawSbs(s.sbs);

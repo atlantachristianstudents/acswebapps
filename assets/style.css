@@ -185,7 +185,7 @@ button {
 }
 
 .bar {
-  min-height: 76px;
+  min-height: 60px;
 
   display: flex;
   align-items: center;
@@ -288,16 +288,15 @@ button {
 /* Hero */
 
 .hero {
-  position: relative;
-  padding: 5.5rem 0 5rem;
+  padding: 1.25rem 0 1.75rem;
 }
 
 .hero h1 {
   max-width: 780px;
 
-  margin: 0 0 1.25rem;
+  margin: 0 0 .4rem;
 
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(1.75rem, 4.5vw, 3rem);
   font-weight: 800;
   line-height: 1.08;
 
@@ -307,17 +306,17 @@ button {
 .lead {
   max-width: 560px;
 
-  margin: 0 0 1.75rem;
+  margin: 0;
 
   color: var(--muted);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
-  line-height: 1.7;
+  font-size: clamp(.95rem, 2vw, 1.05rem);
+  line-height: 1.5;
 }
 
 /* Apps section */
 
 .apps-section {
-  padding-top: 2.5rem;
+  padding-top: 1.25rem;
   padding-bottom: 4.5rem;
 }
 
@@ -335,7 +334,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: .75rem;
 }
 
 .apps-heading-row h2 {
@@ -352,9 +351,9 @@ button {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: .75rem;
 
-  margin-bottom: 1.5rem;
+  margin-bottom: .75rem;
 }
 
 .tags {
@@ -407,7 +406,8 @@ button {
 
 .search-container {
   position: relative;
-  flex: 0 1 280px;
+  flex: 1 1 12rem;
+  max-width: 280px;
 }
 
 #search {
@@ -452,13 +452,21 @@ button {
 
 /* App cards */
 
+.card-item {
+  --card-padding: 1.35rem;
+
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+
 .card {
   display: flex;
   flex-direction: column;
   gap: .5rem;
 
   min-width: 0;
-  padding: 1.35rem;
+  padding: var(--card-padding);
 
   background: var(--surface);
   border: 1px solid var(--border);
@@ -497,6 +505,37 @@ a.card:hover {
   justify-content: space-between;
 
   min-height: 44px;
+}
+
+.pinnable .card-top {
+  padding-inline-end: 2.75rem;
+}
+
+.pin-button {
+  position: absolute;
+  inset-block-start: calc(var(--card-padding) + 5px);
+  inset-inline-end: calc(var(--card-padding) + 1px);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pin-button:hover,
+.pin-button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.pin-button[aria-pressed="true"] path:first-child {
+  fill: currentColor;
 }
 
 .card-icon {
@@ -613,6 +652,17 @@ a.card:hover {
   place-items: center;
   aspect-ratio: 1;
   padding: 0;
+}
+
+.compact .card-top {
+  padding-inline-end: 0;
+}
+
+.compact .pin-button {
+  inset-block: auto .15rem;
+  inset-inline: .15rem auto;
+  width: 28px;
+  height: 28px;
 }
 
 .compact .card-icon img,
@@ -819,10 +869,6 @@ a.card:hover {
 /* Responsive */
 
 @media (max-width: 700px) {
-  .hero {
-    padding: 4rem 0 3.5rem;
-  }
-
   .tools {
     align-items: stretch;
     flex-direction: column;
@@ -831,10 +877,7 @@ a.card:hover {
   .search-container {
     flex: 1;
     width: 100%;
-  }
-
-  .apps-section {
-    padding-top: 1.5rem;
+    max-width: none;
   }
 }
 
@@ -844,24 +887,26 @@ a.card:hover {
   }
 
   .bar {
-    min-height: 66px;
+    min-height: 56px;
+    gap: .5rem;
   }
 
   .brand {
-    font-size: 1.15rem;
+    gap: .4rem;
+    font-size: 1.05rem;
   }
 
   .brand img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
 
   .nav {
-    gap: .85rem;
+    gap: .45rem;
   }
 
   .nav .icon-btn + .icon-btn {
-    margin-left: -.35rem !important;
+    margin-left: 0 !important;
   }
 
   .nav a.icon-btn {
@@ -873,15 +918,19 @@ a.card:hover {
   }
 
   .hero {
-    padding: 3.5rem 0 3rem;
+    padding: .75rem 0 1.1rem;
   }
 
   .hero h1 {
-    font-size: clamp(2.35rem, 11vw, 3.3rem);
+    font-size: clamp(1.5rem, 7.2vw, 1.75rem);
   }
 
-  .lead {
-    font-size: 1rem;
+  .tags {
+    gap: .375rem;
+  }
+
+  .tags .chip {
+    padding-inline: .65rem;
   }
 
   .grid {
@@ -889,8 +938,8 @@ a.card:hover {
     gap: .85rem;
   }
 
-  .card {
-    padding: 1.15rem;
+  .card-item {
+    --card-padding: 1.15rem;
   }
 
   .apps-section h2,

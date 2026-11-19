@@ -148,6 +148,10 @@ The audience window follows the controller live, showing the current hymn number
 
 The controller’s live preview uses the audience window’s aspect ratio and updates when that window resizes.
 
+The controller toolbar and Present sidebar stay visible while the audience display is open. The toolbar includes theme, font, and background image controls, plus alignment and full-song orientation in Present mode. Active toggles show their current state. **Tab** or **Audience sidebar** toggles the audience sidebar. With the audience window closed, **Tab** or **Sidebar** toggles the local Present sidebar.
+
+In Present mode, **Shift+N** or **Slide labels** toggles stanza numbers and the **C** chorus label beside the lyrics on individual slides. Full-song view always shows these labels. **N** continues to toggle hymn and language numbers in the sidebar.
+
 English song titles appear in title case in search, the number/title display, and Present mode. Titles in other languages use their source capitalization.
 
 Presentation lyrics prefer wrapping at punctuation, keeping each clause together when it fits. If a clause is too long for the available width, its words wrap into balanced lines instead of leaving a short trailing line. This applies to slide and full-song views, including guitar chords. Browsers without balanced text wrapping use normal word wrapping.

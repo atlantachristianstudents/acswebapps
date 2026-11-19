@@ -1,5 +1,5 @@
 /*
- * ACS Web Apps — home page behaviour: theme, layout, filters, search, app cards.
+ * ACS Web Apps — home page behaviour: theme, layout, filters, search, app cards, favorites.
  * The app registry itself lives in apps.js (window.APPS).
  */
 (function () {
@@ -169,6 +169,17 @@
   /* ---------- cards ---------- */
   const STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
   const STATUS_ORDER = { live: 0, beta: 1, soon: 2 };
+  const pinnedKey = "acswebapps-pinned-apps";
+  const pinnedApps = new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem(pinnedKey));
+    if (Array.isArray(saved)) {
+      saved.forEach((id) => {
+        if (typeof id === "string") pinnedApps.add(id);
+      });
+    }
+  } catch (e) {}
+
   const sortedApps = apps.slice().sort((a, b) =>
     ((STATUS_ORDER[a.status || "live"] ?? 3) - (STATUS_ORDER[b.status || "live"] ?? 3)) ||
     (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" })
@@ -240,16 +251,47 @@
     const meta = el("div", "card-tags");
     (app.tags || []).forEach((tag) => meta.appendChild(el("span", "mini-tag", tag)));
     node.appendChild(meta);
-    return node;
+
+    const item = el("div", "card-item");
+    item.appendChild(node);
+    if (clickable) {
+      item.classList.add("pinnable");
+      const pin = el("button", "pin-button");
+      const pinned = pinnedApps.has(app.id);
+      pin.type = "button";
+      pin.dataset.appId = app.id;
+      pin.setAttribute("aria-label", "Pin " + app.name);
+      pin.setAttribute("aria-pressed", String(pinned));
+      pin.title = (pinned ? "Unpin " : "Pin ") + app.name;
+      pin.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v6l3 3v3H5v-3l3-3z"/><path d="M12 15v6"/></svg>';
+      pin.addEventListener("click", () => {
+        const hadFocus = document.activeElement === pin;
+        if (pinnedApps.has(app.id)) {
+          pinnedApps.delete(app.id);
+        } else {
+          pinnedApps.add(app.id);
+        }
+        try { localStorage.setItem(pinnedKey, JSON.stringify([...pinnedApps])); } catch (e) {}
+        renderApps();
+        if (hadFocus) {
+          grid.querySelector(`.pin-button[data-app-id="${CSS.escape(app.id)}"]`)?.focus();
+        }
+      });
+      item.appendChild(pin);
+    }
+    return item;
   }
 
   function renderApps() {
     const query = search.value.trim().toLowerCase();
-    const hideBetaTag = activeTags.indexOf("Hide Beta") !== -1;
+    const hideBetaTag = activeTags.includes("Hide Beta");
+    const categoryTags = activeTags.filter((tag) => tag !== "Hide Beta");
+    const orderedApps = sortedApps.slice().sort((a, b) =>
+      Number(pinnedApps.has(b.id)) - Number(pinnedApps.has(a.id))
+    );
     grid.innerHTML = "";
     let shown = 0;
-    sortedApps.forEach((app) => {
-      const categoryTags = activeTags.filter((t) => t !== "Hide Beta");
+    orderedApps.forEach((app) => {
       const inTag =
         categoryTags.length === 0 || (app.tags || []).some((t) => categoryTags.indexOf(t) !== -1);
       const isBeta = (app.status || "live") === "beta";

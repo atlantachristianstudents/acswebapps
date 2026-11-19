@@ -26,14 +26,17 @@ Open the address once while online; the app caches itself. After that it works w
 - In scroll presentation, Shift+B / Shift+N adds the previous / next chapter while keeping the visible verse at the same screen position, including when expanding a regular scrolling verse view. Scrollbar space is reserved to keep line wrapping steady.
 - Exiting scroll presentation returns the cursor to the most recent first fully visible verse. Chapter context retains the last matching result when the visible verse is outside the search results; existing multi-verse selections are preserved.
 - In scroll presentation, turning on pronunciation starts at the first fully visible word in the text area. Pronunciation mode takes priority for arrow keys and H/J/K/L (including Shift); these keys move the pronunciation cursor, and the view scrolls as needed to keep the current word visible.
+- In the cog panel under **Images**, use **Import background picture…** beside the logo controls. The picture fills the presentation behind the text, including on the audience display, and is saved in this browser.
 - When you replace `index.html` with a newer version, change `VERSION` in `sw.js` so devices pick it up.
 
 ## External display
 
-With a display connected, Present puts the verses on that screen and turns this device into the control panel.
+With a display connected, fitted presentations put the verses on that screen and turn this device into the control panel. Scrolling presentations and scrolling slides stay open on this device, and the audience window follows your reading position.
 
+- Choose a version at the top of the controller or press **1–9** or **0** on the presenting device. The audience display updates in place, and scrolling presentations keep your reading position.
 - Chrome/Edge (Android, desktop): Display... > Cast or connected display. Needs https. The display page loads on the TV/Chromecast.
 - Any browser: Display... > Open a display window, then drag it to the other screen (iPad Stage Manager, Android desktop mode, computers).
+- Press **Command+D** in Show Words to open or close the display window.
 - iPhone/iPad Safari cannot send a page to a wired or AirPlay display; it only mirrors the whole screen.
 
 Keep `display.html` in the same folder as `index.html`. Settings: cog panel > Presenting (Auto / This screen / External display).

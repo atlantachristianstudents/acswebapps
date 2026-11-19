@@ -121,6 +121,7 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 4vmin 5vmin; text-align: left;
   }
+  #presBg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .25; z-index: -1; pointer-events: none; }
   #present .pref { color: var(--accent); font-weight: 700; font-size: clamp(20px, 4vmin, 44px); margin-bottom: 2vmin; flex: none; display: none; }   /* the reference now sits inside the verse line (see #pinner::before); this element still holds the text for other code */
   #present #pinner::before { content: attr(data-ref) "\00a0\00a0"; font-weight: 700; color: var(--accent); }
   #present #pinner:not([data-ref])::before, #present #pinner[data-ref=""]::before { content: none; }
@@ -412,13 +413,17 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     <div class="chips swatches" id="primChips" role="group" aria-label="Primary color"></div>
     <div class="chips swatches" id="secChips" role="group" aria-label="Secondary color"></div>
     <p class="scopehint">Primary: buttons, references and highlights. Secondary: supporting text and outlines. Pick from the swatches, the full color picker, or type a hex code. Choosing either one recolors the whole scheme to match, keeping the theme’s light or dark base.</p>
-    <div class="fonthead">Logo</div>
+    <div class="fonthead">Images</div>
     <div class="chips" id="logoChips">
       <button type="button" id="logoUp">Upload logo…</button>
       <button type="button" id="logoDel" hidden="">Remove logo</button>
+      <button type="button" id="bgUp">Import background picture…</button>
+      <button type="button" id="bgDel" hidden="">Remove background picture</button>
     </div>
     <input type="file" id="logoFile" accept="image/*" hidden="">
     <p id="logoNote" hidden=""></p>
+    <input type="file" id="bgFile" accept="image/*" hidden="">
+    <p id="bgNote" role="status" hidden=""></p>
     <div class="fonthead">Outline</div>
     <div class="chips"><button type="button" id="olUp" title="Shortcut: I">Import outline…</button></div>
     <input type="file" id="olFile" accept=".pdf,.txt,application/pdf,text/plain" hidden="">
@@ -441,7 +446,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   <div id="results"></div>
 </main>
 
-<div id="present" hidden=""><img class="applogo" id="presLogo" alt=""><div class="pref" id="pref"></div><div class="ptext" id="ptext"><div id="pinner" dir="auto"></div></div><div class="pcount" id="pcount"></div>
+<div id="present" hidden=""><img id="presBg" alt="" hidden=""><img class="applogo" id="presLogo" alt=""><div class="pref" id="pref"></div><div class="ptext" id="ptext"><div id="pinner" dir="auto"></div></div><div class="pcount" id="pcount"></div>
   <div class="pctl" id="pctl">
     <button type="button" data-a="prev" aria-label="Previous verse">‹</button>
     <button type="button" data-a="next" aria-label="Next verse">›</button>
@@ -458,7 +463,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   </div>
 </div>
 
-<div id="ctl" hidden="" role="region" aria-label="Presentation control panel">
+<div id="ctl" tabindex="-1" hidden="" role="region" aria-label="Presentation control panel">
   <div class="cbar">
     <span class="cdot" id="cDot"></span><span class="cstat" id="cStat">No display connected</span>
     <button type="button" class="ghost" id="cConn">Display…</button>
@@ -470,6 +475,10 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       <div class="cinfo"><span class="cref" id="cRef"></span><span class="ccount" id="cCount"></span></div>
     </div>
     <div class="cright" id="cRight">
+      <div id="cVerBox" hidden="">
+        <div class="chead">Version</div>
+        <div class="cchips" id="cVers" role="group" aria-label="Bible translation"></div>
+      </div>
       <div class="crow r2">
         <button type="button" class="cb pri" data-x="prev" aria-label="Previous verse">‹<small>Previous</small></button>
         <button type="button" class="cb pri" data-x="next" aria-label="Next verse">›<small>Next</small></button>
@@ -520,10 +529,6 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
         </div>
         <p class="chint">Move to a word, then underline, highlight or hide it. Tap a hidden word in the preview to reveal it.</p>
       </div>
-      <div id="cVerBox" hidden="">
-        <div class="chead">Version</div>
-        <div class="cchips" id="cVers"></div>
-      </div>
       <div id="cSlideBox" hidden="">
         <div class="chead">Slides</div>
         <div class="cchips" id="cSlides"></div>
@@ -565,7 +570,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     <li>Put the word in quotes to force a word search, e.g. <code>"mark"</code> or <code>"job"</code>, since those are also book names</li>
   </ul>
 
-  <p>Click the <strong>cog icon</strong> beside the <strong>?</strong> button (or press <kbd>\</kbd>) to open the word-search scope panel and limit word searches to the Old Testament, the New Testament, a section (Law, Gospels, …) or any books you tick. Click a section again to remove it. Inside the panel, move with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>, and press <kbd>Space</kbd> or <kbd>Enter</kbd> to choose. Press <kbd>D</kbd> in the panel to reset the theme to Auto and both colors to default (again to undo), and <kbd>A</kbd> to choose All books (again to undo). References are never limited by the scope. The panel also has a <strong>Font style</strong> row to change the typeface and a <strong>Theme</strong> row (Auto, Light, Dark, Black on white, White on black) and <strong>Colors</strong> rows to pick a primary and a secondary color from a palette; and a <strong>Logo</strong> row to upload an image that is shown at the bottom right of the window; your choices are remembered.</p>
+  <p>Click the <strong>cog icon</strong> beside the <strong>?</strong> button (or press <kbd>\</kbd>) to open the word-search scope panel and limit word searches to the Old Testament, the New Testament, a section (Law, Gospels, …) or any books you tick. Click a section again to remove it. Inside the panel, move with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd>, and press <kbd>Space</kbd> or <kbd>Enter</kbd> to choose. Press <kbd>D</kbd> in the panel to reset the theme to Auto and both colors to default (again to undo), and <kbd>A</kbd> to choose All books (again to undo). References are never limited by the scope. The panel also has a <strong>Font style</strong> row to change the typeface and a <strong>Theme</strong> row (Auto, Light, Dark, Black on white, White on black) and <strong>Colors</strong> rows to pick a primary and a secondary color from a palette; and an <strong>Images</strong> row for your logo and a background picture for presentations. Your choices are remembered.</p>
 
   <h3>Keys that are easy to remember</h3>
   <table>
@@ -583,8 +588,9 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     <tbody><tr><td><kbd>/</kbd></td><td>Jump to the text box from anywhere</td></tr>
     <tr><td><kbd>`</kbd></td><td>Open (or close) Browse by book: click or arrow to a book, then a chapter, then a verse; each choice is shown immediately and <kbd>Backspace</kbd> goes up a level</td></tr>
     <tr><td><kbd>\</kbd></td><td>Open / close the word-search scope panel (the cog)</td></tr>
-    <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Switch version (on a verse or in presentation mode)</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd></td><td>Switch version (on a verse or in presentation mode; 0 selects the tenth version)</td></tr>
     <tr><td><kbd>?</kbd></td><td>Open this help, from anywhere (typing it in the empty text box works too)</td></tr>
+    <tr><td><kbd>⌘</kbd>+<kbd>D</kbd></td><td>Open or close the external display window</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>In the text box: look up, then jump to the first verse</td></tr>
     <tr><td><kbd>Tab</kbd> <kbd>↓</kbd></td><td>From the text box, move into the verses (Tab goes on to the buttons when no verses are listed)</td></tr>
   </tbody></table>
@@ -614,7 +620,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     <tr><td><kbd>P</kbd></td><td>Show the pronunciation of each word: the first word (the first fully visible word in scroll presentation) is highlighted with a small box above or below it. Move between words with the arrow keys or <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> (past the last word it continues into the next verse); <kbd>P</kbd> or <kbd>Esc</kbd> turns it off. The accented (stressed) syllable is in capitals. Greek is worked out on the page (approximate, Erasmian-style). Biblical names use the built-in pronunciation list (no internet needed). Other English words are looked up online at api.dictionaryapi.dev, so they need an internet connection and each word you look at is sent there; results are remembered in this browser</td></tr>
     <tr><td><kbd>Enter</kbd></td><td>Present the current verse, maximized in the window (<kbd>Shift</kbd>+<kbd>F</kbd> for true full screen). If two or more verses are selected, only those are cycled through</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>O</kbd></td><td>Toggle presentation context (remembered). Scroll mode opens the selected verse within its full chapter. In scroll mode, <kbd>N</kbd> / <kbd>B</kbd> move to the next / previous chapter (B lands on the last verse); hold Shift to add the chapter while keeping your place.</td></tr>
-    <tr><td><kbd>Space</kbd></td><td>Open a scrollable presentation of the search results (or selected verses). Scroll with the mouse, touch, arrows, Space or Page Up/Down; press Esc to close.</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>Open a scrollable presentation of the search results (or selected verses). Scroll with the mouse, touch, arrows, Space or Page Up/Down. A connected audience display follows your scroll position. Press Esc to close.</td></tr>
     <tr><td><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>L</kbd> / <kbd>J</kbd> / <kbd>K</kbd></td><td>In slides: jump to the first / last slide with Shift+H / Shift+L. In any scrolling presentation, jump to the bottom / top with Shift+J / Shift+K.</td></tr>
     <tr><td><kbd>Esc</kbd></td><td>Clear the selection; press again to return to the box</td></tr>
   </tbody></table>
@@ -1951,6 +1957,52 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   };
   try { var lg = localStorage.getItem("lsm_logo"); if (lg && /^data:image\//.test(lg)) showLogo(lg); } catch (e) {}
 
+  // ---- presentation background (cog panel) ----
+  var bgImport = 0, bgKey = "lsm_pres_background";
+  function showBackground(src) {
+    var image = $("presBg");
+    if (src) image.src = src; else image.removeAttribute("src");
+    image.hidden = $("bgDel").hidden = !src;
+    $("bgUp").textContent = src ? "Replace background picture…" : "Import background picture…";
+  }
+  function bgNote(message) {
+    $("bgNote").textContent = message;
+    $("bgNote").hidden = !message;
+  }
+  function saveBackground(src) {
+    showBackground(src);
+    bgNote("");
+    try {
+      if (src) localStorage.setItem(bgKey, src); else localStorage.removeItem(bgKey);
+    } catch (e) { bgNote("Could not save the background picture for your next visit."); }
+  }
+  $("bgUp").onclick = function () { $("bgFile").click(); };
+  $("bgDel").onclick = function () { bgImport++; saveBackground(""); };
+  $("bgFile").onchange = function () {
+    var file = this.files[0]; this.value = "";
+    if (!file) return;
+    var request = ++bgImport;
+    var url = URL.createObjectURL(file), image = new Image();
+    image.onerror = function () {
+      URL.revokeObjectURL(url);
+      if (request === bgImport) bgNote("Could not open that background picture.");
+    };
+    image.onload = function () {
+      URL.revokeObjectURL(url);
+      if (request !== bgImport) return;
+      try {
+        var canvas = document.createElement("canvas");
+        var scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        saveBackground(canvas.toDataURL("image/webp", .8));
+      } catch (e) { bgNote("Could not read that background picture."); }
+    };
+    image.src = url;
+  };
+  try { var background = localStorage.getItem(bgKey); if (background && /^data:image\//.test(background)) showBackground(background); } catch (e) {}
+
   var scopeReturn = null;   // where the cursor was before the panel opened
   var scopeInside = false;  // is the cursor currently within the scope panel?
   document.addEventListener("focusin", function (e) { scopeInside = $("scope").contains(e.target); });
@@ -2603,7 +2655,10 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     activate(versions.indexOf(active));
   }
 
-  function updateVersionUI() { $("pVer").hidden = versions.length < 2; }
+  function updateVersionUI() {
+    $("pVer").hidden = versions.length < 2;
+    if (extPanel) extUi();
+  }
 
   // label for a run of verses in one particular version
   function rangeV(ver, a, b) {
@@ -2651,7 +2706,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
           else vn = String(it.v);
           var d = document.createElement("div"); d.className = "verse";
           d.tabIndex = (k === 0 && j === 0) ? 0 : -1;
-          d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname;
+          d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname; d.dataset.vi = vi;
           d.dataset.bi = it.bi; d.dataset.ch = it.ch; d.dataset.v = it.v; d.dataset.vnum = vn;
           var a = document.createElement("div"); a.className = "ref"; a.textContent = vn;
           var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
@@ -2665,7 +2720,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       var d = document.createElement("div");
       d.className = "verse" + (k ? " other" : "");
       d.tabIndex = k === 0 ? 0 : -1;
-      d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname;
+      d.dataset.copy = ref + " " + txt; d.dataset.ref = ref; d.dataset.text = txt; d.dataset.ver = vname; d.dataset.vi = vi;
       d.dataset.bi = bi; d.dataset.ch = ch; d.dataset.v = v;
       var a = document.createElement("div"); a.className = "ref"; a.textContent = ref + tag;
       var p = document.createElement("p"); p.className = "text"; p.dir = "auto";
@@ -2673,12 +2728,31 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       d.appendChild(a); d.appendChild(p); box.appendChild(d);
     });
   }
-  function refreshVersionView() {
+  function refreshVersionView(presentedVerse) {
+    var scroll = presenting && scrollPresent ? extScrollPosition() : null;
     pronOff();
     var af = document.activeElement, had = !!(af && af.classList && af.classList.contains("verse"));
-    if (compareMode) { renderSingle(cmp.bi, cmp.ch, cmp.v); if (had) focusVerse(verses()[0]); }
-    else applyVersion();
-    if (presenting) renderPresent();
+    if (compareMode) {
+      renderSingle(cmp.bi, cmp.ch, cmp.v);
+      var all = verses();
+      if (had && !presenting) focusVerse(all[0]);
+      if (presentedVerse) {
+        // Comparison results put the active version first. Find the same verse in that version.
+        var next = all.findIndex(function (row) {
+          var d = row.dataset;
+          return +d.vi === cur && d.bi === presentedVerse.bi && d.ch === presentedVerse.ch && d.v === presentedVerse.v;
+        });
+        if (next >= 0) {
+          var index = presIdx.indexOf(next);
+          if (index >= 0) pi = index;
+          else presIdx[pi] = next;
+        } else presStray = { bi: +presentedVerse.bi, ch: +presentedVerse.ch, v: +presentedVerse.v };
+      }
+    } else applyVersion();
+    if (presenting) {
+      renderPresent();
+      if (scroll) restoreScrollPosition(scroll);
+    }
   }
 
   // re-render the verses on screen in the active version (same references)
@@ -2698,18 +2772,21 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       h.textContent = rangeAny({ bi: +h.dataset.bi, ch: +h.dataset.c1, v: +h.dataset.v1 },
         { bi: h.dataset.bi2 !== undefined ? +h.dataset.bi2 : +h.dataset.bi, ch: +h.dataset.c2, v: +h.dataset.v2 });
     });
-    if (presenting) renderPresent();
   }
   function flashVersion() {
     var st = $("status");
     st.className = "";
     st.textContent = "Version " + (cur + 1) + " of " + versions.length + ": " + versions[cur].name;
   }
+  function presentedComparisonVerse() {
+    return presenting && compareMode && !slideMode && !scrollPresent && !presStray ? presVerse() : null;
+  }
   function setVersion(i) {
     if (versions.length < 2 || !versions[i]) return;
-    if (i !== cur) {
+    var shown = presentedComparisonVerse();
+    if (i !== cur || (shown && +shown.dataset.vi !== i)) {
       var source = sbsEl && sbsSrc ? { bi: +sbsSrc.dataset.bi, ch: +sbsSrc.dataset.ch, v: +sbsSrc.dataset.v } : null;
-      activate(i); refreshVersionView(); renderInfo();
+      activate(i); refreshVersionView(shown ? shown.dataset : null); renderInfo();
       if (sbsEl) {
         if (source) {
           sbsSrc = verses().filter(function (v) { return +v.dataset.bi === source.bi && +v.dataset.ch === source.ch && +v.dataset.v === source.v; })[0] || sbsSrc;
@@ -2717,6 +2794,8 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
         }
         sbsRefresh();
       }
+      if (presenting && ext.live) extPublish(false);
+      if (extPanel) extUi();
     }
     flashVersion();
   }
@@ -3046,8 +3125,10 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   var chapCur = null, chapLo = null, chapHi = null;
   function chapNumsOf(b) { return Object.keys(data[b] || {}).map(Number).sort(function (x, y) { return x - y; }); }
   function chapNeighbour(p, dir) {
-    var list = chapNumsOf(p.bi), k = list.indexOf(p.ch);
-    if (k + dir >= 0 && k + dir < list.length) return { bi: p.bi, ch: list[k + dir] };
+    var list = chapNumsOf(p.bi);
+    var ch = dir > 0 ? list.find(function (n) { return n > p.ch; }) :
+      list.reverse().find(function (n) { return n < p.ch; });
+    if (ch !== undefined) return { bi: p.bi, ch: ch };
     for (var nb = p.bi + dir; nb >= 0 && nb < BOOKS.length; nb += dir) {
       var l2 = chapNumsOf(nb);
       if (l2.length) return { bi: nb, ch: dir > 0 ? l2[0] : l2[l2.length - 1] };
@@ -3267,13 +3348,11 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   }
   function renderScrollChapter() {
     var v = presVerse(), pt = scrollChapter || { bi: +v.dataset.bi, ch: +v.dataset.ch, v: +v.dataset.v };
-    var chapter = data[pt.bi] && data[pt.bi][pt.ch];
-    if (!chapter) return false;
     var pin = $("pinner"), target = null, content = document.createDocumentFragment();
     var current = scrollChapterLo || pt, last = scrollChapterHi || pt;
-    while (current) {
+    while (current && posKey(current.bi, current.ch, 0) <= posKey(last.bi, last.ch, 0)) {
       var bi = current.bi, ch = current.ch;
-      Object.keys(data[bi][ch]).map(Number).sort(function (a, b) { return a - b; }).forEach(function (n) {
+      pkeys(data[bi] && data[bi][ch]).forEach(function (n) {
         var row = document.createElement("div"), ref = document.createElement("span");
         row.className = "scrollverse"; ref.className = "scrollref";
         row.dataset.pos = bi + ":" + ch + ":" + n;
@@ -3285,6 +3364,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
       if (bi === last.bi && ch === last.ch) break;
       current = chapNeighbour(current, 1);
     }
+    if (!content.firstChild) return false;
     pin.replaceChildren(content);
     $("pref").textContent = "";
     $("pcount").textContent = "Chapter context · N/B: next/previous chapter · Shift+N/B: add chapter · Shift+O: context " + (contextPresent ? "on" : "off") + " · Esc to close";
@@ -3511,7 +3591,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     p.classList.toggle("scrolling", scrollPresent);
     p.classList.remove("top");
     p.hidden = false;
-    if (!scrollPresent) extEnter();
+    extEnter();
     renderPresent();
     if (!scrollPresent || !contextPresent) $("ptext").scrollTop = 0;
     if (scrollPresent && !contextPresent && $("pinner").children[pi]) {
@@ -3562,6 +3642,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     }
     presStray = null; presExt = null; slideMode = false; slides = [];
     presenting = false;
+    if (scrollPresent) ext.live = false;   // keep the audience on the last visible passage
     scrollPresent = false;
     $("present").classList.remove("scrolling");
     $("present").hidden = true;
@@ -3822,7 +3903,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     $("present").classList.toggle("scrolling", scrollPresent);
     $("present").classList.remove("top");
     $("present").hidden = false;
-    if (!scrollPresent) extEnter();
+    extEnter();
     renderPresent();
   }
   // fill el with a slide's runs; returns the reference to show (empty when each run carries its own heading)
@@ -4460,6 +4541,9 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   document.addEventListener("keydown", function (e) {
     if (!presenting) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;   // leave browser shortcuts (zoom etc.) alone
+    if (extPanel && !$("cSheet").hidden) return;
+    if (extPanel && (e.key === "Tab" ||
+        ((e.key === "Enter" || e.key === " ") && $("ctl").contains(e.target) && e.target.tagName === "BUTTON"))) return;
     e.preventDefault(); e.stopPropagation();
     var k = e.key;
     // Pronunciation owns arrows and H/J/K/L, including Shift, before scroll shortcuts.
@@ -4509,7 +4593,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
         fitPresent();
       }
     }
-    else if (/^[1-9]$/.test(k)) setVersion(+k - 1);
+    else if (/^[0-9]$/.test(k)) { if (!e.repeat) setVersion(k === "0" ? 9 : +k - 1); }
     else if (k === "Home") goPresent(0);
     else if (k === "End") goPresent(presList().length - 1);
   }, true);
@@ -4582,12 +4666,12 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   }, { passive: true });
 
   // ---- external display: the verses go to another screen, this device becomes the control panel ----
-  // The presentation keeps being built exactly as before (in #present, which is kept off screen while the panel is up).
+  // The fitted presentation is kept off screen while the panel is up. The scrolling view stays visible for the presenter.
   // Whatever it shows is copied to display.html: over the Presentation API (Cast, TVs, connected displays), or to a display
   // window on this device (BroadcastChannel). A small live preview of display.html sits at the top of the panel.
   var EXT_CH = "verselookup-display";
   var ext = { mode: "auto", conn: null, bc: null, peers: {}, avail: false, screens: false, scale: null, beforeFill: null, blank: false,
-              live: false, sent: "", logoSent: null, q: 0, req: null, win: null, frameOK: false, frameSet: false, wake: null, toastT: 0,
+              live: false, scrollStarted: false, sent: "", logoSent: null, bgSent: null, q: 0, req: null, win: null, frameOK: false, frameSet: false, wake: null, toastT: 0,
               pscale: 1, slidesN: -1, versSig: "" };
   var EXT_ORIGIN = location.origin === "null" ? "*" : location.origin;
   try { var em = localStorage.getItem("lsm_ext_mode"); if (em === "local" || em === "ext") ext.mode = em; } catch (e) {}
@@ -4616,12 +4700,53 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     var f = $("cFrame");
     if (f && ext.frameOK && f.contentWindow) { try { f.contentWindow.postMessage(s, EXT_ORIGIN); } catch (e) {} }
   }
+  function extScrollPosition() {
+    var box = $("ptext"), max = box.scrollHeight - box.clientHeight;
+    var progress = max > 0 ? Math.max(0, Math.min(1, box.scrollTop / max)) : 0;
+    var position = { progress: progress };
+    if (progress > 0 && progress < 1) {
+      var row = firstVisibleScrollVerse(false);
+      if (row) {
+        var rect = row.getBoundingClientRect();
+        position.pos = row.dataset.pos;
+        position.resultIndex = row.dataset.resultIndex;
+        position.offset = (box.getBoundingClientRect().top - rect.top) / rect.height;
+      }
+    }
+    return position;
+  }
+  function restoreScrollPosition(position) {
+    var box = $("ptext"), target = position.progress * (box.scrollHeight - box.clientHeight);
+    if (position.pos) {
+      var attr = position.resultIndex === undefined ? "pos" : "result-index";
+      var value = position.resultIndex === undefined ? position.pos : position.resultIndex;
+      var row = $("pinner").querySelector(':is(.scrollverse, .pverse)[data-' + attr + '="' + CSS.escape(value) + '"]');
+      if (row) {
+        var rect = row.getBoundingClientRect();
+        target = box.scrollTop + rect.top - box.getBoundingClientRect().top + position.offset * rect.height;
+      }
+    }
+    box.scrollTop = target;
+    trackScrollPresCursor();
+  }
+  var extScrollTimer = 0;
+  $("ptext").addEventListener("scroll", function () {
+    if (!scrollPresent || !ext.live || extScrollTimer) return;
+    extScrollTimer = setTimeout(function () {
+      extScrollTimer = 0;
+      if (scrollPresent && ext.live) extPost({ t: "present-scroll", position: extScrollPosition() });
+    }, 30);
+  }, { passive: true });
   function extBuild(idle) {   // what the display should show, read back from the presentation
     var root = document.documentElement;
     var st = { t: "state", theme: root.getAttribute("data-theme") || "", style: root.getAttribute("style") || "", logo: $("presLogo").getAttribute("src") || "", blank: ext.blank };
     if (idle) { st.idle = true; return st; }
+    st.background = $("presBg").getAttribute("src") || "";
     st.scale = ext.scale; st.ref = $("pref").textContent; st.html = $("pinner").innerHTML;
-    if (slideMode && slides[si] && slides[si].stages && !slides[si].stray) st.top = true;
+    if (scrollPresent) {
+      st.scroll = extScrollPosition();
+      st.fontSize = presSize;
+    } else if (slideMode && slides[si] && slides[si].stages && !slides[si].stray) st.top = true;
     if (slideMode && slideFit) { st.fitHtml = slideFit.html; st.fitRef = slideFit.ref; }
     if (sbsEl && sbsGrid) {
       var cards = [];
@@ -4637,12 +4762,13 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   }
   function extPublish(force) {
     if (!ext.live) return;
-    var st = extBuild(false), logo = st.logo;
-    var key = JSON.stringify(Object.assign({}, st, { logo: logo.length }));
-    if (!force && key === ext.sent) return;
+    var st = extBuild(false);
+    var key = JSON.stringify(Object.assign({}, st, { logo: undefined, background: undefined }));
+    var sendLogo = force || ext.logoSent !== st.logo, sendBg = force || ext.bgSent !== st.background;
+    if (!sendLogo && !sendBg && key === ext.sent) return;
     ext.sent = key;
-    if (!force && ext.logoSent === logo) delete st.logo;   // the logo only travels when it changes
-    else ext.logoSent = logo;
+    if (sendLogo) ext.logoSent = st.logo; else delete st.logo;
+    if (sendBg) ext.bgSent = st.background; else delete st.background;
     extPost(st);
   }
   function extQueue() {
@@ -4664,6 +4790,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     if (m.t === "hello") {
       if (fromFrame || m.preview) { ext.frameOK = true; extPublishTo(); return; }
       ext.peers[m.id] = { t: Date.now(), w: m.w, h: m.h, receiver: !!m.receiver, fs: !!m.fs };
+      if (presenting && scrollPresent && !ext.live && !ext.scrollStarted) extEnter();
       extPublishTo(); extLayout(); extUi();
     } else if (m.t === "alive") {
       var known = !!ext.peers[m.id];
@@ -4671,8 +4798,8 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     } else if (m.t === "bye") { delete ext.peers[m.id]; extUi(); }
     else if (m.t === "cmd") extCmd(m);
   }
-  function extPublishTo() {   // a display (re)appeared: send it everything, logo included
-    if (ext.live) { ext.sent = ""; ext.logoSent = null; extPublish(true); }
+  function extPublishTo() {   // a display (re)appeared: send it everything
+    if (ext.live) extPublish(true);
     else if (extPanel) extQueue();
   }
   function extCmd(m) {
@@ -4751,6 +4878,17 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     } catch (e) {}
     setTimeout(function () { extPost({ t: "who" }); }, 600);
   }
+  window.addEventListener("keydown", function (e) {
+    if (!e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.isComposing || e.key.toLowerCase() !== "d") return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.repeat) return;
+    if (ext.win && !ext.win.closed) {
+      ext.win.close();
+      ext.win = null;
+    } else {
+      extOpenWindow();
+    }
+  }, true);
   function extDisconnect() {
     if (ext.conn) { try { ext.conn.terminate(); } catch (e) { try { ext.conn.close(); } catch (e2) {} } }
     try { sessionStorage.removeItem("lsm_ext_pid"); } catch (e) {}
@@ -4810,10 +4948,14 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
   document.addEventListener("visibilitychange", function () { if (!document.hidden && extPanel) extWake(true); });
   function extEnter() {
     extPanel = false;
+    ext.scrollStarted = false;
     if (!extWant()) { ext.live = false; return; }
-    extPanel = true; ext.live = true; ext.blank = false; ext.sent = "";
+    ext.live = true; ext.blank = false; ext.sent = "";
+    if (scrollPresent) { ext.scrollStarted = true; extQueue(); return; }
+    extPanel = true;
     document.body.classList.add("extp");
     $("ctl").hidden = false;
+    $("ctl").focus({ preventScroll: true });
     if (!ext.frameSet) { ext.frameSet = true; $("cFrame").src = "display.html?preview=1"; }
     extWake(true);
     extPost({ t: "who" });
@@ -4866,17 +5008,28 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     $("cPronBox").hidden = !pOn || inSbs;
     if (pOn) { $("cPr1").textContent = $("pr1").textContent; $("cPr2").textContent = $("pr2").textContent; }
     // versions
-    var sig = versions.map(function (v) { return v.name; }).join("|") + "#" + cur;
+    var sig = JSON.stringify(versions.map(function (v) { return v.name; }));
     $("cVerBox").hidden = versions.length < 2;
+    var vb = $("cVers");
     if (versions.length > 1 && sig !== ext.versSig) {
       ext.versSig = sig;
-      var vb = $("cVers"); vb.textContent = "";
+      vb.textContent = "";
       versions.forEach(function (v, i) {
-        var b = document.createElement("button"); b.type = "button"; b.className = "cb" + (i === cur ? " on" : ""); b.dataset.v = String(i);
-        b.textContent = String(i + 1); var sm = document.createElement("small"); sm.textContent = v.name.replace(/\.[^.]+$/, ""); b.appendChild(sm);
+        var b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.v = String(i);
+        var name = v.name.replace(/\.[^.]+$/, "");
+        b.setAttribute("aria-label", name);
+        if (i < 10) b.setAttribute("aria-keyshortcuts", String((i + 1) % 10));
+        b.textContent = i < 10 ? String((i + 1) % 10) : String(i + 1);
+        var sm = document.createElement("small"); sm.textContent = name; b.appendChild(sm);
         vb.appendChild(b);
       });
     }
+    var shown = !inSbs && presentedComparisonVerse();
+    var shownVersion = shown ? +shown.dataset.vi : cur;
+    Array.prototype.forEach.call(vb.children, function (b, i) {
+      b.classList.toggle("on", i === shownVersion);
+      b.setAttribute("aria-pressed", i === shownVersion ? "true" : "false");
+    });
     // slides
     var sbx = $("cSlideBox"); sbx.hidden = !(slideMode && slides.length > 1);
     if (slideMode && slides.length > 1) {
@@ -4943,7 +5096,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     var b = e.target.closest ? e.target.closest("button") : null;
     if (!b) return;
     if (b.dataset.x) extDo(b.dataset.x);
-    else if (b.dataset.v !== undefined) { setVersion(+b.dataset.v); extQueue(); }
+    else if (b.dataset.v !== undefined) setVersion(+b.dataset.v);
     else if (b.dataset.s !== undefined) { goPresent(+b.dataset.s); }
     else if (b.id === "cConn") extOpenSheet();
     else if (b.id === "cClose") closePresent();
@@ -5721,7 +5874,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v59">
+<script id="acswebapps-updater" data-version="verse-lookup-v62">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

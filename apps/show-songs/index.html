@@ -104,7 +104,11 @@
         --controller-bar-height: calc(44px + env(safe-area-inset-top, 0px));
         padding-top: calc(var(--controller-bar-height) + 16px);
       }
-      body[data-dual-screen] #presentation { top: var(--controller-bar-height); padding-top: 16px; }
+      body[data-dual-screen] #presentation {
+        top: var(--controller-bar-height);
+        bottom: var(--controller-toolbar-space, 0px);
+        padding-top: 16px;
+      }
       #display-session {
         position: fixed;
         inset: 0 0 auto;
@@ -160,6 +164,7 @@
         -webkit-overflow-scrolling: touch;
         -webkit-tap-highlight-color: transparent;
       }
+      body[data-dual-screen] #pad { max-height: calc(var(--controls-viewport-height, 100vh) * 0.45); }
       #pad button, #presentation button {
         flex: 0 0 auto;
         min-width: 28px;
@@ -176,6 +181,19 @@
         -webkit-tap-highlight-color: transparent;
       }
       #pad button svg { display: block; margin: auto; }
+      #display-settings { flex: 0 0 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+      #display-settings label { display: inline-flex; align-items: center; gap: 4px; font: 11px/1.2 var(--font-utility); }
+      #display-settings select {
+        min-height: 28px;
+        max-width: 100%;
+        border: 1px solid var(--hint);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--fg);
+        font: inherit;
+        cursor: pointer !important;
+      }
+      #display-settings select:focus-visible { outline: 2px solid var(--fg); }
       body.mouse-mode * { cursor: auto !important; }
       #pad button:focus-visible { outline: 3px solid var(--fg); outline-offset: -4px; }
       #pad button[aria-pressed="true"] {
@@ -614,6 +632,15 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         aria-label="Number to display"></textarea>
     </main>
     <nav id="pad" aria-label="On-screen controls" hidden>
+      <div id="display-settings" role="group" aria-label="Display settings" hidden>
+        <label>Theme <select id="display-theme"></select></label>
+        <label id="display-font-control">Font <select id="display-font"></select></label>
+        <label id="display-alignment-control">Alignment
+          <select id="display-alignment"><option value="left">Left</option><option value="center">Center</option></select>
+        </label>
+        <label id="display-orientation-control">Full song orientation <select id="display-orientation"></select></label>
+        <button type="button" data-act="background">Background image</button>
+      </div>
       <button type="button" data-act="hide" aria-label="Hide controls" title="Hide controls">Hide</button>
       <button type="button" data-act="search" aria-label="Search hymns" title="Search hymns"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
       <button type="button" data-act="edit" data-for="editing" aria-label="Enter text / number" title="Enter text / number">Edit</button>
@@ -665,13 +692,14 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
       <button type="button" data-for="presentation" data-act="nextStanza" aria-label="Next stanza" title="Next stanza">Stanza ▶</button>
       <button type="button" data-for="presentation" data-act="prevChorus" aria-label="Previous chorus" title="Previous chorus">◀ Chorus</button>
       <button type="button" data-for="presentation" data-act="nextChorus" aria-label="Next chorus" title="Next chorus">Chorus ▶</button>
-      <button type="button" data-for="presentation" data-act="song" aria-label="Full song / slide" title="Full song / slide">Song / slide</button>
+      <button type="button" data-for="presentation" data-act="song" data-toggle aria-label="Full song / slide" title="Full song / slide">Song / slide</button>
       <button type="button" data-for="presentation" data-act="repeatChorus" data-toggle aria-label="Repeat chorus" title="Repeat chorus">Repeat C</button>
       <button type="button" data-for="presentation" data-act="guitar" data-toggle>Guitar</button>
-      <button type="button" data-for="presentation" data-act="bold">Bold</button>
-      <button type="button" data-for="presentation" data-act="numbers" aria-label="Show / hide numbers" title="Show / hide numbers">Numbers</button>
+      <button type="button" data-for="presentation" data-act="bold" data-toggle>Bold</button>
+      <button type="button" data-for="presentation" data-act="numbers" data-toggle aria-label="Show / hide numbers" title="Show / hide numbers">Numbers</button>
+      <button type="button" data-for="presentation" data-act="slideLabels" data-toggle>Slide labels</button>
       <button type="button" data-for="presentation" data-act="languages">Languages</button>
-      <button type="button" data-for="presentation" data-act="sidebar" aria-label="Show / hide sidebar" title="Show / hide sidebar">Sidebar</button>
+      <button type="button" data-for="presentation" data-act="sidebar" data-toggle>Sidebar</button>
       <button type="button" data-for="presentation" data-act="exit">Exit presentation</button>
       <button type="button" data-act="help" aria-label="Shortcuts">?</button>
     </nav>
@@ -1008,6 +1036,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var presentationSections = [];
         var presentationAlignment = "";
         var presentationBold = true;
+        var presentationSlideLabels = false;
+        var presentationSidebarHidden = false;
         var presentationGuitar = false;
         var presentationFullSong = false;
         var fullSongOrientations = ["Auto", "Horizontal", "Vertical"];
@@ -1270,11 +1300,15 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function cycleFullSongOrientation() {
           var index = fullSongOrientations.indexOf(fullSongOrientation);
-          fullSongOrientation = fullSongOrientations[(index + 1) % fullSongOrientations.length];
+          chooseFullSongOrientation(fullSongOrientations[(index + 1) % fullSongOrientations.length]);
+        }
+
+        function chooseFullSongOrientation(orientation) {
+          fullSongOrientation = orientation;
           updatePresentationPosition();
           fitPresentation();
           saveSettings();
-          flashPresentationStatus(fullSongOrientation);
+          if (presentationFullSong) flashPresentationStatus(fullSongOrientation);
         }
 
         function flashPresentationStatus(message) {
@@ -1290,7 +1324,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function cycleDisplayFont() {
           var fonts = Object.keys(displayFonts);
-          displayFont = fonts[(fonts.indexOf(displayFont) + 1) % fonts.length];
+          chooseDisplayFont(fonts[(fonts.indexOf(displayFont) + 1) % fonts.length]);
+        }
+
+        function chooseDisplayFont(font) {
+          displayFont = font;
           saveSettings();
           draw();
           flash("Font · " + fontLabel(displayFont));
@@ -1298,8 +1336,15 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function cyclePresentationFont() {
           var fonts = Object.keys(lyricsFonts);
-          var current = presentationFont || (THEMES[themeIdx].attr === "custom" ? customTheme.font : "arial");
-          setPresentationFont(fonts[(fonts.indexOf(current) + 1) % fonts.length]);
+          choosePresentationFont(fonts[(fonts.indexOf(currentPresentationFont()) + 1) % fonts.length]);
+        }
+
+        function currentPresentationFont() {
+          return presentationFont || (THEMES[themeIdx].attr === "custom" ? customTheme.font : "arial");
+        }
+
+        function choosePresentationFont(font) {
+          setPresentationFont(font);
           saveSettings();
           fitPresentation();
           flashPresentationStatus("Font · " + fontLabel(presentationFont));
@@ -1311,7 +1356,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function togglePresentationAlignment() {
           var current = presentationAlignment || "left";
-          presentationAlignment = current === "left" ? "center" : "left";
+          choosePresentationAlignment(current === "left" ? "center" : "left");
+        }
+
+        function choosePresentationAlignment(alignment) {
+          presentationAlignment = alignment;
           presentationLyrics.style.textAlign = presentationAlignment;
           saveSettings();
           fitPresentation();
@@ -1489,19 +1538,24 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 presentationLyrics.appendChild(section);
               }
               previousPart = part;
-              var block = document.createElement("div");
-              block.className = "song-part";
-              var label = document.createElement("span");
-              label.className = "song-part-label";
-              label.textContent = part.chorus ? "C" : presentationSlideLabel(part);
-              var lyrics = document.createElement("div");
-              lyrics.className = "song-part-text";
-              renderSongPart(lyrics, part);
-              block.appendChild(label);
-              block.appendChild(lyrics);
-              section.appendChild(block);
+              renderLabeledSongPart(section, part);
             });
-          } else renderSongPart(presentationLyrics, parts[0]);
+          } else if (presentationSlideLabels) renderLabeledSongPart(presentationLyrics, parts[0]);
+          else renderSongPart(presentationLyrics, parts[0]);
+        }
+
+        function renderLabeledSongPart(container, part) {
+          var block = document.createElement("div");
+          block.className = "song-part";
+          var label = document.createElement("span");
+          label.className = "song-part-label";
+          label.textContent = part.chorus ? "C" : presentationSlideLabel(part);
+          var lyrics = document.createElement("div");
+          lyrics.className = "song-part-text";
+          renderSongPart(lyrics, part);
+          block.appendChild(label);
+          block.appendChild(lyrics);
+          container.appendChild(block);
         }
 
         function renderPresentation() {
@@ -1553,10 +1607,22 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function togglePresentationSidebar() {
-          presentationSidebar.hidden = !presentationSidebar.hidden;
+          checkAudienceWindow();
+          presentationSidebarHidden = !presentationSidebarHidden;
+          syncPresentationSidebar();
           saveSettings();
           presentation.focus({ preventScroll: true });
           fitPresentation();
+        }
+
+        function syncPresentationSidebar() {
+          presentationSidebar.hidden = presentationSidebarHidden && !audienceWindow;
+        }
+
+        function togglePresentationSlideLabels() {
+          if (presentationFullSong) return;
+          presentationSlideLabels = !presentationSlideLabels;
+          renderPresentation();
         }
 
         function togglePresentationNumbers() {
@@ -1832,9 +1898,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               displayFont: displayFont, presentationFont: presentationFont,
               presentationAlignment: presentationAlignment,
               presentationBold: presentationBold, presentationGuitar: presentationGuitar,
+              presentationSlideLabels: presentationSlideLabels,
               presentationRepeatChorus: presentationRepeatChorus, presentationFullSong: presentationFullSong,
               fullSongOrientation: fullSongOrientation,
-              sidebarHidden: document.getElementById("presentation-numbers").hidden,
+              sidebarHidden: presentationSidebarHidden,
               numbersHidden: document.getElementById("presentation-refs").hidden,
             }));
           } catch (e) {}
@@ -1861,11 +1928,13 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           presentationAlignment = settings.presentationAlignment === "left" || settings.presentationAlignment === "center" ? settings.presentationAlignment : "";
           presentationLyrics.style.textAlign = presentationAlignment;
           presentationBold = flag("presentationBold", true);
+          presentationSlideLabels = flag("presentationSlideLabels", false);
           presentationGuitar = flag("presentationGuitar", false);
           presentationRepeatChorus = flag("presentationRepeatChorus", false);
           presentationFullSong = flag("presentationFullSong", false);
           if (fullSongOrientations.includes(settings.fullSongOrientation)) fullSongOrientation = settings.fullSongOrientation;
-          document.getElementById("presentation-numbers").hidden = flag("sidebarHidden", false);
+          presentationSidebarHidden = flag("sidebarHidden", false);
+          syncPresentationSidebar();
           document.getElementById("presentation-refs").hidden = flag("numbersHidden", false);
           presentationLyrics.style.fontWeight = presentationBold ? "700" : "400";
           input.setAttribute("inputmode", textMode || mainLanguage === "Chinese" ? "text" : "numeric");
@@ -5200,6 +5269,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var audienceWindow = null;
         var audiencePort = null;
         var audienceMonitor = 0;
+        var padBeforeAudience = null;
         var audienceUpdate = 0;
         var lastAudienceState = "";
         var lastAudienceImage;
@@ -5241,12 +5311,16 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }
           closeDisplayButton.textContent = "Close display";
           displaySessionStatus.textContent = "Opening audience display…";
+          padBeforeAudience = padOn;
           setPad(true, false);
+          syncPresentationSidebar();
           updateNextPreview();
           clearInterval(audienceMonitor);
-          audienceMonitor = setInterval(function () {
-            if (audienceWindow.closed) closeAudienceDisplay();
-          }, 500);
+          audienceMonitor = setInterval(checkAudienceWindow, 500);
+        }
+
+        function checkAudienceWindow() {
+          if (audienceWindow && audienceWindow.closed) closeAudienceDisplay();
         }
 
         function closeAudienceDisplay() {
@@ -5261,8 +5335,13 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           audienceWindow = audiencePort = null;
           displaySession.hidden = true;
           document.body.removeAttribute("data-dual-screen");
+          document.body.style.removeProperty("--controller-toolbar-space");
+          syncPresentationSidebar();
           updateNextPreview();
-          syncPad();
+          if (padBeforeAudience !== null) {
+            setPad(padBeforeAudience, false);
+            padBeforeAudience = null;
+          } else syncPad();
           focusInput();
         }
 
@@ -5284,9 +5363,13 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function layoutAudiencePreview() {
+          if (!audienceWindow) return;
+          var controlsTop = pad.hidden ? window.innerHeight : pad.getBoundingClientRect().top - 8;
+          var reserved = Math.max(0, window.innerHeight - controlsTop);
+          document.body.style.setProperty("--controller-toolbar-space", reserved + "px");
           if (!previewPort || !audienceViewport) return;
           var bounds = (presenting ? presentationBody : stage).getBoundingClientRect();
-          var bottom = pad.hidden ? bounds.bottom : Math.min(bounds.bottom, pad.getBoundingClientRect().top - 8);
+          var bottom = Math.min(bounds.bottom, controlsTop);
           var availableHeight = bottom - bounds.top;
           var scale = Math.min(bounds.width / audienceViewport.width, availableHeight / audienceViewport.height);
           previewContainer.hidden = scale <= 0;
@@ -5318,9 +5401,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 parts: presentationFullSong ? fullSongParts() : [presentationSlides[presentationIndex]],
                 wholeSong: presentationFullSong, orientation: fullSongOrientation,
                 bold: presentationBold, guitar: presentationGuitar, alignment: presentationAlignment,
+                slideLabels: presentationSlideLabels,
                 font: getComputedStyle(presentationLyrics).fontFamily, scale: presentationScale,
                 sidebar: {
-                  hidden: presentationSidebar.hidden, title: presentationTitle.textContent,
+                  hidden: presentationSidebarHidden, title: presentationTitle.textContent,
                   capo: presentationCapo.hidden ? "" : presentationCapo.textContent,
                   position: presentationFullSong ? "Full song" : presentationPosition.textContent,
                   refsHidden: presentationRefs.hidden, referenceData: presentationReferenceData(),
@@ -5365,6 +5449,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             presentationFullSong = lyrics.wholeSong;
             fullSongOrientation = lyrics.orientation;
             presentationGuitar = lyrics.guitar;
+            presentationSlideLabels = !!lyrics.slideLabels;
             presentationScale = lyrics.scale;
             presentationLyrics.style.fontWeight = lyrics.bold ? "700" : "400";
             presentationLyrics.style.textAlign = lyrics.alignment;
@@ -5530,11 +5615,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 "l open language list" + d + "shift+l next language" + d + "g guitar chords and capo" + d + "r repeat choruses in full song",
                 "in the language list, arrows or j/k browse, enter selects, l or esc closes",
                 "t next lyrics version (when available)",
-                "n show / hide hymn and language numbers" + d + "b toggle bold lyrics",
+                "n show / hide hymn and language numbers" + d + "shift+n toggle labels on slides" + d + "b toggle bold lyrics",
                 "shift+j toggle lyrics left / center alignment",
                 "m open sheet music on hymnal.net" + d + "e edit song on Songbase",
                 "click a numbered slide or c in the sidebar to jump directly",
-                "enter toggles full song / current slide" + d + "o cycles full-song orientation" + d + "tab show / hide entire left sidebar",
+                "enter toggles full song / current slide" + d + "o cycles full-song orientation" + d + "tab show / hide " + (audienceWindow ? "audience sidebar" : "sidebar"),
                 "esc hides controls or exits full screen",
               ]
             : textMode
@@ -5697,6 +5782,21 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         // ---- On-screen buttons ----
         var padOn = false;
+        var displaySettings = document.getElementById("display-settings");
+        var displayThemeSelect = document.getElementById("display-theme");
+        var displayFontSelect = document.getElementById("display-font");
+        var displayAlignmentSelect = document.getElementById("display-alignment");
+        var displayOrientationSelect = document.getElementById("display-orientation");
+        THEMES.forEach(function (theme, index) { displayThemeSelect.add(new Option(theme.name, index)); });
+        Object.keys(displayFonts).forEach(function (font) { displayFontSelect.add(new Option(fontLabel(font), font)); });
+        fullSongOrientations.forEach(function (orientation) { displayOrientationSelect.add(new Option(orientation, orientation)); });
+        displayThemeSelect.addEventListener("change", function () { chooseTheme(Number(displayThemeSelect.value)); });
+        displayFontSelect.addEventListener("change", function () {
+          if (presenting) choosePresentationFont(displayFontSelect.value);
+          else chooseDisplayFont(displayFontSelect.value);
+        });
+        displayAlignmentSelect.addEventListener("change", function () { choosePresentationAlignment(displayAlignmentSelect.value); });
+        displayOrientationSelect.addEventListener("change", function () { chooseFullSongOrientation(displayOrientationSelect.value); });
         var controlsViewport = window.visualViewport;
         function positionPad() {
           if (!padOn || !controlsViewport) return;
@@ -5711,6 +5811,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           controlsViewport.addEventListener("scroll", positionPad);
         }
         function setPad(on, save) {
+          if (audienceWindow && !on) return;
           padOn = on;
           pad.hidden = !on;
           if (save) {
@@ -5725,6 +5826,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           layoutAudiencePreview();
         }
         var PRESSED = {
+          song: function () { return presentationFullSong; },
+          bold: function () { return presentationBold; },
+          numbers: function () { return !presentationRefs.hidden; },
+          sidebar: function () { return !presentationSidebarHidden; },
+          slideLabels: function () { return presentationFullSong || presentationSlideLabels; },
           repeatChorus: function () { return presentationRepeatChorus; },
           guitar: function () { return presentationGuitar; },
           lang: function () {
@@ -5754,6 +5860,17 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         };
         function syncPad() {
           if (!padOn) return;
+          displaySettings.hidden = !audienceWindow;
+          if (audienceWindow) {
+            displayThemeSelect.value = String(themeIdx);
+            displayThemeSelect.options[THEMES.length - 1].disabled = !customTheme;
+            displayFontSelect.closest("label").hidden = textMode && !presenting;
+            displayFontSelect.options[0].hidden = displayFontSelect.options[0].disabled = presenting;
+            displayFontSelect.value = presenting ? currentPresentationFont() : displayFont;
+            displayAlignmentSelect.closest("label").hidden = displayOrientationSelect.closest("label").hidden = !presenting;
+            displayAlignmentSelect.value = presentationAlignment || "left";
+            displayOrientationSelect.value = fullSongOrientation;
+          }
           var btns = pad.querySelectorAll("button");
           for (var i = 0; i < btns.length; i++) {
             var b = btns[i],
@@ -5762,8 +5879,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             b.hidden = (f === "presentation" && !presenting) ||
               (presenting && (f === "num" || f === "text" || f === "editing")) ||
               (f === "num" && textMode) || (f === "text" && !textMode) ||
-              (a === "audience" && !!audienceWindow);
+              ((a === "audience" || a === "hide" || a === "theme") && !!audienceWindow);
             if (a === "plus") b.disabled = presenting && presentationScale >= 1;
+            if (a === "slideLabels") b.disabled = presentationFullSong;
+            if (a === "sidebar") b.textContent = audienceWindow ? "Audience sidebar" : "Sidebar";
             if (b.hasAttribute("data-toggle") && PRESSED[a])
               b.setAttribute("aria-pressed", PRESSED[a]() ? "true" : "false");
           }
@@ -5797,6 +5916,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           redo: redo,
           theme: cycleTheme,
           customTheme: openCustomTheme,
+          background: function () { backgroundImageDialog.showModal(); },
           audience: openAudienceDisplay,
           lang: toggleLang,
           eng: function () { toggleEng(false, true); },
@@ -5847,6 +5967,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           guitar: togglePresentationGuitar,
           repeatChorus: toggleRepeatedChorus,
           numbers: togglePresentationNumbers,
+          slideLabels: togglePresentationSlideLabels,
           sidebar: togglePresentationSidebar,
           languages: openSongLanguages,
           exit: endPresentation,
@@ -5924,7 +6045,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         // mousedown is cancelled so a tap never takes focus from the hidden field (the keyboard stays up).
         pad.addEventListener("mousedown", function (e) {
-          e.preventDefault();
+          if (e.target.closest("button")) e.preventDefault();
         });
         pad.addEventListener("click", function (e) {
           var b = e.target.closest ? e.target.closest("button") : null;
@@ -5967,7 +6088,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             if (!e.repeat) openCustomTheme();
             return;
           }
-          if (e.key === "Escape" && padOn && !searchOpen && !helpOpen) {
+          if (e.target instanceof HTMLSelectElement && displaySettings.contains(e.target)) return;
+          if (e.key === "Escape" && padOn && !audienceWindow && !searchOpen && !helpOpen) {
             e.preventDefault();
             if (!e.repeat) setPad(false, true);
             return;
@@ -6020,7 +6142,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             else if ((e.key === "o" || e.key === "O") && presentationFullSong && !e.repeat) cycleFullSongOrientation();
             else if ((e.key === "l" || e.key === "L") && !e.repeat) { if (e.shiftKey) cycleSongLanguage(); else openSongLanguages(); }
             else if ((e.key === "t" || e.key === "T") && !e.repeat) cycleHymnVersion();
-            else if ((e.key === "n" || e.key === "N") && !e.repeat) togglePresentationNumbers();
+            else if ((e.key === "n" || e.key === "N") && !e.repeat) {
+              if (e.shiftKey) togglePresentationSlideLabels();
+              else togglePresentationNumbers();
+            }
             else if ((e.key === "b" || e.key === "B") && !e.repeat) togglePresentationBold();
             else if ((e.key === "j" || e.key === "J") && e.shiftKey) { if (!e.repeat) togglePresentationAlignment(); }
             else if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "PageDown" || e.key === "j" || e.key === "J") movePresentation(1);
@@ -6245,14 +6370,17 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         document.addEventListener("pointerdown", function (e) {
           if (searchOpen || languageDialog.open || backgroundImageDialog.open || customThemeDialog.open) return;
           document.body.classList.add("mouse-mode");
-          // Blank areas toggle controls; interactive elements keep their own actions.
-          if (!helpOpen && !pad.contains(e.target) &&
+          // Blank areas toggle the toolbar in single-window mode.
+          if (!audienceWindow && !helpOpen && !pad.contains(e.target) &&
               !e.target.closest("button, a, input, textarea, select, label, summary, [role=button], [contenteditable]")) setPad(!padOn, true);
           if (helpOpen && !(pad && pad.contains(e.target))) hideHelp();
           if (presenting) return;
           focusInput();
         });
-        window.addEventListener("focus", focusInput);
+        window.addEventListener("focus", function () {
+          checkAudienceWindow();
+          focusInput();
+        });
         focusInput();
         observeDisplaySize();
 
@@ -6396,7 +6524,7 @@ if (!document.documentElement.hasAttribute("data-audience")) (function () {
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v165">
+<script id="acswebapps-updater" data-version="big-text-v168">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

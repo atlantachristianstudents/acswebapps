@@ -46,7 +46,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [QR Code](https://acswebapps.com/apps/qr-code/) | Create static, customizable QR codes for URLs, Wi‑Fi, email, SMS, phone, vCard, location, WhatsApp, reviews, PayID, and calendar events. Shape, color, gradient, logo, PNG/SVG export, and themes — all offline. | beta |
 | [Show Songs](https://acswebapps.com/apps/show-songs/) | Display hymn numbers or any text full-screen for projectors and livestreams, including hymn cross-references in Chinese, Korean, Spanish, and Burmese. | live |
 | [Tune](https://acswebapps.com/apps/tune/) | Chromatic instrument tuner, metronome, tone generator, and chord/key detection using your device microphone. Also maintained in the standalone [Tune repository](https://github.com/zioninzion/tune). | live |
-| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with external-display support, outline import, a downloadable Recovery Version, and session-only editions in English (seven), Greek (SBLGNT and THGNT), and Hebrew (Leningrad and Aleppo). Press X to open the current verse’s original-language analysis on BibleHub. | live |
+| [Show Words](https://acswebapps.com/apps/show-words/) | Look up Bible verses and present them full-screen, with fitted and synchronized scrolling modes for external displays, outline import, a downloadable Recovery Version, and session-only editions in English (seven), Greek (SBLGNT and THGNT), and Hebrew (Leningrad and Aleppo). Press Command+D to toggle the display window or X to open the current verse’s original-language analysis on BibleHub. | live |
 | [Songbook](https://acswebapps.com/apps/songs/) | Browse the Songbase catalog, build and share songbooks, and present lyrics full-screen. Songs are cached for offline use after the first sync. | beta |
 
 Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (listed but not yet available).
@@ -60,7 +60,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 - **No accounts or ads.** App content and settings stay local; limited usage events go to GoatCounter.
 - **Installable and offline-first.** The home page and apps are PWAs with service workers. Once cached, core features work without a connection. Songbook needs an initial catalog sync; Logos Type races and Scripture downloads need the internet.
 - **Your data stays on your device.** Progress, settings, and saved content live in `localStorage` or IndexedDB. URL imports fetch the source directly — your reference and answers are never uploaded.
-- **Fast to browse.** Search the app directory (press `/` or `?`), filter by category, hide beta apps, and switch between light and dark themes. The choice is remembered.
+- **Fast to browse.** A compact header makes room for the app directory. Search (press `/` or `?`), filter by category, hide beta apps, and switch between light and dark themes. The theme choice is remembered.
+- **Pinned favorites.** Use the pin on an app card or icon tile to move it to the top of the directory. Pins are saved in your browser and follow your current search and filters.
 - **Compact view.** Toggle Compact view beside the Apps heading for an icon grid with a Beta badge on each beta app. The directory remembers your layout.
 - **Keyboard- and screen-reader-friendly.** Cards, filters, dialogs, and presentation controls are operable without a mouse.
 - **Portable by design.** Every app folder can be copied out and hosted on its own static site. The home page is driven by a small registry, `assets/apps.js`.
