@@ -30,7 +30,7 @@ Press `?` or `/` in number mode or during presentation to see that mode’s shor
 | `Ctrl/Cmd+F` | Fill the window again in number or text mode |
 | `Shift+F` | Full screen |
 | `Esc` | Close the click menu first; with it closed, exit full screen |
-| `w` / `Alt+W` | Toggle line wrapping |
+| `w` / `Alt+W` | Toggle line wrapping. Song titles wrap by default and remember their own setting. |
 | `h` | Cycle theme (black on white by default, white on black, system, and Custom once saved) — remembered |
 | `Cmd/Ctrl+H` | Open Custom theme to set text color, background color, and the presentation lyrics font |
 | `m` | Show / hide the on-screen buttons (remembered) |
@@ -139,6 +139,16 @@ In Present mode, press **M** to open the corresponding piano sheet on Hymnal.net
 Press **E** in Present mode to open the current Songbase song's edit page in a new tab. The shortcut uses the selected version's Songbase ID and applies to songs sourced from Songbase.
 
 In full-song view, press **O** to cycle orientation. **Auto** chooses the layout that fits the largest lyrics, **Horizontal** favors side-by-side columns when space permits, and **Vertical** stacks sections in one column. The new choice flashes briefly, appears in the sidebar, and is remembered.
+
+### Dual-screen presentation
+
+Press **Cmd+D** (Mac) or **Ctrl+D** (Windows/Linux) in the controller to open or close the audience display. You can also click the display to show the toolbar and choose **Open audience display**. Move the new window to the projector or second monitor and use the browser’s fullscreen command if desired. Keep the original window for the live preview, next-slide preview in the Present sidebar, and all keyboard and toolbar controls.
+
+The audience window follows the controller live, showing the current hymn number, selected song title, free text, or lyrics. In Present mode, it also shows the song sidebar with the title, hymn numbers, capo information, and slide position. Sidebar and number visibility follow the controller. The next-slide preview and controls stay on the controller. The audience window fits the content to its own size and uses the controller’s theme, background image, and display choices. **Close display** ends the session from the controller. Refreshing the audience window reconnects it to the controller.
+
+The controller’s live preview uses the audience window’s aspect ratio and updates when that window resizes.
+
+English song titles appear in title case in search, the number/title display, and Present mode. Titles in other languages use their source capitalization.
 
 Presentation lyrics prefer wrapping at punctuation, keeping each clause together when it fits. If a clause is too long for the available width, its words wrap into balanced lines instead of leaving a short trailing line. This applies to slide and full-song views, including guitar chords. Browsers without balanced text wrapping use normal word wrapping.
 

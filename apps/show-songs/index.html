@@ -23,6 +23,9 @@
       }
     </style>
     <script>
+      if (new URLSearchParams(location.search).get("audience") === "1") {
+        document.documentElement.setAttribute("data-audience", "");
+      }
       try {
         var t = localStorage.getItem("bigtext-theme");
         if (t === "bw" || t === "wb" || t === "system" || t === "custom") document.documentElement.setAttribute("data-theme", t);
@@ -97,6 +100,45 @@
       }
       #stage[inert] { visibility: hidden; }
       #background-image { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; pointer-events: none; }
+      body[data-dual-screen] {
+        --controller-bar-height: calc(44px + env(safe-area-inset-top, 0px));
+        padding-top: calc(var(--controller-bar-height) + 16px);
+      }
+      body[data-dual-screen] #presentation { top: var(--controller-bar-height); padding-top: 16px; }
+      #display-session {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 22;
+        height: var(--controller-bar-height);
+        box-sizing: border-box;
+        padding: env(safe-area-inset-top, 0px) 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: 1px solid var(--hint);
+        background: var(--bg);
+        color: var(--fg);
+        font: 13px/1.4 var(--font-utility);
+      }
+      #display-session button { cursor: pointer !important; }
+      #live-preview {
+        position: fixed;
+        z-index: 19;
+        overflow: hidden;
+        outline: 1px solid var(--hint);
+        background: var(--bg);
+        pointer-events: none;
+      }
+      #live-preview iframe { display: block; border: 0; transform-origin: top left; }
+      body[data-audience-preview] :is(#c, #hint, #background-image, #presentation-lyrics) { visibility: hidden; }
+      body[data-audience-preview] #mode { z-index: 20; }
+      #next-slide-preview { margin-top: 16px; font: 12px/1.5 var(--font-utility); }
+      #next-slide-preview p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+      html[data-audience] :is(#hint, #entry, #mode, #pad, #display-session, #presentation-status, #next-slide-preview,
+        #presentation-exit, #presentation-version-control, #presentation-slides, #presentation-prev, #presentation-next, dialog) {
+        display: none !important;
+      }
       /* Click the display, use m, or use a touch screen to reveal controls. */
       #pad {
         position: fixed;
@@ -484,6 +526,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
 
     <img id="background-image" alt="" hidden />
+    <div id="display-session" hidden>
+      <span id="display-session-status" role="status">Opening audience display…</span>
+      <button type="button" id="display-session-close">Close display</button>
+    </div>
     <section id="presentation" tabindex="-1" role="dialog" aria-modal="true" aria-label="Hymn presentation" hidden>
       <div id="presentation-status" role="status"></div>
       <div id="presentation-content">
@@ -503,6 +549,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             <button type="button" id="presentation-prev" aria-label="Previous slide">←</button>
             <button type="button" id="presentation-next" aria-label="Next slide">→</button>
           </footer>
+          <div id="next-slide-preview" hidden>
+            <strong id="next-slide-label">Next slide</strong>
+            <p id="next-slide-text"></p>
+          </div>
         </aside>
         <div id="presentation-body"><div id="presentation-lyrics" aria-live="polite" aria-atomic="true"></div></div>
       </div>
@@ -512,6 +562,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         <div id="song-language-options"></div>
       </dialog>
     </section>
+    <div id="live-preview" hidden></div>
     <dialog id="background-image-dialog" class="settings-dialog" aria-labelledby="background-image-title">
       <form method="dialog">
         <header><strong id="background-image-title">Background image</strong><button type="submit" class="dialog-close" aria-label="Close background dialog">×</button></header>
@@ -591,6 +642,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
       <button type="button" data-for="editing" data-act="redo">Redo</button>
       <button type="button" data-act="theme" data-for="editing">Theme</button>
       <button type="button" data-act="customTheme">Custom theme</button>
+      <button type="button" data-act="audience">Open audience display</button>
       <button type="button" data-act="lang" data-for="num" data-toggle>All</button>
       <button type="button" data-act="c" data-for="num" data-toggle>C</button>
       <button type="button" data-act="k" data-for="num" data-toggle>K</button>
@@ -737,6 +789,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         var input = document.getElementById("entry");
         var hint = document.getElementById("hint");
         var live = document.getElementById("live");
+        var audienceMode = document.documentElement.hasAttribute("data-audience");
         var FAMILY = '"Big Shoulders Display", "Arial Narrow", Impact, sans-serif';
         var lyricsFonts = { arial: "Arial, sans-serif", verdana: "Verdana, sans-serif", georgia: "Georgia, serif" };
         var displayFonts = Object.assign({ "big-shoulders": FAMILY }, lyricsFonts);
@@ -749,9 +802,9 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           arrowFresh = false;
           return b;
         }
-        var hymnData = JSON.parse(document.getElementById("hymn-data").textContent);
-        var songbaseData = JSON.parse(document.getElementById("songbase-data").textContent);
-        var burmeseData = JSON.parse(document.getElementById("burmese-data").textContent);
+        var hymnData = audienceMode ? null : JSON.parse(document.getElementById("hymn-data").textContent);
+        var songbaseData = audienceMode ? null : JSON.parse(document.getElementById("songbase-data").textContent);
+        var burmeseData = audienceMode ? null : JSON.parse(document.getElementById("burmese-data").textContent);
         var songsById = {}, songRefs = {}, englishSongIds = {}, englishNumbersById = {}, linkedSongs = {};
         function rebuildSongbaseLibrary(data) {
           // Keep this independent import when a newer Songbase snapshot is loaded.
@@ -798,7 +851,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           hymnData = updatedHymns;
           searchIndex = null;
         }
-        rebuildSongbaseLibrary(songbaseData);
+        if (!audienceMode) rebuildSongbaseLibrary(songbaseData);
         var searchDialog = document.getElementById("hymn-search");
         var searchInput = document.getElementById("hymn-search-input");
         var searchResults = document.getElementById("hymn-search-results");
@@ -807,6 +860,20 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function formatLanguageName(name) {
           return name.replace(/(^|[\s/-])(\p{L})/gu, function (match) { return match.toUpperCase(); });
+        }
+
+        function formatSongTitle(song) {
+          var title = song.title;
+          if ((song.lang && song.lang.toLowerCase() !== "english") || title === title.toUpperCase()) return title;
+          var minorWords = /^(?:a|an|and|as|at|but|by|for|from|in|nor|of|on|or|so|the|to|up|with|yet)$/i;
+          var end = 0;
+          return title.replace(/[\p{L}\p{M}\p{N}]+(?:['’][\p{L}\p{M}\p{N}]+)*/gu, function (word, start) {
+            var newPhrase = !end || /[:.!?—–(\[]/.test(title.slice(end, start));
+            end = start + word.length;
+            if (/\p{N}/u.test(word) || (word.length > 1 && word === word.toUpperCase())) return word;
+            if (!newPhrase && minorWords.test(word) && /[\p{L}\p{N}]/u.test(title.slice(end))) return word.toLowerCase();
+            return word[0].toUpperCase() + word.slice(1);
+          });
         }
 
         function normalizeHymnSearch(text) {
@@ -874,7 +941,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             var button = document.createElement("button");
             button.type = "button";
             button.setAttribute("data-song-id", String(song.id));
-            button.textContent = song.title + " · " + formatLanguageName(song.lang) + (song.refs.length ? " · " + song.refs.map(function (ref) { return ref.label + " " + ref.num; }).join(" / ") : " · Song " + song.id);
+            button.textContent = formatSongTitle(song) + " · " + formatLanguageName(song.lang) + (song.refs.length ? " · " + song.refs.map(function (ref) { return ref.label + " " + ref.num; }).join(" / ") : " · Song " + song.id);
             button.addEventListener("click", function () { chooseSearchHymn(song); });
             searchResults.appendChild(button);
           });
@@ -925,6 +992,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         searchDialog.addEventListener("cancel", function (e) { e.preventDefault(); closeHymnSearch(); });
 
         var presentation = document.getElementById("presentation");
+        var presentationSidebar = document.getElementById("presentation-numbers");
+        var presentationTitle = document.getElementById("presentation-title");
+        var presentationCapo = document.getElementById("presentation-capo");
+        var presentationRefs = document.getElementById("presentation-refs");
+        var presentationPosition = document.getElementById("presentation-position");
         var presentationLyrics = document.getElementById("presentation-lyrics");
         var presentationBody = document.getElementById("presentation-body");
         var presentationVersion = document.getElementById("presentation-version");
@@ -967,7 +1039,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               var lyrics = section.lines.join("\n").trim();
               if (!hymnSlides(lyrics).length) return;
               var version = Object.assign({}, song, { lyrics: lyrics });
-              version.versionName = section.name || song.title;
+              version.versionName = section.name || formatSongTitle(song);
               presentationVersions.push(version);
             });
             if (presentationVersions.length === firstVersion) presentationVersions.push(song);
@@ -977,7 +1049,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           presentationVersions.forEach(function (song, i) {
             var option = document.createElement("option");
             option.value = String(i);
-            option.textContent = song.versionName || song.title;
+            option.textContent = song.versionName || formatSongTitle(song);
             presentationVersion.appendChild(option);
           });
           presentationVersion.value = "0";
@@ -1143,6 +1215,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function fitPresentation() {
           if (!presenting) return;
+          layoutAudiencePreview();
+          queueAudienceUpdate();
           presentationScale = Math.min(1, presentationScale);
           fitPresentationNumbers();
           // Measure without scrollbars changing the width during the search.
@@ -1349,16 +1423,19 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         var backgroundImage = document.getElementById("background-image");
+        var backgroundFile = null;
         var backgroundImageDialog = document.getElementById("background-image-dialog");
         var backgroundImageFile = document.getElementById("background-image-file");
         var backgroundImageStatus = document.getElementById("background-image-status");
         var backgroundImageRemove = document.getElementById("background-image-remove");
-        function setBackgroundImage(url) {
+        function setBackgroundImage(url, file) {
           var previous = backgroundImage.getAttribute("src");
+          backgroundFile = file || null;
           if (url) backgroundImage.src = url;
           else backgroundImage.removeAttribute("src");
           backgroundImage.hidden = backgroundImageRemove.hidden = !url;
           if (previous) URL.revokeObjectURL(previous);
+          queueAudienceUpdate();
         }
         backgroundImageFile.addEventListener("change", async function () {
           var file = backgroundImageFile.files[0];
@@ -1381,7 +1458,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             URL.revokeObjectURL(url);
             return;
           }
-          setBackgroundImage(url);
+          setBackgroundImage(url, file);
           backgroundImageDialog.close();
         });
         backgroundImageDialog.addEventListener("close", function () {
@@ -1395,18 +1472,16 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 
         function updatePresentationPosition() {
           var slide = presentationSlides[presentationIndex];
-          document.getElementById("presentation-position").textContent = presentationFullSong ? "Full song · " + fullSongOrientation :
+          presentationPosition.textContent = presentationFullSong ? "Full song · " + fullSongOrientation :
             presentationSlideLabel(slide) + " · " + (presentationIndex + 1) + " / " + presentationSlides.length;
         }
 
-        function renderPresentation() {
-          var slide = presentationSlides[presentationIndex];
-          updateGuitarCapo();
+        function renderPresentationLyrics(parts) {
           presentationLyrics.textContent = "";
           presentationLyrics.setAttribute("data-full-song", presentationFullSong ? "true" : "false");
           if (presentationFullSong) {
             var section = null, previousPart = null;
-            fullSongParts().forEach(function (part) {
+            parts.forEach(function (part) {
               // Keep every paragraph of a stanza in one indivisible column item.
               if (!section || part.chorus || previousPart.chorus || part.stanza !== previousPart.stanza) {
                 section = document.createElement("div");
@@ -1426,8 +1501,14 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               block.appendChild(lyrics);
               section.appendChild(block);
             });
-          } else renderSongPart(presentationLyrics, slide);
+          } else renderSongPart(presentationLyrics, parts[0]);
+        }
+
+        function renderPresentation() {
+          updateGuitarCapo();
+          renderPresentationLyrics(presentationFullSong ? fullSongParts() : [presentationSlides[presentationIndex]]);
           updatePresentationPosition();
+          updateNextPreview();
           presentationPrev.disabled = presentationIndex === 0;
           presentationNext.disabled = presentationIndex === presentationSlides.length - 1;
           presentationSlideButtons.forEach(function (button, index) {
@@ -1460,7 +1541,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           presentationSlides = splitPresentationSlides(presentationSections);
           presentationIndex = 0;
           buildPresentationSlideNav();
-          document.getElementById("presentation-title").textContent = (presentationLibrarySong ? formatLanguageName(presentationSong.lang) : presentationNumber) + " · " + song.title;
+          presentationTitle.textContent = (presentationLibrarySong ? formatLanguageName(presentationSong.lang) : presentationNumber) + " · " + formatSongTitle(song);
           renderPresentation();
         }
 
@@ -1472,47 +1553,49 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function togglePresentationSidebar() {
-          var sidebar = document.getElementById("presentation-numbers");
-          sidebar.hidden = !sidebar.hidden;
+          presentationSidebar.hidden = !presentationSidebar.hidden;
           saveSettings();
           presentation.focus({ preventScroll: true });
           fitPresentation();
         }
 
         function togglePresentationNumbers() {
-          var refs = document.getElementById("presentation-refs");
-          refs.hidden = !refs.hidden;
+          presentationRefs.hidden = !presentationRefs.hidden;
           saveSettings();
           fitPresentation();
         }
 
-        function renderPresentationRefs() {
-          var list = document.getElementById("presentation-refs");
-          list.textContent = "";
+        function presentationReferenceData() {
           var compact = !presentationLibrarySong && engOn && !engAlt && !engRussian && !langOn;
-          list.setAttribute("data-compact", compact ? "true" : "false");
           var refs = [mainNumberRef()].concat(currentRefs() || []);
           var englishNumber = presentationSong && englishNumbersById[presentationSong.id];
           var isSongbase = presentationLibrarySong && !(Number(englishNumber) >= 1 && Number(englishNumber) <= 1348);
-          list.setAttribute("data-title", isSongbase ? "true" : "false");
           if (presentationLibrarySong && (!mainLanguage || isSongbase)) refs = isSongbase
-            ? [{ label: "Title", num: presentationSong.title }]
+            ? [{ label: "Title", num: formatSongTitle(presentationSong) }]
             : [{ label: "English", num: englishNumber }];
-          refs.forEach(function (ref) {
+          return { compact: compact, isTitle: isSongbase, refs: refs };
+        }
+
+        function renderPresentationRefs(data) {
+          data = data || presentationReferenceData();
+          presentationRefs.textContent = "";
+          presentationRefs.setAttribute("data-compact", String(data.compact));
+          presentationRefs.setAttribute("data-title", String(data.isTitle));
+          data.refs.forEach(function (ref) {
             var label = document.createElement("dt");
             var number = document.createElement("dd");
-            label.textContent = compact ? (ref.label === "English / Korean" ? "E/K" : panelAbbreviation(ref.label)) : ref.label;
+            label.textContent = data.compact ? (ref.label === "English / Korean" ? "E/K" : panelAbbreviation(ref.label)) : ref.label;
             label.setAttribute("aria-label", ref.label);
             label.title = ref.label;
             number.textContent = ref.num;
-            list.appendChild(label);
-            list.appendChild(number);
+            presentationRefs.appendChild(label);
+            presentationRefs.appendChild(number);
           });
-          document.getElementById("presentation-numbers").scrollTop = 0;
+          presentationSidebar.scrollTop = 0;
         }
 
         function startPresentation(librarySong) {
-          if (!librarySong && selectedLibrarySong && !textMode && value === selectedLibrarySong.title) librarySong = selectedLibrarySong;
+          if (!librarySong && selectedLibrarySong && !textMode) librarySong = selectedLibrarySong;
           if (!librarySong && (textMode || !value)) return;
           var selectedVersions = !librarySong && mainLanguage ? mainLanguageSongs() : null;
           if (selectedVersions && !selectedVersions.length) { flash("No " + mainLanguage + " lyrics available for hymn " + value); return; }
@@ -1597,7 +1680,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           songs.forEach(function (song) {
             var button = document.createElement("button");
             button.type = "button";
-            button.textContent = formatLanguageName(song.lang) + " · " + song.title;
+            button.textContent = formatLanguageName(song.lang) + " · " + formatSongTitle(song);
             button.setAttribute("aria-pressed", String(song.id === presentationSong.id));
             button.addEventListener("click", function () {
               closeSongLanguages();
@@ -1642,6 +1725,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }
           document.body.insertBefore(pad, stage.nextSibling);
           syncPad();
+          layoutAudiencePreview();
+          queueAudienceUpdate();
           if (presentationFocus && presentationFocus.isConnected) presentationFocus.focus({ preventScroll: true });
           else focusInput();
         }
@@ -1725,6 +1810,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         var wrapOn = false; // w (alt+w in text mode) toggles line wrapping
+        var titleWrapOn = true;
         var langOn = false; // l (number mode) shows the matching number in every other language
         // b / k / c / s / r select the main translated hymn number.
         var QUICK = { c: "Chinese", k: "Korean", s: "Spanish 2nd", b: "Burmese", r: "Russian" };
@@ -1740,7 +1826,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         function saveSettings() {
           try {
             localStorage.setItem("bigtext-settings", JSON.stringify({
-              textMode: textMode, wrapOn: wrapOn, langOn: langOn,
+              textMode: textMode, wrapOn: wrapOn, titleWrapOn: titleWrapOn, langOn: langOn,
               picked: { c: !!picked.c, k: !!picked.k, s: !!picked.s, b: !!picked.b },
               mainLanguage: mainLanguage, engOn: engOn, engAlt: engAlt, engRussian: engRussian,
               displayFont: displayFont, presentationFont: presentationFont,
@@ -1762,6 +1848,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           function flag(name, fallback) { return typeof settings[name] === "boolean" ? settings[name] : fallback; }
           textMode = flag("textMode", false);
           wrapOn = flag("wrapOn", false);
+          titleWrapOn = flag("titleWrapOn", true);
           langOn = flag("langOn", false);
           engOn = flag("engOn", false);
           engAlt = engOn && flag("engAlt", false);
@@ -3290,11 +3377,17 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           }
         }
 
+        function displayWrapEnabled() {
+          if (audienceMode) return audienceNumber.wrap;
+          return selectedLibrarySong ? titleWrapOn : wrapOn;
+        }
+
         function toggleWrap() {
-          wrapOn = !wrapOn;
+          if (selectedLibrarySong) titleWrapOn = !titleWrapOn;
+          else wrapOn = !wrapOn;
           saveSettings();
           draw();
-          flash(wrapOn ? "Wrap on" : "Wrap off");
+          flash(displayWrapEnabled() ? "Wrap on" : "Wrap off");
         }
 
         // ---- Other-language numbers (l) ----
@@ -4989,6 +5082,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         }
 
         function draw() {
+          layoutAudiencePreview();
+          queueAudienceUpdate();
           if (presenting) fitPresentation();
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           ctx.clearRect(0, 0, W, H);
@@ -4996,7 +5091,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           hint.hidden = value.length > 0 || hintCleared;
           syncPad();
           if (!value) return;
-          var refs = currentRefs();
+          var refs = audienceMode ? audienceNumber.refs : currentRefs();
           var panel = refs ? panelLayout(refs) : null;
           var showEng = engOn && !textMode && !selectedLibrarySong;
           var engLabelH = 0;
@@ -5014,7 +5109,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           // Measure at a reference size, then scale so the ink fills the window.
           var fontFamily = textMode ? FAMILY : displayFonts[displayFont];
           ctx.font = "900 100px " + fontFamily;
-          var displayValue = mainLanguage && !textMode ? mainNumberRef().num : value;
+          var displayValue = audienceMode ? audienceNumber.displayValue : mainLanguage && !textMode ? mainNumberRef().num : value;
           var flat = displayValue.replace(/\n/g, " ");
           var lines = displayValue.split("\n");
           var m = ctx.measureText(flat);
@@ -5047,7 +5142,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             }
           }
           var w = makeW();
-          if (wrapOn) {
+          var wrap = displayWrapEnabled();
+          if (wrap) {
             var wr = wrapFit(displayValue, h0, w, res);
             size = wr.size;
             lines = wr.lines;
@@ -5055,9 +5151,10 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           fitSize = size;
           // Manual size (set with -/+) overrides the fill size until it is reset.
           // With the panel showing, the main number just fills what the panel leaves (see adjustSize).
-          if (manualSize !== null && !panel) {
-            size = manualSize;
-            if (wrapOn) lines = packAll(displayValue, ((W - (res ? res(size) : 0)) * 100) / size, w);
+          var sizeOverride = audienceMode && audienceNumber.scale !== null ? size * audienceNumber.scale : manualSize;
+          if (sizeOverride !== null && !panel) {
+            size = sizeOverride;
+            if (wrap) lines = packAll(displayValue, ((W - (res ? res(size) : 0)) * 100) / size, w);
           }
 
           // Measure again at the final size and centre the ink in the window.
@@ -5100,9 +5197,206 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           scheduleDraw();
         }
 
+        var audienceWindow = null;
+        var audiencePort = null;
+        var audienceMonitor = 0;
+        var audienceUpdate = 0;
+        var lastAudienceState = "";
+        var lastAudienceImage;
+        var lastAudienceProjection;
+        var audienceNumber;
+        var audienceOrigin = location.protocol === "file:" ? "null" : location.origin;
+        var audienceHello = "show-songs:audience-ready";
+        var audienceViewport;
+        var previewContainer = document.getElementById("live-preview");
+        var previewFrame;
+        var previewPort;
+        var displaySession = document.getElementById("display-session");
+        var displaySessionStatus = document.getElementById("display-session-status");
+        var closeDisplayButton = document.getElementById("display-session-close");
+
+        function updateNextPreview() {
+          var next = presentationSlides[presentationIndex + 1];
+          var preview = document.getElementById("next-slide-preview");
+          preview.hidden = !audienceWindow || !next;
+          if (preview.hidden) return;
+          document.getElementById("next-slide-label").textContent = "Next · " + next.label;
+          document.getElementById("next-slide-text").textContent = next.text;
+        }
+
+        function openAudienceDisplay() {
+          if (audienceWindow) {
+            if (!audienceWindow.closed) { audienceWindow.focus(); return; }
+            closeAudienceDisplay();
+          }
+          var url = new URL("./index.html", location.href);
+          url.searchParams.set("audience", "1");
+          audienceWindow = window.open(url.href, "_blank", "popup,width=1280,height=720");
+          document.body.setAttribute("data-dual-screen", "");
+          displaySession.hidden = false;
+          if (!audienceWindow) {
+            displaySessionStatus.textContent = "Allow popups to open the audience display.";
+            closeDisplayButton.textContent = "Dismiss";
+            return;
+          }
+          closeDisplayButton.textContent = "Close display";
+          displaySessionStatus.textContent = "Opening audience display…";
+          setPad(true, false);
+          updateNextPreview();
+          clearInterval(audienceMonitor);
+          audienceMonitor = setInterval(function () {
+            if (audienceWindow.closed) closeAudienceDisplay();
+          }, 500);
+        }
+
+        function closeAudienceDisplay() {
+          if (audienceWindow && !audienceWindow.closed) audienceWindow.close();
+          if (audiencePort) audiencePort.close();
+          if (previewPort) previewPort.close();
+          previewContainer.replaceChildren();
+          previewContainer.hidden = true;
+          document.body.removeAttribute("data-audience-preview");
+          previewFrame = previewPort = audienceViewport = lastAudienceProjection = null;
+          clearInterval(audienceMonitor);
+          audienceWindow = audiencePort = null;
+          displaySession.hidden = true;
+          document.body.removeAttribute("data-dual-screen");
+          updateNextPreview();
+          syncPad();
+          focusInput();
+        }
+
+        function updateAudienceViewport(viewport) {
+          if (!viewport || viewport.type !== "viewport" ||
+              !Number.isFinite(viewport.width) || !Number.isFinite(viewport.height) ||
+              viewport.width < 1 || viewport.height < 1) return;
+          audienceViewport = viewport;
+          if (!previewFrame) {
+            previewFrame = document.createElement("iframe");
+            previewFrame.title = "Live audience preview";
+            previewFrame.tabIndex = -1;
+            previewFrame.src = new URL("./index.html?audience=1", location.href).href;
+            previewContainer.appendChild(previewFrame);
+          }
+          previewFrame.style.width = viewport.width + "px";
+          previewFrame.style.height = viewport.height + "px";
+          layoutAudiencePreview();
+        }
+
+        function layoutAudiencePreview() {
+          if (!previewPort || !audienceViewport) return;
+          var bounds = (presenting ? presentationBody : stage).getBoundingClientRect();
+          var bottom = pad.hidden ? bounds.bottom : Math.min(bounds.bottom, pad.getBoundingClientRect().top - 8);
+          var availableHeight = bottom - bounds.top;
+          var scale = Math.min(bounds.width / audienceViewport.width, availableHeight / audienceViewport.height);
+          previewContainer.hidden = scale <= 0;
+          document.body.toggleAttribute("data-audience-preview", !previewContainer.hidden);
+          if (previewContainer.hidden) return;
+          var width = audienceViewport.width * scale;
+          var height = audienceViewport.height * scale;
+          previewContainer.style.width = width + "px";
+          previewContainer.style.height = height + "px";
+          previewContainer.style.left = bounds.left + (bounds.width - width) / 2 + "px";
+          previewContainer.style.top = bounds.top + (availableHeight - height) / 2 + "px";
+          previewFrame.style.transform = "scale(" + scale + ")";
+        }
+
+        function queueAudienceUpdate() {
+          if (!audiencePort || audienceUpdate) return;
+          audienceUpdate = setTimeout(function () {
+            audienceUpdate = 0;
+            if (!audiencePort) return;
+            var theme = getComputedStyle(document.documentElement);
+            var state = {
+              background: theme.getPropertyValue("--bg").trim(),
+              foreground: theme.getPropertyValue("--fg").trim(),
+              hint: theme.getPropertyValue("--hint").trim(),
+              colorScheme: theme.colorScheme,
+            };
+            if (presenting) {
+              state.lyrics = {
+                parts: presentationFullSong ? fullSongParts() : [presentationSlides[presentationIndex]],
+                wholeSong: presentationFullSong, orientation: fullSongOrientation,
+                bold: presentationBold, guitar: presentationGuitar, alignment: presentationAlignment,
+                font: getComputedStyle(presentationLyrics).fontFamily, scale: presentationScale,
+                sidebar: {
+                  hidden: presentationSidebar.hidden, title: presentationTitle.textContent,
+                  capo: presentationCapo.hidden ? "" : presentationCapo.textContent,
+                  position: presentationFullSong ? "Full song" : presentationPosition.textContent,
+                  refsHidden: presentationRefs.hidden, referenceData: presentationReferenceData(),
+                },
+              };
+            } else {
+              state.number = {
+                value: value, displayValue: mainLanguage && !textMode ? mainNumberRef().num : value,
+                refs: currentRefs(), isTitle: !!selectedLibrarySong, textMode: textMode,
+                wrap: displayWrapEnabled(), language: mainLanguage, english: engOn, languages: langOn,
+                font: displayFont, panelScale: panelScale,
+                scale: manualSize === null ? null : manualSize / Math.max(1, fitSize),
+              };
+            }
+            var signature = JSON.stringify(state);
+            if (signature === lastAudienceState && backgroundFile === lastAudienceImage) return;
+            if (backgroundFile !== lastAudienceImage) state.image = backgroundFile;
+            audiencePort.postMessage(state);
+            if (previewPort) previewPort.postMessage(state);
+            lastAudienceProjection = state;
+            lastAudienceState = signature;
+            lastAudienceImage = backgroundFile;
+          }, 0);
+        }
+
+        function receiveAudienceState(state) {
+          var root = document.documentElement.style;
+          root.setProperty("--bg", state.background);
+          root.setProperty("--fg", state.foreground);
+          root.setProperty("--hint", state.hint);
+          root.colorScheme = state.colorScheme;
+          colorsStale = true;
+          if (Object.prototype.hasOwnProperty.call(state, "image")) {
+            setBackgroundImage(state.image ? URL.createObjectURL(state.image) : null, state.image);
+          }
+          presenting = !!state.lyrics;
+          presentation.hidden = !presenting;
+          stage.inert = presenting;
+          if (presenting) {
+            var lyrics = state.lyrics;
+            value = "";
+            presentationFullSong = lyrics.wholeSong;
+            fullSongOrientation = lyrics.orientation;
+            presentationGuitar = lyrics.guitar;
+            presentationScale = lyrics.scale;
+            presentationLyrics.style.fontWeight = lyrics.bold ? "700" : "400";
+            presentationLyrics.style.textAlign = lyrics.alignment;
+            presentationLyrics.style.fontFamily = lyrics.font;
+            var sidebar = lyrics.sidebar;
+            presentationSidebar.hidden = !sidebar || sidebar.hidden;
+            if (sidebar) {
+              presentationTitle.textContent = sidebar.title;
+              presentationCapo.textContent = sidebar.capo;
+              presentationCapo.hidden = !sidebar.capo;
+              presentationPosition.textContent = sidebar.position;
+              presentationRefs.hidden = sidebar.refsHidden;
+              renderPresentationRefs(sidebar.referenceData);
+            }
+            renderPresentationLyrics(lyrics.parts);
+          } else {
+            audienceNumber = state.number;
+            value = audienceNumber.value;
+            selectedLibrarySong = audienceNumber.isTitle;
+            textMode = audienceNumber.textMode;
+            mainLanguage = audienceNumber.language;
+            engOn = audienceNumber.english;
+            langOn = audienceNumber.languages;
+            displayFont = audienceNumber.font;
+            panelScale = audienceNumber.panelScale;
+          }
+          scheduleDraw();
+        }
+
         function setValue(v, skipHistory, librarySong) {
           // A selected library title is a display value, not editable text.
-          var nextValue = librarySong ? librarySong.title : textMode ? String(v).replace(/\r\n?/g, "\n").replace(/\t/g, "") : (mainLanguage === "Chinese" && /^s/i.test(String(v)) ? "s" : "") + String(v).replace(/\D/g, "");
+          var nextValue = librarySong ? formatSongTitle(librarySong) : textMode ? String(v).replace(/\r\n?/g, "\n").replace(/\t/g, "") : (mainLanguage === "Chinese" && /^s/i.test(String(v)) ? "s" : "") + String(v).replace(/\D/g, "");
           input.setAttribute("inputmode", textMode || mainLanguage === "Chinese" ? "text" : "numeric");
           if (!skipHistory && nextValue !== value) rememberEdit();
           value = nextValue;
@@ -5271,6 +5565,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
                 "e English + Korean with Russian" + d + "a English + Korean without Russian" + d + "shift+e English + Korean with Enjoyer Korean below",
                 "esc hides controls or exits full screen",
               ];
+          lines.push(MOD + "+d open / close audience display");
           lines.push((textMode && !presenting ? MOD + "+/ or " + MOD + "+?" : "? or /") + " opens shortcuts" + d + "press a key without cmd, ctrl or alt to close");
           return "<div>" + lines.join("<br>") +
             '<p>Show Songs is part of the ACS Web Apps project.<br>' +
@@ -5409,6 +5704,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           var bottom = document.documentElement.clientHeight - controlsViewport.height - controlsViewport.offsetTop;
           pad.style.setProperty("--controls-viewport-bottom", Math.max(0, bottom) + "px");
           pad.style.setProperty("--controls-viewport-height", controlsViewport.height + "px");
+          layoutAudiencePreview();
         }
         if (controlsViewport) {
           controlsViewport.addEventListener("resize", positionPad);
@@ -5426,6 +5722,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             positionPad();
             syncPad();
           }
+          layoutAudiencePreview();
         }
         var PRESSED = {
           repeatChorus: function () { return presentationRepeatChorus; },
@@ -5440,9 +5737,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             return engOn && engAlt;
           },
           engNoRussian: function () { return engOn && !mainLanguage && !engAlt && !engRussian; },
-          wrap: function () {
-            return wrapOn;
-          },
+          wrap: displayWrapEnabled,
           c: function () {
             return mainLanguage === QUICK.c;
           },
@@ -5466,7 +5761,8 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
               a = b.getAttribute("data-act");
             b.hidden = (f === "presentation" && !presenting) ||
               (presenting && (f === "num" || f === "text" || f === "editing")) ||
-              (f === "num" && textMode) || (f === "text" && !textMode);
+              (f === "num" && textMode) || (f === "text" && !textMode) ||
+              (a === "audience" && !!audienceWindow);
             if (a === "plus") b.disabled = presenting && presentationScale >= 1;
             if (b.hasAttribute("data-toggle") && PRESSED[a])
               b.setAttribute("aria-pressed", PRESSED[a]() ? "true" : "false");
@@ -5501,6 +5797,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           redo: redo,
           theme: cycleTheme,
           customTheme: openCustomTheme,
+          audience: openAudienceDisplay,
           lang: toggleLang,
           eng: function () { toggleEng(false, true); },
           engNoRussian: function () { toggleEng(false, false); },
@@ -5559,6 +5856,72 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
             ACTIONS["digit" + number] = function () { setValue(digitBase() + number); };
           })(String(digit));
         }
+        function observeDisplaySize() {
+          if (window.ResizeObserver) {
+            new ResizeObserver(resize).observe(stage);
+            new ResizeObserver(fitPresentation).observe(presentationBody);
+          } else {
+            window.addEventListener("resize", resize);
+          }
+          // Font loads can change fitting in either window after the first paint.
+          if (document.fonts && document.fonts.load) {
+            document.fonts.load('900 100px "Big Shoulders Display"').then(scheduleDraw, function () {});
+            document.fonts.load('500 12px "IBM Plex Mono"').then(scheduleDraw, function () {});
+            document.fonts.ready.then(scheduleDraw);
+            document.fonts.addEventListener("loadingdone", scheduleDraw);
+          }
+        }
+
+        if (audienceMode) {
+          document.title = "Show Songs Audience";
+          presentationSidebar.setAttribute("aria-label", "Hymn information");
+          observeDisplaySize();
+          resize();
+          var isPreview = window.parent !== window;
+          var audienceController = isPreview ? window.parent : window.opener;
+          if (audienceController) {
+            var audienceConnection = new MessageChannel();
+            audienceConnection.port1.onmessage = function (event) { receiveAudienceState(event.data); };
+            audienceController.postMessage({ type: audienceHello }, audienceOrigin === "null" ? "*" : audienceOrigin, [audienceConnection.port2]);
+            if (!isPreview) {
+              var reportAudienceViewport = function () {
+                audienceConnection.port1.postMessage({ type: "viewport", width: window.innerWidth, height: window.innerHeight });
+              };
+              window.addEventListener("resize", reportAudienceViewport);
+              reportAudienceViewport();
+            }
+          }
+          return;
+        }
+
+        window.addEventListener("message", function (event) {
+          if (!audienceWindow || event.origin !== audienceOrigin ||
+              !event.data || event.data.type !== audienceHello || !event.ports.length) return;
+          if (previewFrame && event.source === previewFrame.contentWindow) {
+            if (previewPort) previewPort.close();
+            previewPort = event.ports[0];
+            if (lastAudienceProjection) previewPort.postMessage(Object.assign({}, lastAudienceProjection, { image: backgroundFile }));
+            layoutAudiencePreview();
+            return;
+          }
+          if (event.source !== audienceWindow) return;
+          if (audiencePort) audiencePort.close();
+          audiencePort = event.ports[0];
+          audiencePort.onmessage = function (event) { updateAudienceViewport(event.data); };
+          lastAudienceImage = undefined;
+          lastAudienceState = "";
+          displaySessionStatus.textContent = "Live preview · Audience connected";
+          queueAudienceUpdate();
+        });
+        window.addEventListener("pagehide", function () { if (audienceWindow) audienceWindow.close(); });
+        if (window.ResizeObserver) new ResizeObserver(layoutAudiencePreview).observe(pad);
+        closeDisplayButton.addEventListener("click", closeAudienceDisplay);
+        [closeDisplayButton, pad.querySelector('[data-act="audience"]')].forEach(function (button) {
+          button.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+          });
+        });
+
         // mousedown is cancelled so a tap never takes focus from the hidden field (the keyboard stays up).
         pad.addEventListener("mousedown", function (e) {
           e.preventDefault();
@@ -5584,6 +5947,14 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         })();
 
         document.addEventListener("keydown", function (e) {
+          if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key.toLowerCase() === "d") {
+            e.preventDefault();
+            if (!e.repeat) {
+              if (audienceWindow && !audienceWindow.closed) closeAudienceDisplay();
+              else openAudienceDisplay();
+            }
+            return;
+          }
           if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !e.isComposing && e.key.toLowerCase() === "i") {
             e.preventDefault();
             if (!e.repeat && !backgroundImageDialog.open) backgroundImageDialog.showModal();
@@ -5883,13 +6254,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
         });
         window.addEventListener("focus", focusInput);
         focusInput();
-
-        if (window.ResizeObserver) {
-          new ResizeObserver(resize).observe(stage);
-          new ResizeObserver(fitPresentation).observe(presentationBody);
-        } else {
-          window.addEventListener("resize", resize);
-        }
+        observeDisplaySize();
 
         // The theme is the only thing that changes the cached colors; a change marks them stale and
         // repaints so the digit colour follows.
@@ -5905,15 +6270,6 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
           attributes: true,
           attributeFilter: ["data-theme"],
         });
-
-        // Redraw once the display face has loaded (a font load can fire several times; the
-        // rAF queue collapses them into one paint).
-        if (document.fonts && document.fonts.load) {
-          document.fonts.load('900 100px "Big Shoulders Display"').then(scheduleDraw, function () {});
-          document.fonts.load('500 12px "IBM Plex Mono"').then(scheduleDraw, function () {});
-          document.fonts.ready.then(function () { scheduleDraw(); fitPresentation(); });
-          document.fonts.addEventListener("loadingdone", fitPresentation);
-        }
 
         restoreSettings();
 
@@ -5954,7 +6310,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
     </script>
     <script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
-(function () {
+if (!document.documentElement.hasAttribute("data-audience")) (function () {
   "use strict";
   var app = "show-songs";
   var endpoint = "https://atlantachristianstudents.goatcounter.com/count";
@@ -6040,10 +6396,11 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="big-text-v160">
+<script id="acswebapps-updater" data-version="big-text-v165">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
+  if (document.documentElement.hasAttribute("data-audience")) return;
   const pageVersion = document.currentScript.dataset.version;
   let busy = false;
   function report(message) {
@@ -6131,6 +6488,7 @@ body:has(#presentation:not([hidden]), #help:not([hidden])) #acswebapps-directory
 // Keep this self-contained so an app can also be hosted on its own.
 (function () {
   "use strict";
+  if (document.documentElement.hasAttribute("data-audience")) return;
   if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
 
   const folder = new URL("./", location.href).pathname;
