@@ -3418,7 +3418,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
     var box = $("ptext"), el = $("pinner"), real = null, sl = slideMode && slides[si];
     if (scrollPresent) {
       slideFit = null;
-      el.removeAttribute("data-ref");
+      el.setAttribute("data-ref", $("pref").textContent);
       presMax = 160;
       el.style.fontSize = (presSize === null ? Math.max(24, Math.min(48, window.innerWidth * .035)) : presSize) + "px";
       return;
@@ -5889,7 +5889,7 @@ body:has(#present:not([hidden]), #ctl:not([hidden]), #help:not([hidden])) #acswe
 }());
   </script>
 
-<script id="acswebapps-updater" data-version="verse-lookup-v63">
+<script id="acswebapps-updater" data-version="verse-lookup-v64">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

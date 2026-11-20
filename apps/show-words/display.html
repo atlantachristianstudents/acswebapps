@@ -304,7 +304,7 @@
     scrollPosition = s.scroll || null;
     scrollSize = typeof s.fontSize === "number" ? s.fontSize : null;
     scrollHtml = scrollPosition ? html : null;
-    $("pinner").setAttribute("data-ref", scrollPosition ? "" : s.ref || "");
+    $("pinner").setAttribute("data-ref", s.ref || "");
     $("present").classList.toggle("scrolling", !!scrollPosition);
     if (!scrollPosition) $("ptext").scrollTop = 0;
     $("present").classList.toggle("top", !!s.top);
