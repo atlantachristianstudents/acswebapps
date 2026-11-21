@@ -130,6 +130,7 @@
     );
   }
   window.addEventListener("load", function () {
+    applySavedTheme;
     setTimeout(applySavedTheme, 10);
   });
   window.acswebappsTheme = {
@@ -161,4 +162,5 @@
       paint(t, t === "custom" ? c || readCustom() : null);
     },
   };
+  applySavedTheme;
 })();
