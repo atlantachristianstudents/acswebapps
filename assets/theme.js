@@ -85,6 +85,52 @@
       root.style.removeProperty("--" + VARS[i]);
     root.style.removeProperty("--app-font");
     root.style.removeProperty("color-scheme");
+
+    // Apply preset theme colors directly
+    var PRESETS = {
+      dawn: {
+        bg: "#f4efe5",
+        text: "#24302b",
+        muted: "#596459",
+      },
+      paper: {
+        bg: "#fafafa",
+        text: "#30343b",
+        muted: "#687078",
+      },
+      sage: {
+        bg: "#e8eee5",
+        text: "#293b2d",
+        muted: "#596b5c",
+      },
+      ocean: {
+        bg: "#e8f0f4",
+        text: "#263b49",
+        muted: "#587080",
+      },
+      rose: {
+        bg: "#f5eae8",
+        text: "#49343a",
+        muted: "#795d64",
+      },
+      dusk: {
+        bg: "#292634",
+        text: "#ffffff",
+        muted: "#c5bfd0",
+      },
+      midnight: {
+        bg: "#141c24",
+        text: "#ffffff",
+        muted: "#b7c5d1",
+      },
+    };
+
+    if (theme !== "custom" && PRESETS[theme]) {
+      Object.keys(PRESETS[theme]).forEach(function (key) {
+        root.style.setProperty("--" + key, PRESETS[theme][key]);
+      });
+    }
+
     if (theme === "custom") {
       custom = custom || DEFAULTS;
       for (var i = 0; i < VARS.length; i++) {
@@ -130,7 +176,7 @@
     );
   }
   window.addEventListener("load", function () {
-    applySavedTheme;
+    applySavedTheme();
     setTimeout(applySavedTheme, 10);
   });
   window.acswebappsTheme = {
