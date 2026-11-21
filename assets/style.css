@@ -485,7 +485,13 @@ button {
     box-shadow .18s ease;
 }
 
-a.card:hover {
+button.card {
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+:is(a, button).card:hover {
   transform: translateY(-4px);
 
   background: var(--surface-hover);
@@ -569,7 +575,7 @@ a.card:hover {
   line-height: 1;
 }
 
-.card h3 {
+.card-title {
   margin: .5rem 0 0;
 
   font-size: 1.12rem;
@@ -578,7 +584,7 @@ a.card:hover {
   letter-spacing: -.025em;
 }
 
-.card p {
+.card-description {
   flex: 1;
 
   margin: 0;
@@ -680,7 +686,7 @@ a.card:hover {
   box-shadow: 0 0 0 2px var(--surface);
 }
 
-.compact .card h3,
+.compact .card-title,
 .compact .badge.soon {
   position: absolute;
   width: 1px;
@@ -692,7 +698,7 @@ a.card:hover {
   white-space: nowrap;
 }
 
-.compact .card p,
+.compact .card-description,
 .compact .card-tags,
 .compact .badge.live {
   display: none;
@@ -737,7 +743,8 @@ a.card:hover {
 /* Directory dialogs */
 
 #theme-dialog,
-#help-dialog {
+#help-dialog,
+#app-options-dialog {
   width: min(520px, calc(100% - 24px));
   max-height: calc(100dvh - 24px);
   overflow: auto;
@@ -753,12 +760,14 @@ a.card:hover {
 }
 
 #theme-dialog::backdrop,
-#help-dialog::backdrop {
+#help-dialog::backdrop,
+#app-options-dialog::backdrop {
   background: #0007;
 }
 
 #theme-dialog h2,
-#help-dialog h2 {
+#help-dialog h2,
+#app-options-dialog h2 {
   margin: 0 0 6px;
   font-size: 1.3rem;
   font-weight: 700;
@@ -789,15 +798,42 @@ a.card:hover {
   width: min(350px, calc(100% - 24px));
 }
 
-#help-dialog h2 {
+#help-dialog h2,
+#app-options-dialog h2 {
   margin: 0 44px 16px 0;
 }
 
-#help-dialog .icon-btn {
+#help-dialog .icon-btn,
+#app-options-dialog .icon-btn {
   position: absolute;
   top: 12px;
   right: 12px;
   font-size: 1.25rem;
+}
+
+#app-options-list {
+  display: grid;
+  gap: .65rem;
+}
+
+.app-option {
+  display: grid;
+  gap: .25rem;
+  padding: .75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-option:is(:hover, :focus-visible) {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.app-option span {
+  color: var(--muted);
 }
 
 #check-for-updates {

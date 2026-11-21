@@ -1,0 +1,19 @@
+{
+  "name": "Bible Translation Explorer \u2014 Wu 2017",
+  "short_name": "Bible Study Explorer",
+  "description": "Published results of Wu (2017) with an independent RcV estimate, using the original Bible Translation Explorer interface.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fc",
+  "theme_color": "#7658f2",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "id": "./wu2017-study"
+}

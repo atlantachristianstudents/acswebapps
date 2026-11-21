@@ -202,8 +202,16 @@
       </div>
     </dialog>
 
+    <dialog id="app-options-dialog" aria-labelledby="app-options-title">
+      <h2 id="app-options-title"></h2>
+      <div id="app-options-list"></div>
+      <form method="dialog">
+        <button class="icon-btn" type="submit" aria-label="Close app choices">×</button>
+      </form>
+    </dialog>
+
     <script src="assets/apps.js"></script>
-    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v48"></script>
+    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v50"></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
         addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));

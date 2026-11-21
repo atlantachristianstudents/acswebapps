@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Bible Translation Explorer · Wu 2017 Study + Estimated RcV</title>
+<meta name="description" content="Compare Wu’s published 2017 translation scores with an independently estimated RcV placement. Explore scores and export charts offline.">
+<meta name="theme-color" content="#7658f2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+:root { --ink:#14213d;--muted:#5a6683;--surface:#fff;--border:#e2e8f0;--page:#f4f7fc;--violet:#7658f2;--blue:#1c84d8; }
+* {box-sizing:border-box} html{font-family:"Avenir Next",Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--page)}
+body{margin:0;background:#f5f6f8;min-height:100vh}
+main{max-width:1240px;padding:37px 24px 45px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:start;gap:24px;margin-bottom:28px}
+.eyebrow{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:900;color:#635391;margin-bottom:10px}
+h1{font-size:clamp(26px,3vw,38px);letter-spacing:-1.1px;line-height:1.15;margin:0 0 9px;font-weight:850}
+.lead{font-size:15px;color:#475569;line-height:1.6;margin:0;max-width:720px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-top:6px;flex-shrink:0}
+button{font-family:inherit;cursor:pointer;transition:all .16s ease}
+.btn{background:white;color:#34415e;border:1px solid #d6def0;border-radius:8px;padding:10px 13px;font-size:13px;font-weight:800;white-space:nowrap;box-shadow:none}
+.btn:hover{background:#f6f7ff;border-color:#a2a2ed;transform:translateY(-1px)}
+.btn-primary{background:var(--ink);color:white;border-color:var(--ink)}.btn-primary:hover{background:#2c3d69;color:white}
+.scope-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:15px;padding:12px 17px;margin:0 0 17px}.scope-bar select,.scope-bar input{font:inherit}.scope-bar select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:var(--ink)}.scope-status{font-size:12px;color:#64748b;flex:1;min-width:200px}.scope-status.warning{color:#9a3412}.scope-upload{display:none}.scope-upload.active{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}.scope-upload input{max-width:220px;font-size:11px}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px;margin-bottom:20px}
+.control{border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.94);padding:18px 18px 16px;box-shadow:none;border-color:#dce2ea}
+.control-top{display:flex;gap:14px;justify-content:space-between;align-items:start}
+.control-title{font-size:16px;font-weight:850;letter-spacing:-.3px}
+.control-sub{font-size:13px;color:#475569;margin-top:5px;line-height:1.4;min-height:30px}
+.ratio{font-size:15px;font-weight:900;letter-spacing:-.5px;min-width:76px;text-align:right;border-radius:9px;background:#f0eaff;color:#5a3fbc;padding:8px}
+.control.readable .ratio{background:#e5f3ff;color:#1269b3}
+.control.overall{grid-column:auto;background:#fff}
+.control.overall .ratio{background:#e4f8ef;color:#087c60}
+.control.overall input[type=range]::-webkit-slider-thumb{background:#0f9c80;box-shadow:0 1px 0 2px #0f9c80,0 3px 14px #0f9c8044}
+.control.overall input[type=range]::-moz-range-thumb{background:#0f9c80;box-shadow:0 1px 0 2px #0f9c80}
+.overall-inline{font-size:12px;color:#475569;font-weight:700;margin:9px 0 0;line-height:1.35}
+input[type=range]{appearance:none;width:100%;height:7px;border-radius:99px;background:#e5eaf4;outline:none;margin:27px 0 19px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:23px;height:23px;border-radius:50%;background:#7658f2;border:4px solid white;box-shadow:0 1px 0 2px #7658f2,0 3px 14px #7658f244}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#7658f2;border:4px solid white;box-shadow:0 1px 0 2px #7658f2}
+.control.readable input[type=range]::-webkit-slider-thumb{background:#1c84d8;box-shadow:0 1px 0 2px #1c84d8,0 3px 14px #1c84d844}
+.control.readable input[type=range]::-moz-range-thumb{background:#1c84d8;box-shadow:0 1px 0 2px #1c84d8}
+.range-head{display:flex;justify-content:space-between;gap:12px;font-weight:800;color:#273451;font-size:13px}
+.range-values{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#475569;margin-top:5px;margin-bottom:16px}
+.chart-card{background:white;border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:none;position:relative;overflow:hidden;border-color:#dce2ea}
+.chart-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;flex-wrap:wrap}
+.chart-title{font-size:19px;font-weight:850;letter-spacing:-.3px}
+.chart-note{font-size:11px;color:#8793aa;font-weight:700}
+#plot{width:100%;height:auto;display:block;overflow:visible;touch-action:pan-y}
+.axis-tick{font-family:inherit;font-size:12px;fill:#526177;font-weight:650}
+.axis-title{font-family:inherit;font-size:14px;fill:#334155;font-weight:850}
+.dot{cursor:pointer;transition:opacity .15s, r .15s}
+.dot:focus{outline:none;stroke:#1c2d50;stroke-width:4}
+.dot-label{font-size:12px;font-weight:900;fill:#273451;pointer-events:none}
+.tag{fill:#fff;stroke:#e9edf5;stroke-width:1;pointer-events:none}
+.guide{stroke:#edf1f7;stroke-width:1.3}
+.pill{background:#eef2f6;color:#334155;border-radius:18px;font-size:13px;font-weight:800;padding:7px 10px}
+.axis-annotation{display:flex;justify-content:space-between;gap:8px;color:#76849c;font-weight:650;font-size:11px;margin:2px 0 6px 54px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0 18px;border-bottom:1px solid #eef1f6;margin:0 0 16px}
+.legend-label{font-size:12px;font-weight:900;color:#475569;letter-spacing:.5px;margin-right:2px;text-transform:uppercase;flex-basis:100%}
+.translation-toggle{display:inline-flex;gap:7px;align-items:center;font-size:13px;font-weight:750;color:#34415c;cursor:pointer;border:1px solid #d9e1f0;background:#fff;padding:9px 12px;border-radius:8px;transition:background .16s,opacity .16s,border-color .16s}
+.translation-toggle:hover{border-color:#8b98b8;background:#eef4ff}
+.translation-toggle.off{opacity:1;background:#f1f3f6;text-decoration:none;color:#64748b;border-color:#e2e8f0}
+.translation-toggle input{margin:0;accent-color:#6366f1;width:14px;height:14px;cursor:pointer}
+.legend-action{font-size:12px;font-weight:800;border:1px solid #d8e0ee;background:white;border-radius:8px;padding:9px 12px;color:#56657f;cursor:pointer}
+.legend-action:hover{border-color:#8998b9;color:#1b2e4e}
+.legend-actions{display:flex;gap:6px;margin-right:7px}
+.visibility-count{color:#475569;font-weight:750;font-size:12px;margin-left:0}
+.table-head .sort-summary{font-size:12px;color:#475569}
+.sort-btn{border:0;background:none;display:inline-flex;justify-content:flex-end;align-items:center;gap:5px;padding:4px 0;font:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;width:100%;white-space:nowrap}
+.sort-btn:hover{color:#2563eb}
+th:first-child .sort-btn{justify-content:flex-start}
+th[aria-sort=ascending],th[aria-sort=descending]{background:#f1f5ff;color:#3730a3}
+.sort-mark{font-size:12px;color:#8895af}
+th[aria-sort=ascending] .sort-mark,th[aria-sort=descending] .sort-mark{color:#5149c8}
+.table-version{display:flex;align-items:center;gap:7px}
+.table-version label{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.table-version input{accent-color:#6366f1;margin:0;width:14px;height:14px;cursor:pointer}
+.empty-state{padding:30px 10px;text-align:center;color:#78879d;font-size:13px;font-weight:700}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.tooltip{position:fixed;z-index:5;pointer-events:none;background:#192541;color:white;border-radius:11px;padding:12px 15px;box-shadow:0 10px 35px #0003;min-width:175px;font-size:12px;line-height:1.7;opacity:0;transition:opacity .1s}
+.tooltip strong{font-size:14px}.tooltip .mini{color:#c5cee6;font-size:11px}
+.table-card{margin-top:18px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:19px 22px 18px;box-shadow:none;border-color:#dce2ea}
+.table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+.table-head strong{font-size:17px;font-weight:850}.table-head span{font-size:11px;color:#8490a7}
+.table-wrap{overflow-x:auto} table{width:100%;border-collapse:collapse;min-width:930px} th,td{padding:13px 12px;text-align:right;border-bottom:1px solid #edf1f7;font-size:13px;font-variant-numeric:tabular-nums;color:#334155}th{text-transform:uppercase;letter-spacing:.35px;color:#475569;font-size:11px;font-weight:900;background:#f8fafc}td{color:#334155;font-weight:650}tr:last-child td{border-bottom:0;color:#334155}th:first-child,td:first-child{text-align:left}td:first-child{font-weight:900;color:#273550}.sorted{background:#f7f8ff;color:#4b3bc0}td.sorted{color:#3528a5;font-weight:900}.overall-col{background:#ecfdf5;color:#047857;font-weight:900}td.overall-col{font-size:13px;color:#047857}.formula-note{font-size:13px;color:#475569;margin:0 0 12px;line-height:1.65;max-width:920px}
+.swatch{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+footer{font-size:12px;color:#526177;line-height:1.75;margin:20px 3px 0;max-width:960px}footer strong{color:#495974}
+@media(max-width:960px){.controls{grid-template-columns:1fr}.control.overall{grid-column:auto;background:#fff}header{flex-direction:column;align-items:start;gap:24px;margin-bottom:28px}main{padding:22px 12px 30px}.chart-card{padding:22px;box-shadow:none;border-radius:12px;border-color:#dce2ea}.axis-annotation{margin-left:45px}.actions{justify-content:flex-start;flex-shrink:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.legend-drag-handle:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #7658f2;outline-offset:4px}
+tbody tr:hover td{background:#f1f5f9}
+
+.table-wrap .literalness-col{--score-bg:#f5f1fe;--score-strong-bg:#e8defb;--score-ink:#62449a;--score-strong-ink:#47277d}
+.table-wrap .readability-col{--score-bg:#eff6fd;--score-strong-bg:#d9ebfb;--score-ink:#285d8c;--score-strong-ink:#174675}
+.table-wrap .score-col{background:var(--score-bg);color:var(--score-ink)}
+.table-wrap .score-col.score-combined{background:var(--score-strong-bg);color:var(--score-strong-ink);font-weight:900}
+.table-wrap tbody tr:hover td.score-col{background-image:linear-gradient(#14213d08,#14213d08)}
+.table-wrap th.score-col:is([aria-sort=ascending],[aria-sort=descending]){box-shadow:inset 0 -2px currentColor}
+.table-wrap th.score-col :is(.sort-mark,.sort-btn:hover){color:inherit}
+
+#plot{aspect-ratio:1;max-width:var(--chart-size,640px);margin-inline:auto}
+main,.chart-card,.table-card{min-width:0}
+.legend-action,.translation-toggle,.btn{min-height:40px}
+@media(max-width:700px){
+ main{padding:18px 8px 24px}
+ .chart-card,.table-card{padding:14px 8px}
+ .actions{width:100%}
+ .actions .btn{flex:1;white-space:normal}
+ .legend{gap:8px}
+ .translation-toggle{padding:9px 10px}
+ .table-wrap{max-width:100%;overscroll-behavior-x:contain}
+}
+
+.chart-stage{position:relative;padding-right:72px;min-height:340px}
+.chart-size-control{position:absolute;top:0;right:0;width:56px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 4px;color:#475569;font-size:11px;text-align:center}
+.chart-size-control label{font-size:12px;font-weight:800}
+.chart-size-control input[type=range]{appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:24px;height:180px;margin:0;background:transparent;accent-color:#7658f2}
+.chart-size-control output{font-variant-numeric:tabular-nums}
+.chart-size-reset{font-size:11px;padding:8px 4px;width:100%;min-height:40px}
+@media(max-width:700px){
+ .chart-stage{padding-right:56px;min-height:290px}
+ .chart-size-control{width:48px;gap:8px;padding:8px 0}
+ .chart-size-control input[type=range]{height:130px}
+}
+
+    .acswebapps-help { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000; background: var(--bg, Canvas); border-radius: 50%; display: inline-block; font: 14px/1.5 system-ui, sans-serif; color: inherit; }
+    .acswebapps-help > summary { display: block; list-style: none; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; width: 32px; height: 32px; line-height: 30px; text-align: center; box-sizing: border-box; }
+    .acswebapps-help > summary::-webkit-details-marker { display: none; }
+    .acswebapps-help > nav { position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 1000; width: 240px; max-width: calc(100vw - 64px); box-sizing: border-box; padding: 12px; border: 1px solid currentColor; border-radius: 8px; background: var(--bg, Canvas); color: inherit; white-space: normal; box-shadow: 0 4px 16px #0002; }
+  
+.study-info{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;background:#fff;border:1px solid #dce2ea;border-radius:12px;padding:16px 19px;margin-bottom:16px;color:#475569;font-size:13px;line-height:1.6}
+.study-info-description{flex:1;min-width:260px;max-width:760px}
+.study-info-description strong{color:#263750}
+.study-citation{font-size:12px;margin-top:6px}.study-citation a{color:#3b49b9}
+.estimate-marker{font-weight:900;color:#6646c7}
+@media(max-width:700px){.study-info{padding:14px 12px}}
+</style>
+
+<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
+<script id="acswebapps-no-pinch">
+// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+(function () {
+  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
+  document.addEventListener('gesturestart', preventPinch, { passive: false });
+  document.addEventListener('gesturechange', preventPinch, { passive: false });
+  document.addEventListener('touchmove', function (event) {
+    if (event.touches.length > 1) preventPinch(event);
+  }, { passive: false });
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) preventPinch(event);
+  }, { passive: false });
+}());
+</script>
+
+<style id="acswebapps-update-style">
+.acs-update{margin-top:14px;padding-top:12px;border-top:1px solid currentColor;white-space:normal;font:13px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;text-align:left}
+.acs-update [data-acs-update-button]{display:inline-block;min-height:44px;max-width:100%;border:1px solid currentColor;border-radius:8px;padding:8px 12px;background:transparent;color:inherit;font:600 13px system-ui,sans-serif;cursor:pointer;letter-spacing:normal;text-transform:none}
+.acs-update [data-acs-update-button]:disabled{opacity:.55;cursor:wait}
+.acs-update [data-acs-update-button]:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.acs-update p{margin:6px 0 0!important;color:inherit!important;font:12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
+.acs-update-note{opacity:.8}
+[data-acs-update-status]:empty{display:none}
+.update-row.acs-update{margin-top:0;padding-top:2px;border-top:0;font:inherit}
+.update-row.acs-update p{margin:0!important}
+</style>
+<style id="acswebapps-directory-home-style">
+#acswebapps-directory-home {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 32;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #80848a;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgb(0 0 0 / .18);
+  font: 600 13px/1 system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer !important;
+}
+@media (prefers-color-scheme: dark) {
+  #acswebapps-directory-home { background: #20242b; color: #f8fafc; }
+}
+#acswebapps-directory-home:hover { text-decoration: underline; }
+#acswebapps-directory-home:focus-visible { outline: 2px solid #527dff; outline-offset: 3px; }
+:fullscreen #acswebapps-directory-home { display: none; }
+:-webkit-full-screen #acswebapps-directory-home { display: none; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div>
+    <div class="eyebrow">Wu (2017) · 9 reported translations + RcV estimate</div>
+    <h1>Bible Translation Explorer</h1>
+    <p class="lead">Explore the four component scores published in Andi Wu’s 2017 evaluation, alongside an <strong>independently estimated</strong> Recovery Version (RcV) placement. Both axes use the study’s 2:1 component weights. Overall averages the two axis scores.</p>
+  </div>
+  <div class="actions">
+    <button class="btn" id="csvBtn" type="button">↓ Export CSV</button>
+    <button class="btn btn-primary" id="pngBtn" type="button">↓ Save chart PNG</button>
+  </div>
+</header>
+
+
+
+
+<section class="study-info" aria-label="Study source and RcV estimate">
+  <div class="study-info-description"><strong>Original study:</strong> Nine translations use the published component scores. The <strong>RcV*</strong> placement was calculated independently by comparing RcV’s scores with those of translations also included in Wu’s original study. The comparison used the Bible Translation Evaluator, a rough replication of the methodology described in Wu’s paper. The table also shows the study’s published final scores.
+    <div class="study-citation">Source: Andi Wu, <a href="https://csbible.com/wp-content/uploads/2017/01/Quantitative-Translation-Evaluation-by-GBI.pdf" target="_blank" rel="noopener noreferrer">A Quantitative Evaluation of the Christian Standard Bible</a> (Global Bible Initiative, 2017).</div>
+    <div class="study-citation">Independent comparison · <a href="https://github.com/zioninzion/bible-translation-evaluator-github" target="_blank" rel="noopener noreferrer">Bible Translation Evaluator on GitHub</a></div>
+  </div>
+</section>
+<section class="chart-card" aria-labelledby="scatterTitle">
+  <div class="chart-title-row"><span class="chart-title" id="scatterTitle">Literalness × Readability</span><span class="pill" id="topOverall">Top weighted overall: —</span></div>
+  <div class="legend" id="legend"><span class="legend-label">Show translations</span><div class="legend-actions"><button type="button" class="legend-action" id="showAllBtn">Show all</button><button type="button" class="legend-action" id="hideAllBtn">Hide all</button></div><span id="visibilityCount" class="visibility-count" aria-live="polite">10 of 10 shown</span></div>
+  <div class="chart-stage">
+    <svg id="plot" role="img" aria-label="Scatter plot of Wu 2017 reported translation components and an independent RcV estimate, with an overall score gradient" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="chart-size-control">
+      <label for="chartSizeSlider">Chart size</label>
+      <span aria-hidden="true">Larger</span>
+      <input id="chartSizeSlider" type="range" min="320" max="900" step="20" value="640" aria-label="Maximum chart size in pixels" aria-orientation="vertical">
+      <span aria-hidden="true">Smaller</span>
+      <output id="chartSizeValue" for="chartSizeSlider">640px</output>
+      <button type="button" class="btn chart-size-reset" id="resetChartSizeBtn" aria-label="Reset chart size to 640 pixels">Reset</button>
+    </div>
+  </div>
+</section>
+
+<section class="table-card" aria-label="Full interactive score table">
+  <div class="table-head"><strong>Translation scores</strong><span id="sortSummary" class="sort-summary">Sorted by Overall, highest first · click any column heading to sort</span></div>
+  <p class="formula-note"><strong>Overall = 50.0% × Literalness + 50.0% × Readability.</strong> Untick translations to hide them from the chart, table and CSV.</p>
+  <div class="table-wrap"><table><thead><tr>
+    <th data-key="name"><button type="button" class="sort-btn" data-sort="name">Translation <span class="sort-mark">↕</span></button></th>
+    <th data-key="t" class="score-col literalness-col"><button type="button" class="sort-btn" data-sort="t">Transfer <span class="sort-mark">↕</span></button></th>
+    <th data-key="l" class="score-col literalness-col"><button type="button" class="sort-btn" data-sort="l">Lexical <span class="sort-mark">↕</span></button></th>
+    <th data-key="f" class="score-col readability-col"><button type="button" class="sort-btn" data-sort="f">Fluency <span class="sort-mark">↕</span></button></th>
+    <th data-key="v" class="score-col readability-col"><button type="button" class="sort-btn" data-sort="v">Vocabulary <span class="sort-mark">↕</span></button></th>
+    <th data-key="x" class="score-col literalness-col score-combined"><button type="button" class="sort-btn" data-sort="x">Literalness <span class="sort-mark">↕</span></button></th>
+    <th data-key="y" class="score-col readability-col score-combined"><button type="button" class="sort-btn" data-sort="y">Readability <span class="sort-mark">↕</span></button></th>
+    <th data-key="overall" class="overall-col"><button type="button" class="sort-btn" data-sort="overall">Overall <span class="sort-mark">↕</span></button></th>
+    <th data-key="sf"><button type="button" class="sort-btn" data-sort="sf">Study final (published) <span class="sort-mark">↕</span></button></th>
+  </tr></thead><tbody id="dataRows"></tbody></table></div>
+</section>
+<footer><strong>Reading the chart:</strong> “Overall” is the average of the two axis scores. “Study final (published)” shows Wu’s reported final scores. The dash (—) indicates that Wu’s study has no published final score for RcV. <strong>RcV*</strong> uses independently estimated component scores (Transfer 71.44, Lexical 64.43, Fluency 54.94, Vocabulary 77.78). With the study’s 2:1 within-axis weighting, RcV’s calculated literalness is 69.10% and readability is 62.55%.</footer>
+</main>
+<div class="tooltip" id="tooltip" role="status"></div>
+<script>
+'use strict';
+// Wu (2017) supplied the nine published rows. The RcV row is an independent estimate.
+const originals = [
+  {
+    "name": "CSB",
+    "t": 67.62,
+    "l": 59.25,
+    "f": 60.44,
+    "v": 79.38,
+    "sf": 70.3,
+    "color": "#09a5c5",
+    "estimated": false
+  },
+  {
+    "name": "ESV",
+    "t": 69.67,
+    "l": 66.89,
+    "f": 54.8,
+    "v": 77.48,
+    "sf": 69.3,
+    "color": "#f28c24",
+    "estimated": false
+  },
+  {
+    "name": "NASB",
+    "t": 66.63,
+    "l": 70.7,
+    "f": 53.66,
+    "v": 77.62,
+    "sf": 68.7,
+    "color": "#e0599b",
+    "estimated": false
+  },
+  {
+    "name": "NKJV",
+    "t": 63.05,
+    "l": 69.52,
+    "f": 51.77,
+    "v": 77.42,
+    "sf": 67.3,
+    "color": "#16a3a2",
+    "estimated": false
+  },
+  {
+    "name": "NRSV",
+    "t": 59.32,
+    "l": 62.88,
+    "f": 57.12,
+    "v": 77.7,
+    "sf": 67.0,
+    "color": "#8b6aaf",
+    "estimated": false
+  },
+  {
+    "name": "NET",
+    "t": 52.38,
+    "l": 57.06,
+    "f": 59.44,
+    "v": 79.96,
+    "sf": 63.9,
+    "color": "#65a439",
+    "estimated": false
+  },
+  {
+    "name": "NIV",
+    "t": 52.56,
+    "l": 54.19,
+    "f": 61.0,
+    "v": 79.6,
+    "sf": 63.6,
+    "color": "#ef6c64",
+    "estimated": false
+  },
+  {
+    "name": "KJV",
+    "t": 63.13,
+    "l": 73.48,
+    "f": 40.72,
+    "v": 65.06,
+    "sf": 61.0,
+    "color": "#d35b4d",
+    "estimated": false
+  },
+  {
+    "name": "NLT",
+    "t": 36.23,
+    "l": 47.25,
+    "f": 63.49,
+    "v": 83.27,
+    "sf": 56.6,
+    "color": "#7985a5",
+    "estimated": false
+  },
+  {
+    "name": "RCV",
+    "t": 71.44,
+    "l": 64.43,
+    "f": 54.94,
+    "v": 77.78,
+    "sf": null,
+    "color": "#1679e2",
+    "estimated": true
+  }
+];
+const $ = id => document.getElementById(id);
+function sourceRows(){return originals;}
+function currentScope(){return 'wu2017';}
+const passageScores={};
+function displayName(d){return d.estimated?d.name+'*':d.name;}
+const plot=$('plot');
+const overallWeight=.5;
+const axisComponentWeight=2/3;
+const NS='http://www.w3.org/2000/svg';
+const R = {left:54, top:16, right:684, bottom:646};
+function sizeChart(exportSize){
+ const size=exportSize||Math.max(320,Math.round(plot.clientWidth||700));
+ plot.setAttribute('viewBox',`0 0 ${size} ${size}`);
+ R.right=size-16;R.bottom=size-54;
+}
+function legendWidth(){return legendCollapsed?44:Math.min(350,R.right-R.left-8);}
+let selected=null, latest=[];
+let legendPosition=null, legendDrag=null, legendCollapsed=false;
+function legendHeight(){return legendCollapsed?40:103;}
+function toggleLegend(){
+ legendCollapsed=!legendCollapsed;
+ legendPosition=null;
+ render();
+ const handle=plot.querySelector('.legend-drag-handle');if(handle)handle.focus({preventScroll:true});
+}
+const visible=new Set(originals.map(d=>d.name));
+let sortState={key:'overall',direction:'desc'};
+const sortLabels={name:'Translation',t:'Transfer',l:'Lexical',f:'Fluency',v:'Vocabulary',x:'Literalness',y:'Readability',overall:'Overall',sf:'Study final (published)'};
+function S(tag,attrs={},text='') { const e=document.createElementNS(NS,tag); Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v)); if(text!==undefined&&text!==null&&text!=='')e.textContent=text;return e; }
+const fmt=n=>n.toFixed(2);
+function weight(){return {lit:axisComponentWeight,read:axisComponentWeight,overall:overallWeight};}
+function ratio(p){return p===2/3?'2 : 1':'1 : 1';}
+function dataScores(){const {lit,read,overall}=weight();return sourceRows().map(row=>{const x=lit*row.t+(1-lit)*row.l;const y=read*row.f+(1-read)*row.v;return {...row,x,y,overall:overall*x+(1-overall)*y};});}
+function tickFormat(n){return (Math.abs(n-Math.round(n))<.06?n.toFixed(0):n.toFixed(1))+'%';}
+function makeTicks(lo,hi,n=6){const s=(hi-lo)/n;return Array.from({length:n+1},(_,i)=>lo+i*s);}
+function showTooltip(event,d){const el=$('tooltip');el.innerHTML=`<strong style="color:${d.color}">${displayName(d)}</strong>${d.estimated?'<div class="mini">Independent estimate</div>':''}<div>Literalness: <b>${fmt(d.x)}%</b></div><div>Readability: <b>${fmt(d.y)}%</b></div><div>Weighted overall: <b>${fmt(d.overall)}%</b></div><div>Study published final: <b>${d.sf===null?'not available':fmt(d.sf)+'%'}</b></div><div class="mini">Transfer ${fmt(d.t)} · Lexical ${fmt(d.l)}<br>Fluency ${fmt(d.f)} · Vocab ${fmt(d.v)}</div>`;el.style.opacity='1';moveTooltip(event);}
+function moveTooltip(e){const el=$('tooltip');const width=205;el.style.left=Math.max(8,Math.min(window.innerWidth-width-8,e.clientX+17))+'px';el.style.top=Math.max(8,Math.min(window.innerHeight-152,e.clientY+12))+'px';}
+function hideTooltip(){ $('tooltip').style.opacity='0'; }
+function render(){
+ latest=dataScores();
+ const filtered=latest.filter(d=>visible.has(d.name));
+ const best=[...filtered].sort((a,b)=>b.overall-a.overall)[0];
+ $('topOverall').textContent=best?'Top weighted overall: '+displayName(best)+' · '+fmt(best.overall)+'%':'No translations selected';
+ $('visibilityCount').textContent=filtered.length+' of '+sourceRows().length+' shown';
+ updateVisibilityChips();
+ drawChart(filtered);drawRows(filtered);
+}
+function clampLegendPosition(position){
+ return {x:Math.max(R.left+4,Math.min(R.right-legendWidth()-4,position.x)),y:Math.max(R.top+4,Math.min(R.bottom-legendHeight()-4,position.y))};
+}
+function chartPointer(event){
+ const point=plot.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
+ return point.matrixTransform(plot.getScreenCTM().inverse());
+}
+plot.addEventListener('pointermove',event=>{
+ if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ if(!legendDrag.moved&&Math.hypot(event.clientX-legendDrag.startX,event.clientY-legendDrag.startY)<6)return;
+ legendDrag.moved=true;
+ const point=chartPointer(event);
+ legendPosition=clampLegendPosition({x:point.x-legendDrag.offsetX,y:point.y-legendDrag.offsetY});
+ legendDrag.panel.setAttribute('transform',`translate(${legendPosition.x-legendDrag.box.x} ${legendPosition.y-legendDrag.box.y})`);
+});
+function finishLegendDrag(event){
+ if(!legendDrag||event.pointerId!==legendDrag.id)return;
+ const toggle=event.type==='pointerup'&&!legendDrag.moved;
+ legendPosition=legendPosition||{x:legendDrag.box.x,y:legendDrag.box.y};
+ legendDrag=null;
+ if(plot.hasPointerCapture(event.pointerId))plot.releasePointerCapture(event.pointerId);
+ if(toggle)toggleLegend();else render();
+}
+plot.addEventListener('pointerup',finishLegendDrag);
+plot.addEventListener('pointercancel',finishLegendDrag);
+plot.addEventListener('lostpointercapture',finishLegendDrag);
+// Project scores onto the screen-space gradient, accounting for unequal axis scales.
+function drawOverallGuide(x0,x1,y0,y1,XP,YP,data){
+ const a=overallWeight,b=1-a;
+ const best=[...data].sort((left,right)=>right.overall-left.overall)[0];
+ const least=[...data].sort((left,right)=>left.overall-right.overall)[0];
+ const spread=best.overall-least.overall;
+ const tied=spread<1e-9;
+ const group=S('g',{'aria-label':`Overall scores. ${tied?'All visible scores are equal.':'Amber marks the lowest score; green marks the highest score.'}`});
+ const defs=S('defs');
+ const addStops=gradient=>{
+   for(const [offset,color] of [[0,'#f6dfbb'],[.5,'#f4f7f4'],[1,'#bde4d6']])gradient.append(S('stop',{offset,'stop-color':color}));
+   defs.append(gradient);
+ };
+ if(!tied){
+   const gx=a/((XP(x1)-XP(x0))/(x1-x0));
+   const gy=b/((YP(y1)-YP(y0))/(y1-y0));
+   const distance=spread/(gx*gx+gy*gy);
+   const gradient=S('linearGradient',{id:'overall-field',gradientUnits:'userSpaceOnUse',x1:XP(least.x),y1:YP(least.y),x2:XP(least.x)+gx*distance,y2:YP(least.y)+gy*distance});
+   addStops(gradient);
+ }
+ addStops(S('linearGradient',{id:'overall-scale',x1:'0%',y1:'0%',x2:'100%',y2:'0%'}));
+ group.append(defs);
+ plot.firstChild.setAttribute('fill',tied?'#f1f5f4':'url(#overall-field)');
+ for(const [row,color,dash,label] of [[least,'#b45309','10 4','Lowest'],[best,'#0f766e','none','Highest']]){
+   const score=row.overall;
+   const candidates=[{x:x0,y:(score-a*x0)/b},{x:x1,y:(score-a*x1)/b},{x:(score-b*y0)/a,y:y0},{x:(score-b*y1)/a,y:y1}];
+   const ends=candidates.filter(p=>p.x>=x0-1e-9&&p.x<=x1+1e-9&&p.y>=y0-1e-9&&p.y<=y1+1e-9)
+     .filter((p,i,all)=>all.findIndex(q=>Math.abs(p.x-q.x)<1e-9&&Math.abs(p.y-q.y)<1e-9)===i);
+   if(ends.length<2)continue;
+   const line=S('line',{x1:XP(ends[0].x),y1:YP(ends[0].y),x2:XP(ends[1].x),y2:YP(ends[1].y),stroke:color,'stroke-width':3,'stroke-dasharray':dash,opacity:.9});
+   line.append(S('title',{},`${label} overall: ${row.name} · ${fmt(score)}%`));group.append(line);
+ }
+ const position=clampLegendPosition(legendPosition||{x:R.left+12,y:R.bottom-legendHeight()-12});
+ const box={...position,w:legendWidth(),h:legendHeight()};
+ const panel=S('g',{class:'overall-legend'});
+ if(!legendCollapsed)panel.append(S('rect',{x:box.x,y:box.y,width:box.w,height:box.h,rx:9,fill:'#ffffff',stroke:'#cce3de'}));
+ const text=(x,y,value,size=12,bold=650)=>S('text',{x,y,fill:'#155e57','font-family':'Arial, sans-serif','font-size':size,'font-weight':bold},value);
+ if(!legendCollapsed){
+   panel.append(text(box.x+12,box.y+20,tied?'All visible scores are equal':'Overall score',13,750));
+   panel.append(S('rect',{x:box.x+12,y:box.y+34,width:box.w-24,height:9,rx:3,fill:tied?'#f1f5f4':'url(#overall-scale)'}));
+   if(!tied){
+     panel.append(text(box.x+12,box.y+57,'Lower',11));
+     const higher=text(box.x+box.w-12,box.y+57,'Higher',11);
+     higher.setAttribute('text-anchor','end');
+     panel.append(higher);
+   }
+   panel.append(S('line',{x1:box.x+12,y1:box.y+71,x2:box.x+36,y2:box.y+71,stroke:'#0f766e','stroke-width':3}));
+   panel.append(text(box.x+44,box.y+75,`Highest: ${displayName(best)} · ${fmt(best.overall)}%`,12,750));
+   panel.append(S('line',{x1:box.x+12,y1:box.y+89,x2:box.x+36,y2:box.y+89,stroke:'#b45309','stroke-width':3,'stroke-dasharray':'10 4'}));
+   panel.append(text(box.x+44,box.y+93,`Lowest: ${displayName(least)} · ${fmt(least.overall)}%`,12,750));
+ }
+ const handle=S('g',{class:'legend-drag-handle',tabindex:0,role:'button','aria-expanded':!legendCollapsed,'aria-label':`${legendCollapsed?'Expand':'Minimize'} overall score legend. Click to toggle; drag or use arrow keys to move.`,style:'cursor:grab;touch-action:none'});
+ handle.append(S('title',{},'Click to minimize or expand · Drag to move'));
+ handle.append(S('rect',{x:box.x+box.w-38,y:box.y+4,width:32,height:32,rx:6,fill:'#f1f5f9',stroke:'#cbd5e1'}));
+ handle.append(S('path',{d:`M ${box.x+box.w-22} ${box.y+10} v20 m-10-10 h20 m-13-7 3-3 3 3 m-3 17-3-3 m3 3 3-3 m-10-10-3 3 3 3 m17-3-3-3 m3 3-3 3`,fill:'none',stroke:'#475569','stroke-width':1.5,'stroke-linecap':'round','stroke-linejoin':'round','pointer-events':'none'}));
+ handle.addEventListener('pointerdown',event=>{
+   if(event.button!==0)return;
+   event.preventDefault();hideTooltip();
+   const point=chartPointer(event);
+   legendDrag={id:event.pointerId,offsetX:point.x-box.x,offsetY:point.y-box.y,box,panel,startX:event.clientX,startY:event.clientY,moved:false};
+   plot.setPointerCapture(event.pointerId);
+ });
+ handle.addEventListener('click',event=>{if(event.detail===0)toggleLegend();});
+ handle.addEventListener('keydown',event=>{
+   if(event.key==='Enter'||event.key===' '){event.preventDefault();legendPosition={x:box.x,y:box.y};toggleLegend();return;}
+   const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+   const direction=directions[event.key];if(!direction)return;
+   event.preventDefault();
+   const step=event.shiftKey?30:10;
+   legendPosition=clampLegendPosition({x:box.x+direction[0]*step,y:box.y+direction[1]*step});
+   render();plot.querySelector('.legend-drag-handle').focus();
+ });
+ panel.append(handle);group.append(panel);
+ plot.append(group);
+ return box;
+}
+function drawChart(data,exportSize){
+ sizeChart(exportSize);
+ if(!data.length){
+   plot.replaceChildren();
+   plot.append(S('rect',{x:R.left,y:R.top,width:R.right-R.left,height:R.bottom-R.top,rx:12,fill:'#fbfcff'}));
+   plot.append(S('text',{x:(R.left+R.right)/2,y:(R.top+R.bottom)/2-12,'text-anchor':'middle',fill:'#64748b','font-size':19,'font-weight':750},'No translations selected'));
+   plot.append(S('text',{x:(R.left+R.right)/2,y:(R.top+R.bottom)/2+16,'text-anchor':'middle',fill:'#94a3b8','font-size':13},'Use the checkboxes above to show translations.'));
+   return;
+ }
+ const xs=data.map(d=>d.x),ys=data.map(d=>d.y);
+ const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+ const padx=Math.max((maxx-minx)*.17,.9),pady=Math.max((maxy-miny)*.19,.9);
+ const x0=minx-padx,x1=maxx+padx,y0=miny-pady,y1=maxy+pady;
+ const XP=v=>R.left+(v-x0)/(x1-x0)*(R.right-R.left);
+ const YP=v=>R.bottom-(v-y0)/(y1-y0)*(R.bottom-R.top);
+ plot.replaceChildren();
+ plot.append(S('rect',{x:R.left,y:R.top,width:R.right-R.left,height:R.bottom-R.top,rx:12,fill:'#fbfcff'}));
+ makeTicks(x0,x1).forEach(v=>{let x=XP(v);plot.append(S('line',{x1:x,y1:R.top,x2:x,y2:R.bottom,class:'guide'}));plot.append(S('text',{x,y:R.bottom+26,'text-anchor':'middle',class:'axis-tick'},tickFormat(v)));});
+ makeTicks(y0,y1).forEach(v=>{let y=YP(v);plot.append(S('line',{x1:R.left,y1:y,x2:R.right,y2:y,class:'guide'}));plot.append(S('text',{x:R.left-14,y:y+4,'text-anchor':'end',class:'axis-tick'},tickFormat(v)));});
+ plot.append(S('text',{x:(R.left+R.right)/2,y:R.bottom+44,'text-anchor':'middle',class:'axis-title'},'Literalness (%)  →'));
+ plot.append(S('text',{x:16,y:(R.top+R.bottom)/2,'text-anchor':'middle',class:'axis-title',transform:`rotate(-90 16 ${(R.top+R.bottom)/2})`},'Readability (%)  →'));
+ const overallGuide=drawOverallGuide(x0,x1,y0,y1,XP,YP,data);
+ const pnts=data.map(d=>({...d,px:XP(d.x),py:YP(d.y)}));
+ // Place compact labels using candidate offsets, avoiding overlaps whenever possible.
+ const taken=[overallGuide];
+ const placements=new Map();
+ for(const d of [...pnts].sort((a,b)=>a.py-b.py)){
+   const w=displayName(d).length*8+20,h=25;
+   const options=[
+     {x:d.px+14,y:d.py-27},{x:d.px+14,y:d.py+9},{x:d.px-w-14,y:d.py-27},
+     {x:d.px-w-14,y:d.py+9},{x:d.px-w/2,y:d.py-45},{x:d.px-w/2,y:d.py+19},
+     {x:d.px+24,y:d.py-13},{x:d.px-w-24,y:d.py-13},
+   ];
+   let best=null, bestCost=Infinity;
+   for(const o of options){let box={x:o.x,y:o.y,w,h};let cost=0;
+     if(box.x<R.left+2||box.y<R.top+1||box.x+box.w>R.right-2||box.y+box.h>R.bottom-1)cost+=250;
+     for(const prev of taken){let ox=Math.max(0,Math.min(box.x+box.w,prev.x+prev.w)-Math.max(box.x,prev.x));let oy=Math.max(0,Math.min(box.y+box.h,prev.y+prev.h)-Math.max(box.y,prev.y));cost+=ox*oy*4;}
+     for(const q of pnts){if(q.name===d.name)continue;if(q.px>box.x-12&&q.px<box.x+box.w+12&&q.py>box.y-12&&q.py<box.y+box.h+12)cost+=45;}
+     cost+=Math.abs(o.x-d.px)*.03+Math.abs(o.y-d.py)*.03;
+     if(cost<bestCost){bestCost=cost;best=box;}
+   }
+   placements.set(d.name,best);taken.push(best);
+ }
+ for(const d of pnts){const b=placements.get(d.name);if(selected===d.name){plot.append(S('line',{x1:d.px,y1:d.py,x2:b.x+b.w/2,y2:b.y+b.h/2,stroke:d.color,'stroke-width':1.4,'stroke-dasharray':'3 3',opacity:.65}));}}
+ for(const d of pnts){
+   const g=S('g',{'data-version':d.name});
+   const circle=S('circle',{cx:d.px,cy:d.py,r:selected===d.name?12:9.5,fill:d.color,stroke:'white','stroke-width':3,'stroke-dasharray':d.estimated?'3 2':'none',class:'dot',tabindex:0,role:'button','aria-label':`${displayName(d)}: literalness ${fmt(d.x)} percent, readability ${fmt(d.y)} percent${d.estimated?', independent estimate':''}`});
+   g.append(S('circle',{cx:d.px,cy:d.py,r:16,fill:d.color,opacity:selected===d.name?.22:.12}));g.append(circle);
+   const b=placements.get(d.name);
+   g.append(S('rect',{x:b.x,y:b.y,width:b.w,height:b.h,rx:8,class:'tag'}));
+   g.append(S('text',{x:b.x+b.w/2,y:b.y+16.9,'text-anchor':'middle',class:'dot-label'},displayName(d)));
+   circle.addEventListener('pointerenter',e=>showTooltip(e,d));circle.addEventListener('pointermove',moveTooltip);circle.addEventListener('pointerleave',hideTooltip);
+   circle.addEventListener('focus',e=>{const bb=circle.getBoundingClientRect();showTooltip({clientX:bb.x,clientY:bb.y},d);});circle.addEventListener('blur',hideTooltip);
+   circle.addEventListener('click',()=>{selected=selected===d.name?null:d.name;render();});
+   plot.append(g);
+ }
+ // Keep the movable legend above chart points and labels.
+ const panel=plot.querySelector('.overall-legend');if(panel)plot.append(panel);
+}
+function sortData(data){
+ return [...data].sort((a,b)=>{
+   const k=sortState.key, av=a[k],bv=b[k];
+   if(av===null||av===undefined) return bv===null||bv===undefined?a.name.localeCompare(b.name):1;
+   if(bv===null||bv===undefined) return -1;
+   const cmp=k==='name'?String(av).localeCompare(String(bv)):(av-bv);
+   return (sortState.direction==='asc'?cmp:-cmp)||a.name.localeCompare(b.name);
+ });
+}
+function updateSortHeader(){
+ document.querySelectorAll('th[data-key]').forEach(th=>{
+  const key=th.dataset.key,active=key===sortState.key;
+  th.setAttribute('aria-sort',active?(sortState.direction==='asc'?'ascending':'descending'):'none');
+  th.querySelector('.sort-mark').textContent=active?(sortState.direction==='asc'?'↑':'↓'):'↕';
+ });
+ $('sortSummary').textContent='Sorted by '+sortLabels[sortState.key]+', '+(sortState.direction==='asc'?'lowest first':'highest first')+' · click a heading to reverse or change sorting';
+}
+function setVisible(name,on){
+ if(on) visible.add(name);else visible.delete(name);
+ if(selected===name&&!on) selected=null;
+ render();
+}
+function updateVisibilityChips(){
+ document.querySelectorAll('.translation-toggle').forEach(chip=>{
+   const on=visible.has(chip.dataset.name);
+   chip.classList.toggle('off',!on);
+   chip.querySelector('input').checked=on;
+ });
+}
+function drawRows(data){
+ updateSortHeader();
+ const body=$('dataRows');body.replaceChildren();
+ if(!data.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=9;td.className='empty-state';td.textContent='No translations selected. Use “Show all” or a translation checkbox above.';tr.append(td);body.append(tr);return;}
+ for(const d of sortData(data)){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="table-version"><label><input type="checkbox" checked aria-label="Show ${d.name}"><span class="swatch" style="background:${d.color}"></span>${displayName(d)}</label></span></td><td class="score-col literalness-col">${fmt(d.t)}%</td><td class="score-col literalness-col">${fmt(d.l)}%</td><td class="score-col readability-col">${fmt(d.f)}%</td><td class="score-col readability-col">${fmt(d.v)}%</td><td class="score-col literalness-col score-combined">${fmt(d.x)}%</td><td class="score-col readability-col score-combined">${fmt(d.y)}%</td><td class="overall-col">${fmt(d.overall)}%</td><td>${d.sf===null?'—':fmt(d.sf)+'%'}</td>`;
+  tr.querySelector('input').addEventListener('change',e=>setVisible(d.name,e.target.checked));
+  body.append(tr);
+ }
+}
+function makeDownload(name,contents,type){const blob=new Blob([contents],{type});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
+$('csvBtn').addEventListener('click',()=>{
+ const {lit,read,overall}=weight();const rows=[['version','source','transfer','lexical','fluency','vocabulary','study_final_published','literalness_weighted','readability_weighted','overall_weighted','transfer_weight','fluency_weight','overall_literalness_weight','overall_readability_weight'],...sortData(latest.filter(d=>visible.has(d.name))).map(d=>[d.name,d.estimated?'independent estimate':'Wu 2017 published',d.t,d.l,d.f,d.v,d.sf??'',d.x.toFixed(6),d.y.toFixed(6),d.overall.toFixed(6),lit.toFixed(6),read.toFixed(6),overall.toFixed(6),(1-overall).toFixed(6)])];
+ makeDownload('wu2017_original_study_estimated_rcv_scores.csv',rows.map(r=>r.join(',')).join('\n')+'\n','text/csv;charset=utf-8');
+});
+$('pngBtn').addEventListener('click',()=>{
+ // Lay out the export at full size, independent of the responsive on-screen chart.
+ const chartSize=900;
+ const screenNodes=[...plot.childNodes],screenViewBox=plot.getAttribute('viewBox'),screenBounds={...R};
+ const screenLegendCollapsed=legendCollapsed,screenLegendPosition=legendPosition;
+ let svg;
+ try{
+   legendCollapsed=false;legendPosition=null;
+   drawChart(latest.filter(d=>visible.has(d.name)),chartSize);
+   svg=plot.cloneNode(true);
+ }finally{
+   plot.replaceChildren(...screenNodes);
+   plot.setAttribute('viewBox',screenViewBox);
+   Object.assign(R,screenBounds);
+   legendCollapsed=screenLegendCollapsed;legendPosition=screenLegendPosition;
+ }
+ svg.setAttribute('width',1100);svg.setAttribute('height',1100);
+ svg.setAttribute('viewBox','-100 -180 1100 1100');
+ svg.append(S('text',{x:54,y:-135,'font-family':'Arial, sans-serif','font-size':28,'font-weight':750,fill:'#1e293b'},'Wu 2017 · Original Study + Estimated RcV*'));
+ svg.querySelector('.legend-drag-handle')?.remove();
+ svg.append(S('text',{x:54,y:-109,'font-family':'Arial, sans-serif','font-size':14,fill:'#475569'},'RcV* is an independent estimate based on a comparison with translations in Wu 2017'));
+ const {lit,read,overall}=weight();
+ const details=[
+   `Literalness · Transfer / Lexical: ${ratio(lit)} (${(lit*100).toFixed(1)}% / ${((1-lit)*100).toFixed(1)}%)`,
+   `Readability · Fluency / Vocabulary: ${ratio(read)} (${(read*100).toFixed(1)}% / ${((1-read)*100).toFixed(1)}%)`,
+   `Overall · Literalness / Readability: ${ratio(overall)} (${(overall*100).toFixed(1)}% / ${((1-overall)*100).toFixed(1)}%)`
+ ];
+ details.forEach((detail,i)=>svg.append(S('text',{x:54,y:-85+i*26,'font-family':'Arial, sans-serif','font-size':16,fill:'#334155'},detail)));
+ const css=`.axis-tick{font-family:Arial,sans-serif;font-size:12px;fill:#526177;font-weight:650}.axis-title{font-family:Arial,sans-serif;font-size:14px;fill:#334155;font-weight:850}.dot-label{font-family:Arial,sans-serif;font-size:12px;font-weight:900;fill:#273451}.tag{fill:white;stroke:#e9edf5;stroke-width:1}.guide{stroke:#edf1f7;stroke-width:1.3}`;
+ const style=S('style',{},css);svg.insertBefore(style,svg.firstChild);
+ const xml=new XMLSerializer().serializeToString(svg);const image=new Image();const u=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml;charset=utf-8'}));
+ image.onload=()=>{const c=document.createElement('canvas');c.width=2200;c.height=2200;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>{if(!b)return;const o=URL.createObjectURL(b);const a=document.createElement('a');a.href=o;a.download='wu2017_original_study_estimated_rcv_chart.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(o),3000)},'image/png');};
+ image.onerror=()=>{URL.revokeObjectURL(u);alert('Could not export PNG; try downloading the CSV instead.')};image.src=u;
+});
+// Sort on any live-score column. Clicking the active column toggles direction.
+document.querySelectorAll('.sort-btn').forEach(button=>button.addEventListener('click',()=>{
+ const key=button.dataset.sort;
+ if(sortState.key===key) sortState.direction=sortState.direction==='asc'?'desc':'asc';
+ else {sortState.key=key;sortState.direction=key==='name'?'asc':'desc';}
+ drawRows(latest.filter(d=>visible.has(d.name)));
+}));
+$('showAllBtn').addEventListener('click',()=>{sourceRows().forEach(d=>visible.add(d.name));render();});
+$('hideAllBtn').addEventListener('click',()=>{visible.clear();selected=null;render();});
+for(const d of [...originals].sort((a,b)=>a.name.localeCompare(b.name))){
+ const chip=document.createElement('label');chip.className='translation-toggle';chip.dataset.name=d.name;
+ chip.innerHTML=`<input type="checkbox" checked aria-label="Show ${d.name}"><span class="legend-dot" style="background:${d.color}"></span><span>${displayName(d)}</span>`;
+ chip.querySelector('input').addEventListener('change',e=>setVisible(d.name,e.target.checked));
+ $('legend').append(chip);
+}
+const chartSizeSlider=$('chartSizeSlider');
+function updateChartSize(){
+ const size=Math.max(320,Math.min(900,Number(chartSizeSlider.value)||640));
+ plot.style.setProperty('--chart-size',size+'px');
+ $('chartSizeValue').value=size+'px';
+ legendDrag=null;
+ render();
+}
+chartSizeSlider.addEventListener('input',updateChartSize);
+$('resetChartSizeBtn').addEventListener('click',()=>{chartSizeSlider.value='640';updateChartSize();});
+let resizeFrame;
+window.addEventListener('resize',()=>{
+ cancelAnimationFrame(resizeFrame);
+ resizeFrame=requestAnimationFrame(()=>{legendDrag=null;render();});
+});
+render();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+  <script id="acswebapps-usage">
+// ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
+(function () {
+  "use strict";
+  var app = "bible-translation-explorer-original";
+  var endpoint = "https://atlantachristianstudents.goatcounter.com/count";
+  if (!/^https?:$/.test(location.protocol) ||
+      /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
+      navigator.webdriver || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return;
+
+  // Each tab owns its queue, avoiding duplicate sends from other open tabs.
+  // Storage failure must never prevent an app from opening.
+  var key = "acswebapps-usage-v1:" + app, queue = [], sending = false, retry = null;
+  var opened = false, installed = false, lifetime = 7 * 24 * 60 * 60 * 1000;
+  try {
+    var saved = JSON.parse(sessionStorage.getItem(key) || "[]");
+    if (Array.isArray(saved)) queue = saved.filter(function (item) {
+      return item && /^(open|installed-open|install)$/.test(item.event) &&
+        typeof item.time === "number" && item.time <= Date.now() && Date.now() - item.time < lifetime;
+    }).slice(-100);
+  } catch (_) {}
+  function save() {
+    try {
+      if (queue.length) sessionStorage.setItem(key, JSON.stringify(queue));
+      else sessionStorage.removeItem(key);
+    } catch (_) {}
+  }
+  function record(event) {
+    queue.push({ event: event, time: Date.now() });
+    queue = queue.slice(-100);
+    save();
+    flush();
+  }
+  function flush() {
+    if (sending || !queue.length || navigator.onLine === false) return;
+    if (retry) { clearTimeout(retry); retry = null; }
+    while (queue.length && Date.now() - queue[0].time >= lifetime) queue.shift();
+    save();
+    if (!queue.length) return;
+    sending = true;
+    var item = queue[0], pixel = new Image(), timer;
+    function finish(ok) {
+      if (!pixel) return;
+      clearTimeout(timer);
+      pixel.onload = pixel.onerror = null;
+      pixel = null;
+      sending = false;
+      if (ok) {
+        var index = queue.indexOf(item);
+        if (index !== -1) queue.splice(index, 1);
+        save();
+        flush();
+      } else if (document.visibilityState === "visible") {
+        retry = setTimeout(function () { retry = null; flush(); }, 60000);
+      }
+    }
+    pixel.onload = function () { finish(true); };
+    pixel.onerror = function () { finish(false); };
+    pixel.referrerPolicy = "no-referrer";
+    timer = setTimeout(function () { finish(false); }, 15000);
+    // Fixed event paths only: never include location, document title, or user content.
+    pixel.src = endpoint + "?p=" + encodeURIComponent("apps/" + app + "/" + item.event) +
+      "&t=" + encodeURIComponent(app + " " + item.event) + "&e=1&r=&rnd=" + Math.random();
+  }
+  function open() {
+    if (opened || document.visibilityState !== "visible") return;
+    opened = true;
+    record("open");
+    if (navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone), (display-mode: minimal-ui)").matches)) {
+      record("installed-open");
+    }
+  }
+  window.addEventListener("appinstalled", function () {
+    if (installed) return;
+    installed = true;
+    record("install");
+  });
+  window.addEventListener("online", flush);
+  document.addEventListener("visibilitychange", function () {
+    open();
+    if (document.visibilityState === "visible") flush();
+  });
+  open();
+  flush();
+}());
+  </script>
+<details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Bible Translation Explorer is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
+
+<script id="acswebapps-updater" data-version="bible-translation-original-study-v6">
+// Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
+(function () {
+  'use strict';
+  const pageVersion = document.currentScript.dataset.version;
+  let busy = false;
+  function report(message) {
+    document.querySelectorAll('[data-acs-update-status]').forEach(node => { node.textContent = message; });
+  }
+  function deadline(task, milliseconds) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error('The update check timed out. Please try again.')), milliseconds);
+      Promise.resolve(task).then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+    });
+  }
+  function activate(worker) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => finish(Error('The update could not finish installing. Please try again.')), 30000);
+      function finish(error) {
+        clearTimeout(timer);
+        worker.removeEventListener('statechange', inspect);
+        if (error) reject(error); else resolve();
+      }
+      function inspect() {
+        if (worker.state === 'redundant') finish(Error('The update did not install. Please try again.'));
+        else if (worker.state === 'activated') finish();
+        else if (worker.state === 'installed') {
+          try { worker.postMessage({ type: 'ACS_SKIP_WAITING' }); } catch (error) { finish(error); }
+        }
+      }
+      worker.addEventListener('statechange', inspect);
+      inspect();
+    });
+  }
+  function versionOf(worker) {
+    return new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => finish(Error('Could not verify the app version. Please try again.')), 5000);
+      function finish(error, value) {
+        clearTimeout(timer);
+        channel.port1.close();
+        if (error) reject(error); else resolve(value);
+      }
+      channel.port1.onmessage = event => {
+        const version = event.data && event.data.version;
+        if (typeof version !== 'string' || !/^.+-v\d+$/.test(version)) finish(Error('The app returned an invalid update version.'));
+        else finish(null, version);
+      };
+      try { worker.postMessage({ type: 'ACS_GET_VERSION' }, [channel.port2]); } catch (error) { finish(error); }
+    });
+  }
+  async function check() {
+    if (busy) return;
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+      report('Updates are available from the website or installed app.'); return;
+    }
+    if (navigator.onLine === false) { report('You’re offline. Connect to the internet and try again.'); return; }
+    busy = true;
+    document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = true; });
+    report('Checking for updates…');
+    try {
+      const registration = await deadline(navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }), 20000);
+      await deadline(registration.update(), 20000);
+      const candidate = registration.installing || registration.waiting;
+      if (candidate) { report('Downloading update…'); await activate(candidate); }
+      const worker = registration.active || navigator.serviceWorker.controller;
+      if (!worker) throw Error('No active app version was found. Please reload and try again.');
+      const version = await versionOf(worker);
+      if (version !== pageVersion) { report('Update ready. Restarting…'); location.reload(); }
+      else report('This app is up to date.');
+    } catch (error) {
+      report(error.message && /update|version|install|reload/i.test(error.message)
+        ? error.message : 'Could not check for updates. Check your connection and try again.');
+    } finally {
+      busy = false;
+      document.querySelectorAll('[data-acs-update-button]').forEach(button => { button.disabled = false; });
+    }
+  }
+  // Some apps dismiss help on any click/key. Keep updater interactions inside help.
+  document.addEventListener('pointerdown', event => {
+    if (event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' && event.target.closest('[data-acs-update]')) event.stopPropagation();
+  }, true);
+  document.addEventListener('click', event => {
+    if (!event.target.closest('[data-acs-update-button]')) return;
+    event.preventDefault(); event.stopPropagation(); check();
+  }, true);
+}());
+</script>
+<script id="acswebapps-directory-navigation">
+// Keep this self-contained so an app can also be hosted on its own.
+(function () {
+  "use strict";
+  if (window.top !== window || !/^https?:$/.test(location.protocol)) return;
+
+  const folder = new URL("./", location.href).pathname;
+  try {
+    if (sessionStorage.getItem("acswebapps-directory-launch") !== folder) return;
+  } catch (error) {
+    return;
+  }
+
+  const home = document.createElement("a");
+  home.id = "acswebapps-directory-home";
+  home.href = "../../";
+  home.textContent = "← Home";
+  home.setAttribute("aria-label", "Back to ACS Web Apps home");
+  // Preserve Enter activation when the app has document-wide keyboard shortcuts.
+  home.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.stopPropagation();
+  });
+  document.body.appendChild(home);
+}());
+</script>
+</body>
+</html>

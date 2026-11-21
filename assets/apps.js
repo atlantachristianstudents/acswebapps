@@ -10,6 +10,7 @@
  *   tags:        categories used for the filter chips
  *   status:      "live" | "beta" | "soon"   ("soon" cards are not clickable)
  *   url:         optional; defaults to "apps/<id>/"; may point to a site redirect or external app
+ *   groupWith:   optional id of another app whose card opens both apps in a chooser
  */
 window.APPS = [
   {
@@ -74,6 +75,16 @@ window.APPS = [
     iconUrl: "apps/bible-translation-explorer/icons/icon.svg",
     tags: ["Study", "Tools"],
     status: "beta"
+  },
+  {
+    id: "bible-translation-explorer-original",
+    name: "Bible Translation Explorer (Wu 2017)",
+    description: "Explore literalness and readability scores for nine translations from Wu’s 2017 study, alongside an independent Recovery Version estimate.",
+    icon: "📊",
+    iconUrl: "apps/bible-translation-explorer-original/icons/icon.svg",
+    tags: ["Study", "Tools"],
+    status: "beta",
+    groupWith: "bible-translation-explorer"
   },
   {
     id: "logostype",

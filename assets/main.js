@@ -195,6 +195,7 @@
       !event.metaKey &&
       !event.altKey &&
       document.activeElement !== search &&
+      !document.activeElement?.closest("dialog") &&
       !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
     ) {
       event.preventDefault();
@@ -269,18 +270,28 @@
   /* ---------- cards ---------- */
   const STATUS_LABEL = { live: "Live", beta: "Beta", soon: "Coming soon" };
   const STATUS_ORDER = { live: 0, beta: 1, soon: 2 };
+  const appsById = new Map(apps.map((app) => [app.id, app]));
+  const groupedApps = new Map();
+  const groupParents = new Map();
+  apps.forEach((app) => {
+    const parent = appsById.get(app.groupWith);
+    if (!parent || parent === app || parent.groupWith || parent.status === "soon" || app.status === "soon") return;
+    if (!groupedApps.has(parent.id)) groupedApps.set(parent.id, []);
+    groupedApps.get(parent.id).push(app);
+    groupParents.set(app.id, parent.id);
+  });
   const pinnedKey = "acswebapps-pinned-apps";
   const pinnedApps = new Set();
   try {
     const saved = JSON.parse(localStorage.getItem(pinnedKey));
     if (Array.isArray(saved)) {
       saved.forEach((id) => {
-        if (typeof id === "string") pinnedApps.add(id);
+        if (typeof id === "string") pinnedApps.add(groupParents.get(id) || id);
       });
     }
   } catch (e) {}
 
-  const sortedApps = apps.slice().sort((a, b) =>
+  const sortedApps = apps.filter((app) => !groupParents.has(app.id)).sort((a, b) =>
     ((STATUS_ORDER[a.status || "live"] ?? 3) - (STATUS_ORDER[b.status || "live"] ?? 3)) ||
     (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" })
   );
@@ -304,34 +315,61 @@
     };
   }
 
+  function appLink(app, className) {
+    const link = el("a", className);
+    link.href = app.url || "apps/" + app.id + "/";
+    link.target = "_blank";
+    link.rel = "noopener";
+    const url = new URL(link.href);
+    const appPath = url.pathname.slice(appsPath.length);
+    if (installedDirectory && url.origin === location.origin && url.pathname.startsWith(appsPath) &&
+        /^[^/]+(?:\/(?:index\.html)?)?$/.test(appPath)) {
+      // Use the directory URL even for registry entries without a trailing slash.
+      const folder = appsPath + appPath.split("/")[0] + "/";
+      if (!appPath.endsWith("/index.html")) url.pathname = folder;
+      link.href = url.href;
+      link.target = "_self";
+      link.addEventListener("click", (event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+            event.shiftKey || event.altKey) return;
+        try { sessionStorage.setItem(launchKey, folder); } catch (error) {}
+        event.preventDefault();
+        location.assign(link.href);
+      });
+    }
+    return link;
+  }
+
+  const optionsDialog = document.getElementById("app-options-dialog");
+  const optionsTitle = document.getElementById("app-options-title");
+  const optionsList = document.getElementById("app-options-list");
+
+  function showAppOptions(app, alternatives) {
+    optionsTitle.textContent = app.name;
+    optionsList.replaceChildren(...[app, ...alternatives].map((option) => {
+      const link = appLink(option, "app-option");
+      link.append(el("strong", null, option.name), el("span", null, option.description));
+      link.addEventListener("click", () => optionsDialog.close());
+      return link;
+    }));
+    optionsDialog.showModal();
+  }
+
   function card(app) {
     const status = app.status || "live";
     const clickable = status !== "soon";
-    const node = el(clickable ? "a" : "div", "card" + (clickable ? "" : " disabled"));
-    if (clickable) {
-      node.href = app.url || "apps/" + app.id + "/";
-      node.target = "_blank";
-      node.rel = "noopener";
-      const url = new URL(node.href);
-      const appPath = url.pathname.slice(appsPath.length);
-      if (installedDirectory && url.origin === location.origin && url.pathname.startsWith(appsPath) &&
-          /^[^/]+(?:\/(?:index\.html)?)?$/.test(appPath)) {
-        // Use the directory URL even for registry entries without a trailing slash.
-        const folder = appsPath + appPath.split("/")[0] + "/";
-        if (!appPath.endsWith("/index.html")) url.pathname = folder;
-        node.href = url.href;
-        node.target = "_self";
-        node.addEventListener("click", (event) => {
-          if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
-              event.shiftKey || event.altKey) return;
-          try { sessionStorage.setItem(launchKey, folder); } catch (error) {}
-          event.preventDefault();
-          location.assign(node.href);
-        });
-      }
+    const alternatives = groupedApps.get(app.id);
+    const node = clickable && !alternatives ? appLink(app, "card") :
+      el(alternatives ? "button" : "div", "card" + (clickable ? "" : " disabled"));
+    if (alternatives) {
+      node.type = "button";
+      node.setAttribute("aria-label", app.name);
+      node.setAttribute("aria-haspopup", "dialog");
+      node.setAttribute("aria-controls", optionsDialog.id);
+      node.addEventListener("click", () => showAppOptions(app, alternatives));
     }
 
-    const top = el("div", "card-top");
+    const top = el("span", "card-top");
     const icon = el("span", "card-icon");
     icon.title = app.name;
     const img = document.createElement("img");
@@ -345,10 +383,10 @@
     top.appendChild(el("span", "badge " + status, STATUS_LABEL[status] || status));
     node.appendChild(top);
 
-    node.appendChild(el("h3", null, app.name));
-    node.appendChild(el("p", null, app.description || ""));
+    node.appendChild(el(alternatives ? "span" : "h3", "card-title", app.name));
+    node.appendChild(el(alternatives ? "span" : "p", "card-description", app.description || ""));
 
-    const meta = el("div", "card-tags");
+    const meta = el("span", "card-tags");
     (app.tags || []).forEach((tag) => meta.appendChild(el("span", "mini-tag", tag)));
     node.appendChild(meta);
 
@@ -395,8 +433,10 @@
       const inTag =
         categoryTags.length === 0 || (app.tags || []).some((t) => categoryTags.indexOf(t) !== -1);
       const isBeta = (app.status || "live") === "beta";
-      const haystack = (app.name + " " + (app.description || "") + " " + (app.tags || []).join(" ")).toLowerCase();
-      if (inTag && (!hideBetaTag || !isBeta) && (!query || haystack.indexOf(query) !== -1)) {
+      const matchesQuery = !query || [app, ...(groupedApps.get(app.id) || [])].some((option) =>
+        [option.name, option.description, ...(option.tags || [])].join(" ").toLowerCase().includes(query)
+      );
+      if (inTag && (!hideBetaTag || !isBeta) && matchesQuery) {
         grid.appendChild(card(app));
         shown++;
       }
