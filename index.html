@@ -42,6 +42,7 @@
 
     <link rel="stylesheet" href="assets/style.css" />
 
+<script src="assets/theme.js"></script>
 <style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
 <script id="acswebapps-no-pinch">
 // Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
@@ -89,7 +90,7 @@
             aria-haspopup="dialog"
             aria-controls="theme-dialog"
             title="Choose a theme">
-            ◐
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.5 1.5 0 0 1 1.1-2.6H18a3 3 0 0 0 3-3 9 9 0 0 0-9-9Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.8" r=".8"/><circle cx="14" cy="6.8" r=".8"/><circle cx="17" cy="10" r=".8"/></svg>
           </button>
         </nav>
       </div>
@@ -186,8 +187,6 @@
       <h2 id="theme-dialog-title">Choose a theme</h2>
       <p class="hint">Preview themes here. Changes are saved when you press Save theme.</p>
       <div id="theme-presets" aria-label="Preset themes">
-        <button type="button" data-theme-choice="light"><span class="theme-swatch" style="--swatch-bg:#f7f8fc;--swatch-accent:#3b4bf5"></span>Light</button>
-        <button type="button" data-theme-choice="dark"><span class="theme-swatch" style="--swatch-bg:#0d111b;--swatch-accent:#7886ff"></span>Dark</button>
         <button type="button" data-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button>
         <button type="button" data-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button>
         <button type="button" data-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button>
@@ -195,15 +194,42 @@
         <button type="button" data-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button>
         <button type="button" data-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button>
         <button type="button" data-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button>
+        <button type="button" data-theme-choice="custom"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#7257a5"></span>Custom</button>
       </div>
+      <section id="custom-theme-controls" hidden>
+        <h3>Custom colors and font</h3>
+        <div class="theme-color-grid">
+          <label>Background<input type="color" data-theme-color="bg"></label>
+          <label>Text<input type="color" data-theme-color="text"></label>
+          <label>Muted text<input type="color" data-theme-color="muted"></label>
+          <label>Surface<input type="color" data-theme-color="surface"></label>
+          <label>Panel<input type="color" data-theme-color="panel"></label>
+          <label>Border<input type="color" data-theme-color="border"></label>
+          <label>Accent<input type="color" data-theme-color="accent"></label>
+          <label>On accent<input type="color" data-theme-color="on-accent"></label>
+          <label>Selected<input type="color" data-theme-color="selected"></label>
+          <label>Focus<input type="color" data-theme-color="focus"></label>
+        </div>
+        <label for="custom-theme-font" class="custom-font-label">Font</label>
+        <select id="custom-theme-font">
+          <option value="serif">Serif</option>
+          <option value="sans">Sans-serif</option>
+          <option value="rounded">Rounded</option>
+          <option value="mono">Monospace</option>
+        </select>
+        <button type="button" id="surprise-theme" class="quiet">Surprise me</button>
+      </section>
       <div class="theme-dialog-actions">
-        <span id="theme-name" class="theme-name" aria-hidden="true">Light</span>
-        <button type="button" id="save-theme" class="primary">Save theme</button>
+        <span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span>
+        <span class="theme-dialog-buttons">
+          <button type="button" id="cancel-theme" class="quiet">Cancel</button>
+          <button type="button" id="save-theme" class="primary">Save theme</button>
+        </span>
       </div>
     </dialog>
 
     <script src="assets/apps.js"></script>
-    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v48"></script>
+    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v51"></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
         addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));

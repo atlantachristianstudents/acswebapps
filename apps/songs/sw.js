@@ -1,5 +1,5 @@
 // Songbook offline cache. Bump VERSION when you replace index.html.
-var VERSION = "songbook-v12";
+var VERSION = "songbook-v14";
 var FILES = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})})); }).then(function () { return self.skipWaiting(); }));

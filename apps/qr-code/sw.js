@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "qr-code-v6";
+var VERSION = "qr-code-v7";
 var CACHE_PREFIX = VERSION.replace(/\d+$/, "");
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "vendor/qrcode.js"];
 

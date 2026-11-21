@@ -1,7 +1,7 @@
 // Cache the app shell. Downloaded packs live exclusively in IndexedDB.
 importScripts("dictionary.js");
 
-const VERSION = "define-v14";
+const VERSION = "define-v15";
 const SCOPE = new URL(self.registration.scope);
 const PREFIX = "define:" + SCOPE.pathname + ":";
 const CACHE = PREFIX + VERSION;

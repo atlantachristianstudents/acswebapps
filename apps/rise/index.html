@@ -528,7 +528,6 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
   html.plan-calendar-view #settings .settings-header {display:none}
 }
 </style>
-<script>try{const saved=JSON.parse(localStorage.getItem('rise-settings-v1')||'{}'),root=document.documentElement,theme=saved.theme;if(['dawn','paper','sage','ocean','rose','dusk','midnight'].includes(theme))root.dataset.theme=theme;else if(theme==='custom'&&saved.customTheme){root.dataset.theme='custom';for(const key of ['bg','text','muted','surface','panel','border','accent','on-accent','selected','focus'])if(/^#[0-9a-f]{6}$/i.test(saved.customTheme[key]||''))root.style.setProperty('--'+key,saved.customTheme[key]);const fonts={serif:'Georgia,"Iowan Old Style","Times New Roman",serif',sans:'Arial,Helvetica,sans-serif',rounded:'"Trebuchet MS",Arial,sans-serif',mono:'"Courier New",monospace'};root.style.setProperty('--app-font',fonts[saved.customTheme.font]||fonts.serif)}else root.dataset.theme='dawn'}catch(_){document.documentElement.dataset.theme='dawn'}</script>
 <script>if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 
 <style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
@@ -588,6 +587,8 @@ html.plan-calendar-view #settings #calendar-days {grid-template-rows:26px repeat
 :fullscreen #acswebapps-directory-home { display: none; }
 :-webkit-full-screen #acswebapps-directory-home { display: none; }
 </style>
+
+  <script src="../../assets/theme.js"></script>
 </head><body><section id="settings" inert aria-label="Daily verse settings" aria-hidden="true"><form id="settings-form"><header class="settings-header"><div><p class="eyebrow">Rise · Make room for the Word</p><h1 id="settings-title" tabindex="-1">Rise settings</h1><p class="intro">Choose what greets you each morning.</p></div><div class="header-actions"><span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span><button type="button" id="theme" value="dawn" class="quiet-button theme-button" aria-label="Theme: Dawn. Switch to Paper." title="Theme: Dawn. Switch to Paper."><span class="theme-icon" aria-hidden="true"></span></button><button type="button" id="about-rise" class="quiet-button" aria-label="About Rise" aria-haspopup="dialog" aria-controls="about-dialog" title="About Rise"><span aria-hidden="true">?</span></button><button type="button" id="close-settings" class="quiet-button" aria-label="Close settings without saving" title="Close settings">×</button></div><span id="theme-status" class="visually-hidden" role="status"></span></header><input type="hidden" id="mode" value="sequential"><div id="custom-field" class="settings-group"><div class="plan-toolbar" id="calendar-plan-actions">
   <button type="button" id="calendar-new-plan" class="quiet-button" aria-label="New plan">＋</button>
   <button type="button" id="manage-plans" class="quiet-button">Edit plans</button>
@@ -716,6 +717,14 @@ const themeVars=['bg','text','muted','surface','panel','border','accent','on-acc
 const themeFonts={serif:'Georgia,"Iowan Old Style","Times New Roman",serif',sans:'Arial,Helvetica,sans-serif',rounded:'"Trebuchet MS",Arial,sans-serif',mono:'"Courier New",monospace'};
 const customThemeDefaults={bg:'#f4efe5',text:'#24302b',muted:'#596459',surface:'#fffdf8',panel:'#f9f6ee',border:'#c9c8bc',accent:'#44584b','on-accent':'#ffffff',selected:'#e8eee4',focus:'#74876a',font:'serif'};
 let themeDraftName=prefs.theme||'dawn',themeDraftCustom={...customThemeDefaults,...(prefs.customTheme||{})};
+const themeCookie='acswebapps-theme',customThemeCookie='acswebapps-custom-theme';
+function readCookie(name){const v='; '+document.cookie,p=v.split('; '+name+'=');return p.length===2?p.pop().split(';').shift():null}
+function writeCookie(name,value,days){const e=new Date();e.setTime(e.getTime()+days*864e5);document.cookie=name+'='+encodeURIComponent(value)+'; expires='+e.toUTCString()+'; path=/; sameSite=strict'}
+(function syncThemeFromCookie(){
+  const name=readCookie(themeCookie);
+  if(themeNames.includes(name)){prefs.theme=name;themeDraftName=name}
+  else if(name==='custom'){prefs.theme='custom';themeDraftName='custom';const raw=readCookie(customThemeCookie);if(raw){try{prefs.customTheme=JSON.parse(decodeURIComponent(raw));themeDraftCustom={...customThemeDefaults,...prefs.customTheme}}catch(_){}}}
+})();
 function applyTheme(name,custom=prefs.customTheme){
   const theme=themeNames.includes(name)?name:name==='custom'?'custom':'dawn',root=document.documentElement;
   root.dataset.theme=theme;
@@ -733,6 +742,8 @@ function applyTheme(name,custom=prefs.customTheme){
 }
 
 applyTheme(prefs.theme);
+// Expose the shared theme API so other apps can read/write the same cookies.
+window.acswebappsTheme={names:[...themeNames,'custom'],get:()=>readCookie(themeCookie)||'dawn',getCustom:()=>{try{const r=readCookie(customThemeCookie);if(!r)return null;const o=JSON.parse(decodeURIComponent(r));return o&&typeof o==='object'?o:null}catch(e){return null}},set:t=>writeCookie(themeCookie,t,365),setCustom:c=>writeCookie(customThemeCookie,JSON.stringify(c||{}),365),apply:t=>applyTheme(t,t==='custom'?(window.acswebappsTheme.getCustom()||null):null),preview:(t,c)=>applyTheme(t,c!==undefined?c:(window.acswebappsTheme.getCustom()||null))};
 function previewTheme(name){themeDraftName=name;applyTheme(name,themeDraftCustom);$('custom-theme-controls').hidden=name!=='custom';document.querySelectorAll('[data-theme-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.themeChoice===name)))}
 function openThemeDialog(){themeDraftName=prefs.theme||'dawn';themeDraftCustom={...customThemeDefaults,...(prefs.customTheme||{})};document.querySelectorAll('[data-theme-color]').forEach(input=>input.value=themeDraftCustom[input.dataset.themeColor]);$('custom-theme-font').value=themeDraftCustom.font||'serif';$('theme-dialog').showModal();previewTheme(themeDraftName)}
 $('theme').addEventListener('click',openThemeDialog);
@@ -771,7 +782,7 @@ $('surprise-theme').addEventListener('click',()=>{themeDraftCustom=randomTheme()
 function cancelTheme(){applyTheme(prefs.theme,prefs.customTheme)}
 $('cancel-theme').addEventListener('click',()=>{$('theme-dialog').close();cancelTheme()});
 $('theme-dialog').addEventListener('cancel',cancelTheme);
-$('save-theme').addEventListener('click',()=>{prefs.theme=themeDraftName;prefs.customTheme={...themeDraftCustom};applyTheme(prefs.theme,prefs.customTheme);try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}$('theme-dialog').close()});
+$('save-theme').addEventListener('click',()=>{prefs.theme=themeDraftName;prefs.customTheme={...themeDraftCustom};applyTheme(prefs.theme,prefs.customTheme);try{localStorage.setItem(SETTINGS,JSON.stringify(prefs))}catch(_){}var A=window.acswebappsTheme;if(A){A.set(themeDraftName);if(themeDraftName==='custom')A.setCustom(themeDraftCustom)}try{writeCookie(themeCookie,prefs.theme,365);writeCookie(customThemeCookie,JSON.stringify(prefs.customTheme||customThemeDefaults),365)}catch(_){}$('theme-dialog').close()});
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function read(){const db=await openDb();return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get('all');r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
 async function write(data){const db=await openDb();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(data,'all');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
@@ -1899,7 +1910,7 @@ load();
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function(){"use strict";var app="rise",endpoint="https://atlantachristianstudents.goatcounter.com/count";if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)||navigator.webdriver||navigator.doNotTrack==="1"||navigator.globalPrivacyControl)return;var key="acswebapps-usage-v1:"+app,queue=[],opened=false;function record(){queue.push({event:"open",time:Date.now()});try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}flush()}function flush(){if(!queue.length||navigator.onLine===false)return;var item=queue[0],pixel=new Image();pixel.referrerPolicy="no-referrer";pixel.onload=pixel.onerror=function(){queue.shift();try{sessionStorage.setItem(key,JSON.stringify(queue))}catch(_){}if(queue.length)flush()};pixel.src=endpoint+"?p="+encodeURIComponent("apps/"+app+"/open")+"&t="+encodeURIComponent(app+" open")+"&e=1&r=&rnd="+Math.random()}function open(){if(opened||document.visibilityState!=="visible")return;opened=true;record()}open();document.addEventListener("visibilitychange",open);addEventListener("online",flush)})();
 </script>
-<script id="acswebapps-updater" data-version="rise-v100">
+<script id="acswebapps-updater" data-version="rise-v101">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';

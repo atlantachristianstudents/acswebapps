@@ -17,6 +17,8 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
   });
 }
 </script>
+<!-- Shared theme cookie: initialize from saved choice before first paint. -->
+<script src="../../assets/theme.js"></script>
 <style>
 :root{--app-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--bg:#f4efe5;--text:#24302b;--muted:#596459;--surface:#fffdf8;--panel:#f9f6ee;--border:#c9c8bc;--accent:#44584b;--on-accent:#ffffff;--selected:#e8eee4;--focus:#74876a;color-scheme:light;font-family:var(--app-font)}
 :root[data-theme=paper]{--bg:#fafafa;--text:#24272b;--muted:#555d66;--surface:#fff;--panel:#f1f2f3;--border:#c6cbd0;--accent:#3e4b58;--on-accent:#fff;--selected:#e0e7ee;--focus:#647d96}
@@ -437,7 +439,7 @@ button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">QR Code is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="qr-code-v6">
+<script id="acswebapps-updater" data-version="qr-code-v7">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -572,7 +574,17 @@ button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   };
   const PRESETS = ["dawn","paper","sage","ocean","rose","dusk","midnight"];
 
+  // Read theme from shared API (set by assets/theme.js), fall back to localStorage.
   let prefs = { theme: "dawn", customTheme: Object.assign({}, CUSTOM_DEFAULT) };
+  try {
+    var savedCookie = window.acswebappsTheme && window.acswebappsTheme.get();
+    if (/^(dawn|paper|sage|ocean|rose|dusk|midnight)$/.test(savedCookie || "")) prefs.theme = savedCookie;
+    else if (savedCookie === "custom") {
+      prefs.theme = "custom";
+      var custCustom = window.acswebappsTheme && window.acswebappsTheme.getCustom();
+      if (custCustom) prefs.customTheme = Object.assign({}, CUSTOM_DEFAULT, custCustom);
+    }
+  } catch(e) {}
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) || "null");
     if (saved && typeof saved === "object") {
@@ -583,6 +595,10 @@ button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
   function savePrefs() {
     try { localStorage.setItem(STORE, JSON.stringify(prefs)); } catch (error) {}
+    try {
+      var A = window.acswebappsTheme;
+      if (A) { A.set(prefs.theme); if (prefs.theme === "custom") A.setCustom(prefs.customTheme); }
+    } catch(e) {}
   }
 
   function luminance(hex) {

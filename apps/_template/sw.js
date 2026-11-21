@@ -1,6 +1,6 @@
 // Offline cache for this app. Bump VERSION whenever you change index.html
 // (or add/remove files), so installed devices pick up the new version.
-var VERSION = "app-template-v13";
+var VERSION = "app-template-v14";
 var CACHE_PREFIX = VERSION.replace(/\d+$/, "");
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
 
