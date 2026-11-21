@@ -295,6 +295,24 @@ jobs:
 
           touch "$site/.nojekyll"
 
+      - name: Check Cloudflare configuration
+        if: needs.prepare.outputs.action == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] ||
+             [ -z "$CLOUDFLARE_ACCOUNT_ID" ] ||
+             [ -z "$CLOUDFLARE_PAGES_PROJECT" ]; then
+            echo "::error::Cloudflare configuration is missing."
+            exit 1
+          fi
+
+          echo "Cloudflare configuration is present."
+
       - name: Check existing deployment
         id: existing
         if: needs.prepare.outputs.action == 'deploy'
@@ -307,11 +325,35 @@ jobs:
         run: |
           set -euo pipefail
 
-          response=$(curl -fsS \
+          response=$(curl -sS -G \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments?per_page=100")
+            --data-urlencode "per_page=100" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments" \
+            -w '\n%{http_code}')
 
-          existing_sha=$(echo "$response" | jq -r \
+          http_code="${response##*$'\n'}"
+          body="${response%$'\n'*}"
+
+          echo "Cloudflare HTTP status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Cloudflare API request failed."
+
+            echo "$body" | jq -r '
+              .errors[]? |
+              "Code: \(.code) - \(.message)"
+            ' || echo "$body"
+
+            exit 1
+          fi
+
+          if ! echo "$body" | jq -e '.success == true' >/dev/null; then
+            echo "::error::Cloudflare reported an unsuccessful API response."
+            echo "$body" | jq '.errors'
+            exit 1
+          fi
+
+          existing_sha=$(echo "$body" | jq -r \
             --arg branch "pr-$PR_NUMBER" \
             '[.result[] | select(.deployment_trigger.metadata.branch == $branch)] |
              sort_by(.created_on) | last |
@@ -322,6 +364,7 @@ jobs:
             echo "This commit is already deployed."
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "A new deployment is needed."
           fi
 
       - name: Deploy to Cloudflare Pages
@@ -338,7 +381,7 @@ jobs:
           if [ -z "$CLOUDFLARE_API_TOKEN" ] ||
              [ -z "$CLOUDFLARE_ACCOUNT_ID" ] ||
              [ -z "$CLOUDFLARE_PAGES_PROJECT" ]; then
-            echo "Cloudflare configuration is missing."
+            echo "::error::Cloudflare configuration is missing."
             exit 1
           fi
 
@@ -357,7 +400,7 @@ jobs:
           script: |
             const marker = "<!-- acswebapps-preview -->";
             const action = process.env.ACTION;
-            const number = process.env.PR_NUMBER;
+            const number = Number(process.env.PR_NUMBER);
             const project = process.env.CLOUDFLARE_PAGES_PROJECT;
 
             const url = `https://pr-${number}.${project}.pages.dev/`;
@@ -380,32 +423,42 @@ jobs:
 
             Use \`/remove-preview\` to retire it.`;
 
-            const comments = await github.paginate(
-              github.rest.issues.listComments,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: Number(number),
-                per_page: 100
+            try {
+              const comments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: number,
+                  per_page: 100
+                }
+              );
+
+              const existing = comments.find(comment =>
+                comment.body?.includes(marker)
+              );
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body
+                });
+
+                core.info("Successfully updated preview comment.");
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: number,
+                  body
+                });
+
+                core.info("Successfully created preview comment.");
               }
-            );
-
-            const existing = comments.find(comment =>
-              comment.body?.includes(marker)
-            );
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: Number(number),
-                body
-              });
+            } catch (error) {
+              core.error(`Failed to update PR comment: ${error.message}`);
+              core.error(`HTTP status: ${error.status || "unknown"}`);
+              throw error;
             }
