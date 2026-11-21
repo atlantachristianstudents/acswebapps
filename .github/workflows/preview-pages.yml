@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 concurrency:
   group: pr-preview-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
@@ -27,7 +29,7 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: write
 
     outputs:
@@ -58,6 +60,7 @@ jobs:
               action = context.payload.action === "closed"
                 ? "remove"
                 : "deploy";
+
             } else if (event === "issue_comment") {
               const issue = context.payload.issue;
               const comment = context.payload.comment;
@@ -78,8 +81,6 @@ jobs:
                 return;
               }
 
-              // Only repository collaborators with write-level access
-              // or higher may control preview deployments.
               let permission;
 
               try {
@@ -124,7 +125,14 @@ jobs:
               action = command === "/remove-preview"
                 ? "remove"
                 : "deploy";
+
             } else {
+              core.setOutput("run", "false");
+              return;
+            }
+
+            if (action === "deploy" && !pr.head.repo) {
+              core.warning("The PR source repository is unavailable.");
               core.setOutput("run", "false");
               return;
             }
@@ -147,12 +155,16 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: write
 
     steps:
-      # This checks out PR content only as static data.
-      # No scripts, build commands, or dependencies from the PR are executed.
+      - name: Cache Wrangler
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/_npx
+          key: wrangler-4.166.0-${{ runner.os }}
+
       - name: Check out PR source
         if: needs.prepare.outputs.action == 'deploy'
         uses: actions/checkout@v7
@@ -177,8 +189,6 @@ jobs:
           site="$RUNNER_TEMP/site"
           archive="$RUNNER_TEMP/$DEFINE_RELEASE.tar"
 
-          # Reject symlinks and submodules before copying PR files.
-          # This prevents PR-controlled links from escaping the preview directory.
           python3 - <<'PY'
           import subprocess
           import sys
@@ -209,13 +219,10 @@ jobs:
 
           mkdir -p "$site"
 
-          # Copy the PR's static website files.
           rsync -a --exclude='.git' "$source_dir/" "$site/"
 
-          # A production custom-domain file must not be included in previews.
           rm -f "$site/CNAME"
 
-          # Include the same verified Define data release used by production.
           gh release download "$DEFINE_RELEASE" \
             --repo "$GITHUB_REPOSITORY" \
             --pattern "$DEFINE_RELEASE.tar" \
@@ -230,7 +237,6 @@ jobs:
             -C "$site/apps/define" \
             --wildcards 'data/releases/*'
 
-          # Keep hidden files and prevent GitHub Pages-style Jekyll processing.
           touch "$site/.nojekyll"
 
       - name: Create retired preview page
@@ -289,7 +295,37 @@ jobs:
 
           touch "$site/.nojekyll"
 
+      - name: Check existing deployment
+        id: existing
+        if: needs.prepare.outputs.action == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          PR_SHA: ${{ needs.prepare.outputs.pr_sha }}
+        run: |
+          set -euo pipefail
+
+          response=$(curl -fsS \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments?per_page=100")
+
+          existing_sha=$(echo "$response" | jq -r \
+            --arg branch "pr-$PR_NUMBER" \
+            '[.result[] | select(.deployment_trigger.metadata.branch == $branch)] |
+             sort_by(.created_on) | last |
+             .deployment_trigger.metadata.commit_hash // empty')
+
+          if [ "$existing_sha" = "$PR_SHA" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "This commit is already deployed."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Deploy to Cloudflare Pages
+        if: needs.prepare.outputs.action == 'remove' || steps.existing.outputs.skip != 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -306,7 +342,7 @@ jobs:
             exit 1
           fi
 
-          npx --yes wrangler@4 pages deploy "$RUNNER_TEMP/site" \
+          npx --yes wrangler@4.166.0 pages deploy "$RUNNER_TEMP/site" \
             --project-name "$CLOUDFLARE_PAGES_PROJECT" \
             --branch "pr-$PR_NUMBER" \
             --commit-hash "$PR_SHA"
