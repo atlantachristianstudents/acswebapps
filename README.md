@@ -8,7 +8,7 @@
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/77euBtgZjU)
 [![Issues](https://img.shields.io/badge/GitHub-Issues-5865F2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/atlantachristianstudents/acswebapps/issues)
 
-The Tools filter includes Bible Translation Explorer and Bible Connections. Show Time appears under Presentation.
+The Tools filter includes Bible Translation Explorer and Bible Connections. Open the Bible Translation Explorer card to choose the adjustable comparison or Wu’s 2017 study. Show Time appears under Presentation.
 
 For contributors: start with the [product vision](VISION.md), [design guide](DESIGN.md), and [contribution workflow](CONTRIBUTING.md). These define the audience, warm off-white, navy, and gold design direction, backlog, review policy, and release checks.
 
@@ -40,6 +40,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
 | [Show Time](https://acswebapps.com/apps/show-time/) | Minimal full-screen timer, clock, and stopwatch with keyboard controls and private local history. | live |
 | [Bible Translation Explorer](https://acswebapps.com/apps/bible-translation-explorer/) | Compare 11 Bible translations on literalness and readability, adjust the weighting, and export scores or charts — all offline. | beta |
+| [Bible Translation Explorer (Wu 2017)](https://acswebapps.com/apps/bible-translation-explorer-original/) | Explore Wu’s published results for nine translations alongside an independent Recovery Version estimate. | beta |
 | [Logos Type](https://acswebapps.com/apps/logostype/) | Type Scripture verse by verse, track speed and accuracy, read what you have completed, and race friends. | live |
 | [Test](https://acswebapps.com/apps/test/) | Recite memorized text by typing it, whether it's a Bible verse or another passage. Compare your response with the reference to find missing, changed, and extra words. | beta |
 | [Verse Review](https://acswebapps.com/apps/verse-review/) | Create Bible verse flashcards to practice memorizing Scripture, then review each card on a spaced schedule. Private and offline-friendly. | beta |
@@ -148,6 +149,7 @@ apps/
   _template/               Copy this folder to start a new app
   bible-connections/       Bible cross-reference explorer with an offline connection map
   bible-translation-explorer/  Bible translation scores, weighting, and chart exports
+  bible-translation-explorer-original/  Wu’s 2017 translation study and independent Recovery Version estimate
   logostype/               Scripture typing, reading, records, and friend races
   test/                    Memorization practice with word comparison and PDF import
   verse-review/            Offline Bible verse practice with spaced reviews
@@ -183,6 +185,8 @@ App folders contain `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, and
 4. Run the [validation and manual checks](CONTRIBUTING.md#verify-before-review), then open a PR with project-lead approval for the new app. After merge and deployment, the registry makes the card appear automatically.
 
 Statuses are `live`, `beta`, and `soon` (`soon` renders a non-clickable "Coming soon" card). Cards use `apps/<id>/icons/icon-192.png` by default; set an optional `iconUrl` to point elsewhere. The optional `url` field overrides the default `apps/<id>/` destination. The registry fields are also documented in the header comment of `assets/apps.js`.
+
+Set the optional `groupWith` field to another available app’s ID to show both apps in a chooser on that app’s card. The shared card uses the parent app’s title, status, and categories, and search matches either entry.
 
 ### Service-worker cache versions
 
