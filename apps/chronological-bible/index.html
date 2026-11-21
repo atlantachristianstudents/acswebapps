@@ -1,4 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#f7f6f2"><title>Chronological Bible</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#f7f6f2"><title>Chronological Bible</title><link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
 <style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
 <script id="acswebapps-no-pinch">
 // Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
@@ -168,7 +171,7 @@ body.dark{--bg:inherit;--panel:inherit;--ink:inherit;--muted:inherit;--line:inhe
   </script>
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Chronological Bible is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="chronological-bible-v51">
+<script id="acswebapps-updater" data-version="chronological-bible-v52">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -286,53 +289,53 @@ body.dark{--bg:inherit;--panel:inherit;--ink:inherit;--muted:inherit;--line:inhe
 </script>
 
   <style id="acswebapps-theme-dialog-style">
-    #theme{margin-left:auto;border-radius:6px;border:0;background:none;color:var(--ink,#292e2a);
+    #theme{margin-left:auto;border-radius:6px;border:0;background:none;color:var(--ink);
       cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:6px;
       padding:9px 12px;font:inherit}
-#theme:hover{background:var(--select,#e2e7db)}
-#theme:focus-visible{outline:2px solid var(--accent,#52674c);outline-offset:3px}
+#theme:hover{background:var(--select)}
+#theme:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 #theme .acs-theme-icon{display:block;width:22px;height:22px;background:currentColor;
       -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.7%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203a9%209%200%201%200%200%2018h1a2%202%200%200%200%201.4-3.4%201.5%201.5%200%200%201%201.1-2.6H18a3%203%200%200%200%203-3%209%209%200%200%200-9-9Z%27%2F%3E%3Ccircle%20cx%277.5%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2714%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2717%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
       mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.7%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203a9%209%200%201%200%200%2018h1a2%202%200%200%200%201.4-3.4%201.5%201.5%200%200%201%201.1-2.6H18a3%203%200%200%200%203-3%209%209%200%200%200-9-9Z%27%2F%3E%3Ccircle%20cx%3D%277.5%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2714%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2717%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
-    #acs-theme-dialog{border:1px solid var(--border,#c9c8bc);border-radius:14px;
-      background:var(--bg,#f4efe5);color:var(--text,#24302b);padding:0;
+    #acs-theme-dialog{border:1px solid var(--border);border-radius:14px;
+      background:var(--bg);color:var(--text);padding:0;
       max-width:min(440px,calc(100vw - 40px));font-family:system-ui,-apple-system,sans-serif;
-      box-shadow:0 20px 60px rgba(0,0,0,.35)}
+      box-shadow:0 20px 60px rgba(0,0,0,.35);color-scheme:inherit}
     #acs-theme-dialog::backdrop{background:rgba(0,0,0,.45)}
     #acs-theme-dialog .td-body{padding:20px}
-    #acs-theme-dialog h2{font-size:1.05rem;font-weight:600;margin:0 0 4px;color:var(--text,#24302b)}
-    #acs-theme-dialog .hint{font-size:.8rem;color:var(--muted,#596459);margin:0 0 12px}
+    #acs-theme-dialog h2{font-size:1.05rem;font-weight:600;margin:0 0 4px;color:var(--text)}
+    #acs-theme-dialog .hint{font-size:.8rem;color:var(--muted);margin:0 0 12px}
     #acs-theme-dialog #acs-theme-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     #acs-theme-dialog #acs-theme-presets button{display:flex;align-items:center;gap:8px;padding:9px 12px;
-      border:1px solid var(--border,#c9c8bc);border-radius:8px;background:transparent;
-      color:var(--text,#24302b);font:inherit;font-size:.85rem;cursor:pointer;box-sizing:border-box}
-    #acs-theme-dialog #acs-theme-presets button:hover{background:var(--surface,var(--panel,#f9f6ee))}
-    #acs-theme-dialog #acs-theme-presets button[aria-pressed="true"]{outline:2px solid var(--accent,#44584b);outline-offset:1px}
+      border:1px solid var(--border);border-radius:8px;background:transparent;
+      color:var(--text);font:inherit;font-size:.85rem;cursor:pointer;box-sizing:border-box}
+    #acs-theme-dialog #acs-theme-presets button:hover{background:var(--surface,var(--panel))}
+    #acs-theme-dialog #acs-theme-presets button[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
     #acs-theme-dialog .theme-swatch{display:block;width:40px;height:20px;flex-shrink:0;
       border:1px solid rgba(0,0,0,.15);border-radius:6px;
       background:linear-gradient(90deg,var(--swatch-bg) 0 65%,var(--swatch-accent) 65%)}
-    #acs-theme-dialog #acs-custom-theme-controls{margin-top:14px;padding-top:12px;border-top:1px solid var(--border,#c9c8bc)}
+    #acs-theme-dialog #acs-custom-theme-controls{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
     #acs-theme-dialog #acs-custom-theme-controls[hidden]{display:none}
     #acs-theme-dialog #acs-custom-theme-controls h3{margin:0 0 8px;font-size:.9rem;font-weight:600}
     #acs-theme-dialog .theme-color-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
     #acs-theme-dialog .theme-color-grid label{display:flex;align-items:center;justify-content:space-between;
-      gap:10px;font-size:.8rem;color:var(--muted,#596459)}
+      gap:10px;font-size:.8rem;color:var(--muted)}
     #acs-theme-dialog .theme-color-grid input[type="color"]{width:40px;height:32px;padding:0;
-      border:1px solid var(--border,#c9c8bc);border-radius:6px;background:var(--surface,#fffdf8);cursor:pointer}
-    #acs-theme-dialog .custom-font-label{display:block;margin-top:10px;font-size:.8rem;color:var(--muted,#596459)}
+      border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer}
+    #acs-theme-dialog .custom-font-label{display:block;margin-top:10px;font-size:.8rem;color:var(--muted)}
     #acs-theme-dialog #acs-custom-theme-font{width:100%;margin-top:4px;padding:8px 10px;
-      border:1px solid var(--border,#c9c8bc);border-radius:8px;background:var(--surface,#fffdf8);
-      color:var(--text,#24302b);font:inherit;font-size:.85rem}
+      border:1px solid var(--border);border-radius:8px;background:var(--surface);
+      color:var(--text);font:inherit;font-size:.85rem}
     #acs-theme-dialog #acs-surprise-theme{margin-top:10px;min-height:38px;padding:6px 14px;font-size:.85rem;
-      background:transparent;border:1px solid var(--border,#c9c8bc);color:var(--muted,#596459);
+      background:transparent;border:1px solid var(--border);color:var(--muted);
       border-radius:8px;cursor:pointer;font:inherit}
     #acs-theme-dialog .theme-dialog-actions{display:flex;align-items:center;gap:8px;margin-top:16px}
-    #acs-theme-dialog .theme-dialog-actions>span.theme-name{flex:1;color:var(--muted,#596459);font-size:.85rem}
+    #acs-theme-dialog .theme-dialog-actions>span.theme-name{flex:1;color:var(--muted);font-size:.85rem}
     #acs-theme-dialog .theme-dialog-buttons{display:inline-flex;align-items:center;gap:8px}
     #acs-theme-dialog .theme-dialog-actions button{min-height:40px;padding:8px 14px;font-size:.85rem;font-weight:600;font:inherit;cursor:pointer;border-radius:8px}
-    #acs-theme-dialog #acs-theme-save{background:var(--accent,#44584b);color:var(--on-accent,#ffffff);border:1px solid var(--accent,#44584b)}
-    #acs-theme-dialog #acs-theme-cancel{background:transparent;border:1px solid var(--border,#c9c8bc);color:var(--muted,#596459)}
-    #acs-theme-dialog #acs-theme-cancel:hover{background:var(--surface,var(--panel,#f9f6ee));color:var(--text,#24302b)}
+    #acs-theme-dialog #acs-theme-save{background:var(--accent);color:var(--on-accent);border:1px solid var(--accent)}
+    #acs-theme-dialog #acs-theme-cancel{background:transparent;border:1px solid var(--border);color:var(--muted)}
+    #acs-theme-dialog #acs-theme-cancel:hover{background:var(--surface,var(--panel));color:var(--text)}
   </style>
 
   <button id="theme" type="button" aria-label="Theme" aria-haspopup="dialog"
