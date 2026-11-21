@@ -327,7 +327,7 @@ jobs:
 
           response=$(curl -sS -G \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            --data-urlencode "per_page=100" \
+            --data-urlencode "per_page=10" \
             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments" \
             -w '\n%{http_code}')
 
