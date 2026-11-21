@@ -62,69 +62,78 @@ jobs:
                 : "deploy";
 
             } else if (event === "issue_comment") {
-              const issue = context.payload.issue;
-              const comment = context.payload.comment;
+                const issue = context.payload.issue;
+                const comment = context.payload.comment;
 
-              if (!issue?.pull_request) {
-                core.setOutput("run", "false");
-                return;
-              }
+                if (!issue?.pull_request) {
+                    core.setOutput("run", "false");
+                    return;
+                }
 
-              const command = comment.body.trim();
+                const command = comment.body.trim();
 
-              if (![
-                "/deploy-preview",
-                "/update-preview",
-                "/remove-preview"
-              ].includes(command)) {
-                core.setOutput("run", "false");
-                return;
-              }
+                if (![
+                    "/deploy-preview",
+                    "/update-preview",
+                    "/remove-preview"
+                ].includes(command)) {
+                    core.setOutput("run", "false");
+                    return;
+                }
 
-              let permission;
-
-              try {
-                const result =
-                  await github.rest.repos.getCollaboratorPermissionLevel({
+                // Get the pull request so we can identify its creator.
+                const result = await github.rest.pulls.get({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    username: comment.user.login
-                  });
+                    pull_number: issue.number
+                });
 
-                permission = result.data.permission;
-              } catch (error) {
-                core.warning(
-                  `Could not verify commenter permissions: ${error.message}`
-                );
-                core.setOutput("run", "false");
-                return;
-              }
+                pr = result.data;
 
-              if (!["admin", "write", "maintain"].includes(permission)) {
-                core.warning(
-                  `${comment.user.login} does not have permission to control previews.`
-                );
-                core.setOutput("run", "false");
-                return;
-              }
+                if (pr.state !== "open") {
+                    core.warning("The pull request is not open.");
+                    core.setOutput("run", "false");
+                    return;
+                }
 
-              const result = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: issue.number
-              });
+                const isPRCreator =
+                    comment.user.login.toLowerCase() ===
+                    pr.user.login.toLowerCase();
 
-              pr = result.data;
+                let isAdmin = false;
 
-              if (pr.state !== "open") {
-                core.warning("The pull request is not open.");
-                core.setOutput("run", "false");
-                return;
-              }
+                // Only check repository permissions if the commenter
+                // is not the person who created the pull request.
+                if (!isPRCreator) {
+                    try {
+                    const permissionResult =
+                        await github.rest.repos.getCollaboratorPermissionLevel({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        username: comment.user.login
+                        });
 
-              action = command === "/remove-preview"
-                ? "remove"
-                : "deploy";
+                    isAdmin =
+                        permissionResult.data.permission === "admin";
+
+                    } catch (error) {
+                    core.warning(
+                        `Could not verify commenter permissions: ${error.message}`
+                    );
+                    }
+                }
+
+                if (!isPRCreator && !isAdmin) {
+                    core.warning(
+                    `${comment.user.login} is not the PR creator or a repository admin.`
+                    );
+                    core.setOutput("run", "false");
+                    return;
+                }
+
+                action = command === "/remove-preview"
+                    ? "remove"
+                    : "deploy";
 
             } else {
               core.setOutput("run", "false");
