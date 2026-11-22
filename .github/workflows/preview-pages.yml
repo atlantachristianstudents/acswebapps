@@ -58,9 +58,10 @@ jobs:
                   return;
                 }
 
-                action = context.payload.action === "closed"
-                  ? "remove"
-                  : "deploy";
+                action =
+                  context.payload.action === "closed"
+                    ? "remove"
+                    : "deploy";
 
               } else if (event === "issue_comment") {
                 const issue = context.payload.issue;
@@ -131,11 +132,9 @@ jobs:
                     core.error(`HTTP status: ${error.status || "unknown"}`);
 
                     if (error.response?.data) {
-                      core.error(JSON.stringify(
-                        error.response.data,
-                        null,
-                        2
-                      ));
+                      core.error(
+                        JSON.stringify(error.response.data, null, 2)
+                      );
                     }
 
                     throw error;
@@ -157,9 +156,10 @@ jobs:
                     : "Authorized: repository administrator."
                 );
 
-                action = command === "/remove-preview"
-                  ? "remove"
-                  : "deploy";
+                action =
+                  command === "/remove-preview"
+                    ? "remove"
+                    : "deploy";
 
               } else {
                 core.setOutput("run", "false");
@@ -176,6 +176,7 @@ jobs:
               core.setOutput("action", action);
               core.setOutput("pr_number", String(pr.number));
               core.setOutput("pr_sha", pr.head.sha);
+
               core.setOutput(
                 "pr_repository",
                 pr.head.repo?.full_name || ""
@@ -186,7 +187,9 @@ jobs:
               core.info(`Action: ${action}`);
               core.info(`PR: #${pr.number}`);
               core.info(`Commit: ${pr.head.sha}`);
-              core.info(`Repository: ${pr.head.repo?.full_name || "unavailable"}`);
+              core.info(
+                `Repository: ${pr.head.repo?.full_name || "unavailable"}`
+              );
               core.info("================================");
 
             } catch (error) {
@@ -197,7 +200,9 @@ jobs:
 
               if (error.response?.data) {
                 core.error("Complete GitHub API response:");
-                core.error(JSON.stringify(error.response.data, null, 2));
+                core.error(
+                  JSON.stringify(error.response.data, null, 2)
+                );
               }
 
               core.error(error.stack || "Stack trace unavailable.");
@@ -206,8 +211,11 @@ jobs:
 
   deploy:
     name: Deploy or clean PR preview
+
     needs: prepare
+
     if: needs.prepare.outputs.run == 'true'
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -234,6 +242,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEFINE_RELEASE: define-english-2026-11-18-r2
           DEFINE_SHA256: 68c77fb6d43d8d96167282b49981af2f9622e44f472f73f6e3a6543cbf96c9c3
+        shell: bash
         run: |
           set -Eeuo pipefail
 
@@ -298,7 +307,7 @@ jobs:
 
           echo "Verifying release archive SHA-256..."
 
-          printf '%s  %s\n' "$DEFINE_SHA256" "$archive" \
+          printf '%s %s\n' "$DEFINE_SHA256" "$archive" \
             | sha256sum --check
 
           mkdir -p "$site/apps/define"
@@ -314,6 +323,7 @@ jobs:
           echo "Preview site assembled successfully."
 
       - name: Check Cloudflare configuration
+        if: needs.prepare.outputs.action == 'deploy'
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -345,9 +355,6 @@ jobs:
             echo "::error::Invalid Cloudflare account ID."
             exit 1
           fi
-
-          # Strict project allowlist.
-          # This workflow must never operate on production.
 
           if [ "$CLOUDFLARE_PAGES_PROJECT" != "acswebapps-preview" ]; then
             echo "::error::Unexpected Pages project."
@@ -394,24 +401,14 @@ jobs:
 
             echo "Fetching page $page..."
 
-            set +e
             status=$(curl -sS -G \
               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
               --data-urlencode "env=preview" \
-              --data-urlencode "per_page=100" \
+              --data-urlencode "per_page=20" \
               --data-urlencode "page=$page" \
               -o "$response_file" \
               -w '%{http_code}' \
               "$API")
-            curl_status=$?
-            set -e
-
-            if (( curl_status != 0 )); then
-              echo "::error::Cloudflare connection failed."
-              echo "Curl exit code: $curl_status"
-              cat "$response_file" 2>/dev/null || true
-              exit 1
-            fi
 
             if [ "$status" != "200" ]; then
               echo "::error::Cloudflare returned HTTP $status."
@@ -430,7 +427,7 @@ jobs:
 
             total_pages=$(jq -r '.result_info.total_pages // 1' "$response_file")
 
-            if ! [[ "$total_pages" =~ ^[0-9]+$ ]]; then
+            if [[ ! "$total_pages" =~ ^[0-9]+$ ]] || (( total_pages < 1 )); then
               echo "::error::Invalid pagination response."
               jq '.' "$response_file"
               exit 1
@@ -443,20 +440,20 @@ jobs:
             --arg branch "pr-$PR_NUMBER" \
             --arg project "$CLOUDFLARE_PAGES_PROJECT" \
             '
-            [
-              .[]
-              | select(
-                  .environment == "preview"
-                  and .project_name == $project
-                  and .deployment_trigger.metadata.branch == $branch
-                )
-            ]
-            | sort_by(.created_on)
-            | last
-            | if .latest_stage.status == "success"
-              then (.deployment_trigger.metadata.commit_hash // "")
-              else ""
-              end
+              [
+                .[]
+                | select(
+                    .environment == "preview"
+                    and .project_name == $project
+                    and .deployment_trigger.metadata.branch == $branch
+                  )
+              ]
+              | sort_by(.created_on)
+              | last
+              | if .latest_stage.status == "success"
+                then (.deployment_trigger.metadata.commit_hash // "")
+                else ""
+                end
             ' "$all_deployments")
 
           echo "Latest successfully deployed SHA: ${latest_sha:-none}"
@@ -544,12 +541,23 @@ jobs:
             exit 1
           fi
 
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || \
+             [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Missing Cloudflare credentials."
+            exit 1
+          fi
+
+          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[a-fA-F0-9]{32}$ ]]; then
+            echo "::error::Invalid Cloudflare account ID."
+            exit 1
+          fi
+
           API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments"
 
           all_deployments="$RUNNER_TEMP/all-deployments.jsonl"
-          : > "$all_deployments"
-
           failures="$RUNNER_TEMP/deletion-failures.txt"
+
+          : > "$all_deployments"
           : > "$failures"
 
           echo "=========================================="
@@ -568,24 +576,14 @@ jobs:
 
             echo "Fetching deployment page $page..."
 
-            set +e
             status=$(curl -sS -G \
               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
               --data-urlencode "env=preview" \
-              --data-urlencode "per_page=100" \
+              --data-urlencode "per_page=20" \
               --data-urlencode "page=$page" \
               -o "$response_file" \
               -w '%{http_code}' \
               "$API")
-            curl_status=$?
-            set -e
-
-            if (( curl_status != 0 )); then
-              echo "::error::Cloudflare API connection failed."
-              echo "Curl exit code: $curl_status"
-              cat "$response_file" 2>/dev/null || true
-              exit 1
-            fi
 
             if [ "$status" != "200" ]; then
               echo "::error::Cloudflare returned HTTP $status."
@@ -604,7 +602,7 @@ jobs:
 
             total_pages=$(jq -r '.result_info.total_pages // 1' "$response_file")
 
-            if ! [[ "$total_pages" =~ ^[0-9]+$ ]]; then
+            if [[ ! "$total_pages" =~ ^[0-9]+$ ]] || (( total_pages < 1 )); then
               echo "::error::Invalid pagination response."
               jq '.' "$response_file"
               exit 1
@@ -613,7 +611,7 @@ jobs:
             ((page += 1))
           done
 
-          # Verify exact project, preview environment and branch.
+          # Only select deployments belonging to this exact PR branch.
           # Never select production deployments.
 
           mapfile -t deployments < <(
@@ -621,18 +619,18 @@ jobs:
               --arg branch "pr-$PR_NUMBER" \
               --arg project "$CLOUDFLARE_PAGES_PROJECT" \
               '
-              [
-                .[]
-                | select(
-                    .environment == "preview"
-                    and .project_name == $project
-                    and .deployment_trigger.metadata.branch == $branch
-                  )
-              ]
-              | sort_by(.created_on)
-              | reverse
-              | .[]
-              | .id
+                [
+                  .[]
+                  | select(
+                      .environment == "preview"
+                      and .project_name == $project
+                      and .deployment_trigger.metadata.branch == $branch
+                    )
+                ]
+                | sort_by(.created_on)
+                | reverse
+                | .[]
+                | .id
               ' "$all_deployments"
           )
 
@@ -647,8 +645,7 @@ jobs:
           fi
 
           # Retain the newest deployment.
-          # Cloudflare does not permit deleting the latest
-          # deployment for a branch.
+          # Never delete the latest branch deployment.
 
           newest="${deployments[0]}"
 
@@ -671,30 +668,28 @@ jobs:
 
             if [[ ! "$deployment_id" =~ ^[a-fA-F0-9-]{36}$ ]]; then
               echo "::error::Invalid deployment UUID: $deployment_id"
+
               printf '%s\n' "$deployment_id: invalid UUID" >> "$failures"
+
               ((failed += 1))
               continue
             fi
 
             output="$RUNNER_TEMP/delete-$deployment_id.json"
 
-            set +e
-            status=$(curl -sS \
+            if ! status=$(curl -sS \
               -X DELETE \
               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
               -H "Content-Type: application/json" \
               -o "$output" \
               -w '%{http_code}' \
-              "$API/$deployment_id?force=true")
-            curl_status=$?
-            set -e
+              "$API/$deployment_id?force=true"); then
 
-            if (( curl_status != 0 )); then
               echo "::error::Network failure deleting $deployment_id."
-              echo "Curl exit code: $curl_status"
+
               cat "$output" 2>/dev/null || true
 
-              printf '%s\n' "$deployment_id: network failure (curl $curl_status)" >> "$failures"
+              printf '%s\n' "$deployment_id: network failure" >> "$failures"
 
               ((failed += 1))
               continue
@@ -717,8 +712,7 @@ jobs:
             if ! jq -e '.success == true' "$output" >/dev/null; then
               echo "::error::Cloudflare returned success=false for $deployment_id."
 
-              error_details=$(jq -c \
-                '{errors, messages}' "$output" 2>/dev/null || true)
+              error_details=$(jq -c '{errors, messages}' "$output" 2>/dev/null || true)
 
               printf '%s\n' "$deployment_id: Cloudflare success=false: $error_details" >> "$failures"
 
@@ -727,6 +721,7 @@ jobs:
             fi
 
             echo "Successfully deleted $deployment_id."
+
             ((deleted += 1))
           done
 
@@ -766,27 +761,28 @@ jobs:
         with:
           script: |
             try {
-              const marker = "<!-- acswebapps-preview -->";
+              const marker = "<!-- pr-preview-deployment -->";
+
               const action = process.env.ACTION;
               const number = Number(process.env.PR_NUMBER);
               const project = process.env.CLOUDFLARE_PAGES_PROJECT;
 
-              const url =
-                `https://pr-${number}.${project}.pages.dev/`;
+              const url = `https://pr-${number}.${project}.pages.dev/`;
 
               const body = action === "remove"
                 ? `${marker}
+
             ## PR preview cleanup completed
 
             Older preview deployments have been deleted.
 
             Cloudflare retains the latest deployment for this branch because its API does not permit deleting the latest branch deployment.
 
-            The shared Pages project and production deployments are untouched.
+            **Remaining preview URL:** ${url}
 
-            **Remaining preview URL:**
-            ${url}`
+            The shared Pages project and production deployments are untouched.`
                 : `${marker}
+
             ## PR preview deployed
 
             Your preview is ready:
@@ -816,8 +812,8 @@ jobs:
                 }
               );
 
-              const existing = comments.find(comment =>
-                comment.body?.includes(marker)
+              const existing = comments.find(
+                comment => comment.body?.includes(marker)
               );
 
               if (existing) {
@@ -852,34 +848,26 @@ jobs:
               if (error.response) {
                 core.error("Complete GitHub API response:");
 
-                core.error(JSON.stringify(
-                  error.response.data,
-                  null,
-                  2
-                ));
+                core.error(
+                  JSON.stringify(error.response.data, null, 2)
+                );
 
                 core.error("Response headers:");
 
-                core.error(JSON.stringify(
-                  error.response.headers,
-                  null,
-                  2
-                ));
+                core.error(
+                  JSON.stringify(error.response.headers, null, 2)
+                );
               }
 
               if (error.errors) {
                 core.error("Additional errors:");
 
-                core.error(JSON.stringify(
-                  error.errors,
-                  null,
-                  2
-                ));
+                core.error(
+                  JSON.stringify(error.errors, null, 2)
+                );
               }
 
-              core.error(
-                error.stack || "Stack trace unavailable."
-              );
+              core.error(error.stack || "Stack trace unavailable.");
 
               throw error;
             }
