@@ -24,4 +24,4 @@ Historical comparison CSVs/reports, the superseded Burmese title-match export, a
 
 ## Lyrics libraries
 
-`../songbase_all.json` remains the complete same-origin refresh snapshot used by the app and scheduled workflow. `songbasescraper.py --embed` maintains its offline embedded copy. The `hymn-data` and `burmese-data` JSON script blocks in index.html retain imported lyrics/fallbacks; they are separate from these number mappings and have not been removed. Downloaded libraries remain in the independent IndexedDB database.
+`../songbase_all.json` remains the complete same-origin refresh snapshot used by the app and scheduled workflow. `songbasescraper.py --embed` refreshes its offline embedded copy during app releases; the scheduled workflow updates only the JSON. The `hymn-data` and `burmese-data` JSON script blocks in index.html retain imported lyrics/fallbacks; they are separate from these number mappings and have not been removed. Downloaded libraries remain in the independent IndexedDB database.

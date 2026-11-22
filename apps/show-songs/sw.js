@@ -6,7 +6,6 @@ var VERSION = 'big-text-v171';
 var SHELL = [
   './',
   './index.html',
-  './songbase_all.json',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icon-192.png',
@@ -59,8 +58,9 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   var fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (url.origin === self.location.origin) {
-    var library = url.pathname === new URL('./songbase_all.json', self.location.href).pathname;
-    e.respondWith(req.mode === 'navigate' || library ? networkFirst(req) : staleWhileRevalidate(req));
+    // The page stores the Songbase library in IndexedDB; keep it out of this cache.
+    if (url.pathname === new URL('./songbase_all.json', self.location.href).pathname) return;
+    e.respondWith(req.mode === 'navigate' ? networkFirst(req) : staleWhileRevalidate(req));
   } else if (fonts) {
     e.respondWith(staleWhileRevalidate(req));
   }
