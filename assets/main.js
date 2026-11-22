@@ -190,7 +190,6 @@
     }
 
     if (
-      (event.key === "/" || event.key === "?") &&
       !event.ctrlKey &&
       !event.metaKey &&
       !event.altKey &&
@@ -198,8 +197,20 @@
       !document.activeElement?.closest("dialog") &&
       !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
     ) {
-      event.preventDefault();
-      search?.focus();
+      if (!minimal && (event.key === "/" || event.key === "?")) {
+        event.preventDefault();
+        search?.focus();
+      }
+      if (!event.shiftKey && !event.repeat && !event.isComposing && !document.activeElement?.isContentEditable) {
+        if (event.key === "m") {
+          event.preventDefault();
+          toggleMinimalDisplay();
+        }
+        if (event.key === "c" && !minimal && compactToggle) {
+          event.preventDefault();
+          compactToggle.click();
+        }
+      }
     }
 
     if (event.key === "Escape" && document.activeElement === search) {
@@ -247,18 +258,37 @@
 
   /* ---------- directory layout ---------- */
   const compactToggle = document.getElementById("compact-view");
+  const minimalToggle = document.getElementById("minimal-display-toggle");
   const layoutKey = "acswebapps-layout";
+  const minimalKey = "acswebapps-minimal-display";
+  let compact = false;
+  let minimal = false;
 
-  if (compactToggle) {
-    let compact = false;
-    try { compact = localStorage.getItem(layoutKey) === "compact"; } catch (e) {}
+  try {
+    compact = localStorage.getItem(layoutKey) === "compact";
+    minimal = localStorage.getItem(minimalKey) === "true";
+  } catch (e) {}
 
-    function applyLayout() {
-      grid.classList.toggle("compact", compact);
-      compactToggle.setAttribute("aria-pressed", String(compact));
-    }
+  function applyLayout() {
+    root.classList.toggle("minimal-display", minimal);
+    grid.classList.toggle("compact", compact || minimal);
+    compactToggle?.setAttribute("aria-pressed", String(compact));
+    minimalToggle.textContent = minimal ? "Exit minimal display" : "Enter minimal display";
+  }
 
+  function toggleMinimalDisplay() {
+    minimal = !minimal;
     applyLayout();
+    if (activeTags.length || search.value.trim()) renderApps();
+    try { localStorage.setItem(minimalKey, String(minimal)); } catch (e) {}
+  }
+
+  applyLayout();
+  minimalToggle.addEventListener("click", () => {
+    toggleMinimalDisplay();
+    helpDialog.close();
+  });
+  if (compactToggle) {
     compactToggle.hidden = false;
     compactToggle.addEventListener("click", () => {
       compact = !compact;
@@ -421,9 +451,9 @@
   }
 
   function renderApps() {
-    const query = search.value.trim().toLowerCase();
-    const hideBetaTag = activeTags.includes("Hide Beta");
-    const categoryTags = activeTags.filter((tag) => tag !== "Hide Beta");
+    const query = minimal ? "" : search.value.trim().toLowerCase();
+    const hideBetaTag = !minimal && activeTags.includes("Hide Beta");
+    const categoryTags = minimal ? [] : activeTags.filter((tag) => tag !== "Hide Beta");
     const orderedApps = sortedApps.slice().sort((a, b) =>
       Number(pinnedApps.has(b.id)) - Number(pinnedApps.has(a.id))
     );

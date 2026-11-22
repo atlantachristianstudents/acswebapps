@@ -65,7 +65,8 @@ Statuses: **live** (stable), **beta** (usable, still changing), and **soon** (li
 - **Directory updates.** Open the bottom-right **?** and select **Check for updates**, or press **⌘U** on Mac. The directory reloads when an update is ready.
 - **Responsive app cards.** The directory keeps space around the grid and between cards, with a single column on phones.
 - **Pinned favorites.** Use the pin on an app card or icon tile to move it to the top of the directory. Pins are saved in your browser and follow your current search and filters.
-- **Compact view.** Toggle Compact view beside the Apps heading for an icon grid with a Beta badge on each beta app. The directory remembers your layout.
+- **Compact view.** Press `C` or use the Compact view button beside the Apps heading to switch between cards and an icon grid with a Beta badge on each beta app. The directory remembers your layout.
+- **Minimal display.** Press `M` or use the `?` menu to show the ACS Web Apps title and the full compact app grid. The directory remembers this mode. Press `M` again or choose **Exit minimal display** in the `?` menu to return to your previous layout and filters.
 - **Keyboard- and screen-reader-friendly.** Cards, filters, dialogs, and presentation controls are operable without a mouse.
 - **Portable by design.** Every app folder can be copied out and hosted on its own static site. The home page is driven by a small registry, `assets/apps.js`.
 - **No build step.** Edit a file, reload, and it is live. There is no bundler, transpiler, or npm install.

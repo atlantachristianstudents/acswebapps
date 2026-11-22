@@ -121,7 +121,7 @@
 
         <div class="apps-heading-row">
           <h2 id="apps-heading">Apps</h2>
-          <button id="compact-view" class="chip view-toggle" type="button" aria-pressed="false" aria-controls="grid" hidden>Compact view</button>
+          <button id="compact-view" class="chip view-toggle" type="button" aria-pressed="false" aria-controls="grid" aria-keyshortcuts="C" hidden>Compact view</button>
         </div>
 
         <div id="grid" class="grid" aria-live="polite" aria-atomic="false"></div>
@@ -174,6 +174,10 @@
       aria-haspopup="dialog" aria-controls="help-dialog" title="Help and updates">?</button>
     <dialog id="help-dialog" aria-labelledby="help-dialog-title">
       <h2 id="help-dialog-title">ACS Web Apps</h2>
+      <div class="help-action">
+        <button id="minimal-display-toggle" class="primary" type="button" aria-keyshortcuts="M">Enter minimal display</button>
+        <kbd>M</kbd>
+      </div>
       <button id="check-for-updates" class="primary" type="button" aria-keyshortcuts="Meta+U">Check for updates</button>
       <kbd>⌘U</kbd>
       <p id="update-status" class="hint" role="status"></p>
@@ -211,7 +215,7 @@
     </dialog>
 
     <script src="assets/apps.js"></script>
-    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v50"></script>
+    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v52"></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
         addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));
