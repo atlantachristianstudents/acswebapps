@@ -30,6 +30,7 @@ def run(*args, **kwargs):
             args,
             cwd=ROOT,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             **kwargs,
         )
