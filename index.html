@@ -2,26 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
 
     <title>ACS Web Apps — Free Web Apps by Atlanta Christian Students</title>
 
     <meta
       name="description"
-      content="Simple, free, ad-free web apps for worship, churches, and youth ministry. Explore tools like tuners, verse presenters, and more." />
+      content="Simple, free, ad-free web apps for worship, churches, and youth ministry. Explore tools like tuners, verse presenters, and more."
+    />
 
     <meta name="theme-color" content="#3b4bf5" />
     <meta name="color-scheme" content="light dark" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="ACS Web Apps — Web Apps Without the Ads" />
+    <meta
+      property="og:title"
+      content="ACS Web Apps — Web Apps Without the Ads"
+    />
     <meta
       property="og:description"
-      content="Free, open-source web apps made by Atlanta Christian students. No accounts, no ads." />
+      content="Free, open-source web apps made by Atlanta Christian students. No accounts, no ads."
+    />
     <meta property="og:url" content="https://acswebapps.com/" />
     <meta
       property="og:image"
-      content="https://acswebapps.com/assets/favicon.svg" />
+      content="https://acswebapps.com/assets/favicon.svg"
+    />
 
     <link rel="canonical" href="https://acswebapps.com/" />
 
@@ -38,27 +47,46 @@
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet" />
+      rel="stylesheet"
+    />
 
     <link rel="stylesheet" href="assets/style.css" />
 
-<script src="assets/theme.js"></script>
-<style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
-<script id="acswebapps-no-pinch">
-// Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
-(function () {
-  function preventPinch(event) { if (event.cancelable) event.preventDefault(); }
-  document.addEventListener('gesturestart', preventPinch, { passive: false });
-  document.addEventListener('gesturechange', preventPinch, { passive: false });
-  document.addEventListener('touchmove', function (event) {
-    if (event.touches.length > 1) preventPinch(event);
-  }, { passive: false });
-  document.addEventListener('wheel', function (event) {
-    if (event.ctrlKey) preventPinch(event);
-  }, { passive: false });
-}());
-</script>
-</head>
+    <script src="assets/theme.js"></script>
+    <style id="acswebapps-no-pinch-style">
+      html {
+        touch-action: pan-x pan-y;
+      }
+    </style>
+    <script id="acswebapps-no-pinch">
+      // Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
+      (function () {
+        function preventPinch(event) {
+          if (event.cancelable) event.preventDefault();
+        }
+        document.addEventListener("gesturestart", preventPinch, {
+          passive: false,
+        });
+        document.addEventListener("gesturechange", preventPinch, {
+          passive: false,
+        });
+        document.addEventListener(
+          "touchmove",
+          function (event) {
+            if (event.touches.length > 1) preventPinch(event);
+          },
+          { passive: false },
+        );
+        document.addEventListener(
+          "wheel",
+          function (event) {
+            if (event.ctrlKey) preventPinch(event);
+          },
+          { passive: false },
+        );
+      })();
+    </script>
+  </head>
 
   <body>
     <!-- Header -->
@@ -74,12 +102,46 @@
 
           <a href="#about">About</a>
 
-          <a class="icon-btn" href="https://github.com/atlantachristianstudents/acswebapps" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub">
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <a
+            class="icon-btn"
+            href="https://github.com/atlantachristianstudents/acswebapps"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              />
+            </svg>
           </a>
 
-          <a class="icon-btn" href="https://discord.gg/77euBtgZjU" target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.32 4.37A19.8 19.8 0 0 0 15.36 3c-.2.36-.44.85-.6 1.24a18.3 18.3 0 0 0-5.5 0C9.09 3.85 8.84 3.36 8.64 3a19.74 19.74 0 0 0-4.96 1.38C.53 9.05-.3 13.6.13 18.08a19.9 19.9 0 0 0 6.07 3.06c.49-.66.92-1.37 1.3-2.1a12.9 12.9 0 0 1-2.04-.98c.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.1 0c.17.14.33.27.5.4-.65.39-1.33.71-2.04.98.37.73.81 1.44 1.3 2.1a19.84 19.84 0 0 0 6.07-3.06c.5-5.2-.85-9.7-3.57-13.71ZM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.95-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42Zm7.96 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.22 0 2.18 1.1 2.16 2.42 0 1.34-.94 2.42-2.16 2.42Z"/></svg>
+          <a
+            class="icon-btn"
+            href="https://discord.gg/77euBtgZjU"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Discord"
+            title="Discord"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M20.32 4.37A19.8 19.8 0 0 0 15.36 3c-.2.36-.44.85-.6 1.24a18.3 18.3 0 0 0-5.5 0C9.09 3.85 8.84 3.36 8.64 3a19.74 19.74 0 0 0-4.96 1.38C.53 9.05-.3 13.6.13 18.08a19.9 19.9 0 0 0 6.07 3.06c.49-.66.92-1.37 1.3-2.1a12.9 12.9 0 0 1-2.04-.98c.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.1 0c.17.14.33.27.5.4-.65.39-1.33.71-2.04.98.37.73.81 1.44 1.3 2.1a19.84 19.84 0 0 0 6.07-3.06c.5-5.2-.85-9.7-3.57-13.71ZM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.95-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42Zm7.96 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.22 0 2.18 1.1 2.16 2.42 0 1.34-.94 2.42-2.16 2.42Z"
+              />
+            </svg>
           </a>
 
           <button
@@ -89,8 +151,27 @@
             aria-label="Theme picker"
             aria-haspopup="dialog"
             aria-controls="theme-dialog"
-            title="Choose a theme">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.5 1.5 0 0 1 1.1-2.6H18a3 3 0 0 0 3-3 9 9 0 0 0-9-9Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.8" r=".8"/><circle cx="14" cy="6.8" r=".8"/><circle cx="17" cy="10" r=".8"/></svg>
+            title="Choose a theme"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.5 1.5 0 0 1 1.1-2.6H18a3 3 0 0 0 3-3 9 9 0 0 0-9-9Z"
+              />
+              <circle cx="7.5" cy="10" r=".8" />
+              <circle cx="10" cy="6.8" r=".8" />
+              <circle cx="14" cy="6.8" r=".8" />
+              <circle cx="17" cy="10" r=".8" />
+            </svg>
           </button>
         </nav>
       </div>
@@ -99,16 +180,27 @@
       <div class="wrap hero">
         <h1>Web apps without the ads.</h1>
 
-        <p class="lead">Free tools made by Atlanta Christian students. No accounts, no ads.</p>
+        <p class="lead">
+          Free tools made by Atlanta Christian students. No accounts, no ads.
+        </p>
       </div>
     </header>
 
     <!-- Main Content -->
     <main>
       <!-- Apps -->
-      <section id="apps" class="wrap apps-section" aria-labelledby="apps-heading">
+      <section
+        id="apps"
+        class="wrap apps-section"
+        aria-labelledby="apps-heading"
+      >
         <div class="tools">
-          <div id="tags" class="tags" role="group" aria-label="Filter apps by category"></div>
+          <div
+            id="tags"
+            class="tags"
+            role="group"
+            aria-label="Filter apps by category"
+          ></div>
 
           <div class="search-container">
             <input
@@ -116,16 +208,32 @@
               type="search"
               placeholder="Search apps..."
               aria-label="Search apps"
-              autocomplete="off" />
+              autocomplete="off"
+            />
           </div>
         </div>
 
         <div class="apps-heading-row">
           <h2 id="apps-heading">Apps</h2>
-          <button id="compact-view" class="chip view-toggle" type="button" aria-pressed="false" aria-controls="grid" hidden>Compact view</button>
+          <button
+            id="compact-view"
+            class="chip view-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-controls="grid"
+            aria-keyshortcuts="C"
+            hidden
+          >
+            Compact view
+          </button>
         </div>
 
-        <div id="grid" class="grid" aria-live="polite" aria-atomic="false"></div>
+        <div
+          id="grid"
+          class="grid"
+          aria-live="polite"
+          aria-atomic="false"
+        ></div>
 
         <p id="empty" class="empty" role="status" hidden>
           No apps match that search. Try a different word or choose All.
@@ -137,19 +245,25 @@
         <h2 id="about-heading">About ACS Web Apps</h2>
 
         <p>
-          ACS Web Apps is a home for small, focused web apps built by and for Atlanta Christian students. Everything is free
-          and open source, with no accounts or ads. We use GoatCounter to count app opens and supported installs.
-          These counts exclude your searches, entered text, and saved content.
+          ACS Web Apps is a home for small, focused web apps built by and for
+          Atlanta Christian students. Everything is free and open source, with
+          no accounts or ads. We use GoatCounter to count app opens and
+          supported installs. These counts exclude your searches, entered text,
+          and saved content.
         </p>
 
         <p>
-          Many apps can work offline once they've loaded, making them useful on a stage, at camp, or wherever an
-          internet connection isn't available.
+          Many apps can work offline once they've loaded, making them useful on
+          a stage, at camp, or wherever an internet connection isn't available.
         </p>
 
         <p>
           Have an idea for a new app?
-          <a href="https://github.com/atlantachristianstudents/acswebapps/issues" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://github.com/atlantachristianstudents/acswebapps/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Suggest it on GitHub </a
           >.
         </p>
@@ -162,7 +276,11 @@
         <span> © <span id="year"></span> Atlanta Christian Students </span>
 
         <div class="footer-links">
-          <a href="https://github.com/atlantachristianstudents/acswebapps" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://github.com/atlantachristianstudents/acswebapps"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Source on GitHub
           </a>
 
@@ -171,44 +289,131 @@
       </div>
     </footer>
 
-    <button id="help-toggle" class="icon-btn" type="button" aria-label="Help and updates"
-      aria-haspopup="dialog" aria-controls="help-dialog" title="Help and updates">?</button>
+    <button
+      id="help-toggle"
+      class="icon-btn"
+      type="button"
+      aria-label="Help and updates"
+      aria-haspopup="dialog"
+      aria-controls="help-dialog"
+      title="Help and updates"
+    >
+      ?
+    </button>
     <dialog id="help-dialog" aria-labelledby="help-dialog-title">
       <h2 id="help-dialog-title">ACS Web Apps</h2>
-      <button id="check-for-updates" class="primary" type="button" aria-keyshortcuts="Meta+U">Check for updates</button>
+      <div class="help-action">
+        <button
+          id="minimal-display-toggle"
+          class="primary"
+          type="button"
+          aria-keyshortcuts="M"
+        >
+          Enter minimal display
+        </button>
+        <kbd>M</kbd>
+      </div>
+      <button
+        id="check-for-updates"
+        class="primary"
+        type="button"
+        aria-keyshortcuts="Meta+U"
+      >
+        Check for updates
+      </button>
       <kbd>⌘U</kbd>
       <p id="update-status" class="hint" role="status"></p>
       <form method="dialog">
-        <button class="icon-btn" type="submit" aria-label="Close help">×</button>
+        <button class="icon-btn" type="submit" aria-label="Close help">
+          ×
+        </button>
       </form>
     </dialog>
 
     <dialog id="theme-dialog" aria-labelledby="theme-dialog-title">
       <h2 id="theme-dialog-title">Choose a theme</h2>
-      <p class="hint">Preview themes here. Changes are saved when you press Save theme.</p>
+      <p class="hint">
+        Preview themes here. Changes are saved when you press Save theme.
+      </p>
       <div id="theme-presets" aria-label="Preset themes">
-        <button type="button" data-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button>
-        <button type="button" data-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button>
-        <button type="button" data-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button>
-        <button type="button" data-theme-choice="ocean"><span class="theme-swatch" style="--swatch-bg:#e8f0f4;--swatch-accent:#315d77"></span>Ocean</button>
-        <button type="button" data-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button>
-        <button type="button" data-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button>
-        <button type="button" data-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button>
-        <button type="button" data-theme-choice="custom"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#7257a5"></span>Custom</button>
+        <button type="button" data-theme-choice="dawn">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #f4efe5; --swatch-accent: #44584b"
+          ></span
+          >Dawn
+        </button>
+        <button type="button" data-theme-choice="paper">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #fafafa; --swatch-accent: #3e4b58"
+          ></span
+          >Paper
+        </button>
+        <button type="button" data-theme-choice="sage">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #e8eee5; --swatch-accent: #3c5c40"
+          ></span
+          >Sage
+        </button>
+        <button type="button" data-theme-choice="ocean">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #e8f0f4; --swatch-accent: #315d77"
+          ></span
+          >Ocean
+        </button>
+        <button type="button" data-theme-choice="rose">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #f5eae8; --swatch-accent: #804a5b"
+          ></span
+          >Rose
+        </button>
+        <button type="button" data-theme-choice="dusk">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #292634; --swatch-accent: #d1b6e7"
+          ></span
+          >Dusk
+        </button>
+        <button type="button" data-theme-choice="midnight">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #141c24; --swatch-accent: #afcee5"
+          ></span
+          >Midnight
+        </button>
+        <button type="button" data-theme-choice="custom">
+          <span
+            class="theme-swatch"
+            style="--swatch-bg: #f4efe5; --swatch-accent: #7257a5"
+          ></span
+          >Custom
+        </button>
       </div>
       <section id="custom-theme-controls" hidden>
         <h3>Custom colors and font</h3>
         <div class="theme-color-grid">
-          <label>Background<input type="color" data-theme-color="bg"></label>
-          <label>Text<input type="color" data-theme-color="text"></label>
-          <label>Muted text<input type="color" data-theme-color="muted"></label>
-          <label>Surface<input type="color" data-theme-color="surface"></label>
-          <label>Panel<input type="color" data-theme-color="panel"></label>
-          <label>Border<input type="color" data-theme-color="border"></label>
-          <label>Accent<input type="color" data-theme-color="accent"></label>
-          <label>On accent<input type="color" data-theme-color="on-accent"></label>
-          <label>Selected<input type="color" data-theme-color="selected"></label>
-          <label>Focus<input type="color" data-theme-color="focus"></label>
+          <label>Background<input type="color" data-theme-color="bg" /></label>
+          <label>Text<input type="color" data-theme-color="text" /></label>
+          <label
+            >Muted text<input type="color" data-theme-color="muted"
+          /></label>
+          <label
+            >Surface<input type="color" data-theme-color="surface"
+          /></label>
+          <label>Panel<input type="color" data-theme-color="panel" /></label>
+          <label>Border<input type="color" data-theme-color="border" /></label>
+          <label>Accent<input type="color" data-theme-color="accent" /></label>
+          <label
+            >On accent<input type="color" data-theme-color="on-accent"
+          /></label>
+          <label
+            >Selected<input type="color" data-theme-color="selected"
+          /></label>
+          <label>Focus<input type="color" data-theme-color="focus" /></label>
         </div>
         <label for="custom-theme-font" class="custom-font-label">Font</label>
         <select id="custom-theme-font">
@@ -217,22 +422,34 @@
           <option value="rounded">Rounded</option>
           <option value="mono">Monospace</option>
         </select>
-        <button type="button" id="surprise-theme" class="quiet">Surprise me</button>
+        <button type="button" id="surprise-theme" class="quiet">
+          Surprise me
+        </button>
       </section>
       <div class="theme-dialog-actions">
         <span id="theme-name" class="theme-name" aria-hidden="true">Dawn</span>
         <span class="theme-dialog-buttons">
           <button type="button" id="cancel-theme" class="quiet">Cancel</button>
-          <button type="button" id="save-theme" class="primary">Save theme</button>
+          <button type="button" id="save-theme" class="primary">
+            Save theme
+          </button>
         </span>
       </div>
     </dialog>
 
     <script src="assets/apps.js"></script>
-    <script id="acswebapps-updater" src="assets/main.js" data-version="acswebapps-home-v51"></script>
+    <script
+      id="acswebapps-updater"
+      src="assets/main.js"
+      data-version="acswebapps-home-v52"
+    ></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
-        addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));
+        addEventListener("load", () =>
+          navigator.serviceWorker
+            .register("sw.js", { updateViaCache: "none" })
+            .catch(() => {}),
+        );
       }
     </script>
   </body>

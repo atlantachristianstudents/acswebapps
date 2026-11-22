@@ -949,6 +949,12 @@ button.card {
   display: none;
 }
 
+/* Minimal display */
+
+.minimal-display :is(.brand img, .nav, .hero, .tools, .apps-heading-row, .about, .site-footer) {
+  display: none;
+}
+
 /* Empty state */
 
 .empty {
@@ -1081,9 +1087,13 @@ button.card {
   color: var(--muted);
 }
 
-#check-for-updates {
+#help-dialog .primary {
   min-height: 44px;
   padding: 8px 12px;
+}
+
+.help-action {
+  margin-bottom: 8px;
 }
 
 #check-for-updates:disabled {

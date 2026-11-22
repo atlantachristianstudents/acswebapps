@@ -72,8 +72,8 @@ def update_snapshot(data, directory=APP_DIR, embed=False):
     writes = {}
     if changed:
         writes[archive] = payload + "\n"
+    page = directory / "index.html"
     if embed:
-        page = directory / "index.html"
         html = page.read_text(encoding="utf-8")
         escaped = payload.replace("<", "\\u003c")
         updated, count = re.subn(
@@ -84,7 +84,9 @@ def update_snapshot(data, directory=APP_DIR, embed=False):
             raise ValueError("Could not find the embedded Songbase library")
         if updated != html:
             writes[page] = updated
-    if writes:
+    # songbase_all.json is fetched at runtime into IndexedDB, not precached,
+    # so only a changed page needs a new cache version.
+    if page in writes:
         worker = directory / "sw.js"
         updated, count = re.subn(r"big-text-v(\d+)", lambda match: "big-text-v" + str(int(match[1]) + 1),
                                  worker.read_text(encoding="utf-8"), count=1)
@@ -92,19 +94,13 @@ def update_snapshot(data, directory=APP_DIR, embed=False):
             raise ValueError("Could not find the service-worker cache version")
         writes[worker] = updated
         # The manual updater compares the loaded page with the active worker.
-        # Keep its release marker aligned even for snapshot-only refreshes.
         version = re.search(r"big-text-v\d+", updated).group(0)
-        page = directory / "index.html"
-        if page in writes or page.exists():
-            html = writes[page] if page in writes else page.read_text(encoding="utf-8")
-            marked = re.sub(
-                r'(<script id="acswebapps-updater" data-version=")[^"]*(")',
-                lambda match: match[1] + version + match[2], html, count=1,
-            )
-            if marked != html:
-                writes[page] = marked
-        for path, text in writes.items():
-            atomic_write(path, text)
+        writes[page] = re.sub(
+            r'(<script id="acswebapps-updater" data-version=")[^"]*(")',
+            lambda match: match[1] + version + match[2], writes[page], count=1,
+        )
+    for path, text in writes.items():
+        atomic_write(path, text)
     return bool(writes)
 
 

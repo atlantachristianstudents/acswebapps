@@ -1,0 +1,473 @@
+name: PR Preview Deployments
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    outputs:
+      run: ${{ steps.prepare.outputs.run }}
+      action: ${{ steps.prepare.outputs.action }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      pr_sha: ${{ steps.prepare.outputs.pr_sha }}
+      pr_repository: ${{ steps.prepare.outputs.pr_repository }}
+
+    steps:
+      - name: Check event and permissions
+        id: prepare
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const event = context.eventName;
+            let pr;
+            let action;
+
+            if (event === "pull_request_target") {
+              pr = context.payload.pull_request;
+
+              if (!pr) {
+                core.setOutput("run", "false");
+                return;
+              }
+
+              action = context.payload.action === "closed"
+                ? "remove"
+                : "deploy";
+
+            } else if (event === "issue_comment") {
+                const issue = context.payload.issue;
+                const comment = context.payload.comment;
+
+                if (!issue?.pull_request) {
+                    core.setOutput("run", "false");
+                    return;
+                }
+
+                const command = comment.body.trim();
+
+                if (![
+                    "/deploy-preview",
+                    "/update-preview",
+                    "/remove-preview"
+                ].includes(command)) {
+                    core.setOutput("run", "false");
+                    return;
+                }
+
+                // Get the pull request so we can identify its creator.
+                const result = await github.rest.pulls.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: issue.number
+                });
+
+                pr = result.data;
+
+                if (pr.state !== "open") {
+                    core.warning("The pull request is not open.");
+                    core.setOutput("run", "false");
+                    return;
+                }
+
+                const isPRCreator =
+                    comment.user.login.toLowerCase() ===
+                    pr.user.login.toLowerCase();
+
+                let isAdmin = false;
+
+                // Only check repository permissions if the commenter
+                // is not the person who created the pull request.
+                if (!isPRCreator) {
+                    try {
+                    const permissionResult =
+                        await github.rest.repos.getCollaboratorPermissionLevel({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        username: comment.user.login
+                        });
+
+                    isAdmin =
+                        permissionResult.data.permission === "admin";
+
+                    } catch (error) {
+                    core.warning(
+                        `Could not verify commenter permissions: ${error.message}`
+                    );
+                    }
+                }
+
+                if (!isPRCreator && !isAdmin) {
+                    core.warning(
+                    `${comment.user.login} is not the PR creator or a repository admin.`
+                    );
+                    core.setOutput("run", "false");
+                    return;
+                }
+
+                action = command === "/remove-preview"
+                    ? "remove"
+                    : "deploy";
+
+            } else {
+              core.setOutput("run", "false");
+              return;
+            }
+
+            if (action === "deploy" && !pr.head.repo) {
+              core.warning("The PR source repository is unavailable.");
+              core.setOutput("run", "false");
+              return;
+            }
+
+            core.setOutput("run", "true");
+            core.setOutput("action", action);
+            core.setOutput("pr_number", String(pr.number));
+            core.setOutput("pr_sha", pr.head.sha);
+            core.setOutput(
+              "pr_repository",
+              pr.head.repo?.full_name || ""
+            );
+
+  deploy:
+    name: Deploy PR preview
+    needs: prepare
+    if: needs.prepare.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Cache Wrangler
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/_npx
+          key: wrangler-4.166.0-${{ runner.os }}
+
+      - name: Check out PR source
+        if: needs.prepare.outputs.action == 'deploy'
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ needs.prepare.outputs.pr_repository }}
+          ref: ${{ needs.prepare.outputs.pr_sha }}
+          path: pr-source
+          fetch-depth: 1
+          persist-credentials: false
+          allow-unsafe-pr-checkout: true
+
+      - name: Validate PR files and assemble preview
+        if: needs.prepare.outputs.action == 'deploy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFINE_RELEASE: define-english-2026-11-18-r2
+          DEFINE_SHA256: 68c77fb6d43d8d96167282b49981af2f9622e44f472f73f6e3a6543cbf96c9c3
+        run: |
+          set -euo pipefail
+
+          source_dir="$GITHUB_WORKSPACE/pr-source"
+          site="$RUNNER_TEMP/site"
+          archive="$RUNNER_TEMP/$DEFINE_RELEASE.tar"
+
+          python3 - <<'PY'
+          import subprocess
+          import sys
+
+          result = subprocess.check_output(
+              ["git", "ls-tree", "-rz", "--full-tree", "HEAD"],
+              cwd="pr-source"
+          )
+
+          rejected = []
+
+          for entry in result.split(b"\0"):
+              if not entry:
+                  continue
+
+              metadata, path = entry.split(b"\t", 1)
+              mode = metadata.split(b" ", 1)[0]
+
+              if mode in (b"120000", b"160000"):
+                  rejected.append(path.decode("utf-8", errors="replace"))
+
+          if rejected:
+              print("Preview rejected: symlinks and submodules are not allowed:")
+              for path in rejected:
+                  print(f"  {path}")
+              sys.exit(1)
+          PY
+
+          mkdir -p "$site"
+
+          rsync -a --exclude='.git' "$source_dir/" "$site/"
+
+          rm -f "$site/CNAME"
+
+          gh release download "$DEFINE_RELEASE" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "$DEFINE_RELEASE.tar" \
+            --output "$archive"
+
+          printf '%s  %s\n' "$DEFINE_SHA256" "$archive" \
+            | sha256sum --check
+
+          mkdir -p "$site/apps/define"
+
+          tar -xf "$archive" \
+            -C "$site/apps/define" \
+            --wildcards 'data/releases/*'
+
+          touch "$site/.nojekyll"
+
+      - name: Create retired preview page
+        if: needs.prepare.outputs.action == 'remove'
+        run: |
+          set -euo pipefail
+
+          site="$RUNNER_TEMP/site"
+          mkdir -p "$site"
+
+          cat > "$site/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="robots" content="noindex">
+            <title>Preview retired</title>
+            <style>
+              * { box-sizing: border-box; }
+              body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                padding: 24px;
+                background: #10141c;
+                color: #eef2fa;
+                font: 16px system-ui, sans-serif;
+              }
+              main {
+                width: min(100%, 480px);
+                padding: 32px;
+                border: 1px solid #303949;
+                border-radius: 16px;
+                background: #191f2b;
+              }
+              h1 { margin-top: 0; }
+              p { color: #b6c0d0; line-height: 1.6; }
+              a { color: #8db4ff; }
+            </style>
+          </head>
+          <body>
+            <main>
+              <h1>Preview retired</h1>
+              <p>This pull request preview is no longer available.</p>
+              <p>
+                Visit the
+                <a href="https://acswebapps.com/">ACS Web Apps website</a>
+                instead.
+              </p>
+            </main>
+          </body>
+          </html>
+          HTML
+
+          touch "$site/.nojekyll"
+
+      - name: Check Cloudflare configuration
+        if: needs.prepare.outputs.action == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] ||
+             [ -z "$CLOUDFLARE_ACCOUNT_ID" ] ||
+             [ -z "$CLOUDFLARE_PAGES_PROJECT" ]; then
+            echo "::error::Cloudflare configuration is missing."
+            exit 1
+          fi
+
+          echo "Cloudflare configuration is present."
+
+      - name: Check existing deployment
+        id: existing
+        if: needs.prepare.outputs.action == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          PR_SHA: ${{ needs.prepare.outputs.pr_sha }}
+        run: |
+          set -euo pipefail
+
+          response=$(curl -sS -G \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --data-urlencode "per_page=10" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments" \
+            -w '\n%{http_code}')
+
+          http_code="${response##*$'\n'}"
+          body="${response%$'\n'*}"
+
+          echo "Cloudflare HTTP status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Cloudflare API request failed."
+
+            echo "$body" | jq -r '
+              .errors[]? |
+              "Code: \(.code) - \(.message)"
+            ' || echo "$body"
+
+            exit 1
+          fi
+
+          if ! echo "$body" | jq -e '.success == true' >/dev/null; then
+            echo "::error::Cloudflare reported an unsuccessful API response."
+            echo "$body" | jq '.errors'
+            exit 1
+          fi
+
+          existing_sha=$(echo "$body" | jq -r \
+            --arg branch "pr-$PR_NUMBER" \
+            '[.result[] | select(.deployment_trigger.metadata.branch == $branch)] |
+             sort_by(.created_on) | last |
+             .deployment_trigger.metadata.commit_hash // empty')
+
+          if [ "$existing_sha" = "$PR_SHA" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "This commit is already deployed."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "A new deployment is needed."
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        if: needs.prepare.outputs.action == 'remove' || steps.existing.outputs.skip != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          PR_SHA: ${{ needs.prepare.outputs.pr_sha }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] ||
+             [ -z "$CLOUDFLARE_ACCOUNT_ID" ] ||
+             [ -z "$CLOUDFLARE_PAGES_PROJECT" ]; then
+            echo "::error::Cloudflare configuration is missing."
+            exit 1
+          fi
+
+          npx --yes wrangler@4.166.0 pages deploy "$RUNNER_TEMP/site" \
+            --project-name "$CLOUDFLARE_PAGES_PROJECT" \
+            --branch "pr-$PR_NUMBER" \
+            --commit-hash "$PR_SHA"
+
+      - name: Update PR comment
+        uses: actions/github-script@v8
+        env:
+          ACTION: ${{ needs.prepare.outputs.action }}
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        with:
+          script: |
+            const marker = "<!-- acswebapps-preview -->";
+            const action = process.env.ACTION;
+            const number = Number(process.env.PR_NUMBER);
+            const project = process.env.CLOUDFLARE_PAGES_PROJECT;
+
+            const url = `https://pr-${number}.${project}.pages.dev/`;
+
+            const body = action === "remove"
+              ? `${marker}
+            ## PR preview retired
+
+            The preview for this pull request has been retired.
+
+            The preview URL is no longer serving the PR website.`
+              : `${marker}
+            ## PR preview deployed
+
+            Your preview is ready:
+
+            **${url}**
+
+            This preview updates automatically whenever new commits are pushed to this pull request.
+
+            Use \`/remove-preview\` to retire it.`;
+
+            try {
+              const comments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: number,
+                  per_page: 100
+                }
+              );
+
+              const existing = comments.find(comment =>
+                comment.body?.includes(marker)
+              );
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body
+                });
+
+                core.info("Successfully updated preview comment.");
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: number,
+                  body
+                });
+
+                core.info("Successfully created preview comment.");
+              }
+            } catch (error) {
+              core.error(`Failed to update PR comment: ${error.message}`);
+              core.error(`HTTP status: ${error.status || "unknown"}`);
+              throw error;
+            }
