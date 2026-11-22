@@ -330,15 +330,29 @@ jobs:
         run: |
           set -euo pipefail
 
-          response=$(curl -fsS -G \
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments"
+
+          response=$(curl -sS -G \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             --data-urlencode "per_page=100" \
             --data-urlencode "page=1" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments")
+            "$API" \
+            -w '\n%{http_code}')
 
-          echo "$response" | jq -e '.success == true' >/dev/null
+          http_code="${response##*$'\n'}"
+          body="${response%$'\n'*}"
 
-          existing_sha=$(echo "$response" | jq -r \
+          echo "Cloudflare HTTP status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Cloudflare API request failed."
+            echo "$body" | jq '.errors' || echo "$body"
+            exit 1
+          fi
+
+          echo "$body" | jq -e '.success == true' >/dev/null
+
+          existing_sha=$(echo "$body" | jq -r \
             --arg branch "pr-$PR_NUMBER" \
             '[.result[]
               | select(.deployment_trigger.metadata.branch == $branch)]
@@ -355,7 +369,7 @@ jobs:
           fi
 
       - name: Deploy to Cloudflare Pages
-        if: needs.prepare.outputs.action == 'remove' || steps.existing.outputs.skip != 'true'
+        if: needs.prepare.outputs.action == 'deploy' && steps.existing.outputs.skip != 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -370,6 +384,18 @@ jobs:
             --branch "pr-$PR_NUMBER" \
             --commit-hash "$PR_SHA"
 
+      - name: Deploy retirement page
+        if: needs.prepare.outputs.action == 'remove'
+        env:
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+
+          npx --yes wrangler@4.166.0 pages deploy "$RUNNER_TEMP/site" \
+            --project-name "$CLOUDFLARE_PAGES_PROJECT" \
+            --branch "pr-$PR_NUMBER"
+
       - name: Delete older PR deployments
         if: needs.prepare.outputs.action == 'remove'
         env:
@@ -382,71 +408,93 @@ jobs:
 
           API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PAGES_PROJECT/deployments"
 
-          # Fetch every page of deployment results.
-          first=$(curl -fsS -G \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            --data-urlencode "per_page=100" \
-            --data-urlencode "page=1" \
-            "$API")
+          request() {
+            local method="$1"
+            local url="$2"
+            local output="$RUNNER_TEMP/cloudflare-response.json"
+            local status
 
-          echo "$first" | jq -e '.success == true' >/dev/null
+            status=$(curl -sS \
+              -X "$method" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              -o "$output" \
+              -w '%{http_code}' \
+              "$url")
 
-          total_pages=$(echo "$first" | jq -r '.result_info.total_pages // 1')
+            echo "Cloudflare HTTP status: $status" >&2
 
-          tmp="$RUNNER_TEMP/deployments.jsonl"
-          echo "$first" > "$tmp"
+            if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+              echo "::error::Cloudflare API request failed." >&2
+              jq '.' "$output" >&2 2>/dev/null || cat "$output" >&2
+              return 1
+            fi
 
-          if [ "$total_pages" -gt 1 ]; then
-            for page in $(seq 2 "$total_pages"); do
-              response=$(curl -fsS -G \
-                -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-                --data-urlencode "per_page=100" \
-                --data-urlencode "page=$page" \
-                "$API")
+            if ! jq -e '.success == true' "$output" >/dev/null; then
+              echo "::error::Cloudflare returned success=false." >&2
+              jq '.errors' "$output" >&2
+              return 1
+            fi
 
-              echo "$response" | jq -e '.success == true' >/dev/null
-              echo "$response" >> "$tmp"
-            done
-          fi
+            cat "$output"
+          }
 
-          # Keep the newest deployment for this PR branch.
-          # Cloudflare does not allow deleting the latest deployment
-          # of a branch.
-          mapfile -t old_deployments < <(
+          echo "Fetching deployments for PR #$PR_NUMBER..."
+
+          all_deployments="$RUNNER_TEMP/all-deployments.jsonl"
+          : > "$all_deployments"
+
+          page=1
+          total_pages=1
+
+          while (( page <= total_pages )); do
+            echo "Fetching deployment page $page..."
+
+            response=$(request GET "$API?per_page=25&page=$page")
+
+            echo "$response" | jq -c '.result[]?' >> "$all_deployments"
+
+            total_pages=$(echo "$response" | jq -r '.result_info.total_pages // 1')
+
+            ((page += 1))
+          done
+
+          # Select deployments belonging to this PR.
+          mapfile -t deployments < <(
             jq -s -r \
               --arg branch "pr-$PR_NUMBER" \
               '
-              [.[].result[]
-                | select(.deployment_trigger.metadata.branch == $branch)]
+              [.[] |
+                select(.deployment_trigger.metadata.branch == $branch)
+              ]
               | sort_by(.created_on)
-              | .[:-1][]
+              | reverse
+              | .[]
               | .id
-              ' "$tmp"
+              ' "$all_deployments"
           )
 
-          if [ "${#old_deployments[@]}" -eq 0 ]; then
-            echo "No older deployments need deleting."
+          if (( ${#deployments[@]} == 0 )); then
+            echo "No deployments found for PR #$PR_NUMBER."
             exit 0
           fi
 
-          for deployment_id in "${old_deployments[@]}"; do
-            echo "Deleting old deployment: $deployment_id"
+          echo "Found ${#deployments[@]} deployments."
 
-            response=$(curl -fsS \
-              -X DELETE \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              "$API/$deployment_id?force=true")
+          # Keep the newest deployment.
+          newest="${deployments[0]}"
+          echo "Keeping latest deployment: $newest"
 
-            if ! echo "$response" | jq -e '.success == true' >/dev/null; then
-              echo "::error::Failed to delete deployment $deployment_id"
-              echo "$response" | jq '.errors'
-              exit 1
-            fi
+          # Delete older deployments.
+          for deployment_id in "${deployments[@]:1}"; do
+            echo "Deleting deployment: $deployment_id"
 
-            echo "Successfully deleted $deployment_id"
+            request DELETE "$API/$deployment_id?force=true" >/dev/null
+
+            echo "Successfully deleted: $deployment_id"
           done
 
-          echo "Older PR deployments have been cleaned up."
+          echo "Deployment cleanup completed."
 
       - name: Update PR comment
         uses: actions/github-script@v8
