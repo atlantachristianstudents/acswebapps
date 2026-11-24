@@ -330,6 +330,16 @@
       </form>
     </dialog>
 
+    <dialog id="app-options-dialog" aria-labelledby="app-options-title">
+      <h2 id="app-options-title"></h2>
+      <div id="app-options-list"></div>
+      <form method="dialog">
+        <button class="icon-btn" type="submit" aria-label="Close">
+          ×
+        </button>
+      </form>
+    </dialog>
+
     <dialog id="theme-dialog" aria-labelledby="theme-dialog-title">
       <h2 id="theme-dialog-title">Choose a theme</h2>
       <p class="hint">
@@ -441,7 +451,7 @@
     <script
       id="acswebapps-updater"
       src="assets/main.js"
-      data-version="acswebapps-home-v52"
+      data-version="acswebapps-home-v53"
     ></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
