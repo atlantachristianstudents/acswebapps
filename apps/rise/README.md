@@ -108,3 +108,16 @@ The editor previews the first five dates, including blank days and overrides. On
 The plan calendar uses a compact, single-row navigation toolbar. Its navigation and date-editing controls stay in place while the date grid scrolls.
 
 Deleting a plan in **Edit plans** removes it from the draft list. Press **Save changes** to save deletions along with ordering and on/off changes. Discarding changes restores the plans; closing or reloading before saving keeps the saved plans.
+
+## Try Web Push locally
+
+From the repository root, run the Rise-only pilot server. Its sender dependency is installed outside the static site.
+
+```sh
+npm install --prefix /tmp/acs-rise-push web-push@3.6.7
+NODE_PATH=/tmp/acs-rise-push/node_modules node scripts/rise-push-pilot.cjs
+```
+
+Open http://localhost:8765/apps/rise/ in a desktop browser that supports Web Push. Open settings, then **?** → **Enable notifications** and allow the browser prompt. Choose **Send test notification** and close the Rise tab within 10 seconds, leaving the browser running. Click the resulting notification to reopen Rise. **Turn off notifications** removes the browser subscription. The sender prints whether the push service accepted the message.
+
+The pilot generates a fresh key at startup. Turn off notifications before restarting it, or turn them off and back on after a restart to get a subscription for the new key. For iPhone or iPad testing, the pilot would need an HTTPS deployment and Rise would need to be added to the Home Screen.
