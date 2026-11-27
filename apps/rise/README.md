@@ -25,6 +25,8 @@ A single custom-schedule line can include verse ranges, multiple books, and shor
 
 Consecutive verses from the same book share a slide when they fit near the normal reading size. Longer passages split across slides, and separate passages stay separate. Grouping adjusts to screen size and rotation, preserving your current passage. Swipe up for the next verse; swipe down or press either the up or down arrow key for the previous verse. On the first slide, swiping down or pressing either arrow key opens settings. Swipe anywhere on the verse screen to navigate; the screen shows only the current verse and reference, with no navigation buttons or slide indicators. Each slide automatically reduces its text size to keep the verse and reference on one screen, including after rotating the phone. Settings remain scrollable.
 
+Swipe right (or press **→**) to see the current passage in the original language. Swipe left (or press **←**) for the Recovery Version. The original-language view uses the public-domain [Westminster Leningrad Codex](https://grovescenter.org/file-downloads/) for Hebrew and Aramaic and [Nestle 1904](https://github.com/biblicalhumanities/Nestle1904) for Koine Greek. It maps Old Testament references using [UBS Paratext versification](https://github.com/ubsicap/versification_json) and uses the public-domain [Textus Receptus](https://ebible.org/bible/details.php?id=grctr) for the 15 verses omitted in Nestle, with an edition label beside each fallback verse. Open Hebrew and Greek readings once while online to download the editions for offline reading. Rise stores the editions in its Scripture database and refreshes them after 15 days when opened online.
+
 On the first visit, a one-time popup explains that swiping down (or pressing the up/down arrow keys or `/`) opens settings. Confirming with **Got it** dismisses it and records the dismissal in localStorage so it does not reappear on later visits.
 
 Use **Check for updates** in the **?** About dialog to manually download and activate the latest app version. Save plan and arrangement changes first; Rise restarts when an upgrade is ready. The button reports when the app is current, offline, or unable to finish. Updates preserve saved settings and the independent Scripture database.
@@ -108,3 +110,16 @@ The editor previews the first five dates, including blank days and overrides. On
 The plan calendar uses a compact, single-row navigation toolbar. Its navigation and date-editing controls stay in place while the date grid scrolls.
 
 Deleting a plan in **Edit plans** removes it from the draft list. Press **Save changes** to save deletions along with ordering and on/off changes. Discarding changes restores the plans; closing or reloading before saving keeps the saved plans.
+
+## Try Web Push locally
+
+From the repository root, run the Rise-only pilot server. Its sender dependency is installed outside the static site.
+
+```sh
+npm install --prefix /tmp/acs-rise-push web-push@3.6.7
+NODE_PATH=/tmp/acs-rise-push/node_modules node scripts/rise-push-pilot.cjs
+```
+
+Open http://localhost:8765/apps/rise/ in a desktop browser that supports Web Push. Open settings, then **?** → **Enable notifications** and allow the browser prompt. Choose **Send test notification** and close the Rise tab within 10 seconds, leaving the browser running. Click the resulting notification to reopen Rise. **Turn off notifications** removes the browser subscription. The sender prints whether the push service accepted the message.
+
+The pilot generates a fresh key at startup. Turn off notifications before restarting it, or turn them off and back on after a restart to get a subscription for the new key. For iPhone or iPad testing, the pilot would need an HTTPS deployment and Rise would need to be added to the Home Screen.
