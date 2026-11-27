@@ -34,7 +34,7 @@ For contributors: start with the [product vision](VISION.md), [design guide](DES
 | App | What it does | Status |
 | --- | --- | --- |
 | [Define](https://acswebapps.com/apps/define/) | Look up English definitions by source, compare words, and read available pronunciations and etymologies. The starter works offline, and the complete pack enables full offline lookup when available. | live |
-| [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, with offline reading. | live |
+| [Rise](https://acswebapps.com/apps/rise/) | Start the day with independent, prioritized verse plans from the Recovery Version. Combine enabled Shuffle, Sequential, and Custom plans, and swipe right for Hebrew, Aramaic, or Greek. Supports offline reading. | live |
 | [Bible Connections](https://acswebapps.com/apps/bible-connections/) | Explore Bible cross-references across chapters and verses with an interactive, offline connection map. | live |
 | [Bible Compare](https://acswebapps.com/apps/bible-compare/) | Read Scripture and compare the same verses across public-domain translations, with the Recovery Version first, difference highlighting, offline downloads, and a Compare mode that stacks selected verses one under another. | beta |
 | [Chronological Bible](https://acswebapps.com/apps/chronological-bible/) | Read the Recovery Version in a chronological sequence adapted from Edward Reese, with Scripture cached for offline reading. | live |
