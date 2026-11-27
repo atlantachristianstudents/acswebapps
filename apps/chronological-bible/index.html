@@ -1,4 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#f7f6f2"><title>Chronological Bible</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#f7f6f2"><title>Chronological Bible</title><link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
 <style id="acswebapps-no-pinch-style">html{touch-action:pan-x pan-y}</style>
 <script id="acswebapps-no-pinch">
 // Keep browser pinch zoom from interfering with app gestures; preserve single-finger scrolling.
@@ -57,11 +60,28 @@
 :-webkit-full-screen #acswebapps-directory-home { display: none; }
 body:has(.loadstatus:not([hidden])) #acswebapps-directory-home { z-index: 61; }
 </style>
+
+
+<style id="acswebapps-theme-css">
+/* Shared ACS Web Apps themes mapped onto this app's CSS variables. */
+:root[data-theme="dawn"]{--bg:#f4efe5;--panel:#f9f6ee;--ink:#24302b;--muted:#596459;--line:#c9c8bc;--accent:#44584b;--select:#e8eee4;color-scheme:light}
+:root[data-theme="paper"]{--bg:#fafafa;--panel:#f1f2f3;--ink:#24272b;--muted:#555d66;--line:#c6cbd0;--accent:#3e4b58;--select:#e0e7ee;color-scheme:light}
+:root[data-theme="sage"]{--bg:#e8eee5;--panel:#f0f4eb;--ink:#253529;--muted:#4c6250;--line:#b8c7b5;--accent:#3c5c40;--select:#d6e5ce;color-scheme:light}
+:root[data-theme="ocean"]{--bg:#e8f0f4;--panel:#eef5f9;--ink:#243746;--muted:#4c6273;--line:#b8cad7;--accent:#315d77;--select:#d4e5ef;color-scheme:light}
+:root[data-theme="rose"]{--bg:#f5eae8;--panel:#faf0ed;--ink:#462e34;--muted:#76545d;--line:#d6bdc1;--accent:#804a5b;--select:#eed7dd;color-scheme:light}
+:root[data-theme="dusk"]{--bg:#292634;--panel:#302b3a;--ink:#eee7f5;--muted:#c4b6d2;--line:#665a74;--accent:#d1b6e7;--select:#4c3b5d;color-scheme:dark}
+:root[data-theme="midnight"]{--bg:#141c24;--panel:#1a2530;--ink:#e5ecf2;--muted:#acbdcd;--line:#526477;--accent:#afcee5;--select:#2d455b;color-scheme:dark}
+:root[data-theme="custom"]{--ink:var(--text);--line:var(--border);--select:var(--selected);color-scheme:inherit}
+body.dark{--bg:inherit;--panel:inherit;--ink:inherit;--muted:inherit;--line:inherit;--accent:inherit;--select:inherit;color-scheme:inherit}
+:root[data-theme="custom"] body{font-family:var(--app-font,system-ui,sans-serif)}
+</style>
+
+  <script src="../../assets/theme.js"></script>
 </head><body>
 <aside id="sidebar"><a class="brand" href="#" id="home"><span class="mark">c.</span><span>Chronological Bible<small>RECOVERY VERSION</small></span></a><button id="close" class="mobile" aria-label="Close navigation">×</button><div class="navtabs"><button id="timelineTab" class="active">Timeline</button><button id="savedTab">Bookmarked <span id="savedCount">0</span></button></div><p class="eyebrow" id="navlabel">THE BIBLICAL STORY</p><nav id="eras" aria-label="Reading timeline"></nav><div class="sidebarfoot"><p>Scripture, in the flow of history.</p><button id="about">About this reading order ↗</button></div></aside>
-<div class="main"><header><button id="menu" class="mobile" aria-label="Open navigation">☰</button><div class="crumb">THE BIBLICAL STORY <span>/</span> <b id="eraCrumb"></b></div><div class="tools"><button id="searchOpen" aria-label="Search Scripture">⌕ <span>Search</span> <kbd>/</kbd></button><button id="settingsOpen" aria-label="Settings and keyboard shortcuts">? <span>Settings</span></button></div></header><main id="reader"><div class="intro"><p class="eyebrow" id="eraNumber"></p><h1 id="title"></h1><p id="subtitle"></p></div><div class="readingmeta"><span id="range"></span><button id="bookmark"><svg class="bookmark-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg> Bookmark verse</button></div><article id="verses"></article><div class="readingend"><span class="endline"></span><span>CONTINUE THE STORY</span><span class="endline"></span></div><div class="paging"><button id="previous">← Previous</button><span id="pageLabel"></span><button id="next">Next reading →</button></div><footer><span>RECOVERY VERSION</span><span id="progress"></span></footer></main></div>
+<div class="main"><header><button id="menu" class="mobile" aria-label="Open navigation">☰</button><div class="crumb">THE BIBLICAL STORY <span>/</span> <b id="eraCrumb"></b></div><div class="tools"><button id="searchOpen" aria-label="Search Scripture">⌕ <span>Search</span> <kbd>/</kbd></button><button id="theme" aria-label="Theme" style="margin-left:auto">◐ Theme</button><button id="settingsOpen" aria-label="Settings and keyboard shortcuts">? <span>Settings</span></button></div></header><main id="reader"><div class="intro"><p class="eyebrow" id="eraNumber"></p><h1 id="title"></h1><p id="subtitle"></p></div><div class="readingmeta"><span id="range"></span><button id="bookmark"><svg class="bookmark-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg> Bookmark verse</button></div><article id="verses"></article><div class="readingend"><span class="endline"></span><span>CONTINUE THE STORY</span><span class="endline"></span></div><div class="paging"><button id="previous">← Previous</button><span id="pageLabel"></span><button id="next">Next reading →</button></div><footer><span>RECOVERY VERSION</span><span id="progress"></span></footer></main></div>
 <dialog id="searchDialog" aria-labelledby="searchTitle"><div class="dialoghead"><h2 id="searchTitle">Find a passage</h2><button data-close aria-label="Close search">×</button></div><input id="query" placeholder="John 1:1, Genesis 2, or a phrase…" aria-label="Reference or words" autocomplete="off"><section class="passage-select" aria-label="Choose a passage"><div class="passage-path"><button id="passageBooks" type="button">Books</button><button id="passageBook" type="button" hidden></button><button id="passageChapter" type="button" hidden></button></div><p id="passageKeys">Use arrow keys to move between cells; Enter or Space to select.</p><table id="passageTable" aria-describedby="passageKeys"></table></section><p id="searchHint" role="status" aria-live="polite">Search the full Recovery Version or choose a book, chapter, and verse.</p><div id="results"></div></dialog>
-<dialog id="settings"><div class="dialoghead"><h2>Settings</h2><button data-close aria-label="Close settings">×</button></div><p>Text size</p><div class="sizecontrols"><button id="smaller" aria-label="Decrease text size">−</button><span id="sizeLabel"></span><button id="larger" aria-label="Increase text size">+</button></div><p>Color theme</p><div class="themes"><button data-theme="light">Paper</button><button data-theme="dark">Night</button></div><p>Bookmarks</p><div class="bookmark-controls"><button id="exportBookmarks">Export bookmarks</button><button id="importBookmarks">Import bookmarks</button><input id="bookmarkFile" type="file" accept="application/json,.json" hidden></div><p id="bookmarkStatus" role="status" aria-live="polite"></p><h3>Keyboard shortcuts</h3><ul class="shortcut-list"><li><kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>k</kbd> / <kbd>j</kbd> — move verse highlight</li><li><kbd>←</kbd> / <kbd>→</kbd> or <kbd>h</kbd> / <kbd>l</kbd> — previous / next reading</li><li><kbd>Space</kbd> — toggle verse highlight</li><li><kbd>m</kbd> — bookmark or remove the current verse</li><li><kbd>/</kbd> — search Scripture</li><li><kbd>?</kbd> — open Settings</li><li><kbd>f</kbd> — toggle large text; <kbd>Shift</kbd> + <kbd>f</kbd> — fullscreen</li><li><kbd>+</kbd> / <kbd>−</kbd> — change text size</li><li><kbd>Esc</kbd> — close a panel</li></ul></dialog>
+<dialog id="settings"><div class="dialoghead"><h2>Settings</h2><button data-close aria-label="Close settings">×</button></div><p>Text size</p><div class="sizecontrols"><button id="smaller" aria-label="Decrease text size">−</button><span id="sizeLabel"></span><button id="larger" aria-label="Increase text size">+</button></div><p>Bookmarks</p><div class="bookmark-controls"><button id="exportBookmarks">Export bookmarks</button><button id="importBookmarks">Import bookmarks</button><input id="bookmarkFile" type="file" accept="application/json,.json" hidden></div><p id="bookmarkStatus" role="status" aria-live="polite"></p><h3>Keyboard shortcuts</h3><ul class="shortcut-list"><li><kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>k</kbd> / <kbd>j</kbd> — move verse highlight</li><li><kbd>←</kbd> / <kbd>→</kbd> or <kbd>h</kbd> / <kbd>l</kbd> — previous / next reading</li><li><kbd>Space</kbd> — toggle verse highlight</li><li><kbd>m</kbd> — bookmark or remove the current verse</li><li><kbd>/</kbd> — search Scripture</li><li><kbd>?</kbd> — open Settings</li><li><kbd>f</kbd> — toggle large text; <kbd>Shift</kbd> + <kbd>f</kbd> — fullscreen</li><li><kbd>+</kbd> / <kbd>−</kbd> — change text size</li><li><kbd>Esc</kbd> — close a panel</li></ul></dialog>
 <dialog id="info"><div class="dialoghead"><h2>About this reader</h2><button data-close aria-label="Close about">×</button></div><p>Recovery Version Scripture, downloaded on first use from the shared RcV text file and stored in IndexedDB for offline reading, arranged in a chronological sequence adapted from Edward Reese’s chronological Bible, with some changes to passage placement.</p><p>Chronological placement is an editorial interpretation. Passages from different books are interwoven; the reference beside each passage identifies its original location.</p><p>All 31,102 references in the local order file are matched. RcV’s additional Revelation 12:18 follows 12:17, for 31,103 verses total. This reader contains Scripture text, without study notes.</p><p>Your position, bookmarks, and appearance stay in this browser. Click a verse or press Space to toggle its highlight. Use ↑ / ↓ or k / j to move it, ← / → or h / l for readings, m to bookmark a verse, / to search, and Escape to close panels.</p><p>Chronological Bible is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.</p></dialog><div id="shade"></div><div id="loadstatus" class="loadstatus" role="status"><p id="loadmessage">Loading Scripture…</p><button id="loadretry" hidden>Retry</button></div><script src="order.js"></script><script src="app.js"></script><script id="acswebapps-usage">
 // ACS Web Apps usage counts: keep this self-contained copy in each app in sync.
 (function () {
@@ -151,7 +171,7 @@ body:has(.loadstatus:not([hidden])) #acswebapps-directory-home { z-index: 61; }
   </script>
 <details class="acswebapps-help"><summary aria-label="Help and navigation" title="Help and navigation">?</summary><nav aria-label="App navigation">Chronological Bible is part of the <a href="../../" style="color:inherit;text-decoration:underline">ACS Web Apps project</a>.<div class="acs-update" data-acs-update><button type="button" data-acs-update-button>Check for updates</button><p class="acs-update-note">Save your work first; an update restarts the app.</p><p data-acs-update-status role="status" aria-live="polite"></p></div></nav></details>
 
-<script id="acswebapps-updater" data-version="chronological-bible-v48">
+<script id="acswebapps-updater" data-version="chronological-bible-v52">
 // Self-contained app updater. Keep data-version aligned with this app's service-worker cache.
 (function () {
   'use strict';
@@ -267,4 +287,243 @@ body:has(.loadstatus:not([hidden])) #acswebapps-directory-home { z-index: 61; }
   document.body.appendChild(home);
 }());
 </script>
+
+  <style id="acswebapps-theme-dialog-style">
+    #theme{margin-left:auto;border-radius:6px;border:0;background:none;color:var(--ink);
+      cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:6px;
+      padding:9px 12px;font:inherit}
+#theme:hover{background:var(--select)}
+#theme:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#theme .acs-theme-icon{display:block;width:22px;height:22px;background:currentColor;
+      -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.7%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203a9%209%200%201%200%200%2018h1a2%202%200%200%200%201.4-3.4%201.5%201.5%200%200%201%201.1-2.6H18a3%203%200%200%200%203-3%209%209%200%200%200-9-9Z%27%2F%3E%3Ccircle%20cx%277.5%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2714%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2717%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
+      mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.7%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203a9%209%200%201%200%200%2018h1a2%202%200%200%200%201.4-3.4%201.5%201.5%200%200%201%201.1-2.6H18a3%203%200%200%200%203-3%209%209%200%200%200-9-9Z%27%2F%3E%3Ccircle%20cx%3D%277.5%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2710%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2714%27%20cy%3D%276.8%27%20r%3D%27.8%27%2F%3E%3Ccircle%20cx%3D%2717%27%20cy%3D%2710%27%20r%3D%27.8%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}
+    #acs-theme-dialog{border:1px solid var(--border);border-radius:14px;
+      background:var(--bg);color:var(--text);padding:0;
+      max-width:min(440px,calc(100vw - 40px));font-family:system-ui,-apple-system,sans-serif;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);color-scheme:inherit}
+    #acs-theme-dialog::backdrop{background:rgba(0,0,0,.45)}
+    #acs-theme-dialog .td-body{padding:20px}
+    #acs-theme-dialog h2{font-size:1.05rem;font-weight:600;margin:0 0 4px;color:var(--text)}
+    #acs-theme-dialog .hint{font-size:.8rem;color:var(--muted);margin:0 0 12px}
+    #acs-theme-dialog #acs-theme-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    #acs-theme-dialog #acs-theme-presets button{display:flex;align-items:center;gap:8px;padding:9px 12px;
+      border:1px solid var(--border);border-radius:8px;background:transparent;
+      color:var(--text);font:inherit;font-size:.85rem;cursor:pointer;box-sizing:border-box}
+    #acs-theme-dialog #acs-theme-presets button:hover{background:var(--surface,var(--panel))}
+    #acs-theme-dialog #acs-theme-presets button[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+    #acs-theme-dialog .theme-swatch{display:block;width:40px;height:20px;flex-shrink:0;
+      border:1px solid rgba(0,0,0,.15);border-radius:6px;
+      background:linear-gradient(90deg,var(--swatch-bg) 0 65%,var(--swatch-accent) 65%)}
+    #acs-theme-dialog #acs-custom-theme-controls{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+    #acs-theme-dialog #acs-custom-theme-controls[hidden]{display:none}
+    #acs-theme-dialog #acs-custom-theme-controls h3{margin:0 0 8px;font-size:.9rem;font-weight:600}
+    #acs-theme-dialog .theme-color-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+    #acs-theme-dialog .theme-color-grid label{display:flex;align-items:center;justify-content:space-between;
+      gap:10px;font-size:.8rem;color:var(--muted)}
+    #acs-theme-dialog .theme-color-grid input[type="color"]{width:40px;height:32px;padding:0;
+      border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer}
+    #acs-theme-dialog .custom-font-label{display:block;margin-top:10px;font-size:.8rem;color:var(--muted)}
+    #acs-theme-dialog #acs-custom-theme-font{width:100%;margin-top:4px;padding:8px 10px;
+      border:1px solid var(--border);border-radius:8px;background:var(--surface);
+      color:var(--text);font:inherit;font-size:.85rem}
+    #acs-theme-dialog #acs-surprise-theme{margin-top:10px;min-height:38px;padding:6px 14px;font-size:.85rem;
+      background:transparent;border:1px solid var(--border);color:var(--muted);
+      border-radius:8px;cursor:pointer;font:inherit}
+    #acs-theme-dialog .theme-dialog-actions{display:flex;align-items:center;gap:8px;margin-top:16px}
+    #acs-theme-dialog .theme-dialog-actions>span.theme-name{flex:1;color:var(--muted);font-size:.85rem}
+    #acs-theme-dialog .theme-dialog-buttons{display:inline-flex;align-items:center;gap:8px}
+    #acs-theme-dialog .theme-dialog-actions button{min-height:40px;padding:8px 14px;font-size:.85rem;font-weight:600;font:inherit;cursor:pointer;border-radius:8px}
+    #acs-theme-dialog #acs-theme-save{background:var(--accent);color:var(--bg);border:1px solid var(--accent)}
+    #acs-theme-dialog #acs-theme-cancel{background:transparent;border:1px solid var(--line);color:var(--text)}
+    #acs-theme-dialog #acs-theme-cancel:hover{background:var(--surface,var(--panel))}
+  </style>
+
+  <button id="theme" type="button" aria-label="Theme" aria-haspopup="dialog"
+    aria-controls="acs-theme-dialog" title="Choose a theme" style="margin-left:auto">◐ Theme</button>
+
+  <dialog id="acs-theme-dialog" aria-labelledby="acs-theme-dialog-title">
+    <div class="td-body">
+      <h2 id="acs-theme-dialog-title">Choose a theme</h2>
+      <p class="hint">Preview themes here. Changes are saved when you press Save theme.</p>
+      <div id="acs-theme-presets" aria-label="Preset themes">
+        <button type="button" data-acs-theme-choice="dawn"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#44584b"></span>Dawn</button>
+        <button type="button" data-acs-theme-choice="paper"><span class="theme-swatch" style="--swatch-bg:#fafafa;--swatch-accent:#3e4b58"></span>Paper</button>
+        <button type="button" data-acs-theme-choice="sage"><span class="theme-swatch" style="--swatch-bg:#e8eee5;--swatch-accent:#3c5c40"></span>Sage</button>
+        <button type="button" data-acs-theme-choice="ocean"><span class="theme-swatch" style="--swatch-bg:#e8f0f4;--swatch-accent:#315d77"></span>Ocean</button>
+        <button type="button" data-acs-theme-choice="rose"><span class="theme-swatch" style="--swatch-bg:#f5eae8;--swatch-accent:#804a5b"></span>Rose</button>
+        <button type="button" data-acs-theme-choice="dusk"><span class="theme-swatch" style="--swatch-bg:#292634;--swatch-accent:#d1b6e7"></span>Dusk</button>
+        <button type="button" data-acs-theme-choice="midnight"><span class="theme-swatch" style="--swatch-bg:#141c24;--swatch-accent:#afcee5"></span>Midnight</button>
+        <button type="button" data-acs-theme-choice="custom"><span class="theme-swatch" style="--swatch-bg:#f4efe5;--swatch-accent:#7257a5"></span>Custom</button>
+      </div>
+      <section id="acs-custom-theme-controls" hidden>
+        <h3>Custom colors and font</h3>
+        <div class="theme-color-grid">
+          <label>Background<input type="color" data-acs-theme-color="bg"></label>
+          <label>Text<input type="color" data-acs-theme-color="text"></label>
+          <label>Muted text<input type="color" data-acs-theme-color="muted"></label>
+          <label>Surface<input type="color" data-acs-theme-color="surface"></label>
+          <label>Panel<input type="color" data-acs-theme-color="panel"></label>
+          <label>Border<input type="color" data-acs-theme-color="border"></label>
+          <label>Accent<input type="color" data-acs-theme-color="accent"></label>
+          <label>On accent<input type="color" data-acs-theme-color="on-accent"></label>
+          <label>Selected<input type="color" data-acs-theme-color="selected"></label>
+          <label>Focus<input type="color" data-acs-theme-color="focus"></label>
+        </div>
+        <label for="acs-custom-theme-font" class="custom-font-label">Font</label>
+        <select id="acs-custom-theme-font">
+          <option value="serif">Serif</option>
+          <option value="sans">Sans-serif</option>
+          <option value="rounded">Rounded</option>
+          <option value="mono">Monospace</option>
+        </select>
+        <button type="button" id="acs-surprise-theme">Surprise me</button>
+      </section>
+      <div class="theme-dialog-actions">
+        <span id="acs-theme-name" class="theme-name" aria-hidden="true">Dawn</span>
+        <span class="theme-dialog-buttons">
+          <button type="button" id="acs-theme-cancel">Cancel</button>
+          <button type="button" id="acs-theme-save">Save theme</button>
+        </span>
+      </div>
+    </div>
+  </dialog>
+  <script id="acswebapps-theme-picker">
+    // Theme picker: open the dialog, preview presets, edit custom colors/font, save.
+    // Drives the shared window.acswebappsTheme API so the choice persists across apps.
+    (function () {
+      var A = window.acswebappsTheme;
+      var toggle = document.getElementById("theme");
+      var dialog = document.getElementById("acs-theme-dialog");
+      if (!toggle || !dialog) return;
+      var VARS = ["bg","text","muted","surface","panel","border","accent","on-accent","selected","focus"];
+      var defaults = A ? A.defaults : {bg:"#f4efe5",text:"#24302b",muted:"#596459",surface:"#fffdf8",
+        panel:"#f9f6ee",border:"#c9c8bc",accent:"#44584b","on-accent":"#ffffff",selected:"#e8eee4",focus:"#74876a",font:"serif"};
+      var nameEl = document.getElementById("acs-theme-name");
+      var saveBtn = document.getElementById("acs-theme-save");
+      var cancelBtn = document.getElementById("acs-theme-cancel");
+      var fontSel = document.getElementById("acs-custom-theme-font");
+      var surpriseBtn = document.getElementById("acs-surprise-theme");
+      var customControls = document.getElementById("acs-custom-theme-controls");
+      var presets = dialog.querySelectorAll("[data-acs-theme-choice]");
+      var colors = dialog.querySelectorAll("[data-acs-theme-color]");
+      var draftName, draftCustom;
+
+      function current() { return A ? A.get() : (document.documentElement.getAttribute("data-theme") || "dawn"); }
+      function display(n) { return n.charAt(0).toUpperCase() + n.slice(1); }
+
+      function applyPreview(name) {
+        if (A) A.apply(name); else document.documentElement.setAttribute("data-theme", name);
+        if (nameEl) nameEl.textContent = display(name);
+        if (customControls) customControls.hidden = name !== "custom";
+        for (var i = 0; i < presets.length; i++)
+          presets[i].setAttribute("aria-pressed", String(presets[i].getAttribute("data-acs-theme-choice") === name));
+      }
+
+      function syncInputs() {
+        colors.forEach(function (input) {
+          input.value = draftCustom[input.getAttribute("data-acs-theme-color")] || defaults[input.getAttribute("data-acs-theme-color")];
+        });
+        if (fontSel) fontSel.value = draftCustom.font || "serif";
+      }
+
+      function seedCustomFromLive() {
+        var cs = getComputedStyle(document.documentElement);
+        VARS.forEach(function (k) {
+          var v = cs.getPropertyValue("--" + k).trim();
+          if (/^#[0-9a-f]{6}$/i.test(v)) draftCustom[k] = v;
+        });
+      }
+
+      function open() {
+        draftName = current();
+        draftCustom = Object.assign({}, defaults, (A ? A.getCustom() : null) || {});
+        if (draftName !== "custom" && !(A && A.getCustom())) seedCustomFromLive();
+        syncInputs();
+        applyPreview(draftName);
+        dialog.showModal();
+      }
+
+      function cancel() { applyPreview(current()); }
+
+      function hsl(hue, sat, light) {
+        var s = sat / 100, l = light / 100, a = s * Math.min(l, 1 - l);
+        function ch(n) {
+          var k = (n + hue / 30) % 12;
+          return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))))
+            .toString(16).padStart(2, "0");
+        }
+        return "#" + ch(0) + ch(8) + ch(4);
+      }
+      function lum(hex) {
+        var rgb = [1, 3, 5].map(function (o) {
+          var v = parseInt(hex.slice(o, o + 2), 16) / 255;
+          return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
+        });
+        return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+      }
+      function contrast(a, b) { var la = lum(a), lb = lum(b); return (Math.max(la, lb) + .05) / (Math.min(la, lb) + .05); }
+
+      toggle.addEventListener("click", function () { open(); });
+
+      dialog.addEventListener("click", function (event) {
+        var btn = event.target.closest("[data-acs-theme-choice]");
+        if (!btn) return;
+        var choice = btn.getAttribute("data-acs-theme-choice");
+        if (choice === "custom" && !(A && A.getCustom())) seedCustomFromLive();
+        draftCustom = choice === "custom" ? draftCustom : Object.assign({}, defaults, (A ? A.getCustom() : null) || {});
+        syncInputs();
+        draftName = choice;
+        applyPreview(choice);
+      });
+
+      colors.forEach(function (input) {
+        input.addEventListener("input", function () {
+          draftCustom[input.getAttribute("data-acs-theme-color")] = input.value;
+          applyPreview("custom");
+        });
+      });
+      if (fontSel) fontSel.addEventListener("change", function () {
+        draftCustom.font = fontSel.value; applyPreview("custom");
+      });
+
+      if (surpriseBtn) surpriseBtn.addEventListener("click", function () {
+        function between(min, max) { return min + Math.random() * (max - min); }
+        var hue = between(0, 360), accentHue = (hue + between(35, 325)) % 360;
+        var dark = Math.random() < .5, sat = between(10, 45);
+        function color(light, darkLight, s, h) { return hsl(h || hue, s || sat, dark ? darkLight : light); }
+        var fonts = A ? Object.keys(A.fonts) : ["serif", "sans", "rounded", "mono"];
+        draftCustom = {
+          bg: color(between(90, 97), between(6, 14)),
+          surface: color(between(96, 99), between(14, 20)),
+          panel: color(between(92, 96), between(10, 16)),
+          selected: color(between(81, 88), between(21, 28)),
+          border: color(between(53, 64), between(40, 50)),
+          text: color(between(5, 13), between(93, 99), between(5, 35)),
+          muted: color(between(23, 31), between(73, 85), between(5, 25)),
+          accent: color(between(23, 35), between(72, 85), sat, accentHue),
+          focus: color(between(26, 38), between(70, 83), sat, accentHue),
+          font: fonts[Math.floor(Math.random() * fonts.length)]
+        };
+        var bgs = ["bg", "surface", "panel", "selected"].map(function (k) { return draftCustom[k]; });
+        ["text", "muted", "accent", "focus"].forEach(function (k) {
+          if (bgs.some(function (bg) { return contrast(draftCustom[k], bg) < 4.5; })) draftCustom[k] = dark ? "#ffffff" : "#000000";
+        });
+        draftCustom["on-accent"] = contrast(draftCustom.accent, "#ffffff") >= contrast(draftCustom.accent, "#000000") ? "#ffffff" : "#000000";
+        syncInputs();
+        applyPreview("custom");
+      });
+
+      if (cancelBtn) cancelBtn.addEventListener("click", function () { dialog.close(); cancel(); });
+      dialog.addEventListener("cancel", function () { cancel(); });
+      if (saveBtn) saveBtn.addEventListener("click", function () {
+        if (A) {
+          A.set(draftName);
+          if (draftName === "custom") A.setCustom(draftCustom);
+          A.apply(draftName);
+        }
+        if (nameEl) nameEl.textContent = display(draftName);
+        dialog.close();
+      });
+    })();
+  </script>
 </body></html>

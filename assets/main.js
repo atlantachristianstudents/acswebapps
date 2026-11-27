@@ -27,61 +27,206 @@
   const themePresets = document.getElementById("theme-presets");
   const themeNameEl = document.getElementById("theme-name");
   const saveThemeBtn = document.getElementById("save-theme");
-  const THEME_NAMES = ["light", "dark", "dawn", "paper", "sage", "ocean", "rose", "dusk", "midnight"];
+  const THEME_NAMES = window.acswebappsTheme ? window.acswebappsTheme.names :
+    ["dawn", "paper", "sage", "ocean", "rose", "dusk", "midnight", "custom"];
+  const CUSTOM_DEFAULTS = window.acswebappsTheme ? window.acswebappsTheme.defaults :
+    { bg:"#f4efe5", text:"#24302b", muted:"#596459", surface:"#fffdf8", panel:"#f9f6ee",
+      border:"#c9c8bc", accent:"#44584b", "on-accent":"#ffffff", selected:"#e8eee4",
+      focus:"#74876a", font:"serif" };
+
+  // Draft state while the picker dialog is open.
+  let draftName = window.acswebappsTheme ? window.acswebappsTheme.get() : "dawn";
+  let draftCustom = window.acswebappsTheme ? Object.assign({}, CUSTOM_DEFAULTS, window.acswebappsTheme.getCustom() || {}) : Object.assign({}, CUSTOM_DEFAULTS);
 
   function currentTheme() {
-    return root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    if (window.acswebappsTheme) return window.acswebappsTheme.get();
+    return root.getAttribute("data-theme") || "dawn";
   }
 
-  function applyTheme(theme, persist) {
-    root.setAttribute("data-theme", theme);
+  function applyTheme(theme, persist, custom) {
+    if (window.acswebappsTheme) {
+      if (window.acswebappsTheme.preview) {
+        window.acswebappsTheme.preview(theme, theme === "custom" ? (custom || null) : null);
+      } else {
+        window.acswebappsTheme.apply(theme);
+      }
+    } else {
+      root.setAttribute("data-theme", theme);
+    }
     if (themeNameEl) themeNameEl.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
     if (persist) {
-      try { localStorage.setItem("acswebapps-theme", theme); } catch (e) {}
+      if (window.acswebappsTheme) {
+        window.acswebappsTheme.set(theme);
+        if (theme === "custom") window.acswebappsTheme.setCustom(draftCustom);
+      }
     }
   }
 
-  let savedTheme = null;
-  try { savedTheme = localStorage.getItem("acswebapps-theme"); } catch (e) {}
-  if (savedTheme && THEME_NAMES.includes(savedTheme)) {
-    applyTheme(savedTheme, false);
-  } else if (savedTheme === "dark") {
-    applyTheme("dark", false);
-  } else {
-    applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", false);
-  }
+  // The shared cookie script already applied the saved theme before first paint.
+  // Nothing to do at boot — the page is already themed.
+
+  const customControls = document.getElementById("custom-theme-controls");
 
   function previewTheme(name) {
-    applyTheme(name, false);
+    draftName = name;
+    applyTheme(name, false, draftCustom);
+    if (customControls) customControls.hidden = name !== "custom";
     document.querySelectorAll("#theme-presets [data-theme-choice]").forEach((btn) => {
       btn.setAttribute("aria-pressed", String(btn.dataset.themeChoice === name));
     });
   }
 
+  function openThemeDialog() {
+    // Start the draft from the currently saved values.
+    draftName = currentTheme();
+    if (draftName === "custom") {
+      draftCustom = Object.assign({}, CUSTOM_DEFAULTS, window.acswebappsTheme ? window.acswebappsTheme.getCustom() : {});
+    } else {
+      draftCustom = Object.assign({}, CUSTOM_DEFAULTS);
+    }
+    // If the user has never customized, seed the custom colors from the current preset.
+    if (draftName !== "custom" && !(window.acswebappsTheme && window.acswebappsTheme.getCustom())) {
+      const cs = getComputedStyle(root);
+      ["bg","text","muted","surface","panel","border","accent","on-accent","selected","focus"].forEach((k) => {
+        const v = cs.getPropertyValue("--" + k).trim();
+        if (/^#[0-9a-f]{6}$/i.test(v)) draftCustom[k] = v;
+      });
+    }
+    document.querySelectorAll("[data-theme-color]").forEach((input) => {
+      input.value = draftCustom[input.dataset.themeColor] || CUSTOM_DEFAULTS[input.dataset.themeColor];
+    });
+    const fontSel = document.getElementById("custom-theme-font");
+    if (fontSel) fontSel.value = draftCustom.font || "serif";
+    previewTheme(draftName);
+    themeDialog.showModal();
+  }
+
+  function cancelTheme() {
+    // Revert to the last saved theme + custom values.
+    const saved = window.acswebappsTheme ? window.acswebappsTheme.get() : "dawn";
+    draftCustom = Object.assign({}, CUSTOM_DEFAULTS,
+      window.acswebappsTheme ? window.acswebappsTheme.getCustom() || {} : {});
+    applyTheme(saved, false, draftCustom);
+  }
+
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
       if (!themeDialog) return;
-      previewTheme(currentTheme());
-      themeDialog.showModal();
+      openThemeDialog();
     });
   }
 
   if (themePresets) {
     themePresets.addEventListener("click", (event) => {
       const btn = event.target.closest("[data-theme-choice]");
-      if (btn) previewTheme(btn.dataset.themeChoice);
+      if (!btn) return;
+      const choice = btn.dataset.themeChoice;
+      // When switching to custom for the first time, seed from the live colors.
+      if (choice === "custom" && !(window.acswebappsTheme && window.acswebappsTheme.getCustom())) {
+        const cs = getComputedStyle(root);
+        ["bg","text","muted","surface","panel","border","accent","on-accent","selected","focus"].forEach((k) => {
+          const v = cs.getPropertyValue("--" + k).trim();
+          if (/^#[0-9a-f]{6}$/i.test(v)) draftCustom[k] = v;
+        });
+      }
+      document.querySelectorAll("[data-theme-color]").forEach((input) => {
+        input.value = draftCustom[input.dataset.themeColor] || CUSTOM_DEFAULTS[input.dataset.themeColor];
+      });
+      const fontSel = document.getElementById("custom-theme-font");
+      if (fontSel) fontSel.value = draftCustom.font || "serif";
+      previewTheme(choice);
+    });
+  }
+
+  // Live-update the custom draft as the user picks colors / font.
+  document.querySelectorAll("[data-theme-color]").forEach((input) => {
+    input.addEventListener("input", () => {
+      draftCustom[input.dataset.themeColor] = input.value;
+      previewTheme("custom");
+    });
+  });
+  const fontSel = document.getElementById("custom-theme-font");
+  if (fontSel) {
+    fontSel.addEventListener("change", () => {
+      draftCustom.font = fontSel.value;
+      previewTheme("custom");
+    });
+  }
+
+  // "Surprise me": generate a random, accessible custom palette.
+  function hslToHex(hue, saturation, lightness) {
+    const s = saturation / 100, l = lightness / 100, a = s * Math.min(l, 1 - l);
+    const channel = (n) => {
+      const k = (n + hue / 30) % 12;
+      return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))))
+        .toString(16).padStart(2, "0");
+    };
+    return "#" + channel(0) + channel(8) + channel(4);
+  }
+  function hexLuminance(hex) {
+    const rgb = [1, 3, 5].map((o) => {
+      const v = parseInt(hex.slice(o, o + 2), 16) / 255;
+      return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
+    });
+    return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+  }
+  function contrast(a, b) {
+    const la = hexLuminance(a), lb = hexLuminance(b);
+    return (Math.max(la, lb) + .05) / (Math.min(la, lb) + .05);
+  }
+  const surpriseBtn = document.getElementById("surprise-theme");
+  if (surpriseBtn) {
+    surpriseBtn.addEventListener("click", () => {
+      const between = (min, max) => min + Math.random() * (max - min);
+      const hue = between(0, 360), accentHue = (hue + between(35, 325)) % 360;
+      const dark = Math.random() < .5, saturation = between(10, 45);
+      const color = (light, darkLight, sat = saturation, h = hue) =>
+        hslToHex(h, sat, dark ? darkLight : light);
+      const palette = {
+        bg: color(between(90, 97), between(6, 14)),
+        surface: color(between(96, 99), between(14, 20)),
+        panel: color(between(92, 96), between(10, 16)),
+        selected: color(between(81, 88), between(21, 28)),
+        border: color(between(53, 64), between(40, 50)),
+        text: color(between(5, 13), between(93, 99), between(5, 35)),
+        muted: color(between(23, 31), between(73, 85), between(5, 25)),
+        accent: color(between(23, 35), between(72, 85), between(40, 80), accentHue),
+        focus: color(between(26, 38), between(70, 83), between(40, 80), accentHue),
+        font: Object.keys(window.acswebappsTheme.fonts)[Math.floor(Math.random() * 4)]
+      };
+      const backgrounds = ["bg", "surface", "panel", "selected"].map((k) => palette[k]);
+      ["text", "muted", "accent", "focus"].forEach((k) => {
+        if (backgrounds.some((bg) => contrast(palette[k], bg) < 4.5)) palette[k] = dark ? "#ffffff" : "#000000";
+      });
+      palette["on-accent"] = contrast(palette.accent, "#ffffff") >= contrast(palette.accent, "#000000") ? "#ffffff" : "#000000";
+      draftCustom = Object.assign({}, palette);
+      document.querySelectorAll("[data-theme-color]").forEach((input) => {
+        input.value = draftCustom[input.dataset.themeColor] || CUSTOM_DEFAULTS[input.dataset.themeColor];
+      });
+      if (fontSel) fontSel.value = draftCustom.font;
+      previewTheme("custom");
+    });
+  }
+
+  const cancelBtn = document.getElementById("cancel-theme");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      themeDialog && themeDialog.close();
+      cancelTheme();
     });
   }
 
   if (saveThemeBtn) {
     saveThemeBtn.addEventListener("click", () => {
-      applyTheme(currentTheme(), true);
+      console.log("[home-theme] save clicked, draftName=" + draftName);
+      if (draftName === "custom") window.acswebappsTheme && window.acswebappsTheme.setCustom(draftCustom);
+      applyTheme(draftName, true, draftCustom);
       themeDialog.close();
     });
   }
 
   if (themeDialog) {
-    themeDialog.addEventListener("cancel", () => applyTheme(currentTheme(), false));
+    themeDialog.addEventListener("cancel", () => cancelTheme());
     themeDialog.addEventListener("keydown", (event) => {
       if (event.key === "Escape") themeDialog.close();
     });

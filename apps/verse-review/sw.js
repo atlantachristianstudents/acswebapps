@@ -1,4 +1,4 @@
-var VERSION = "verse-review-v13";
+var VERSION = "verse-review-v14";
 var FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg"];
 self.addEventListener("install", function (e) { e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES.map(function(file){return new Request(file,{cache:"reload"})})); }).then(function () { return self.skipWaiting(); })); });
 self.addEventListener("activate", function (e) { e.waitUntil(caches.keys().then(function (keys) { return Promise.all(keys.filter(function (k) { return k.startsWith("verse-review-v") && k !== VERSION; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); })); });
